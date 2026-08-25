@@ -235,14 +235,20 @@ s9_splicebert() {
   gate_preflight; gate_modal; say "stage 9: SpliceBERT sweep on Modal  -> R2"
   say "This is 95% of the money. Confirm your Modal balance is >= \$35 before continuing."
   confirm "SpliceBERT, 5 folds per dataset, Modal A10G" "~\$31 OUT OF POCKET"
-  modal run cloud/modal/modal_sweep.py::sweep || die "splicebert"
+  # --detach IS NOT OPTIONAL HERE. Without it the app is EPHEMERAL and tied to this local
+  # client: if the shell exits, the network blips, or the laptop sleeps, Modal stops the app
+  # and every running container with it. That is exactly what happened -- the sweep died at
+  # 207 of 475 fold-runs and the dashboard showed "cancelled by user or a failure" with no
+  # cost limit anywhere near being hit. Same disease as sequencing Batch jobs from a shell
+  # loop: the laptop becomes a dependency of the pipeline.
+  modal run --detach cloud/modal/modal_sweep.py::sweep || die "splicebert"
   $PY scripts/cloud_train.py aggregate --arm dinuc --models splicebert
 }
 
 s10_locality() {
   gate_preflight; gate_modal; say "stage 10: ISM locality probe on Modal  -> R3"
   confirm "locality probe, Modal T4" "~\$0.30"
-  modal run cloud/modal/modal_variants.py::locality_sweep || die "locality"
+  modal run --detach cloud/modal/modal_variants.py::locality_sweep || die "locality"
   $PY scripts/locality_probe.py --gather
 }
 
@@ -256,8 +262,8 @@ s12_clinvar() {
   gate_preflight; gate_modal; say "stage 12: ClinVar scoring + mismatched-head control on Modal  -> R4"
   confirm "ClinVar scoring, matched and mismatched, Modal T4" "~\$0.60"
   $PY scripts/variant_splicebert.py --what tables || die "variant tables"
-  modal run cloud/modal/modal_variants.py::sweep || die "clinvar matched"
-  modal run cloud/modal/modal_variants.py::mismatch_sweep || die "clinvar mismatched"
+  modal run --detach cloud/modal/modal_variants.py::sweep || die "clinvar matched"
+  modal run --detach cloud/modal/modal_variants.py::mismatch_sweep || die "clinvar mismatched"
   $PY scripts/variant_splicebert.py --what gather
   $PY scripts/variant_splicebert.py --what test
 }
