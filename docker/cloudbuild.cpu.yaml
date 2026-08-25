@@ -104,8 +104,8 @@ options:
 timeout: 1200s
 
 substitutions:
-  _IMAGE: us-central1-docker.pkg.dev/rbp-composition-2026/rbp/cpu
+  _IMAGE: us-central1-docker.pkg.dev/$PROJECT_ID/rbp/cpu
   # 460 total minus the 34 in test_models.py, which needs torch and runs in the GPU image.
   _EXPECTED_TESTS: '426'
   _GIT_SHA: unknown        # overridden by the caller with the real commit SHA
-  _ARTIFACTS: rbp-composition-2026-artifacts
+  _ARTIFACTS: $PROJECT_ID-artifacts

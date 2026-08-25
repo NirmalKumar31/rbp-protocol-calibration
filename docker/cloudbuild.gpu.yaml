@@ -101,8 +101,8 @@ options:
 timeout: 3600s
 
 substitutions:
-  _IMAGE: us-central1-docker.pkg.dev/rbp-composition-2026/rbp/gpu
+  _IMAGE: us-central1-docker.pkg.dev/$PROJECT_ID/rbp/gpu
   # The FULL suite. The CPU image asserts this number minus the 34 torch tests.
   _EXPECTED_TESTS: '460'
   _GIT_SHA: unknown
-  _ARTIFACTS: rbp-composition-2026-artifacts
+  _ARTIFACTS: $PROJECT_ID-artifacts

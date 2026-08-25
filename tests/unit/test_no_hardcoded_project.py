@@ -18,7 +18,11 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 FORBIDDEN = re.compile(r"rbp-composition-2026")
 
-SEARCH = ["scripts", "src", "cloud"]
+# docker/ was missing from this list, which is exactly how two hardcoded project ids
+# survived in cloudbuild.cpu.yaml and cloudbuild.gpu.yaml and sent the first image build
+# looking for a cache layer in the OLD project's registry. A test that does not look
+# everywhere is a test that certifies the places it looked.
+SEARCH = ["scripts", "src", "cloud", "docker"]
 EXEMPT_SUFFIX = {".md", ".tf", ".tfvars", ".example"}
 EXEMPT_NAME = {"cloud.py"}          # the resolver's own docstring explains the convention
 

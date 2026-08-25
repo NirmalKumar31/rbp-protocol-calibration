@@ -1,10 +1,17 @@
 .venv/
 __pycache__/
 *.pyc
-data/
-results/
-logs/
-.preflight-ok
+
+# ANCHORED WITH A LEADING SLASH, and that slash is load-bearing. Written as `data/` these
+# rules match a directory of that name at ANY depth, so `data/` also matched src/rbp/data/
+# and `results/` would match any nested results dir. git stopped tracking the rbp.data
+# package, `gcloud builds submit` honours .gitignore, so the image was built without it and
+# its own test step failed with ModuleNotFoundError: No module named 'rbp.data'.
+/data/
+/results/
+/logs/
+/.preflight-ok
+/.preflight-modal-ok
 cloud/terraform/.terraform/
 cloud/terraform/terraform.tfstate*
 cloud/terraform/terraform.tfvars

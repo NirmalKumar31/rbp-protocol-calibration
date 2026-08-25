@@ -6,6 +6,7 @@
 #   ./run.sh stage 3            run one stage
 #   ./run.sh from 6             run stage 6 onward
 #   ./run.sh all                everything (still stops at each paid gate)
+#   ./run.sh parallel           stages 8, 9 and 11 at once (independent tracks)
 #   ./run.sh status             where the artefacts are
 #
 # DESIGN RULES, each one paid for by a specific failure in the original build.
@@ -265,5 +266,20 @@ case "${1:-}" in
              for i in $(seq "$2" $((${#STAGES[@]} - 1))); do "${STAGES[$i]}"; done ;;
   all)       for s in "${STAGES[@]}"; do "$s"; done ;;
   status)    status ;;
+  # THREE INDEPENDENT TRACKS AFTER STAGE 7, which is where the wall-clock saving is.
+  # CNN runs on Batch, SpliceBERT on Modal, and the variant assignment on Batch; none of
+  # the three reads another's output, and they contend for nothing -- different quota pools
+  # entirely, GCP vCPU versus Modal containers. Running them in sequence wastes roughly the
+  # duration of the shorter two.
+  #
+  # Stages 10 and 12 are NOT in here: locality needs SpliceBERT's fold-0 weights and ClinVar
+  # needs both those weights and the variant tables, so they are genuinely downstream.
+  parallel) gate_preflight; gate_modal
+            say "launching CNN (GCP), SpliceBERT (Modal) and variants (GCP) together"
+            ( s8_cnn        > logs/track-cnn.log      2>&1; say "track CNN done rc=$?" ) &
+            ( s9_splicebert > logs/track-sb.log       2>&1; say "track SpliceBERT done rc=$?" ) &
+            ( s11_variants  > logs/track-variants.log 2>&1; say "track variants done rc=$?" ) &
+            wait
+            say "all three tracks finished; stages 10 and 12 can now run" ;;
   *)         usage ;;
 esac
