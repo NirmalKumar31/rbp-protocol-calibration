@@ -129,15 +129,31 @@ s1_terraform() {
   # THE GUARD. A first apply on an empty project adds resources and destroys nothing. Any
   # destroy means the state does not describe this project, and applying would delete real
   # infrastructure somewhere else.
-  local DESTROYS
+  # COUNT REPLACEMENTS TOO, NOT JUST PURE DESTROYS.
+  #
+  # Terraform reports a replacement as "must be replaced", never as "will be destroyed", so
+  # an earlier version of this guard reported "0 destroys" on a plan that then printed
+  # "2 added, 0 changed, 2 destroyed". Harmless there -- two IAM bindings being re-created
+  # because a condition title changed -- but a replacement of a data-bearing resource is a
+  # destroy with a friendlier name, and a bucket replacement means data loss. So both are
+  # counted, and replacements are allowed only when explicitly acknowledged.
+  local DESTROYS REPLACES
   DESTROYS=$( cd cloud/terraform && terraform show -no-color tfplan.new \
               | grep -cE "^  # .* will be destroyed" || true )
+  REPLACES=$( cd cloud/terraform && terraform show -no-color tfplan.new \
+              | grep -cE "^  # .* must be replaced" || true )
   if [ "${DESTROYS:-0}" -gt 0 ]; then
     ( cd cloud/terraform && terraform show -no-color tfplan.new | grep -E "will be destroyed" | head -20 )
     die "plan contains ${DESTROYS} DESTROY actions. On a fresh project it must contain none.
      The state being read almost certainly belongs to a different project. Refusing to apply."
   fi
-  say "plan is additive only (${DESTROYS} destroys). Applying."
+  if [ "${REPLACES:-0}" -gt 0 ] && [ "${ALLOW_REPLACE:-0}" != "1" ]; then
+    ( cd cloud/terraform && terraform show -no-color tfplan.new | grep -E "must be replaced" | head -20 )
+    die "plan REPLACES ${REPLACES} resource(s). A replacement destroys and re-creates, which
+     for a bucket means data loss. Review the list above, then rerun with ALLOW_REPLACE=1 if
+     it is intended (an IAM condition title change, for example)."
+  fi
+  say "plan: ${DESTROYS} destroys, ${REPLACES} replacements. Applying."
   ( cd cloud/terraform && terraform apply -input=false -auto-approve tfplan.new ) \
     || die "terraform apply failed"
   ( cd cloud/terraform && rm -f tfplan.new )

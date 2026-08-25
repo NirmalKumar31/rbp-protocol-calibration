@@ -56,10 +56,29 @@ resource "google_storage_bucket_iam_member" "prep_raw_read" {
   member = "serviceAccount:${google_service_account.prep.email}"
 }
 
+# rbp-prep had UNCONDITIONAL objectAdmin on the whole derived bucket, which quietly made it
+# the broadest identity in the project -- able to delete every trained model and every result
+# while only ever needing to write preprocessing output. Noticed while diagnosing stage 7's
+# 403, because it was the reason the equivalent stage never failed in the earlier build: it
+# had run under this account and simply been allowed to write anywhere.
+#
+# Scoped to what preprocessing actually produces. If a future stage needs another prefix it
+# will take a 403 and someone will add it deliberately, which is the point.
 resource "google_storage_bucket_iam_member" "prep_derived_write" {
   bucket = google_storage_bucket.derived.name
   role   = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.prep.email}"
+
+  condition {
+    title       = "preprocessing-outputs-only"
+    description = "Processed datasets, panels, manifests and interim scratch"
+    expression = <<-EOT
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/processed/") ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/panel/") ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/manifest/") ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/interim/")
+    EOT
+  }
 }
 
 # ---------------------------------------------------------------------------------------
@@ -133,11 +152,19 @@ resource "google_storage_bucket_iam_member" "train_derived_write_runs" {
   member = "serviceAccount:${google_service_account.train.email}"
 
   condition {
-    title       = "runs-and-checkpoints-only"
-    description = "Sweep outputs and in-flight checkpoints, nothing else in the bucket"
-    expression  = <<-EOT
+    title       = "model-outputs-only"
+    description = "Sweep outputs, in-flight checkpoints and rehearsal results, nothing else"
+    # rehearsal/ was missing, and stage 7 found it the honest way: every task fitted its
+    # models correctly and then took a 403 uploading rehearsal/{arm}/{cell}/{name}.json.
+    # That is the condition working -- an unlisted write path stays denied -- but the
+    # service account assignment was the real mistake. Widening to the model-output family
+    # keeps least privilege intact: every dataset.tsv under processed/ is still read-only to
+    # this identity, which is the property that matters.
+    expression = <<-EOT
       resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/runs/") ||
-      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/ckpt/")
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/ckpt/") ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/rehearsal/") ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/results/")
     EOT
   }
 }
