@@ -66,13 +66,23 @@ case "$JOB_TYPE" in
     SA=rbp-prep
     SCRIPT="scripts/cloud_prep.py"; ARGS="prep"
     COUNT=$(manifest_rows "manifest/prep_tasks.tsv") || exit 1
-    PAR=12; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
+    # PARALLELISM 8, NOT 12, AND THE REASON IS NOT OBVIOUS.
+    #
+    # CPUS_ALL_REGIONS is 12 and e2-standard-4 is 4 vCPU, so parallelism 12 with 4 tasks per
+    # node asks for exactly three nodes and exactly 12 vCPU. VM creation then fails with
+    # CODE_GCE_QUOTA_EXCEEDED: the limit behaves as a ceiling you cannot touch, not one you
+    # can reach. Batch keeps retrying the third node forever, the job runs 8-wide anyway, and
+    # the events log fills with an error that looks alarming and changes nothing.
+    #
+    # Asking for 8 gets the same throughput with no failed creations and no misleading
+    # errors. Going faster needs a quota increase, not a scheduling change.
+    PAR=8; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=100; TIMEOUT=7200 ;;
   rehearsal)
     SA=rbp-train
     SCRIPT="scripts/cloud_rehearsal.py"; ARGS="run --arm ${ARM}"
     COUNT=$(manifest_rows "manifest/rehearsal_tasks.tsv") || exit 1
-    PAR=12; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
+    PAR=8; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=50; TIMEOUT=7200 ;;
   variants)
     SA=rbp-ingest
@@ -85,7 +95,7 @@ case "$JOB_TYPE" in
     SA=rbp-train
     SCRIPT="scripts/cloud_train.py"; ARGS="run --arm ${ARM}"
     COUNT=$(manifest_rows "manifest/sweep_tasks${MANIFEST_TAG:-}.tsv") || exit 1
-    PAR=12; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
+    PAR=8; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=100; TIMEOUT=14400 ;;
   analysis)
     SA=rbp-analysis
