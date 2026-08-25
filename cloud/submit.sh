@@ -93,7 +93,17 @@ case "$JOB_TYPE" in
     # The CNN arm. Task count is models x datasets x folds and comes from the manifest that
     # cloud_train.py wrote, never from arithmetic done here.
     SA=rbp-train
-    SCRIPT="scripts/cloud_train.py"; ARGS="run --arm ${ARM}"
+    # --device cpu IS REQUIRED HERE AND IS NOT A WORKAROUND.
+    #
+    # cloud_train.py refuses to run a GPU task on CPU unless told to, deliberately: a GPU node
+    # that silently fell back to CPU bills at GPU rates, runs ~100x slower, and says nothing.
+    # On THIS project GPUS_ALL_REGIONS is 0, so the CNN genuinely runs on CPU, and the spec has
+    # to say so rather than let the guard fire. Without it every task exits 1 -- which is what
+    # happened: 12 failures before the pattern was clear.
+    #
+    # The image is still the gpu one, because that is where torch lives. Carrying unused CUDA
+    # is the cheaper mistake; having no torch at all is fatal.
+    SCRIPT="scripts/cloud_train.py"; ARGS="run --arm ${ARM} --device cpu"
     COUNT=$(manifest_rows "manifest/sweep_tasks${MANIFEST_TAG:-}.tsv") || exit 1
     PAR=8; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=100; TIMEOUT=14400 ;;
