@@ -65,7 +65,22 @@ def read_arm_panels(bucket, arm):
 def select(bucket, every, primary="dinuc"):
     full = read_arm_panels(bucket, primary)
     full["dataset"] = full.protein + ":" + full.cell_line
-    full = full.drop_duplicates("dataset").sort_values("pairs").reset_index(drop=True)
+    # DETERMINISTIC SORT, AND THE TIEBREAKER IS NOT DECORATION.
+    #
+    # pandas sort_values defaults to quicksort, which is NOT stable, and three pairs of
+    # datasets in this panel share a pair count exactly (539, 3640, 7988). Sorting on `pairs`
+    # alone therefore leaves it arbitrary which member of a tied pair lands on an even index,
+    # and `[::every]` then keeps a different one run to run. Measured: two of the three tie
+    # pairs flipped between the original study and its reproduction, changing panel membership
+    # by two datasets out of ninety-five.
+    #
+    # The science was unaffected -- tied datasets have identical size by definition, so the
+    # panel's size distribution does not move -- but a panel that is not reproducible defeats
+    # the entire purpose of writing it down as an artefact. Sorting on (pairs, dataset) with a
+    # stable algorithm makes the selection a function of the data and nothing else.
+    full = (full.drop_duplicates("dataset")
+                .sort_values(["pairs", "dataset"], kind="mergesort")
+                .reset_index(drop=True))
 
     picked = full.iloc[::every].reset_index(drop=True) if every > 1 else full
     picked = picked[["dataset", "protein", "cell_line", "pairs"]].copy()
