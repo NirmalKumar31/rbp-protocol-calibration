@@ -210,13 +210,17 @@ s6_select() {
 }
 
 s7_rehearsal() {
-  gate_preflight; say "stage 7: composition + k-mer, both arms  -> R1"
-  confirm "rehearsal, both arms" "~\$0.60"
+  # ONE JOB, BOTH ARMS. The manifest carries `arm` on each row and each task reads its own,
+  # so nothing local has to wait for one arm and then submit the next. Before this, closing
+  # the laptop lid between arms meant the second arm never started -- the sequencing lived in
+  # a shell loop on one machine, which is not a cloud pipeline.
+  gate_preflight; say "stage 7: composition + k-mer, ALL arms in one job  -> R1"
+  confirm "rehearsal, both negative arms, single job" "~\$0.60"
+  $PY scripts/cloud_rehearsal.py manifest || die "rehearsal manifest"
+  ./cloud/submit.sh rehearsal            || die "rehearsal"
   for arm in dinuc gc; do
-    ARM=$arm $PY scripts/cloud_rehearsal.py manifest --arm "$arm" || die "rehearsal manifest $arm"
-    ARM=$arm ./cloud/submit.sh rehearsal || die "rehearsal $arm"
+    $PY scripts/cloud_rehearsal.py aggregate --arm "$arm" || say "aggregate $arm FAILED"
   done
-  for arm in dinuc gc; do $PY scripts/cloud_rehearsal.py aggregate --arm "$arm"; done
 }
 
 s8_cnn() {

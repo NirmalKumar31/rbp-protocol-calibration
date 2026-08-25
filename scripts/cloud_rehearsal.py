@@ -78,33 +78,45 @@ def do_manifest(a):
     study = cloudcfg.study_panel(derived)
     if study is not None:
         log(f"filtering to the study panel: {len(study)} datasets")
+    # EVERY ARM IN ONE MANIFEST, with the arm carried on the row.
+    #
+    # This used to be one manifest per arm, which forced one Batch job per arm and therefore
+    # a LOCAL process to wait for the first and submit the second. That makes the laptop part
+    # of the pipeline: close the lid between arms and the second never starts. cloud_prep.py
+    # already solved this by putting `arm` in the row and letting each task read its own, so
+    # both arms are one job. Same pattern here.
+    #
+    # The point is not tidiness. A pipeline whose sequencing lives in a shell loop on someone's
+    # machine is not a cloud pipeline, it is a cloud-assisted manual process.
+    arms = [a.arm] if a.arm_only else sorted(panelmod.ARMS)
     rows = []
     skipped = 0
-    for cell in CELLS:
-        blob = derived.blob(f"panel/{a.arm}/panel_final_{cell}_{a.arm}.tsv")
-        if not blob.exists():
-            sys.exit(f"no panel for {cell} {a.arm}; run cloud_prep.py finalize first")
-        for r in read_tsv(blob.download_as_text()):
-            pairs = int(r["pairs"])
-            if pairs < a.min_pairs:
-                continue
-            if not cloudcfg.in_study_panel(study, cell, r["protein"]):
-                skipped += 1
-                continue
-            rows.append((cell, r["protein"], pairs))
+    for arm in arms:
+        for cell in CELLS:
+            blob = derived.blob(f"panel/{arm}/panel_final_{cell}_{arm}.tsv")
+            if not blob.exists():
+                sys.exit(f"no panel for {cell} {arm}; run cloud_prep.py finalize first")
+            for r in read_tsv(blob.download_as_text()):
+                pairs = int(r["pairs"])
+                if pairs < a.min_pairs:
+                    continue
+                if not cloudcfg.in_study_panel(study, cell, r["protein"]):
+                    skipped += 1
+                    continue
+                rows.append((cell, r["protein"], arm, pairs))
     if skipped:
-        log(f"  {skipped} datasets outside the study panel, skipped")
-    # Biggest first: the bootstrap is linear in rows, so the longest tasks should start
-    # first or the job ends when the unluckiest node finishes. Same reasoning as prep.
-    rows.sort(key=lambda r: (-r[2], r[0], r[1]))
-    body = "idx\tcell_line\tprotein\tpairs\n" + "".join(
-        f"{i}\t{c}\t{p}\t{n}\n" for i, (c, p, n) in enumerate(rows))
+        log(f"  {skipped} dataset-arms outside the study panel, skipped")
+    # Biggest first: the bootstrap is linear in rows, so the longest tasks start first or the
+    # job ends when the unluckiest node finishes. Same reasoning as prep.
+    rows.sort(key=lambda r: (-r[3], r[0], r[1], r[2]))
+    body = "idx\tcell_line\tprotein\tarm\tpairs\n" + "".join(
+        f"{i}\t{c}\t{p}\t{m}\t{n}\n" for i, (c, p, m, n) in enumerate(rows))
     derived.blob(f"{MANIFEST}").upload_from_string(body)
-    log(f"{len(rows)} datasets -> gs://{a.derived}/{MANIFEST}")
-    log(f"  arm={a.arm}  min_pairs={a.min_pairs}  "
-        f"pairs {min(r[2] for r in rows):,} to {max(r[2] for r in rows):,}")
-    for cell in CELLS:
-        log(f"  {cell:6} {sum(1 for r in rows if r[0] == cell)}")
+    log(f"{len(rows)} dataset-arms -> gs://{a.derived}/{MANIFEST}")
+    log(f"  arms={','.join(arms)}  min_pairs={a.min_pairs}  "
+        f"pairs {min(r[3] for r in rows):,} to {max(r[3] for r in rows):,}")
+    for arm in arms:
+        log(f"  {arm:6} {sum(1 for r in rows if r[2] == arm)}")
 
 
 # --- mode: run --------------------------------------------------------------------------
@@ -119,8 +131,11 @@ def do_run(a):
         sys.exit(f"index {idx} beyond manifest of {len(tasks)}")
     t = tasks[idx]
     cell, name = t["cell_line"], t["protein"]
-    out = f"rehearsal/{a.arm}/{cell}/{name}.json"
-    log(f"task {idx}: {name} {cell} {a.arm}  ({int(t['pairs']):,} pairs)")
+    # The arm comes from the ROW. A task must not depend on how the job was invoked, or the
+    # same manifest index means different work depending on an environment variable.
+    arm = t.get("arm", a.arm)
+    out = f"rehearsal/{arm}/{cell}/{name}.json"
+    log(f"task {idx}: {name} {cell} {arm}  ({int(t['pairs']):,} pairs)")
 
     if derived.blob(out).exists() and not a.force:
         log("already present, nothing to do")
@@ -129,7 +144,7 @@ def do_run(a):
         log("dry run: manifest resolved, stopping before any work")
         return
 
-    src = f"processed/{a.arm}/{cell}/{name}/dataset.tsv"
+    src = f"processed/{arm}/{cell}/{name}/dataset.tsv"
     local = WORK / src
     local.parent.mkdir(parents=True, exist_ok=True)
     derived.blob(src).download_to_filename(str(local))
@@ -142,7 +157,7 @@ def do_run(a):
     nt = nested.test_score(seqs, res["scores"], y, n_boot=a.n_boot, seed=7)
 
     row = {
-        "dataset": f"{name}:{cell}", "protein": name, "cell": cell, "arm": a.arm,
+        "dataset": f"{name}:{cell}", "protein": name, "cell": cell, "arm": arm,
         "pairs": int(len(df) // 2), "n": int(res["n"]),
         "auroc": res["auroc"], "ci_low": res["ci_low"], "ci_high": res["ci_high"],
         "composition_auroc": g.auroc_composition,
@@ -163,7 +178,7 @@ def do_run(a):
     # `BadGzipFile: Not a gzipped file (b'id')`. A filename is not a format; if you claim
     # a content type, produce it. The reader sniffs the magic number so the old objects
     # still work -- see cloud_train.read_scores.
-    derived.blob(f"rehearsal/{a.arm}/{cell}/{name}.scores.tsv.gz").upload_from_string(
+    derived.blob(f"rehearsal/{arm}/{cell}/{name}.scores.tsv.gz").upload_from_string(
         gzip.compress(sc.to_csv(sep="\t", index=False).encode("utf-8")),
         content_type="application/gzip")
 
@@ -243,6 +258,9 @@ def main():
     p.add_argument("--n-boot", type=int, default=int(os.environ.get("N_BOOT", 2000)))
     p.add_argument("--min-pairs", type=int, default=None)
     p.add_argument("--index", type=int, default=None)
+    p.add_argument("--arm-only", action="store_true",
+                   help="manifest for --arm alone. Default builds EVERY arm in one job so "
+                        "no local process has to sequence them.")
     p.add_argument("--force", action="store_true")
     p.add_argument("--dry-run", action="store_true")
     a = p.parse_args()
