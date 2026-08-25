@@ -129,6 +129,19 @@ else
   NETWORK='"network": {"networkInterfaces": [{"network": "projects/'"${PROJECT}"'/global/networks/rbp-net", "subnetwork": "projects/'"${PROJECT}"'/regions/'"${REGION}"'/subnetworks/rbp-workers", "noExternalIpAddress": true}]},'
 fi
 
+# SPOT WAS THE WRONG DEFAULT ON A LOW-QUOTA PROJECT, and the arithmetic is not close.
+#
+# Spot VMs get preempted. Normally that is fine: tasks are resumable and the discount is
+# ~70%. But CPUS_ALL_REGIONS is 12 here, which is exactly three e2-standard-4 nodes, so
+# there is no spare capacity to replace a preempted worker -- the job simply shrinks. It
+# was observed dropping from two nodes to one, and the measured throughput fell to 2.5
+# datasets/min, putting preprocessing at over three hours.
+#
+# The whole of preprocessing is about 7 vCPU-hours: $0.07 on spot, $0.23 on demand. Sixteen
+# cents to remove a three-hour tail and a class of failure. Spot remains available for the
+# long training sweeps, where the absolute numbers are large enough to matter.
+PROVISIONING="${PROVISIONING:-STANDARD}"
+
 JOB="${JOB_TYPE}-$(date +%m%d-%H%M%S)"
 mkdir -p cloud/jobs/rendered
 SPEC="cloud/jobs/rendered/${JOB}.json"
@@ -168,7 +181,7 @@ cat > "$SPEC" <<JSON
     "instances": [{
       "policy": {
         "machineType": "${MACHINE}",
-        "provisioningModel": "SPOT",
+        "provisioningModel": "${PROVISIONING}",
         "bootDisk": {"sizeGb": ${DISK}, "type": "pd-balanced"}
       }
     }],
@@ -181,7 +194,7 @@ JSON
 
 echo "job=${JOB} script=${SCRIPT} ${ARGS}"
 echo "tasks=${COUNT} parallelism=${PAR} per_node=${PER_NODE} nodes=$(( (PAR + PER_NODE - 1) / PER_NODE ))"
-echo "machine=${MACHINE} spot external_ip=${EXTERNAL} image=${IMAGE_KIND}@${DIGEST:0:19}..."
+echo "machine=${MACHINE} ${PROVISIONING} external_ip=${EXTERNAL} image=${IMAGE_KIND}@${DIGEST:0:19}..."
 
 if [ "${RBP_YES:-0}" != "1" ]; then
   read -r -p "submit? [y/N] " ok
