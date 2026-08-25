@@ -95,15 +95,24 @@ case "$JOB_TYPE" in
   *) echo "unknown job type: $JOB_TYPE" >&2; exit 1 ;;
 esac
 
+# --- which image? ----------------------------------------------------------------------
+# Only the sweep needs torch, and the CPU image deliberately has none -- 1.2 GB against the
+# GPU image's 6 GB, because the preprocessing fan-out should not pull CUDA it never uses. The
+# CNN is a torch model, so a sweep task on the CPU image would fail on `import torch` 475
+# times. The GPU image runs perfectly well on a CPU machine; it just carries CUDA it will not
+# touch, which is the cheaper mistake.
+IMAGE_KIND=cpu
+[ "$JOB_TYPE" = "sweep" ] && IMAGE_KIND=gpu
+
 # --- the image, pinned BY DIGEST -------------------------------------------------------
 # A tag is mutable. Pinning by digest is what makes "which image produced this result?"
 # answerable, and it is the same reason the model weights are baked into the image.
-DIGEST=$(gcloud storage cat "gs://${PROJECT}-artifacts/images/cpu_digest.txt" 2>/dev/null | tr -d '[:space:]')
+DIGEST=$(gcloud storage cat "gs://${PROJECT}-artifacts/images/${IMAGE_KIND}_digest.txt" 2>/dev/null | tr -d '[:space:]')
 if [ -z "$DIGEST" ]; then
-  echo "no image digest at gs://${PROJECT}-artifacts/images/cpu_digest.txt -- run stage 2" >&2
+  echo "no ${IMAGE_KIND} digest at gs://${PROJECT}-artifacts/images/${IMAGE_KIND}_digest.txt -- run stage 2" >&2
   exit 1
 fi
-IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/rbp/cpu@${DIGEST}"
+IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/rbp/${IMAGE_KIND}@${DIGEST}"
 
 # NESTING AND NAMES BOTH MATTERED HERE. Batch wants
 # allocationPolicy.network.networkInterfaces, not allocationPolicy.networkInterfaces -- the
@@ -172,7 +181,7 @@ JSON
 
 echo "job=${JOB} script=${SCRIPT} ${ARGS}"
 echo "tasks=${COUNT} parallelism=${PAR} per_node=${PER_NODE} nodes=$(( (PAR + PER_NODE - 1) / PER_NODE ))"
-echo "machine=${MACHINE} spot external_ip=${EXTERNAL} image=@${DIGEST:0:19}..."
+echo "machine=${MACHINE} spot external_ip=${EXTERNAL} image=${IMAGE_KIND}@${DIGEST:0:19}..."
 
 if [ "${RBP_YES:-0}" != "1" ]; then
   read -r -p "submit? [y/N] " ok
