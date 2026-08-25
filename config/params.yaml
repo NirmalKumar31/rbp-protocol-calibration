@@ -7,7 +7,7 @@ project: rna-binding-proteins
 # files used to hardcode the project id, which meant the pipeline only ran on one account.
 # Change these two lines (or export GOOGLE_CLOUD_PROJECT) to run the whole study elsewhere.
 cloud:
-  project_id: rbp-composition-2026
+  project_id: rbp-repro-2026
   # derived_bucket and raw_bucket default to {project_id}-derived / -raw. Set them only if
   # the names had to differ, e.g. the natural name was already taken globally.
 seed: 7

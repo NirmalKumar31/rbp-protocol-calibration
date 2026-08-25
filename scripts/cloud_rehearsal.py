@@ -39,6 +39,7 @@ import pandas as pd  # noqa: E402
 from rbp.eval import baseline, nested  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
+from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 WORK = Path(os.environ.get("WORK_DIR", "/tmp/rbp"))
 MANIFEST = "manifest/rehearsal_tasks.tsv"
@@ -70,7 +71,15 @@ def do_manifest(a):
     not whatever happens to be on the laptop.
     """
     derived = buckets(a)
+    # THE STUDY PANEL, if one has been defined, decides membership. Without this filter the
+    # rehearsal would silently run on every dataset the arm produced while the expensive
+    # arms ran on the sampled subset, and the four-model comparison would then be built
+    # from two different populations. See docs/PANELS.md and scripts/select_panel.py.
+    study = cloudcfg.study_panel(derived)
+    if study is not None:
+        log(f"filtering to the study panel: {len(study)} datasets")
     rows = []
+    skipped = 0
     for cell in CELLS:
         blob = derived.blob(f"panel/{a.arm}/panel_final_{cell}_{a.arm}.tsv")
         if not blob.exists():
@@ -79,7 +88,12 @@ def do_manifest(a):
             pairs = int(r["pairs"])
             if pairs < a.min_pairs:
                 continue
+            if not cloudcfg.in_study_panel(study, cell, r["protein"]):
+                skipped += 1
+                continue
             rows.append((cell, r["protein"], pairs))
+    if skipped:
+        log(f"  {skipped} datasets outside the study panel, skipped")
     # Biggest first: the bootstrap is linear in rows, so the longest tasks should start
     # first or the job ends when the unluckiest node finishes. Same reasoning as prep.
     rows.sort(key=lambda r: (-r[2], r[0], r[1]))

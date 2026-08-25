@@ -43,6 +43,7 @@ import pandas as pd  # noqa: E402
 
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
+from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 WORK = Path(os.environ.get("WORK_DIR", "/tmp/rbp"))
 # ONE MANIFEST PER JOB, keyed by a tag.
@@ -130,6 +131,21 @@ def do_manifest(a):
             if pairs < a.min_pairs:
                 continue
             picked.append((cell, r["protein"], pairs))
+
+    # THE STUDY PANEL DECIDES MEMBERSHIP, if one exists. This used to be the --every flag
+    # below, and that was the root cause of the project carrying four different dataset
+    # counts: the panel was an emergent property of a flag typed during one sweep, recorded
+    # nowhere. scripts/select_panel.py now writes it once as an artefact and every stage
+    # reads it, so the cheap and expensive arms cannot end up describing different
+    # populations. --every is kept only for the case where no panel has been defined.
+    study = cloudcfg.study_panel(b)
+    if study is not None:
+        before = len(picked)
+        picked = [t for t in picked if cloudcfg.in_study_panel(study, t[0], t[1])]
+        log(f"study panel: {len(picked)} of {before} datasets")
+        if a.every and a.every > 1:
+            log("ignoring --every: the study panel already defines membership")
+            a.every = None
 
     # SYSTEMATIC SAMPLE BY PAIR RANK, when a budget will not cover the whole panel.
     #

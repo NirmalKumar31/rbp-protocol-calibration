@@ -22,6 +22,30 @@ bucket names nobody has used. Preflight checks this and tells you if a name is t
 
 ---
 
+## Step 0. Two things that will bite immediately
+
+**`modal` must be on PATH, not just installed in a venv.** Preflight failed on exactly this
+during setup: `modal` lived in a virtualenv while preflight ran under system python. Either
+activate the venv or export its bin directory.
+
+**The Modal secret must be recreated for THIS project.** `rbp-gcp` holds a service-account
+key, and a key from another project authenticates against the wrong buckets. Terraform
+creates the `rbp-modal` service account but deliberately contains no key resource -- a
+`google_service_account_key` would put a live private key in Terraform state in plaintext.
+So after stage 1:
+
+```bash
+gcloud iam service-accounts keys create /tmp/rbp-modal.json \
+  --iam-account=rbp-modal@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
+modal secret create rbp-gcp SERVICE_ACCOUNT_JSON="$(cat /tmp/rbp-modal.json)"
+rm /tmp/rbp-modal.json
+```
+
+If a `rbp-gcp` secret already exists from a previous project, **delete it first** -- Modal
+will not overwrite, and stage 9 would silently write into the old project's bucket.
+
+---
+
 ## Step 1. Point the pipeline at your project
 
 Two ways. Either edit `config/params.yaml`:
@@ -99,8 +123,8 @@ yourself, then:
 | 2 | images | Cloud Build | ~$0.50 | CPU + GPU images, weights baked in |
 | 3 | ingest **(public internet)** | Batch | ~$0.20 | genome, GENCODE, ClinVar, ENCODE peaks |
 | 4 | panel **(public internet)** | Batch | ~$0.10 | candidate datasets, both arms |
-| 5 | **select panel** | local | $0 | `manifest/study_panel.tsv` — *the* panel |
-| 6 | preprocess | Batch | ~$2 | matched datasets, both arms |
+| 5 | preprocess **all candidates** + finalize | Batch | ~$2 | matched datasets, both arms, and the pair counts |
+| 6 | **select panel** | local | $0 | `manifest/study_panel.tsv` — *the* panel |
 | 7 | rehearsal | Batch | ~$0.60 | **R1** |
 | 8 | CNN | Batch | ~$3 | **R2** |
 | 9 | **SpliceBERT** | **Modal** | **~$31** | **R2** |
@@ -116,15 +140,21 @@ Paid stages ask before spending. `RBP_YES=1` skips the prompt once you have deci
 
 ## The three things about this design worth understanding
 
-**1. The panel is an artefact, not a flag.** Stage 5 writes `manifest/study_panel.tsv` once
+**1. The panel is an artefact, not a flag.** Stage 6 writes `manifest/study_panel.tsv` once
 and every later stage reads it. In the original build the panel was an emergent property of
 a `--every 2` typed during one sweep, which is why four different dataset counts ended up in
-circulation. Stage 5 refuses to redefine an existing panel without `--force`, because
+circulation. Stage 6 refuses to redefine an existing panel without `--force`, because
 redefining it mid-study invalidates everything downstream.
+
+**Selection cannot precede preprocessing, and that order is forced.** The panel is a
+size-ranked sample, and the size (`pairs`) counts the positives that could actually be
+matched to a negative -- so it is a RESULT of preprocessing, not an input. Prep therefore
+runs on every candidate first. Nothing is saved by trying to invert this: full prep is ~$2,
+and the savings from a smaller panel come from the GPU stages, not from prep.
 
 Sampling is **systematic by pair rank**, not a size threshold. AUROC correlates with dataset
 size at r = +0.53 to +0.67, so "keep the biggest N" would confound the panel with the
-quantity being measured. Stage 5 asserts the kept set spans the 5th and 95th percentile of
+quantity being measured. Stage 6 asserts the kept set spans the 5th and 95th percentile of
 the full distribution and refuses to write a size-biased panel.
 
 **2. Task counts are read from manifests, never typed.** `submit_prep.sh` once hardcoded

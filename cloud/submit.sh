@@ -3,7 +3,7 @@
 #
 #   ./cloud/submit.sh ingest        one VM, EXTERNAL IP (needs public internet)
 #   ./cloud/submit.sh panel         one VM, external IP (ENCODE API)
-#   ./cloud/submit.sh prep          fan out over the study panel, sealed
+#   ./cloud/submit.sh prep          fan out over every candidate, sealed
 #   ./cloud/submit.sh rehearsal     fan out, sealed
 #   ./cloud/submit.sh variants      one VM, EXTERNAL IP (UCSC phyloP over HTTP)
 #   ./cloud/submit.sh analysis      one VM, sealed
@@ -24,7 +24,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 
-JOB_TYPE="${1:?usage: submit.sh <ingest|panel|prep|rehearsal|variants|analysis>}"
+JOB_TYPE="${1:?usage: submit.sh <ingest|panel|prep|rehearsal|sweep|variants|analysis>}"
 
 PY="${PY:-python3}"
 export PYTHONPATH="$PWD/src:${PYTHONPATH:-}"
@@ -55,8 +55,14 @@ case "$JOB_TYPE" in
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-2; CPU=2000; MEM=8192
     EXTERNAL=1; DISK=50; TIMEOUT=3600 ;;
   prep)
-    SCRIPT="scripts/cloud_prep.py"; ARGS="prep --arm ${ARM}"
-    COUNT=$(manifest_rows "manifest/study_panel.tsv") || exit 1
+    # prep_tasks.tsv, NOT study_panel.tsv. Prep runs before the panel exists -- `pairs` is
+    # a result of preprocessing, so the size-ranked sample cannot be taken until prep is
+    # done. Pointing this at the study panel would have made stage 5 unrunnable on a fresh
+    # project, which is exactly the class of error a fresh project is meant to catch.
+    # No --arm: each task reads its own arm from its manifest row (cloud_prep.py:173), so
+    # this is ONE job covering both negative arms, not one job per arm.
+    SCRIPT="scripts/cloud_prep.py"; ARGS="prep"
+    COUNT=$(manifest_rows "manifest/prep_tasks.tsv") || exit 1
     PAR=12; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=100; TIMEOUT=7200 ;;
   rehearsal)
@@ -68,6 +74,13 @@ case "$JOB_TYPE" in
     SCRIPT="scripts/cloud_variants.py"; ARGS="--what all"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-4; CPU=4000; MEM=16384
     EXTERNAL=1; DISK=200; TIMEOUT=14400 ;;
+  sweep)
+    # The CNN arm. Task count is models x datasets x folds and comes from the manifest that
+    # cloud_train.py wrote, never from arithmetic done here.
+    SCRIPT="scripts/cloud_train.py"; ARGS="run --arm ${ARM}"
+    COUNT=$(manifest_rows "manifest/sweep_tasks${MANIFEST_TAG:-}.tsv") || exit 1
+    PAR=12; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
+    EXTERNAL=0; DISK=100; TIMEOUT=14400 ;;
   analysis)
     SCRIPT="scripts/cloud_analysis.py"; ARGS="--what all"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-4; CPU=4000; MEM=16384
@@ -116,6 +129,8 @@ cat > "$SPEC" <<JSON
           "DERIVED_BUCKET": "${DERIVED}",
           "RAW_BUCKET": "${RAW}",
           "ARM": "${ARM}",
+          "MANIFEST_TAG": "${MANIFEST_TAG:-}",
+          "MODELS": "${MODELS:-}",
           "OMP_NUM_THREADS": "1",
           "OPENBLAS_NUM_THREADS": "1",
           "MKL_NUM_THREADS": "1",

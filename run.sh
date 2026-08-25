@@ -100,29 +100,42 @@ s4_panel() {
   ./cloud/submit.sh panel || die "panel"
 }
 
-s5_select() {
-  gate_preflight; say "stage 5: define THE study panel (every=$EVERY)"
-  $PY scripts/select_panel.py --every "$EVERY" || die "select_panel"
-  $PY scripts/select_panel.py --show
+s5_prep() {
+  # PREP RUNS ON EVERY CANDIDATE, BEFORE THE PANEL EXISTS, AND THAT ORDER IS FORCED.
+  # `pairs` counts the positives that could actually be matched to a negative, so it is a
+  # RESULT of preprocessing, not an input. The study panel is a size-ranked sample, so it
+  # cannot be chosen until prep has produced the counts. Prep is ~$2 for the full candidate
+  # set, so nothing is saved by trying to invert this.
+  gate_preflight; say "stage 5: preprocess ALL candidates, both arms, then finalize"
+  confirm "preprocessing, both negative arms, full candidate set" "~\$2"
+  $PY scripts/cloud_prep.py index    || die "prep index"
+  $PY scripts/cloud_prep.py manifest || die "prep manifest"
+  ./cloud/submit.sh prep             || die "prep"     # one job, both arms
+  for arm in dinuc gc; do $PY scripts/cloud_prep.py finalize --arm "$arm" || die "finalize $arm"; done
 }
 
-s6_prep() {
-  gate_preflight; say "stage 6: preprocess the study panel, both arms"
-  confirm "preprocessing, both negative arms" "~\$2"
-  for arm in dinuc gc; do ARM=$arm ./cloud/submit.sh prep || die "prep $arm"; done
+s6_select() {
+  gate_preflight; say "stage 6: define THE study panel (every=$EVERY)"
+  $PY scripts/select_panel.py --every "$EVERY" || die "select_panel"
+  $PY scripts/select_panel.py --show
+  say "every later stage reads manifest/study_panel.tsv. Nothing else decides membership."
 }
 
 s7_rehearsal() {
   gate_preflight; say "stage 7: composition + k-mer, both arms  -> R1"
   confirm "rehearsal, both arms" "~\$0.60"
-  for arm in dinuc gc; do ARM=$arm ./cloud/submit.sh rehearsal || die "rehearsal $arm"; done
+  for arm in dinuc gc; do
+    ARM=$arm $PY scripts/cloud_rehearsal.py manifest --arm "$arm" || die "rehearsal manifest $arm"
+    ARM=$arm ./cloud/submit.sh rehearsal || die "rehearsal $arm"
+  done
   for arm in dinuc gc; do $PY scripts/cloud_rehearsal.py aggregate --arm "$arm"; done
 }
 
 s8_cnn() {
   gate_preflight; say "stage 8: CNN sweep  -> R2"
   confirm "CNN, 5 folds per dataset, Batch CPU" "~\$3"
-  MODELS=cnn ARM=dinuc ./cloud/submit_sweep.sh || die "cnn"
+  $PY scripts/cloud_train.py manifest --arm dinuc --models cnn --tag _cnn || die "cnn manifest"
+  MODELS=cnn MANIFEST_TAG=_cnn ARM=dinuc ./cloud/submit.sh sweep || die "cnn"
   $PY scripts/cloud_train.py aggregate --arm dinuc --models cnn
 }
 
@@ -168,7 +181,7 @@ s14_verify() {
   say "reproduction verified"
 }
 
-STAGES=(s0_preflight s1_terraform s2_images s3_ingest s4_panel s5_select s6_prep \
+STAGES=(s0_preflight s1_terraform s2_images s3_ingest s4_panel s5_prep s6_select \
         s7_rehearsal s8_cnn s9_splicebert s10_locality s11_variants s12_clinvar \
         s13_analysis s14_verify)
 

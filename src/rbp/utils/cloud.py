@@ -96,3 +96,34 @@ def describe():
         return f"project={project()} derived={derived_bucket()} raw={raw_bucket()}"
     except RuntimeError as e:
         return f"UNCONFIGURED: {e}"
+
+
+STUDY_PANEL_KEY = "manifest/study_panel.tsv"
+
+
+def study_panel(bucket=None):
+    """The (cell, protein) pairs the study runs on, or None if not yet defined.
+
+    THE ORDERING THIS ENCODES. `pairs` is only known after preprocessing, because it counts
+    the positives that could actually be matched to a negative. So the panel cannot be
+    selected before prep -- prep runs on every candidate, finalize writes the pair counts,
+    and only then can a size-ranked sample be taken. Every stage AFTER that filters through
+    this function.
+
+    Returning None rather than raising is deliberate: a stage that runs before selection
+    (prep itself) must process everything, and should not need to know it is special.
+    """
+    import io
+
+    import pandas as pd
+
+    b = (bucket or globals()["bucket"]()).blob(STUDY_PANEL_KEY)
+    if not b.exists():
+        return None
+    d = pd.read_csv(io.StringIO(b.download_as_text()), sep="\t")
+    return {(r.cell_line, r.protein) for r in d.itertuples()}
+
+
+def in_study_panel(panel, cell, protein):
+    """True if this dataset is in the study, or if no panel has been defined yet."""
+    return panel is None or (cell, protein) in panel
