@@ -47,10 +47,12 @@ manifest_rows() {
 # EXTERNAL=1 means the VM gets a public IP because the stage must reach the internet.
 case "$JOB_TYPE" in
   ingest)
+    SA=rbp-ingest
     SCRIPT="scripts/cloud_ingest.py"; ARGS="--bucket ${RAW}"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-4; CPU=4000; MEM=16384
     EXTERNAL=1; DISK=200; TIMEOUT=10800 ;;
   panel)
+    SA=rbp-ingest
     SCRIPT="scripts/build_panel.py"; ARGS="--all"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-2; CPU=2000; MEM=8192
     EXTERNAL=1; DISK=50; TIMEOUT=3600 ;;
@@ -61,27 +63,32 @@ case "$JOB_TYPE" in
     # project, which is exactly the class of error a fresh project is meant to catch.
     # No --arm: each task reads its own arm from its manifest row (cloud_prep.py:173), so
     # this is ONE job covering both negative arms, not one job per arm.
+    SA=rbp-prep
     SCRIPT="scripts/cloud_prep.py"; ARGS="prep"
     COUNT=$(manifest_rows "manifest/prep_tasks.tsv") || exit 1
     PAR=12; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=100; TIMEOUT=7200 ;;
   rehearsal)
+    SA=rbp-train
     SCRIPT="scripts/cloud_rehearsal.py"; ARGS="run --arm ${ARM}"
     COUNT=$(manifest_rows "manifest/rehearsal_tasks.tsv") || exit 1
     PAR=12; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=50; TIMEOUT=7200 ;;
   variants)
+    SA=rbp-ingest
     SCRIPT="scripts/cloud_variants.py"; ARGS="--what all"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-4; CPU=4000; MEM=16384
     EXTERNAL=1; DISK=200; TIMEOUT=14400 ;;
   sweep)
     # The CNN arm. Task count is models x datasets x folds and comes from the manifest that
     # cloud_train.py wrote, never from arithmetic done here.
+    SA=rbp-train
     SCRIPT="scripts/cloud_train.py"; ARGS="run --arm ${ARM}"
     COUNT=$(manifest_rows "manifest/sweep_tasks${MANIFEST_TAG:-}.tsv") || exit 1
     PAR=12; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=100; TIMEOUT=14400 ;;
   analysis)
+    SA=rbp-analysis
     SCRIPT="scripts/cloud_analysis.py"; ARGS="--what all"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-4; CPU=4000; MEM=16384
     EXTERNAL=0; DISK=100; TIMEOUT=7200 ;;
@@ -98,10 +105,19 @@ if [ -z "$DIGEST" ]; then
 fi
 IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/rbp/cpu@${DIGEST}"
 
+# NESTING AND NAMES BOTH MATTERED HERE. Batch wants
+# allocationPolicy.network.networkInterfaces, not allocationPolicy.networkInterfaces -- the
+# API rejects the latter outright with `Unknown name "networkInterfaces"`. And the network is
+# rbp-net, the one Terraform creates, not "default": the whole point of network.tf is that
+# workers sit on a subnet with Private Google Access and no route to the internet.
+#
+# The external case omits the block entirely, which puts the VM on the default network with
+# an external IP. That is deliberate for the three stages that must reach ENCODE, GENCODE,
+# NCBI and UCSC, and it is why there is no Cloud NAT.
 if [ "$EXTERNAL" = "1" ]; then
-  NETWORK='"networkInterfaces": [{"network": "global/networks/default"}]'
+  NETWORK=""
 else
-  NETWORK='"networkInterfaces": [{"network": "global/networks/default", "subnetwork": "regions/'"${REGION}"'/subnetworks/rbp-workers", "noExternalIpAddress": true}]'
+  NETWORK='"network": {"networkInterfaces": [{"network": "projects/'"${PROJECT}"'/global/networks/rbp-net", "subnetwork": "projects/'"${PROJECT}"'/regions/'"${REGION}"'/subnetworks/rbp-workers", "noExternalIpAddress": true}]},'
 fi
 
 JOB="${JOB_TYPE}-$(date +%m%d-%H%M%S)"
@@ -147,8 +163,8 @@ cat > "$SPEC" <<JSON
         "bootDisk": {"sizeGb": ${DISK}, "type": "pd-balanced"}
       }
     }],
-    ${NETWORK},
-    "serviceAccount": {"email": "rbp-train@${PROJECT}.iam.gserviceaccount.com"}
+    ${NETWORK}
+    "serviceAccount": {"email": "${SA}@${PROJECT}.iam.gserviceaccount.com"}
   },
   "logsPolicy": {"destination": "CLOUD_LOGGING"}
 }
