@@ -104,7 +104,7 @@ def f1():
 # --- f2: four models on identical data ---------------------------------------------------
 
 def f2():
-    got = need("matched95_four_models.csv")
+    got = need("matched_four_models.csv")
     if got is None:
         return
     d = got[0].rename(columns={"kmer_auroc": "kmer", "composition_auroc": "composition"})
@@ -178,52 +178,58 @@ def f3():
 # --- f4: the variant arm -----------------------------------------------------------------
 
 def f4():
-    got = need("variant_results_splicebert.csv")
+    """The ClinVar ladder. Three rungs plus conservation.
+
+    The claim is the GAPS between rungs, not any single number: a wrong-protein head already
+    beats the k-mer, so part of the signal is generic sequence plausibility inherited from
+    pretraining, and only the matched-minus-mismatched gap is binding-specific. Plotting one
+    bar would hide exactly the thing that makes the result defensible.
+    """
+    got = need("variant_ladder.csv")
     if got is None:
         return
     d = got[0]
-    fig, ax = plt.subplots(1, 2, figsize=(7.0, 3.1))
+    order = ["kmer", "mismatched", "matched", "conservation"]
+    # Short labels: the four full phrases collide at this width, and a colliding axis is
+    # a broken figure however correct the numbers are.
+    label = {"kmer": "k-mer", "mismatched": "wrong\nprotein", "matched": "right\nprotein",
+             "conservation": "phyloP"}
+    colr = {"kmer": COLOR["kmer"], "mismatched": "#bdbdbd",
+            "matched": COLOR["splicebert"], "conservation": "#8c8c8c"}
+    d = d.set_index("arm").reindex([a for a in order if a in set(d.arm)]).reset_index()
 
-    bars = [("conservation", float(d.conservation_auroc.iloc[0]), "#8c8c8c")]
-    for _, r in d.iterrows():
-        key = "splicebert" if r.score_model == "splicebert" else "kmer"
-        bars.append((f"{LABEL[key]} delta", float(r.delta_auroc), COLOR[key]))
-    ax[0].bar([b[0] for b in bars], [b[1] for b in bars],
-              color=[b[2] for b in bars], edgecolor="white", linewidth=0.5)
+    fig, ax = plt.subplots(1, 2, figsize=(7.6, 3.2))
+    ax[0].bar(range(len(d)), d.auroc, color=[colr[a] for a in d.arm],
+              edgecolor="white", linewidth=0.6)
     ax[0].axhline(0.5, color="black", lw=0.8, ls="--")
-    for i, b in enumerate(bars):
-        ax[0].text(i, b[1] + 0.008, f"{b[1]:.3f}", ha="center", fontsize=8)
+    for i, v in enumerate(d.auroc):
+        ax[0].text(i, v + 0.008, f"{v:.3f}", ha="center", fontsize=8)
+    ax[0].set_xticks(range(len(d)))
+    ax[0].set_xticklabels([label[a] for a in d.arm], fontsize=8)
     ax[0].set_ylabel("pathogenic vs benign AUROC")
     ax[0].set_ylim(0.45, 1.0)
-    ax[0].tick_params(axis="x", labelsize=8, rotation=18)
-    ax[0].set_title("Conservation is the competitor", loc="left", fontsize=9)
+    ax[0].set_title("The ladder", loc="left", fontsize=9)
 
-    # The controlled coefficient is the honest number: what the delta adds once
-    # conservation is in the model. Alone-vs-controlled shows the attenuation directly.
-    w, xs = 0.36, np.arange(len(d))
-    for j, kind in enumerate(("alone_coef", "controlled_coef")):
-        vals = d[kind].astype(float).values
-        lo = d[kind.replace("coef", "ci_low")].astype(float).values
-        hi = d[kind.replace("coef", "ci_high")].astype(float).values
-        ax[1].bar(xs + (j - 0.5) * w, vals, w,
-                  color=["#bbbbbb" if j == 0 else COLOR["splicebert"]] * len(d),
-                  edgecolor="white", linewidth=0.5,
-                  label="alone" if j == 0 else "conservation controlled")
-        ax[1].errorbar(xs + (j - 0.5) * w, vals, yerr=[vals - lo, hi - vals],
-                       fmt="none", ecolor="black", elinewidth=0.8, capsize=2)
+    # Cluster-corrected coefficients. Conservation has no delta coefficient by construction,
+    # so it is absent here rather than drawn as zero.
+    c = d[d.coef.notna()]
+    ax[1].bar(range(len(c)), c.coef, color=[colr[a] for a in c.arm],
+              edgecolor="white", linewidth=0.6)
+    ax[1].errorbar(range(len(c)), c.coef,
+                   yerr=[c.coef - c.ci_low, c.ci_high - c.coef],
+                   fmt="none", ecolor="black", elinewidth=0.9, capsize=3)
     ax[1].axhline(0, color="black", lw=0.8)
-    ax[1].set_xticks(xs)
-    ax[1].set_xticklabels(d.score_model, fontsize=8)
+    ax[1].set_xticks(range(len(c)))
+    ax[1].set_xticklabels([label[a] for a in c.arm], fontsize=8)
     ax[1].set_ylabel("standardised |delta| coefficient")
-    ax[1].legend(frameon=False, fontsize=8)
-    ax[1].set_title("Does it survive the control?", loc="left", fontsize=9)
-    save(fig, "f4_variants")
+    ax[1].set_title("Conservation controlled, gene-clustered", loc="left", fontsize=9)
+    save(fig, "f4_variant_ladder")
 
 
 # --- f5: the size confound, stated rather than buried ------------------------------------
 
 def f5():
-    got = need("matched95_four_models.csv")
+    got = need("matched_four_models.csv")
     if got is None:
         return
     d = got[0].rename(columns={"kmer_auroc": "kmer", "composition_auroc": "composition"})

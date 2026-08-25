@@ -102,7 +102,11 @@ def verify_r1(T, g):
 
 def verify_r2(T, g):
     print("\nR2  four models on identical splits")
-    d = T.get("matched_four_models.csv") or T.get("matched95_four_models.csv")
+    # NOT `a or b`: pandas raises ValueError on DataFrame truthiness, so the fallback
+    # would crash the verifier rather than fall through.
+    d = T.get("matched_four_models.csv")
+    if d is None:
+        d = T.get("matched95_four_models.csv")
     if d is None:
         return record(False, "four-model table present", "MISSING", "the table")
     spec = g["r2_four_models"]
