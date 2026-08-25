@@ -191,4 +191,34 @@ fi
 gcloud batch jobs submit "$JOB" --project="$PROJECT" --location="$REGION" --config="$SPEC" \
   || { echo "submit failed" >&2; exit 1; }
 echo "submitted ${JOB}"
-echo "watch: gcloud batch jobs describe ${JOB} --project=${PROJECT} --location=${REGION} --format='value(status.state,status.taskGroups)'"
+
+# WAIT, unless told not to. `gcloud batch jobs submit` returns as soon as the job is
+# accepted, so a caller that runs an aggregation step next aggregates nothing: stage 5
+# submitted 488 preprocessing tasks and would have finalized the panel seconds later,
+# against an empty bucket, and written a panel of zero datasets that every downstream stage
+# would then have trusted. Waiting here makes the dependency structural instead of a comment.
+if [ "${NO_WAIT:-0}" = "1" ]; then
+  echo "watch: gcloud batch jobs describe ${JOB} --project=${PROJECT} --location=${REGION} --format='value(status.state,status.taskGroups)'"
+  exit 0
+fi
+
+echo "waiting for ${JOB} (set NO_WAIT=1 to submit and return)"
+while :; do
+  STATE=$(gcloud batch jobs describe "$JOB" --project="$PROJECT" --location="$REGION" \
+            --format="value(status.state)" 2>/dev/null)
+  COUNTS=$(gcloud batch jobs describe "$JOB" --project="$PROJECT" --location="$REGION" \
+            --format="value(status.taskGroups.group0.counts)" 2>/dev/null)
+  case "$STATE" in
+    SUCCEEDED) echo "[$(date '+%H:%M:%S')] ${JOB} SUCCEEDED"; exit 0 ;;
+    FAILED|CANCELLED)
+      echo "[$(date '+%H:%M:%S')] ${JOB} ${STATE}  ${COUNTS}" >&2
+      # A FAILED job is not necessarily a failed RUN. Spot preemption leaves a scatter of
+      # failures whose work is resumable, and a task count past the end of a manifest has
+      # historically failed a job whose every real task succeeded. Report and let the caller
+      # decide rather than pretending success.
+      exit 2 ;;
+    "") echo "[$(date '+%H:%M:%S')] cannot read job state; retrying" ;;
+    *)  echo "[$(date '+%H:%M:%S')] ${STATE}  ${COUNTS}" ;;
+  esac
+  sleep 60
+done
