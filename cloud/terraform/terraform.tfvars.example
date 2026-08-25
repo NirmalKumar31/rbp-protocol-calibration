@@ -1,0 +1,9 @@
+# Copy to terraform.tfvars and fill in your own values.
+# terraform.tfvars is gitignored because the billing account ID identifies your account.
+#
+# Find your billing account with:
+#   gcloud billing accounts list
+
+billing_account = "XXXXXX-XXXXXX-XXXXXX"
+project_id      = "rbp-composition-2026"   # must be globally unique across all of GCP
+budget_usd      = 100

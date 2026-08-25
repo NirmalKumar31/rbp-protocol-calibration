@@ -1,0 +1,24 @@
+# Pinned to the exact versions the local results were produced with.
+#
+# Unpinned installs would let the cloud drift to different library versions and produce
+# subtly different numbers. The step 4 and 5 gates would catch that, but only after wasting
+# a build and a preprocessing run. Pinning prevents the problem instead of detecting it.
+#
+# Regenerate with:  .venv/bin/pip freeze | grep -E '^(numpy|pandas|...)='
+numpy==2.5.2
+pandas==3.0.5
+scipy==1.18.0
+scikit-learn==1.9.0
+pyfaidx==0.9.0.4
+pyBigWig==0.3.25
+PyYAML==6.0.3
+requests==2.34.2
+matplotlib==3.11.1
+
+# Test runner: the image must be able to prove itself (step 2 gate: 356 tests pass INSIDE
+# the container). An image you cannot test is an image you are trusting on faith.
+pytest==9.1.1
+
+# Cloud clients, only needed in the container
+google-cloud-storage==2.19.0
+google-cloud-bigquery==3.27.0

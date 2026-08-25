@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+data/
+results/
+logs/
+.preflight-ok
+cloud/terraform/.terraform/
+cloud/terraform/terraform.tfstate*
+cloud/terraform/terraform.tfvars
+cloud/terraform/tfplan*
+cloud/jobs/rendered/

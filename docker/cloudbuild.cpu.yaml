@@ -1,0 +1,111 @@
+# Cloud Build config for the CPU image.
+#
+# Built here rather than locally because there is no Docker on the dev machine, and because
+# a cloud build is logged, reproducible and runs on a clean host every time -- no chance of
+# a stale local layer sneaking into the image.
+steps:
+  # Pull the previous image so its layers can be reused as cache. Without this every build
+  # reinstalls every dependency from scratch, turning a 40-second rebuild into 3 minutes and
+  # eating the free build-minute allowance.
+  - name: gcr.io/cloud-builders/docker
+    id: pull-cache
+    entrypoint: bash
+    args:
+      - -c
+      - docker pull ${_IMAGE}:latest || echo "no cache yet, first build"
+
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - --cache-from=${_IMAGE}:latest
+      - -t=${_IMAGE}:latest
+      - -t=${_IMAGE}:${_GIT_SHA}
+      - --build-arg=GIT_SHA=${_GIT_SHA}
+      - --build-arg=BUILD_ID=${BUILD_ID}
+      - -f=docker/Dockerfile.cpu
+      - .
+
+  # THE GATE. The test suite runs inside the image that was just built. If the cloud
+  # environment differs from the laptop in any way that matters, this is where it surfaces
+  # -- before any data is processed and before a single cent of compute is spent on it.
+  #
+  # test_models.py is excluded HERE ONLY because it needs torch, which this image
+  # deliberately does not carry. It runs in the GPU image instead, so every test still runs
+  # somewhere. Excluding it silently would be the wrong move: the count below is asserted so
+  # a test disappearing for any other reason fails the build.
+  - name: gcr.io/cloud-builders/docker
+    id: test
+    args:
+      - run
+      - --rm
+      - '${_IMAGE}:${_GIT_SHA}'
+      - python
+      - -m
+      - pytest
+      - tests/
+      - --ignore=tests/unit/test_models.py
+      - -q
+      - --tb=short
+
+  # Asserts the expected number of tests actually ran. A suite that silently collects fewer
+  # tests than expected still exits 0, so "the gate passed" would be meaningless without it.
+  - name: gcr.io/cloud-builders/docker
+    id: test-count
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        n=$(docker run --rm ${_IMAGE}:${_GIT_SHA} python -m pytest tests/ \
+              --ignore=tests/unit/test_models.py --collect-only 2>/dev/null \
+              | grep -oE '^[0-9]+ tests collected' | grep -oE '^[0-9]+')
+        echo "collected $$n tests (expected ${_EXPECTED_TESTS})"
+        if [ "$$n" -ne "${_EXPECTED_TESTS}" ]; then
+          echo "FAIL: expected ${_EXPECTED_TESTS} tests, collected $$n"
+          exit 1
+        fi
+
+  # Push explicitly, BEFORE recording the digest.
+  #
+  # Cloud Build's `images:` block pushes only after every step has finished, so an earlier
+  # version of the record step below queried an image that was not in the registry yet and
+  # printed an empty digest. Pushing here makes the ordering explicit instead of relying on
+  # a block that runs last.
+  - name: gcr.io/cloud-builders/docker
+    id: push
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker push ${_IMAGE}:${_GIT_SHA}
+        docker push ${_IMAGE}:latest
+
+  # Record the immutable digest. A tag can be moved to point at a different image; a digest
+  # cannot. Jobs reference the digest, so "which image produced this result?" always has an
+  # answer -- which is the whole point of recording image_digest in the BigQuery schema.
+  - name: gcr.io/cloud-builders/gcloud
+    id: record-digest
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        digest=$(gcloud artifacts docker images describe ${_IMAGE}:${_GIT_SHA} \
+                   --format='value(image_summary.digest)')
+        if [ -z "$$digest" ]; then echo "FAIL: could not resolve digest"; exit 1; fi
+        echo "$$digest" > /workspace/cpu_digest.txt
+        gsutil -q cp /workspace/cpu_digest.txt gs://${_ARTIFACTS}/images/cpu_digest.txt
+        echo "CPU image digest: $$digest"
+        echo "pin jobs to: ${_IMAGE}@$$digest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8   # faster build, still inside the free daily allowance
+
+timeout: 1200s
+
+substitutions:
+  _IMAGE: us-central1-docker.pkg.dev/rbp-composition-2026/rbp/cpu
+  # 460 total minus the 34 in test_models.py, which needs torch and runs in the GPU image.
+  _EXPECTED_TESTS: '426'
+  _GIT_SHA: unknown        # overridden by the caller with the real commit SHA
+  _ARTIFACTS: rbp-composition-2026-artifacts

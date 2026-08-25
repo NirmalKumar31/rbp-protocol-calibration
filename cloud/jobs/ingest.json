@@ -1,0 +1,50 @@
+{
+  "taskGroups": [
+    {
+      "taskCount": 1,
+      "taskSpec": {
+        "computeResource": {
+          "cpuMilli": 4000,
+          "memoryMib": 8192
+        },
+        "maxRunDuration": "5400s",
+        "maxRetryCount": 3,
+        "runnables": [
+          {
+            "container": {
+              "imageUri": "IMAGE_PLACEHOLDER",
+              "entrypoint": "python",
+              "commands": [
+                "scripts/cloud_ingest.py"
+              ]
+            },
+            "environment": {
+              "variables": {
+                "RAW_BUCKET": "rbp-composition-2026-raw"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "allocationPolicy": {
+    "instances": [
+      {
+        "policy": {
+          "machineType": "e2-standard-4",
+          "provisioningModel": "SPOT",
+          "bootDisk": {
+            "sizeGb": 60
+          }
+        }
+      }
+    ],
+    "serviceAccount": {
+      "email": "rbp-ingest@rbp-composition-2026.iam.gserviceaccount.com"
+    }
+  },
+  "logsPolicy": {
+    "destination": "CLOUD_LOGGING"
+  }
+}

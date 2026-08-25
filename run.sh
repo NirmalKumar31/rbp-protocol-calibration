@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+# The whole study, raw inputs to verified results, cloud only.
+#
+#   ./run.sh preflight          check the environment, spend nothing
+#   ./run.sh stage 3            run one stage
+#   ./run.sh from 6             run stage 6 onward
+#   ./run.sh all                everything (still stops at each paid gate)
+#   ./run.sh status             where the artefacts are
+#
+# DESIGN RULES, each one paid for by a specific failure in the original build.
+#
+# 1. NOTHING RUNS BEFORE PREFLIGHT PASSES. Every failure of the first build was a missing
+#    API, zero quota, a budget that reported $0, or an unauthenticated client -- all free to
+#    detect, all discovered late, after spending.
+#
+# 2. PAID STAGES REQUIRE AN EXPLICIT CONFIRMATION. Stage 8 is ~$31 of real money and 95% of
+#    the budget. It asks. Set RBP_YES=1 to run unattended once you have decided.
+#
+# 3. EVERY STAGE IS IDEMPOTENT AND RESUMABLE. Completion markers are written LAST, so a
+#    stage killed midway redoes its work instead of being skipped. Rerunning a finished
+#    stage costs seconds.
+#
+# 4. NO LOCAL COMPUTE. Every stage runs in a container on Batch or on Modal. The laptop
+#    submits and reads; it never computes. That is the whole point of this rebuild.
+#
+# 5. STAGES 3 AND 10 NEED PUBLIC INTERNET (ENCODE, GENCODE, NCBI, UCSC phyloP). Workers have
+#    Private Google Access only and no NAT by design, so those two run on a VM with an
+#    external IP. Everything else stays sealed.
+
+set -uo pipefail
+cd "$(dirname "$0")" || exit 1
+
+PY="${PY:-python3}"
+export PYTHONPATH="$PWD/src:${PYTHONPATH:-}"
+
+PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-$($PY -c 'import sys;sys.path.insert(0,"src");from rbp.utils import cloud;print(cloud.project())' 2>/dev/null)}"
+DERIVED="${DERIVED_BUCKET:-${PROJECT_ID}-derived}"
+RAW="${RAW_BUCKET:-${PROJECT_ID}-raw}"
+REGION="${REGION:-us-central1}"
+EVERY="${EVERY:-2}"                 # panel: keep every Nth dataset by pair rank
+export GOOGLE_CLOUD_PROJECT="$PROJECT_ID" DERIVED_BUCKET="$DERIVED" RAW_BUCKET="$RAW"
+
+mkdir -p logs
+LOG="logs/run-$(date +%Y%m%d).log"
+
+say()  { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*" | tee -a "$LOG"; }
+die()  { say "STOP: $*"; exit 1; }
+
+# A paid gate. Never silently spends.
+confirm() {
+  local what=$1 cost=$2
+  say "PAID STAGE: $what  (estimated $cost)"
+  if [ "${RBP_YES:-0}" = "1" ]; then say "RBP_YES=1, proceeding"; return 0; fi
+  printf 'Type YES to spend %s on "%s": ' "$cost" "$what"
+  read -r ans; [ "$ans" = "YES" ] || die "not confirmed"
+}
+
+# Has a stage already produced its marker? Used to make reruns cheap, never to skip work
+# that only half happened -- markers are written after the payload, everywhere.
+has() { gsutil -q stat "gs://${DERIVED}/$1" 2>/dev/null; }
+
+gate_preflight() {
+  [ -f .preflight-ok ] || die "run ./run.sh preflight first (it spends nothing)"
+}
+
+# ---------------------------------------------------------------------------------------
+
+s0_preflight() {
+  say "stage 0: preflight"
+  $PY scripts/preflight.py ${PREFLIGHT_ARGS:-} || die "preflight failed; fix and rerun"
+  touch .preflight-ok
+  say "preflight recorded. Stages may now run."
+}
+
+s1_terraform() {
+  gate_preflight; say "stage 1: terraform -- buckets, service accounts, IAM, budget, killswitch"
+  [ -f cloud/terraform/terraform.tfvars ] || die \
+    "cloud/terraform/terraform.tfvars missing. Copy terraform.tfvars.example and set
+     project_id and billing_account. It is gitignored on purpose."
+  ( cd cloud/terraform && terraform init -input=false && terraform apply -input=false -auto-approve ) \
+    || die "terraform apply failed"
+}
+
+s2_images() {
+  gate_preflight; say "stage 2: build container images"
+  confirm "Cloud Build, CPU + GPU images" "~\$0.50"
+  gcloud builds submit --project="$PROJECT_ID" --config=docker/cloudbuild.cpu.yaml . || die "cpu image"
+  gcloud builds submit --project="$PROJECT_ID" --config=docker/cloudbuild.gpu.yaml . || die "gpu image"
+}
+
+s3_ingest() {
+  gate_preflight; say "stage 3: ingest raw inputs (NEEDS PUBLIC INTERNET -> external IP)"
+  if has "raw-complete.json"; then say "already ingested, skipping"; return; fi
+  confirm "ingest genome + GENCODE + ClinVar + ENCODE peaks" "~\$0.20"
+  ./cloud/submit.sh ingest || die "ingest"
+}
+
+s4_panel() {
+  gate_preflight; say "stage 4: build panel, both arms"
+  ./cloud/submit.sh panel || die "panel"
+}
+
+s5_select() {
+  gate_preflight; say "stage 5: define THE study panel (every=$EVERY)"
+  $PY scripts/select_panel.py --every "$EVERY" || die "select_panel"
+  $PY scripts/select_panel.py --show
+}
+
+s6_prep() {
+  gate_preflight; say "stage 6: preprocess the study panel, both arms"
+  confirm "preprocessing, both negative arms" "~\$2"
+  for arm in dinuc gc; do ARM=$arm ./cloud/submit.sh prep || die "prep $arm"; done
+}
+
+s7_rehearsal() {
+  gate_preflight; say "stage 7: composition + k-mer, both arms  -> R1"
+  confirm "rehearsal, both arms" "~\$0.60"
+  for arm in dinuc gc; do ARM=$arm ./cloud/submit.sh rehearsal || die "rehearsal $arm"; done
+  for arm in dinuc gc; do $PY scripts/cloud_rehearsal.py aggregate --arm "$arm"; done
+}
+
+s8_cnn() {
+  gate_preflight; say "stage 8: CNN sweep  -> R2"
+  confirm "CNN, 5 folds per dataset, Batch CPU" "~\$3"
+  MODELS=cnn ARM=dinuc ./cloud/submit_sweep.sh || die "cnn"
+  $PY scripts/cloud_train.py aggregate --arm dinuc --models cnn
+}
+
+s9_splicebert() {
+  gate_preflight; say "stage 9: SpliceBERT sweep on Modal  -> R2"
+  say "This is 95% of the money. Confirm your Modal balance is >= \$35 before continuing."
+  confirm "SpliceBERT, 5 folds per dataset, Modal A10G" "~\$31 OUT OF POCKET"
+  modal run cloud/modal/modal_sweep.py::sweep || die "splicebert"
+  $PY scripts/cloud_train.py aggregate --arm dinuc --models splicebert
+}
+
+s10_locality() {
+  gate_preflight; say "stage 10: ISM locality probe on Modal  -> R3"
+  confirm "locality probe, Modal T4" "~\$0.30"
+  modal run cloud/modal/modal_variants.py::locality_sweep || die "locality"
+  $PY scripts/locality_probe.py --gather
+}
+
+s11_variants() {
+  gate_preflight; say "stage 11: ClinVar assignment + phyloP (NEEDS PUBLIC INTERNET)"
+  confirm "variant assignment and conservation fetch" "~\$0.30"
+  ./cloud/submit.sh variants || die "variants"
+}
+
+s12_clinvar() {
+  gate_preflight; say "stage 12: ClinVar scoring + mismatched-head control on Modal  -> R4"
+  confirm "ClinVar scoring, matched and mismatched, Modal T4" "~\$0.60"
+  $PY scripts/variant_splicebert.py --what tables || die "variant tables"
+  modal run cloud/modal/modal_variants.py::sweep || die "clinvar matched"
+  modal run cloud/modal/modal_variants.py::mismatch_sweep || die "clinvar mismatched"
+  $PY scripts/variant_splicebert.py --what gather
+  $PY scripts/variant_splicebert.py --what test
+}
+
+s13_analysis() {
+  gate_preflight; say "stage 13: aggregate + figures"
+  ./cloud/submit.sh analysis || die "analysis"
+}
+
+s14_verify() {
+  say "stage 14: verify against golden numbers"
+  $PY scripts/verify.py || die "THE SCIENCE DID NOT REPRODUCE -- see the failed claims above"
+  say "reproduction verified"
+}
+
+STAGES=(s0_preflight s1_terraform s2_images s3_ingest s4_panel s5_select s6_prep \
+        s7_rehearsal s8_cnn s9_splicebert s10_locality s11_variants s12_clinvar \
+        s13_analysis s14_verify)
+
+status() {
+  say "project=$PROJECT_ID derived=$DERIVED raw=$RAW region=$REGION panel=every-$EVERY"
+  for k in raw-complete.json manifest/study_panel.tsv \
+           results/rehearsal_binding_dinuc.csv results/rehearsal_binding_gc.csv \
+           results/tables/locality_ism.csv results/tables/variant_ladder.csv; do
+    if has "$k"; then echo "  present  $k"; else echo "  MISSING  $k"; fi
+  done
+}
+
+usage() { sed -n '2,30p' "$0"; }
+
+case "${1:-}" in
+  preflight) s0_preflight ;;
+  stage)     [ $# -ge 2 ] || die "which stage?"; "${STAGES[$2]}" ;;
+  from)      [ $# -ge 2 ] || die "from which stage?"
+             for i in $(seq "$2" $((${#STAGES[@]} - 1))); do "${STAGES[$i]}"; done ;;
+  all)       for s in "${STAGES[@]}"; do "$s"; done ;;
+  status)    status ;;
+  *)         usage ;;
+esac

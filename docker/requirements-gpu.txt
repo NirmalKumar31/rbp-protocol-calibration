@@ -1,0 +1,29 @@
+# Pinned to the exact versions the local results were produced with, same reasoning as
+# requirements-cpu.txt. torch is NOT here: it comes from the CUDA base image, because
+# pip-installing it would pull a second copy of the CUDA runtime into the layer and add
+# several GB for nothing.
+#
+# Regenerate with:
+#   .venv/bin/pip freeze | grep -iE '^(transformers|multimolecule|peft|...)='
+
+numpy==2.5.2
+pandas==3.0.5
+scipy==1.18.0
+scikit-learn==1.9.0
+PyYAML==6.0.3
+requests==2.34.2
+
+# The model stack. multimolecule supplies the RNA backbones and their tokenizer; peft
+# supplies LoRA for the two backbones above lora_threshold_m.
+transformers==5.15.1
+tokenizers==0.22.2
+safetensors==0.8.0
+huggingface_hub==1.28.0
+accelerate==1.14.0
+multimolecule==0.2.1
+peft==0.20.0
+
+pytest==9.1.1
+
+google-cloud-storage==2.19.0
+google-cloud-bigquery==3.27.0

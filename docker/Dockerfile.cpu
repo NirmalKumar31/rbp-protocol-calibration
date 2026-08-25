@@ -1,0 +1,80 @@
+# CPU image: everything except torch.
+#
+# WHY A SEPARATE IMAGE FROM THE GPU ONE. The preprocessing stage runs 374 parallel tasks.
+# The GPU image is ~6 GB because of torch and the CUDA libraries; this one is ~1.2 GB. Using
+# one image for both would pull 4.8 GB of unused CUDA into 374 workers -- more time spent
+# pulling than preprocessing.
+#
+# LAYER ORDER IS THE OTHER HALF OF THE COST STORY. Docker caches each instruction. Anything
+# below a changed layer is rebuilt. Dependencies change rarely, our source changes
+# constantly, so dependencies go first and source goes last. Reversed, every one-character
+# edit would reinstall scipy.
+
+FROM python:3.13-slim AS base
+
+# Fail fast and loudly rather than continuing in a broken state.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# ONE BLAS THREAD PER TASK. numpy and scipy size their thread pools from the number of
+# cores they can SEE, which is the host's, not the container's cgroup limit. Four tasks
+# share a 4-core node here and each is capped at 0.9 CPU, so the default is four processes
+# each spawning four threads: sixteen threads fighting over four cores.
+#
+# Measured, and it is not a marginal effect. NCBP2 is a 406-pair dataset that computes in
+# 7 seconds on a laptop. Unpinned in a container it ran for over 20 minutes without
+# finishing; pinned to one thread it took 26.7 seconds. A 189-task sweep would have looked
+# like a hang rather than an error.
+#
+# It also makes the numerics reproducible run to run: thread count changes the summation
+# order inside BLAS, which moves iterative solvers in the last few decimals.
+ENV OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1
+
+# System packages. `--no-install-recommends` keeps the layer small; the apt lists are
+# removed in the same RUN so they never enter the layer at all -- deleting them in a later
+# instruction would not shrink the image, because layers are additive.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# --- dependency layer: changes rarely -------------------------------------------------
+# Pinned to the versions the local environment was verified against. An unpinned install
+# would mean the cloud silently runs different numerics from the laptop, which is exactly
+# what the step 4 and 5 reproducibility gates exist to catch -- better not to create the
+# problem.
+COPY docker/requirements-cpu.txt /tmp/requirements-cpu.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-cpu.txt
+
+# --- source layer: changes constantly -------------------------------------------------
+COPY src/ /app/src/
+COPY scripts/ /app/scripts/
+COPY config/ /app/config/
+COPY tests/ /app/tests/
+COPY pyproject.toml /app/
+
+ENV PYTHONPATH=/app/src
+
+# Build metadata, injected by Cloud Build. Recorded in every BigQuery row so a result can
+# always be traced back to the exact image and commit that produced it.
+ARG GIT_SHA=unknown
+ARG BUILD_ID=unknown
+ENV GIT_SHA=${GIT_SHA} BUILD_ID=${BUILD_ID}
+
+# Non-root. Nothing here needs root, and a job that cannot write outside its workdir cannot
+# corrupt a mounted bucket by accident.
+RUN useradd --create-home --uid 1000 runner && chown -R runner:runner /app
+USER runner
+
+# Proves the interpreter and the package import cleanly without running anything heavy.
+HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import rbp" || exit 1
+
+CMD ["python", "-c", "import rbp; print('rbp cpu image ok')"]

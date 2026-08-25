@@ -1,0 +1,108 @@
+# Cloud Build config for the GPU image.
+#
+# Differs from the CPU one in three ways, all forced by what this image contains:
+#   * it bakes ~1.2 GB of model weights, so the build needs network egress and time
+#   * it runs the FULL test suite including test_models.py, which needs torch
+#   * there is no GPU on a Cloud Build worker, so everything here runs on CPU. That is
+#     fine: the tests exercise shapes, checkpointing and the fold logic, none of which
+#     need a device. What a GPU would add is speed, not coverage.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: pull-cache
+    entrypoint: bash
+    args:
+      - -c
+      - docker pull ${_IMAGE}:latest || echo "no cache yet, first build"
+
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - --cache-from=${_IMAGE}:latest
+      - -t=${_IMAGE}:latest
+      - -t=${_IMAGE}:${_GIT_SHA}
+      - --build-arg=GIT_SHA=${_GIT_SHA}
+      - --build-arg=BUILD_ID=${BUILD_ID}
+      - -f=docker/Dockerfile.gpu
+      - .
+
+  # THE OFFLINE GATE. Already run inside the Dockerfile, repeated here as an explicit step
+  # so that a failure is attributed to the right thing in the build log rather than being
+  # buried in a RUN layer. Cheap, and it is the failure mode most likely to bite.
+  - name: gcr.io/cloud-builders/docker
+    id: offline-models
+    args:
+      - run
+      - --rm
+      - --network=none          # prove it: no network at all, not merely HF_HUB_OFFLINE
+      - '${_IMAGE}:${_GIT_SHA}'
+      - python
+      - docker/bake_weights.py
+      - verify
+
+  - name: gcr.io/cloud-builders/docker
+    id: test
+    args:
+      - run
+      - --rm
+      - '${_IMAGE}:${_GIT_SHA}'
+      - python
+      - -m
+      - pytest
+      - tests/
+      - -q
+      - --tb=short
+
+  - name: gcr.io/cloud-builders/docker
+    id: test-count
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        n=$(docker run --rm ${_IMAGE}:${_GIT_SHA} python -m pytest tests/ \
+              --collect-only 2>/dev/null \
+              | grep -oE '^[0-9]+ tests collected' | grep -oE '^[0-9]+')
+        echo "collected $$n tests (expected ${_EXPECTED_TESTS})"
+        if [ "$$n" -ne "${_EXPECTED_TESTS}" ]; then
+          echo "FAIL: expected ${_EXPECTED_TESTS} tests, collected $$n"
+          exit 1
+        fi
+
+  - name: gcr.io/cloud-builders/docker
+    id: push
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker push ${_IMAGE}:${_GIT_SHA}
+        docker push ${_IMAGE}:latest
+
+  - name: gcr.io/cloud-builders/gcloud
+    id: record-digest
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        digest=$(gcloud artifacts docker images describe ${_IMAGE}:${_GIT_SHA} \
+                   --format='value(image_summary.digest)')
+        if [ -z "$$digest" ]; then echo "FAIL: could not resolve digest"; exit 1; fi
+        echo "$$digest" > /workspace/gpu_digest.txt
+        gsutil -q cp /workspace/gpu_digest.txt gs://${_ARTIFACTS}/images/gpu_digest.txt
+        echo "GPU image digest: $$digest"
+        echo "pin jobs to: ${_IMAGE}@$$digest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+  diskSizeGb: 200          # the CUDA base plus weights plus two tags does not fit in 100
+
+# Longer than the CPU image's 1200s: the base is ~6 GB to pull and the weight fetch is a
+# further ~1.2 GB from huggingface.co, neither of which is cached on a first build.
+timeout: 3600s
+
+substitutions:
+  _IMAGE: us-central1-docker.pkg.dev/rbp-composition-2026/rbp/gpu
+  # The FULL suite. The CPU image asserts this number minus the 34 torch tests.
+  _EXPECTED_TESTS: '460'
+  _GIT_SHA: unknown
+  _ARTIFACTS: rbp-composition-2026-artifacts

@@ -1,0 +1,247 @@
+# Single source of truth for the pipeline. Nothing hard-codes these values.
+
+project: rna-binding-proteins
+
+# WHERE THE CLOUD LIVES. Every script resolves project and bucket names through
+# rbp.utils.cloud, which reads this block unless the environment overrides it. Eighteen
+# files used to hardcode the project id, which meant the pipeline only ran on one account.
+# Change these two lines (or export GOOGLE_CLOUD_PROJECT) to run the whole study elsewhere.
+cloud:
+  project_id: rbp-composition-2026
+  # derived_bucket and raw_bucket default to {project_id}-derived / -raw. Set them only if
+  # the names had to differ, e.g. the natural name was already taken globally.
+seed: 7
+
+encode:
+  # ONE cell line, for the scripts that operate on one at a time: download, panel_census.
+  cell_line: K562
+  # The study spans BOTH. Anything that enumerates the panel must read this, not the
+  # singular key above -- train.py read the singular one until 2026-08-23 and would have
+  # swept K562 alone, silently dropping 88 of the 189 datasets.
+  cell_lines: [K562, HepG2]
+  assay: eCLIP
+  assembly: GRCh38
+  # ENCODE labels every eCLIP peak file "peaks"; the replicate-merged reproducible
+  # set is the one flagged preferred_default, which is what encode.peak_file selects
+  output_type: peaks
+  api: https://www.encodeproject.org
+  # K562 is female-derived, so chrY carries only 2 peaks across the whole panel -
+  # almost certainly mapping artefacts. Excluded rather than left to add noise.
+  exclude_chroms: [chrY]
+
+panel:
+  # 139 K562 eCLIP RBPs are available. This build targets a 16-protein development
+  # panel; the cloud phase runs the full set. Candidates below are chosen for disease
+  # relevance across three distinct RBP functions. The final panel is whichever
+  # candidates clear encode.min_pairs after preprocessing, so membership is decided by
+  # the data rather than asserted here.
+  mode: subset             # subset (use candidates) | all (every protein found)
+  # Inclusion criterion: enough held-out pairs for a stable AUROC estimate, rather
+  # than an arbitrary total. At 200 test pairs (100 per class) the standard error of
+  # AUROC is roughly 0.025, which is small against the between-model differences we
+  # care about. Stated this way the threshold is defensible; a bare ">=1200 pairs"
+  # was inherited and could not be justified.
+  min_test_pairs: 200
+  candidates:
+    # aggregation, ALS and frontotemporal dementia
+    - TARDBP
+    - FUS
+    - MATR3
+    - TIA1
+    - TAF15
+    - EWSR1
+    # splicing regulation
+    - RBFOX2
+    - PTBP1
+    - QKI
+    - U2AF1
+    - HNRNPC
+    - MBNL1                # myotonic dystrophy
+    # translational control and mRNA transport
+    - FMR1                 # fragile X syndrome
+    # mRNA stability and 3'UTR control
+    - PUM2
+    - PUM1                 # paralog control: near-identical motif to PUM2
+    - IGF2BP1
+    - IGF2BP2
+    - IGF2BP3
+    - ELAVL1
+    - LIN28B
+
+reference:
+  # Use the GENCODE genome, not Ensembl's. Ensembl names chromosomes "1", "2", "X"
+  # while GENCODE and the ENCODE peaks use "chr1", "chr2", "chrX". Mixing them makes
+  # every sequence lookup silently return nothing. Same release as the GTF below, so
+  # the two are guaranteed consistent.
+  genome: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_45/GRCh38.primary_assembly.genome.fa.gz
+  gtf: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_45/gencode.v45.annotation.gtf.gz
+  clinvar: https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
+  phylop: https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
+
+windows:
+  size: 101                # odd, so a variant sits at an exact centre
+  strand_correct: true     # reverse-complement minus-strand windows to the RNA the protein sees
+  drop_n: true             # discard windows containing an unknown base
+
+negatives:
+  per_positive: 1
+  match_region: true       # same intron / exon / UTR class
+  gc_tolerance: 0.05       # within 5 percentage points
+  min_peak_distance: 500   # nt from any peak of the same protein
+  # Which arm the study trains and reports on. The gc arm is built and kept so the two
+  # can be differenced ("the cost of proper matching"), but it is not the primary. Every
+  # script that picks a dataset directory reads this rather than hardcoding one, because
+  # hardcoding data/processed is exactly how the gc directory got filtered by dinuc pair
+  # counts. See rbp.utils.panel.
+  primary_arm: dinuc
+
+# PRIMARY evaluation protocol. Grouped k-fold cross-validation over whole
+# chromosomes: every window is scored exactly once out-of-fold, so the AUROC uses all
+# pairs rather than the 20% a single hold-out would spare, each fold model trains on
+# ~3/5 of the data instead of ~60% of one split, and "would the ranking survive a
+# different chromosome partition?" is answered by construction rather than argued.
+cv:
+  k: 5
+  # chrom -> fold, solved once for ALL datasets in both cell lines by
+  # scripts/optimize_folds.py, so the 57 proteins measured in K562 and HepG2 are
+  # evaluated on the same chromosomes. Frozen in config/folds.tsv.
+  folds: config/folds.tsv
+  # Validation is the next fold cyclically, so each fold is test once, val once and
+  # train k-2 times. No extra data is spent on model selection.
+  val_offset: 1
+  # Pooled out-of-fold AUROC is primary: it is invariant to fold size, which matters
+  # because small panels have peaks concentrated on a few chromosomes and cannot be
+  # balanced by any partition (worst case 0.42 of one dataset in one fold). The
+  # pair-weighted average of per-fold AUROCs is reported alongside as a sensitivity
+  # check; the two must agree within the bootstrap interval.
+  estimator: pooled_oof
+  # Datasets need this many out-of-fold scored pairs. Deliberately twice the 200 the
+  # old single-split filter required, so coverage rises and precision rises with it.
+  min_pairs: 400
+
+# Retained for the shuffle-arm sensitivity analysis and because optimize_split.py and
+# its tests predate the move to cross-validation. Not the primary protocol.
+split:
+  by: chromosome
+  target: [0.64, 0.16, 0.20]
+  # Chosen by scripts/optimize_split.py to minimise deviation from `target` across all
+  # proteins simultaneously. Optimised on peak COUNTS only - never on labels, model
+  # output or performance - so this is stratification, not leakage.
+  #   this assignment:   train 0.60-0.69  val 0.13-0.20  test 0.17-0.24
+  #   a blind assignment: train 0.53-0.70  val 0.09-0.33  test 0.13-0.24
+  # Peaks are distributed very unevenly across chromosomes (chr19 is gene dense), so
+  # choosing blind leaves some proteins with a third of their data in validation.
+  test:  [chr1, chr10, chr16]
+  val:   [chr9, chr11, chr13, chr21, chrX]
+  # everything else trains
+
+models:
+  cnn:
+    kind: cnn
+    label: CNN
+    mode: scratch
+    conv1: {out: 16, kernel: 12}
+    conv2: {out: 32, kernel: 8}
+    pool: 4
+    hidden: 64
+    dropout: 0.5
+  rnabert:
+    kind: lm
+    label: RNABERT
+    repo: multimolecule/rnabert
+    cls: RnaBertModel
+    params_m: 0.48
+    mode: full
+  splicebert:
+    kind: lm
+    label: SpliceBERT
+    repo: multimolecule/splicebert
+    cls: SpliceBertModel
+    params_m: 19.72
+    mode: full
+  rnafm:
+    kind: lm
+    label: RNA-FM (LoRA)
+    repo: multimolecule/rnafm
+    cls: RnaFmModel
+    params_m: 99.52
+    mode: lora
+  rnamsm:
+    kind: lm
+    label: RNA-MSM (LoRA)
+    repo: multimolecule/rnamsm
+    cls: RnaMsmModel
+    params_m: 95.92
+    mode: lora
+    # MSA-style axial attention, so the projections are named ESM/fairseq style
+    # (q_proj/v_proj) rather than BERT style (query/value). Without this override
+    # peft raises "Target modules not found".
+    lora_targets: [q_proj, v_proj]
+    note: >
+      Pretrained with multiple-sequence-alignment context, so evolutionary
+      information is built into its representations. Doubles as a positive
+      control for the conservation confound: it should be the most entangled.
+
+# >50M parameters uses LoRA, smaller models are fully fine-tuned
+lora_threshold_m: 50
+
+train:
+  epochs: 12
+  patience: 4
+  batch_size: 32
+  head_hidden: 128
+  head_dropout: 0.3
+  lr_head: 1.0e-3
+  lr_encoder_full: 3.0e-5
+  lr_encoder_lora: 1.0e-4
+  weight_decay: 1.0e-2
+  lora: {r: 8, alpha: 16, dropout: 0.05, targets: [query, value]}
+  select_on: val_auroc
+
+variants:
+  source: clinvar
+  pathogenic_labels: [Pathogenic]
+  benign_labels: [Benign]
+  noncoding_consequences:
+    - intron_variant
+    - 3_prime_UTR_variant
+    - 5_prime_UTR_variant
+    - non-coding_transcript_variant
+  peak_margin: 25          # keep variants within this many nt of a real peak
+  shifts: [-40, -20, 0, 20, 40]
+  delta: max_abs           # max over shifts of |p(ref) - p(alt)|
+
+conservation:
+  track: phyloP100way
+  method: firth            # firth | l2 | none
+  n_boot: 2000
+  ci: [2.5, 97.5]
+  min_group_n: 20
+
+positive_control:
+  min_motif_distance: 25   # neutral mutation must be this far from any motif hit
+  max_windows: 400
+  split: test
+  motifs:                  # motif, index to mutate, replacement base (literature-derived)
+    RBFOX2:  [GCAUG, 2, C]
+    PUM2:    [UGUA, 1, C]
+    PUM1:    [UGUA, 1, C]
+    ELAVL1:  [AUUUA, 2, G]
+    QKI:     [ACUAA, 2, G]
+    TARDBP:  [UGUGU, 2, A]
+    PTBP1:   [UCUU, 1, A]
+    LIN28B:  [GGAG, 2, C]
+    TIA1:    [UUUUU, 2, G]
+
+audit:
+  mmseqs_identity: 0.95    # cross-split pairs above this count as leakage
+  mmseqs_coverage: 0.8
+
+paths:
+  raw: data/raw
+  external: data/external
+  interim: data/interim
+  processed: data/processed
+  metrics: results/metrics
+  figures: results/figures
+  tables: results/tables

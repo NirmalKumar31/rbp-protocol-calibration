@@ -1,0 +1,122 @@
+# GPU image: torch, CUDA, the four pretrained backbones, and their weights.
+#
+# WHY THE WEIGHTS ARE IN THE IMAGE. The sweep workers have no external IP and there is no
+# Cloud NAT. Private Google Access reaches Google APIs; huggingface.co is not one. A
+# backbone fetched at run time would fail on every task. See docker/bake_weights.py for the
+# alternatives considered and why this one wins on provenance as well as reachability.
+#
+# The cost is size: ~1.2 GB of weights on top of a ~6 GB CUDA base. That is paid once per
+# node, and a Batch node runs many tasks, so it amortises. It is paid five times over
+# because the sweep spans five regions and the registry is in us-central1; four of those
+# pulls cross regions. Roughly 30 GB of inter-region traffic for the whole sweep, a few
+# cents, and worth it against a NAT gateway in five regions.
+#
+# LAYER ORDER, same reasoning as the CPU image: things that change rarely first. The weight
+# layer in particular must sit ABOVE the source copy, or every one-character edit to a
+# python file would re-download 1.2 GB of model weights.
+
+# CUDA 12.6 AND NOT 13.x, AND THIS IS NOT A STYLE CHOICE. torch 2.13 publishes
+# cuda12.6, cuda13.0 and cuda13.2 runtime tags. CUDA 13 dropped support for Volta
+# (compute capability sm_70), which is exactly what a V100 is. A cuda13 image builds
+# cleanly, passes every test on the CPU build worker, and then fails on the first real
+# GPU task with "no kernel image is available for execution on the device".
+#
+# bake_weights.py verify asserts sm_70 is in torch.cuda.get_arch_list(), so this cannot
+# regress silently: the arch list is compiled into the wheel and readable without a GPU.
+FROM pytorch/pytorch:2.13.0-cuda12.6-cudnn9-runtime AS base
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Where the baked weights live. Set before the fetch so the download lands here, and kept
+# for run time so the offline load finds them. /opt rather than a home directory because
+# the container runs as a different user than the one that built it.
+ENV HF_HOME=/opt/hf
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# --- dependency layer -----------------------------------------------------------------
+# THREE THINGS IN ONE RUN, AND EACH IS LOAD-BEARING.
+#
+# `python -m pip` rather than `pip`: this guarantees the packages land in the SAME
+# interpreter that will run our code, which is the one torch already lives in. A bare `pip`
+# is whatever is first on PATH, and if the base image ever puts torch somewhere else the
+# result is an image where `import torch` and `import transformers` cannot both succeed.
+# The first line prints sys.executable so the build log answers that question outright.
+#
+# `--break-system-packages`: the base is Ubuntu 24.04, whose system Python is marked
+# externally managed under PEP 668, so pip refuses by default. That protection exists to
+# stop you breaking an OS that other software depends on. In a container there is no such
+# OS -- the system Python IS the application environment, and nothing else runs here. The
+# alternative, a venv with --system-site-packages, adds a PATH to get wrong for no gain.
+#
+# The closing import proves the stack is coherent at this layer, where the error is one
+# line and obviously about installation, rather than 15 layers later inside a model build.
+COPY docker/requirements-gpu.txt /tmp/requirements-gpu.txt
+RUN python -c "import sys, torch; print('base torch', torch.__version__, 'at', sys.executable)" \
+ && python -m pip install --no-cache-dir --break-system-packages -r /tmp/requirements-gpu.txt \
+ && python -c "import torch, transformers, multimolecule, peft, sklearn; print('stack ok')"
+
+# --- weight layer ---------------------------------------------------------------------
+# Needs config (for the model list) and src (for nothing yet, but the fetch script imports
+# rbp.utils.config). Copied narrowly so an edit to scripts/ does not invalidate this layer.
+COPY config/ /app/config/
+COPY src/ /app/src/
+COPY docker/bake_weights.py /app/docker/bake_weights.py
+ENV PYTHONPATH=/app/src
+RUN python docker/bake_weights.py fetch
+
+# --- source layer ---------------------------------------------------------------------
+COPY scripts/ /app/scripts/
+COPY tests/ /app/tests/
+COPY pyproject.toml /app/
+
+# THE ONE LINE THAT MAKES THE FAILURE LOUD. With this set, a weight that did not bake
+# raises immediately instead of attempting a network call that will hang. It is also what
+# guarantees the run is reproducible: nothing can be silently re-fetched at a later date
+# from a repo whose contents have moved on.
+ENV HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+
+# The build gate for this image, run BEFORE the test suite because it is faster and
+# diagnoses the most likely failure. Builds all five models with the network off.
+RUN python docker/bake_weights.py verify
+
+ARG GIT_SHA=unknown
+ARG BUILD_ID=unknown
+ENV GIT_SHA=${GIT_SHA} BUILD_ID=${BUILD_ID}
+
+# One thread per task, same reasoning as the CPU image: the dataloader and the composition
+# features run on the host side and would otherwise oversubscribe the 2 vCPU the GPU node
+# has. Torch's own intra-op pool is capped separately.
+ENV OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1
+
+# Non-root, same reasoning as the CPU image: nothing here needs root, and a job that
+# cannot write outside its workdir cannot corrupt a mounted bucket by accident.
+#
+# Unlike python:3.13-slim, this base is Ubuntu 24.04, which already ships a user at uid
+# 1000, so a bare `useradd --uid 1000` fails with "UID 1000 is not unique". Reuse whoever
+# is there rather than picking a different uid: 1000 is what the bind-mounted work
+# directory is chmod'd for on the host, and a mismatch would show up as a permission error
+# at run time instead of here.
+RUN u=$(getent passwd 1000 | cut -d: -f1) \
+ && if [ -z "$u" ]; then useradd --create-home --uid 1000 runner && u=runner; fi \
+ && chown -R 1000:1000 /app \
+ && chmod -R a+rX /opt/hf \
+ && echo "container user: $u (uid 1000)"
+USER 1000
+
+HEALTHCHECK --interval=30s --timeout=5s CMD python -c "import rbp, torch" || exit 1
+
+CMD ["python", "-c", "import torch; print('rbp gpu image ok, cuda', torch.cuda.is_available())"]

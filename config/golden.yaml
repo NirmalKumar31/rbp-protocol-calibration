@@ -1,0 +1,87 @@
+# Golden numbers: what a correct reproduction must produce.
+#
+# Measured on the original run (rna-binding-proteins, commits 8ca07e4..626b8f7, 2026-08-24)
+# on the 187/189-dataset panels. Tolerances are deliberately loose enough to absorb the
+# things that legitimately vary between runs, and tight enough that a real regression fails:
+#
+#   * a different panel size (95 vs 187) shifts means by up to ~0.01
+#   * BLAS thread count changes summation order and moves the last few decimals
+#   * GPU vs CPU inference differed by max 1.14e-04 per variant, measured
+#   * bootstrap intervals move with the seed at the third decimal
+#
+# WHAT THIS FILE IS FOR. A pipeline that runs to completion and quietly produces different
+# science is worse than one that crashes, because nobody diffs a plausible table. Stage 13
+# asserts every entry here and fails loudly on any miss.
+#
+# DIRECTION MATTERS MORE THAN MAGNITUDE. Where a claim is about unanimity (187/187 datasets
+# fall) or sign, the check is on the count, not the mean -- those are the claims the paper
+# actually makes.
+
+meta:
+  source_run: "rna-binding-proteins @ 626b8f7"
+  measured_on: "2026-08-24"
+  # The reference numbers come from the 187-dataset arms. When the reproduction uses the
+  # 95-dataset study panel, expect the values below to hold within tolerance but the
+  # dataset COUNTS to be the panel size. Set panel_n at run time.
+  reference_panel_n: 187
+
+# --- R1: the negative-set protocol effect ---------------------------------------------
+# The headline is the unanimity and the second-order gain, not the drop.
+r1_cost_of_matching:
+  auroc_gc:        {value: 0.7963, tol: 0.015}
+  auroc_dinuc:     {value: 0.6893, tol: 0.015}
+  cost:            {value: -0.1070, tol: 0.010}
+  # THE ACTUAL FINDING. Gain over the composition-only baseline must RISE under the harder
+  # control, and must at least double. If this inverts, the paper's thesis is wrong.
+  gain_gc:         {value: 0.0165, tol: 0.008}
+  gain_dinuc:      {value: 0.0597, tol: 0.012}
+  gain_ratio_min:  2.5
+  # Every dataset must fall. Not "on average".
+  fraction_datasets_falling: {value: 1.0, tol: 0.0}
+  wilcoxon_p_max: 1.0e-15
+
+# --- R2: four models on identical splits ----------------------------------------------
+r2_four_models:
+  composition: {value: 0.628, tol: 0.020}
+  kmer:        {value: 0.688, tol: 0.020}
+  cnn:         {value: 0.708, tol: 0.025}
+  splicebert:  {value: 0.809, tol: 0.025}
+  # Ordering is the claim; it must hold exactly.
+  required_order: [composition, kmer, cnn, splicebert]
+  splicebert_beats_composition_fraction: {value: 1.0, tol: 0.0}
+
+# --- R3: positional concentration (ISM Gini) ------------------------------------------
+r3_locality:
+  kmer_gini_median:       {value: 0.295, tol: 0.030}
+  splicebert_gini_median: {value: 0.351, tol: 0.035}
+  median_difference:      {value: 0.062, tol: 0.020}
+  # The strong form: SpliceBERT is more concentrated on the large majority, and REVERSED
+  # on none beyond noise. The zero is the part that matters.
+  fraction_splicebert_higher_min: 0.85
+  n_significantly_reversed_max: 0
+  wilcoxon_p_max: 1.0e-10
+
+# --- R4: the ClinVar ladder -----------------------------------------------------------
+# Three rungs. The claim is the GAPS between them, so each is checked and so is the order.
+r4_variant_ladder:
+  kmer_auroc:               {value: 0.529, tol: 0.030}
+  mismatched_head_auroc:    {value: 0.656, tol: 0.035}
+  matched_head_auroc:       {value: 0.829, tol: 0.035}
+  conservation_auroc:       {value: 0.906, tol: 0.020}
+  required_order: [kmer_auroc, mismatched_head_auroc, matched_head_auroc, conservation_auroc]
+  # Cluster-corrected coefficients. The naive interval is ~30% too narrow and must not be
+  # what gets reported; the verifier checks the clustered one.
+  matched_coef:      {value: 1.616, tol: 0.150}
+  mismatched_coef:   {value: 0.622, tol: 0.120}
+  kmer_coef:         {value: 0.102, tol: 0.060}
+  # The specificity claim: matched must clearly exceed mismatched, or the signal is not
+  # binding-specific and R4 must be withdrawn.
+  matched_minus_mismatched_min: 0.60
+  # Inference must be clustered, not per-row.
+  min_clusters: 800
+
+# --- integrity gates, not science -----------------------------------------------------
+integrity:
+  max_nan_fraction: 0.0
+  duplicate_datasets_allowed: 0
+  min_tests_passing: 480
