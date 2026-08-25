@@ -146,8 +146,18 @@ s1_terraform() {
 s2_images() {
   gate_preflight; say "stage 2: build container images"
   confirm "Cloud Build, CPU + GPU images" "~\$0.50"
-  gcloud builds submit --project="$PROJECT_ID" --config=docker/cloudbuild.cpu.yaml . || die "cpu image"
-  gcloud builds submit --project="$PROJECT_ID" --config=docker/cloudbuild.gpu.yaml . || die "gpu image"
+  # Substitutions are passed EXPLICITLY, not left to the defaults in the yaml. Cloud Build
+  # does not expand $PROJECT_ID inside a user-defined substitution's default, so the default
+  # would reach docker as a literal and be rejected for containing capitals.
+  local REPO="${REGION}-docker.pkg.dev/${PROJECT_ID}/rbp"
+  local SHA; SHA=$(git rev-parse --short HEAD 2>/dev/null || echo unknown)
+  for kind in cpu gpu; do
+    say "building the ${kind} image"
+    gcloud builds submit --project="$PROJECT_ID" \
+      --config="docker/cloudbuild.${kind}.yaml" \
+      --substitutions="_IMAGE=${REPO}/${kind},_ARTIFACTS=${PROJECT_ID}-artifacts,_GIT_SHA=${SHA}" \
+      . || die "${kind} image"
+  done
 }
 
 s3_ingest() {

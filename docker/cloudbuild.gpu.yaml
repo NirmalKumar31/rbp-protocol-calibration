@@ -101,6 +101,11 @@ options:
 timeout: 3600s
 
 substitutions:
+  # NOTE ON $PROJECT_ID BELOW. Cloud Build does NOT recursively expand a user-defined
+  # substitution's DEFAULT value, so writing `_IMAGE: .../$PROJECT_ID/rbp/cpu` here passes
+  # the literal string through and docker rejects it: "repository name must be lowercase",
+  # because `$PROJECT_ID` contains capitals. These defaults are therefore only a hint; the
+  # real values are passed by run.sh with --substitutions, where they are concrete.
   _IMAGE: us-central1-docker.pkg.dev/$PROJECT_ID/rbp/gpu
   # The FULL suite. The CPU image asserts this number minus the 34 torch tests.
   _EXPECTED_TESTS: '460'

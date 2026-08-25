@@ -69,3 +69,20 @@ def test_env_overrides_config(monkeypatch):
     assert cloud.project() == "someone-elses-project"
     assert cloud.derived_bucket() == "someone-elses-project-derived"
     assert cloud.raw_bucket() == "someone-elses-project-raw"
+
+
+# --- the cloudbuild files must actually be valid YAML -----------------------------------
+#
+# Editing a comment into a substitutions block dropped the leading '#' from one line, which
+# turned a comment into a bare YAML key and made `gcloud builds submit` fail before it even
+# uploaded. A yaml file that looks fine in a diff is not a yaml file that parses.
+
+@pytest.mark.parametrize("name", ["cloudbuild.cpu.yaml", "cloudbuild.gpu.yaml"])
+def test_cloudbuild_yaml_parses(name):
+    yaml = pytest.importorskip("yaml")
+    p = ROOT / "docker" / name
+    if not p.exists():
+        pytest.skip(f"{name} not present")
+    d = yaml.safe_load(p.read_text())
+    assert "steps" in d, f"{name} has no steps"
+    assert "_IMAGE" in d.get("substitutions", {}), f"{name} lost its _IMAGE substitution"
