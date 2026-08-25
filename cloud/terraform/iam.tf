@@ -208,18 +208,30 @@ resource "google_project_iam_member" "analysis_bq_jobs" {
 
 # Every job needs to pull from Artifact Registry. Reader only -- a training job has no
 # business pushing an image.
+# for_each keys are the ACCOUNT IDS, not the resource-computed emails.
+#
+# Keying on google_service_account.*.email made the whole configuration unplannable from an
+# empty state: for_each keys must be known at plan time, and those emails are "known only
+# after apply". Terraform then refuses to plan at all, which forces a two-phase -target
+# apply and, worse, blocks `terraform import` of anything else in the config.
+#
+# The email is fully determined by the account id and the project, both known at plan time,
+# so building it from var.project_id removes the dependency without changing a single
+# resulting grant.
 resource "google_artifact_registry_repository_iam_member" "pullers" {
-  for_each = toset([
-    google_service_account.prep.email,
-    google_service_account.ingest.email,
-    google_service_account.train.email,
-    google_service_account.analysis.email,
-  ])
+  for_each = toset(["rbp-prep", "rbp-ingest", "rbp-train", "rbp-analysis"])
+
+  depends_on = [
+    google_service_account.prep,
+    google_service_account.ingest,
+    google_service_account.train,
+    google_service_account.analysis,
+  ]
 
   location   = google_artifact_registry_repository.images.location
   repository = google_artifact_registry_repository.images.name
   role       = "roles/artifactregistry.reader"
-  member     = "serviceAccount:${each.value}"
+  member     = "serviceAccount:${each.value}@${var.project_id}.iam.gserviceaccount.com"
 }
 
 # ---------------------------------------------------------------------------------------

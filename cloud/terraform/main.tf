@@ -32,8 +32,21 @@ terraform {
   #
   # Chicken-and-egg: this bucket is declared in storage.tf, so the FIRST apply necessarily
   # ran with local state. `terraform init -migrate-state` moved it here afterwards.
+  # PARTIAL BACKEND CONFIGURATION. The bucket is deliberately NOT written here.
+  #
+  # Terraform backends cannot use variables, so a hardcoded bucket means every checkout of
+  # this repo shares one state file. That is not a style problem, it is destructive: pointing
+  # config/params.yaml at a new project while the backend still names the old project's state
+  # bucket makes `terraform plan` load the OLD infrastructure and propose destroying all of
+  # it to build the new one. Measured on 2026-08-25: "63 to add, 1 to change, 63 to destroy",
+  # where the 63 destroys were the original study's buckets, containing every result.
+  #
+  # So the bucket is supplied at init time and must match the project:
+  #   terraform init -backend-config="bucket=${PROJECT_ID}-tfstate"
+  #
+  # run.sh stage 1 does this, creates the bucket first if absent, and refuses to apply any
+  # plan containing a destroy.
   backend "gcs" {
-    bucket = "rbp-composition-2026-tfstate"
     prefix = "terraform/state"
   }
 }
