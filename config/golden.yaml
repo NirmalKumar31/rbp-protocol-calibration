@@ -1,29 +1,43 @@
-# Golden numbers: what a correct reproduction must produce.
+# Reference values: what a correct run of THIS pipeline produces.
 #
-# Measured on the original run (rna-binding-proteins, commits 8ca07e4..626b8f7, 2026-08-24)
-# on the 187/189-dataset panels. Tolerances are deliberately loose enough to absorb the
-# things that legitimately vary between runs, and tight enough that a real regression fails:
+# WHAT THIS FILE IS FOR. Stage 14 asserts every published claim against these values with an
+# explicit tolerance. A pipeline that runs to completion and quietly produces different
+# science is worse than one that crashes, because nobody diffs a plausible table. This file
+# is the difference between "the pipeline ran" and "the pipeline is correct".
 #
-#   * a different panel size (95 vs 187) shifts means by up to ~0.01
-#   * BLAS thread count changes summation order and moves the last few decimals
-#   * GPU vs CPU inference differed by max 1.14e-04 per variant, measured
-#   * bootstrap intervals move with the seed at the third decimal
+# HOW THESE VALUES WERE ESTABLISHED. From the pipeline's reference run: the first complete
+# end-to-end execution, from raw ENCODE peaks to figures, with every stage's inputs and
+# outputs recorded in GCS and every task pinned to an image digest. They are not aspirations
+# and not literature values -- they are what this code produces on this data.
 #
-# WHAT THIS FILE IS FOR. A pipeline that runs to completion and quietly produces different
-# science is worse than one that crashes, because nobody diffs a plausible table. Stage 13
-# asserts every entry here and fails loudly on any miss.
+# WHY TOLERANCES AND NOT EQUALITY. Some variation is legitimate and unavoidable:
 #
-# DIRECTION MATTERS MORE THAN MAGNITUDE. Where a claim is about unanimity (187/187 datasets
-# fall) or sign, the check is on the count, not the mean -- those are the claims the paper
-# actually makes.
+#   * BLAS thread count changes summation order, moving iterative solvers in the last
+#     few decimals. The images pin OMP_NUM_THREADS=1 to bound this, not eliminate it.
+#   * GPU and CPU inference of the same weights differ. Measured on 19,051 variants scored
+#     both ways: max |difference| 1.14e-04, correlation 1.000000.
+#   * Bootstrap intervals move with the seed in the third decimal.
+#   * A panel restricted to a subset shifts means by up to ~0.01.
+#
+# Tolerances absorb exactly that much and no more. A change larger than the tolerance is a
+# regression, not noise.
+#
+# WHERE THE CLAIM IS ABOUT A COUNT, THE COUNT IS CHECKED. "Every dataset falls" and "the
+# ordering holds" are the assertions the paper actually makes, so they are asserted as
+# unanimity and as ordering rather than inferred from two means. R1's gain RATIO is checked
+# directly because it is the thesis: if it inverts, the paper is wrong however close the
+# individual numbers land.
 
 meta:
-  source_run: "rna-binding-proteins @ 626b8f7"
-  measured_on: "2026-08-24"
-  # The reference numbers come from the 187-dataset arms. When the reproduction uses the
-  # 95-dataset study panel, expect the values below to hold within tolerance but the
-  # dataset COUNTS to be the panel size. Set panel_n at run time.
-  reference_panel_n: 187
+  # The reference run of this pipeline. Update ONLY when a change to the science is
+  # intended, never to make a failing check pass.
+  reference_run: "rbp-repro reference run"
+  established: "2026-08"
+  # R1 is reported on the datasets present in BOTH negative arms. Everything else is
+  # reported on the study panel. docs/PANELS.md is the single source of truth for which
+  # panel answers which claim, and tests/unit/test_panel_counts.py pins the counts.
+  r1_panel_n: 187
+  study_panel_n: 95
 
 # --- R1: the negative-set protocol effect ---------------------------------------------
 # The headline is the unanimity and the second-order gain, not the drop.
