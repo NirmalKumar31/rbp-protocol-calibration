@@ -20,8 +20,9 @@ short-lived VM with a public IP -- the same posture as ingest -- rather than add
 NAT that would bill per hour and hand internet access to every other worker for no reason.
 
     python scripts/cloud_variants.py --what assign     variants near peaks
+    python scripts/cloud_variants.py --what score      k-mer delta per variant
     python scripts/cloud_variants.py --what phylop     conservation
-    python scripts/cloud_variants.py --what all        both, in order
+    python scripts/cloud_variants.py --what all        all three, in order
 """
 
 import argparse
@@ -53,7 +54,7 @@ RAW_OBJECTS = [
 # Outputs this stage is responsible for. The completion marker is written LAST, after every
 # payload, for the same reason as everywhere else in this project: a task preempted between
 # two uploads must redo its work, not be skipped by a marker that arrived early.
-OUTPUTS = ["variant_assignments.csv", "variant_conservation.csv"]
+OUTPUTS = ["variant_assignments.csv", "variant_scores.csv", "variant_conservation.csv"]
 MARKER = "variants-complete.json"
 
 
@@ -163,7 +164,8 @@ def run_existing(what):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--what", default="all", choices=["assign", "phylop", "all"])
+    p.add_argument("--what", default="all",
+                   choices=["assign", "score", "phylop", "all"])
     p.add_argument("--force", action="store_true")
     a = p.parse_args()
 
@@ -178,7 +180,17 @@ def main():
     TABLES.mkdir(parents=True, exist_ok=True)
     stage_in(bucket, raw_bucket)
 
-    for what in (["assign", "phylop"] if a.what == "all" else [a.what]):
+    # ASSIGN, SCORE, PHYLOP -- and score is not optional.
+    #
+    # I ran assign then phylop, and phylop died on a missing variant_scores.csv. The stages
+    # form a chain: assign finds which variants sit near a binding site, score computes the
+    # k-mer disruption delta for each, and phylop reads that file to know which distinct
+    # positions need a conservation lookup. Skipping the middle one breaks the third.
+    #
+    # score also produces the k-mer arm of the R4 ladder -- the bottom rung, against which the
+    # mismatched and matched SpliceBERT heads are compared. Leaving it out would have removed
+    # the baseline the whole result is measured from.
+    for what in (["assign", "score", "phylop"] if a.what == "all" else [a.what]):
         run_existing(what)
 
     stage_out(bucket)
