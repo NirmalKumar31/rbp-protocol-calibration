@@ -85,7 +85,12 @@ case "$JOB_TYPE" in
     PAR=8; PER_NODE=4; MACHINE=e2-standard-4; CPU=900; MEM=3500
     EXTERNAL=0; DISK=50; TIMEOUT=7200 ;;
   variants)
-    SA=rbp-ingest
+    # rbp-analysis, not rbp-ingest. The external IP is a NETWORK property of the job, set
+    # below by EXTERNAL=1, and has nothing to do with which identity the job runs as. I had
+    # conflated the two and picked the account that can reach the internet rather than the
+    # one that can write the output; rbp-ingest has no access to the derived bucket at all
+    # and took a 403 on its first read.
+    SA=rbp-analysis
     SCRIPT="scripts/cloud_variants.py"; ARGS="--what all"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-4; CPU=4000; MEM=16384
     EXTERNAL=1; DISK=200; TIMEOUT=14400 ;;

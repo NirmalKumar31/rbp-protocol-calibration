@@ -298,6 +298,42 @@ resource "google_storage_bucket_iam_member" "modal_derived_read" {
 # here than there: this is the one identity in the project whose credential leaves Google's
 # network, so it is the one whose blast radius has to be smallest. Even fully compromised it
 # cannot alter a dataset, touch the raw bucket, or delete a result outside those prefixes.
+# rbp-analysis could READ the derived bucket and not write to it, which made every stage that
+# produces a result table unassignable: stage 11 (variant assignment and phyloP) and stage 13
+# (aggregation and figures) both write results/. Stage 11 was given rbp-ingest instead, which
+# has no access to this bucket at all and took a 403 on its very first read.
+#
+# The right answer is not a broader account, it is the correct one: analysis writes analysis
+# output. Conditioned to results/ and variants/, so it still cannot touch processed/ or runs/.
+# READ on raw as well, because stage 11 needs the genome and the ClinVar VCF to cut each
+# variant's ref/alt windows. Read-only: the analysis identity has no business changing an
+# immutable input, and rbp-ingest remains the only writer there.
+#
+# This was found the same way as the previous binding -- a 403, one bucket further along.
+# Fixing an access error by granting exactly the next thing that failed is how an identity
+# quietly accumulates everything; the discipline is to ask what the stage LEGITIMATELY needs
+# and grant that. Stage 11 reads two immutable inputs and writes result tables. Nothing else.
+resource "google_storage_bucket_iam_member" "analysis_raw_read" {
+  bucket = google_storage_bucket.raw.name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_service_account.analysis.email}"
+}
+
+resource "google_storage_bucket_iam_member" "analysis_derived_write" {
+  bucket = google_storage_bucket.derived.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.analysis.email}"
+
+  condition {
+    title       = "analysis-outputs-only"
+    description = "Result tables, figures and variant scores"
+    expression = <<-EOT
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/results/") ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/variants/")
+    EOT
+  }
+}
+
 resource "google_storage_bucket_iam_member" "modal_derived_write" {
   bucket = google_storage_bucket.derived.name
   role   = "roles/storage.objectAdmin"
