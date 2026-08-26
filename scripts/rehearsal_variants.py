@@ -170,7 +170,7 @@ def stage_phylop(cfg):
     have = phylop.load_cache(cache)
     print(f"  cache holds {len(have):,}")
     ann_df = phylop.annotate(uniq, cache=str(cache))
-    print(f"  coverage: {phylop.coverage(ann_df)}")
+    print(f"  coverage: {phylop.assert_coverage(ann_df)}")
     ann_df[["vid", "chrom", "pos_vcf", "conservation"]].to_csv(
         TABLES / "variant_conservation.csv", index=False)
     return ann_df

@@ -57,6 +57,35 @@ RAW_OBJECTS = [
 OUTPUTS = ["variant_assignments.csv", "variant_scores.csv", "variant_conservation.csv"]
 MARKER = "variants-complete.json"
 
+# Which sub-stage produces which file. The chain is assign -> score -> phylop, and each link
+# costs real time: assign ~10 min over 189 datasets, score ~12 min over 66,010 variants,
+# phylop an unknown number of HTTP round trips against UCSC.
+#
+# WHY THIS MAPPING EXISTS AT ALL. It did not, and every phyloP failure threw away the
+# twenty-two minutes of correct assign and score work that preceded it, because run_existing()
+# raises on a nonzero return code and that exception skipped stage_out() entirely. Four
+# consecutive runs recomputed identical assignments and identical scores to reach the same
+# failing line. The results were never wrong; they were simply never saved.
+#
+# rehearsal_variants.py's own docstring promises each stage is "cached to disk so a rerun is
+# cheap", and on a laptop that was true -- the disk persisted. A container's disk does not, so
+# the cache has to live in GCS or it does not exist.
+STAGE_OUTPUT = {
+    "assign": "variant_assignments.csv",
+    "score": "variant_scores.csv",
+    "phylop": "variant_conservation.csv",
+}
+
+# assign writes this too; it is not part of the completion contract but the analysis reads it.
+EXTRA_OUTPUTS = ["variant_availability_panel.csv"]
+
+# phyloP's own cache: (chrom, pos) -> score, one line each. Round-tripping it through GCS
+# means a run that dies halfway through 27,492 remote lookups resumes at the position it
+# reached rather than at zero. This is the only stage whose cost is external and rate-limited,
+# so it is the one stage where partial progress is worth carrying.
+PHYLOP_CACHE = ROOT / "data" / "interim" / "phylop_cache.tsv"
+PHYLOP_CACHE_OBJ = "interim/phylop_cache.tsv"
+
 
 def log(m):
     print(f"[cloud_variants] {m}", flush=True)
@@ -138,21 +167,52 @@ def stage_in(bucket, raw_bucket):
         b.download_to_filename(str(dest))
         staged += 1
     log(f"staged {sum(1 for _ in PROC_DIR.rglob('dataset.tsv'))} processed datasets")
+
+    # Anything a previous attempt already finished. Downloading these is what turns a rerun
+    # into a resume: main() skips any sub-stage whose output is already on disk.
+    resumed = []
+    for name in OUTPUTS + EXTRA_OUTPUTS:
+        b = bucket.get_blob(f"results/tables/{name}")
+        if b is None:
+            continue
+        b.download_to_filename(str(TABLES / name))
+        resumed.append(name)
+    if resumed:
+        log(f"resuming with {len(resumed)} table(s) from a previous attempt: "
+            + ", ".join(resumed))
+
+    cb = bucket.get_blob(PHYLOP_CACHE_OBJ)
+    if cb is not None:
+        PHYLOP_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        cb.download_to_filename(str(PHYLOP_CACHE))
+        log(f"phyloP cache restored ({(cb.size or 0) / 1e6:.1f} MB)")
+
     return panel
 
 
 def stage_out(bucket):
-    """Upload whatever this stage produced, marker last."""
+    """Upload whatever this stage produced, marker last.
+
+    Called even when a sub-stage failed, which is the point: partial work is still correct
+    work. The marker is what encodes completeness, so uploading two of three tables is safe
+    and saves the next attempt from recomputing them.
+    """
     sent = []
-    for name in OUTPUTS:
+    for name in OUTPUTS + EXTRA_OUTPUTS:
         p = TABLES / name
         if not p.exists():
             log(f"WARNING expected output missing: {name}")
             continue
         bucket.blob(f"results/tables/{name}").upload_from_filename(
             str(p), content_type="text/csv")
-        sent.append(f"{name} ({p.stat().st_size / 1e6:.1f} MB)")
+        if name in OUTPUTS:
+            sent.append(f"{name} ({p.stat().st_size / 1e6:.1f} MB)")
         log(f"uploaded {name}")
+
+    if PHYLOP_CACHE.exists():
+        bucket.blob(PHYLOP_CACHE_OBJ).upload_from_filename(
+            str(PHYLOP_CACHE), content_type="text/tab-separated-values")
+        log(f"uploaded phyloP cache ({PHYLOP_CACHE.stat().st_size / 1e6:.1f} MB)")
     if len(sent) == len(OUTPUTS):
         import json
         bucket.blob(MARKER).upload_from_string(
@@ -201,10 +261,24 @@ def main():
     # score also produces the k-mer arm of the R4 ladder -- the bottom rung, against which the
     # mismatched and matched SpliceBERT heads are compared. Leaving it out would have removed
     # the baseline the whole result is measured from.
-    for what in (["assign", "score", "phylop"] if a.what == "all" else [a.what]):
-        run_existing(what)
+    # stage_out runs whether or not the chain completes. Without the finally, a failure in
+    # phylop discarded a finished assign and a finished score -- see STAGE_OUTPUT above.
+    failure = None
+    try:
+        for what in (["assign", "score", "phylop"] if a.what == "all" else [a.what]):
+            done = TABLES / STAGE_OUTPUT[what]
+            if done.exists() and not a.force:
+                log(f"skipping {what}: {done.name} already exists ({done.stat().st_size / 1e6:.1f} MB)")
+                continue
+            run_existing(what)
+    except SystemExit as e:
+        failure = e
+    finally:
+        stage_out(bucket)
 
-    stage_out(bucket)
+    if failure is not None:
+        log("chain did not complete; finished stages were saved and will be skipped on rerun")
+        raise failure
     log("done")
 
 
