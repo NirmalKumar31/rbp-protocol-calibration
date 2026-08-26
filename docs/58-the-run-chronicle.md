@@ -544,14 +544,31 @@ cost of proper matching  -0.1095
 datasets that fall       94/94
 paired Wilcoxon p        3.81e-17
 
-THE FINDING: gain over composition
-        GC-matched      +0.0154
-        dinuc-matched   +0.0607     (3.94x)
+THE FINDING: nested gain over composition
+        GC-matched      +0.0265
+        dinuc-matched   +0.0662     (2.50x)
+
+COMPOSITION SHARE of skill above chance
+        GC-matched      94.8%   [92.1, 97.4]
+        dinuc-matched   67.8%   [62.1, 73.8]
+        drop            27.0 points [23.1, 30.9]
 ```
 
 **The finding is not the drop.** Under the harder control the model's gain over a
-composition-only baseline nearly **quadruples**. Rigour normally deflates deep learning; here
-it reveals that the easy control was hiding most of what the model learned.
+composition-only baseline **two-and-a-half times**. Rigour normally deflates deep learning;
+here it reveals that the easy control was hiding most of what the model learned.
+
+**CORRECTED 2026-08-26.** This section first reported +0.0154 -> +0.0607, a 3.94x ratio,
+and the verifier certified it. Those were the difference between two SEPARATELY fitted
+models, a quantity with no confidence interval and no p-value that nothing in the write-up
+claims. The claim is the NESTED gain -- composition alone against composition plus the
+sequence score -- which the rehearsal already computes as `delta_auroc` with a bootstrap CI
+and a per-dataset `helps` flag. It is 2.50x. Smaller, and the only version that is defensible.
+
+The clearer statement of the same result, added later, is the composition SHARE: under GC
+matching a 19-feature composition model recovers 94.8% of the k-mer model's skill above
+chance, so that benchmark is very nearly a composition test. Under dinucleotide matching it
+recovers 67.8% -- better, and still most of it.
 
 ## R2 — four models on identical splits
 
@@ -580,9 +597,66 @@ paired Wilcoxon p       3.94e-17
 Including the strong form of R3 — **reversed on none** — which is the claim that makes the
 result more than a ranking.
 
-## R4 — outstanding
+## R4 — complete, and it took three corrections to become honest
 
-Blocked on stage 11, which is running at the time of writing after three fixes.
+The ClinVar arm finished on 2026-08-26: 95/95 matched and 95/95 mismatched on Modal, both
+arms in sixteen minutes. What it first reported was wrong in a way that passed every check.
+
+**As first computed (the pooled ladder):**
+
+```
+k-mer            0.5519
+wrong protein    0.6797
+right protein    0.8294
+phyloP           0.9078
+conservation-controlled coefficients   0.201 / 0.700 / 1.605
+```
+
+**Correction 1: pooling inflated it.** Concatenating ~19k variants across 95 datasets into
+one AUROC per arm partly measures *which dataset a variant came from*. Mean |delta| per
+dataset correlates with that dataset's pathogenic rate at Spearman **+0.73** and spans
+**10.4x**. Paired within dataset, the matched arm is 0.755, not 0.829, and the specificity
+gap is +0.065, not +0.149.
+
+Conservation was the only arm immune, because phyloP is on a fixed external scale with no
+between-dataset scale to contribute. **That is why it stayed invisible: the arm that could
+not be inflated was winning anyway, so nothing looked out of place.**
+
+**Correction 2: a trivial baseline beats the model.** "What fraction of the OTHER variants in
+this 1-Mb window are pathogenic", leave-one-out, no sequence and no model:
+
+| stratum | model | trivial rule | model wins | p |
+|---|---|---|---|---|
+| ≥20 pathogenic (n=44) | 0.7553 | **0.8139** | 15/44 | 0.007 *against* the model |
+| ≥50 pathogenic (n=31) | 0.7997 | 0.8020 | 14/31 | 0.53 |
+
+The model never beats it. **Absolute AUROC on peak-proximal ClinVar variants is therefore
+uninformative about model utility**, and no version of this work may report 0.755 as evidence
+of usefulness.
+
+**What survives, and why it is better.** The specificity contrast is unaffected, because the
+positional baseline applies equally to both arms: the right protein's head beats a wrong
+protein's head by **+0.0645**, 33/44 datasets, **p=3.9e-04**, rising to +0.1031 (27/31) at
+≥50 pathogenic. Within-dataset conservation-controlled coefficients **0.716** [0.640, 0.801]
+against **0.445** [0.365, 0.523], non-overlapping.
+
+So the result stops being "our model scores 0.83" and becomes something with a demonstrated
+need: **AUROC on this task cannot tell you whether a model learned anything protein-specific,
+and a wrong-protein control can.**
+
+**Correction 3: the control was attacked and held.** Three checks, all negative for
+contamination — the floor does not depend on the donor sharing a cell line (p=0.83), barely
+tracks the donor's own strength (rho=+0.23), and stays flat at ~0.69 across power strata
+while the matched arm climbs 0.66 → 0.80.
+
+## The gate passed while all of this was wrong
+
+Stage 14 reported **33/33** on the inflated numbers, and separately certified an R1 gain ratio
+of 3.94x that the write-up never claimed. Both failures are the same: **it checked the value
+the code produced, not whether that value was the right value.** It is now 56/56 and asserts
+the unflattering results too — the all-datasets stratum that shows nothing, and a ceiling on
+`model_minus_prevalence` that fails the build if anyone ever claims the model beat the
+trivial rule.
 
 ---
 

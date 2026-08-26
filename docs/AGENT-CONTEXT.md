@@ -38,38 +38,61 @@ literal reappears.
 binding benchmark measures — and under proper matching the model earns *more* credit, not
 less.
 
-| | result |
+| | result, as of 2026-08-26 |
 |---|---|
-| **R1** | GC-matched 0.796 → dinuc-matched 0.689, cost **−0.1070**, **187/187 datasets fall**, p=1.9e-32. **The finding is not the drop**: gain over composition **+0.027 → +0.064**, it DOUBLES |
-| **R2** | composition 0.628 < k-mer 0.688 < CNN 0.708 < SpliceBERT 0.809, identical splits, 95 datasets / 79 proteins |
-| **R3** | ISM Gini: SpliceBERT more positionally concentrated on **89/95**, reversed on **0/95**, median +0.062, p=3.9e-17 |
-| **R4** | ClinVar ladder, cluster-corrected: k-mer 0.529 → **wrong-protein head 0.656** → right-protein head 0.829; conservation 0.906. Coefficients 0.102 / 0.622 / **1.616** over 1,426 genomic blocks |
+| **R1** | Composition share: a 19-feature composition model recovers **94.8%** [92.1, 97.4] of the k-mer model's skill above chance under GC matching, **67.8%** [62.1, 73.8] under dinucleotide matching. Drop **27.0 points** [23.1, 30.9]. Nested gain over composition +0.0265 -> +0.0662 (**2.50x**), significant on 85-87% of datasets. AUROC 0.798 -> 0.689, cost -0.1095, **94/94 fall**, p=3.81e-17 |
+| **R2** | composition 0.6279 < k-mer 0.6875 < CNN 0.7063 < SpliceBERT 0.8091, identical splits, 95 datasets / 79 proteins. **Not a finding** -- Horlacher 2023 covers this with 11 methods. Methods table only |
+| **R3** | ISM Gini: SpliceBERT more concentrated on **91/95**, significantly reversed on **0/95**, median +0.064, p=3.94e-17. **Cut from the paper**: linear models give diffuse attributions and transformers spiky ones by construction, so it measures model class, not biology |
+| **R4** | **PAIRED per dataset, not pooled.** At >=20 pathogenic variants (n=44): right-protein head **0.7553** vs wrong-protein **0.6908**, gap **+0.0645**, 33/44, p=3.9e-04. At >=50 (n=31): +0.1031, 27/31. Conservation **0.8921** leads everything. Within-dataset conservation-controlled coefficients **0.716** [0.640, 0.801] vs **0.445** [0.365, 0.523], non-overlapping |
 
-**R4's honest reading.** A wrong-protein head already beats the k-mer, so part of the signal
-is generic sequence plausibility inherited from pretraining. Binding-specific signal is the
-GAP between rungs, not the top number. Conservation still beats all of it.
+### THREE CORRECTIONS MADE ON 2026-08-26. Do not reintroduce the old numbers.
 
-**The four panels** (`docs/PANELS.md` in both repos is the single source of truth):
-`VARIANT 94 ⊂ DEEP 95 ⊂ FULL 189`, and `MATCHED 187 ⊂ FULL 189`. Never mix them without
-saying so.
+**1. R4's pooled ladder was inflated and is no longer the reported result.** Pooling ~19k
+variants into one AUROC per arm partly measures WHICH DATASET a variant came from: mean
+|delta| per dataset correlates with that dataset's pathogenic rate at Spearman **+0.73** and
+spans **10.4x**. Matched pooled 0.829 against 0.755 paired; the gap +0.149 is really +0.065.
+Conservation was the only arm immune, because phyloP is on a fixed external scale -- which is
+why it stayed invisible: the arm that could not be inflated was winning anyway.
 
-## 3b. RESULTS REPRODUCED on rbp-repro-2026 (2026-08-25)
+**2. A TRIVIAL POSITIONAL BASELINE BEATS THE MODEL.** "What fraction of the OTHER variants in
+this 1-Mb window are pathogenic", leave-one-out, no sequence and no model, reaches **0.8139**
+where the model reaches 0.7553. The model does not beat it in any stratum: 15/44 wins at >=20
+pathogenic (**p=0.007 against us**), a tie at >=50 (p=0.53). **So absolute AUROC on
+peak-proximal ClinVar variants is uninformative about model utility.** No version of this
+work may report 0.755 as evidence of usefulness. What survives is the PAIRED specificity
+contrast, which the baseline cannot explain because it applies equally to both arms.
 
-Three of four, all inside golden.yaml tolerances (8/8 checks pass).
+**3. R1's gain was being verified as the wrong quantity.** The gate computed
+(auroc - composition_auroc), a difference of two separately fitted models with no interval
+and no p-value, giving 3.94x. The claim is the NESTED gain -- composition alone versus
+composition plus the score -- which the rehearsal already reports as delta_auroc with a CI
+and a p-value: **2.50x**. Smaller and defensible.
 
-| | reproduced | reference |
-|---|---|---|
-| **R1** | -0.1095, **94/94 fall**, p=3.81e-17, gain +0.0154 -> +0.0607 (**3.94x**) | -0.107, 3.61x |
-| **R2** | composition 0.6279, k-mer 0.6875, CNN 0.7063, SpliceBERT 0.8091 | 0.628/0.688/0.708/0.809 |
-| **R3** | median +0.064, more local 91/95, **significantly reversed 0/95**, p=3.94e-17 | +0.062, 91/95 |
-| **R4** | OUTSTANDING -- blocked on stage 11 | |
+**The wrong-protein control was attacked and held.** Three checks, all negative for
+contamination: the floor does not depend on the donor sharing a cell line (p=0.83), only
+weakly tracks the donor's own strength (rho=+0.23), and stays flat at ~0.69 across power
+strata while the matched arm climbs 0.66 -> 0.80. It is a generic-plausibility floor, not a
+similarity artefact.
 
-Integrity: 0 NaN, 0 at chance, no duplicates, all 95 datasets have full 5-fold sets for both
-CNN and SpliceBERT. Sweeps: rehearsal 189/189, CNN 475/475, SpliceBERT 475/475, locality 95/95.
+**The panels.** `docs/PANELS.md` is the single source of truth. This pipeline: study panel
+**95**, GC arm **94** (NCBP2:K562 matches 384 pairs under GC and 406 under dinucleotide, so
+it clears the 400 floor in one arm only), stage 7 is **189 TASKS** = 95 + 94, variant arm
+**95** with **82** usable for per-dataset AUROC and **44** adequately powered. The earlier
+study's 187/DDX51 framing belongs to the discarded build and must not reappear.
 
-**R1's n is 94, not 187** -- restricting the study to 95 datasets means only 94 clear the
-min_pairs=400 floor in BOTH arms (NCBP2:K562 matches 384 pairs under GC, 406 under dinuc).
-Stage 7 is 189 TASKS: 95 dinuc + 94 gc, one per dataset per arm.
+## 3b. VERIFICATION STATUS
+
+**56/56 golden checks pass** reading from GCS; 575 unit tests pass. Integrity: 0 NaN, 0 at
+chance, no duplicates, all 95 datasets have full 5-fold sets for both CNN and SpliceBERT.
+Sweeps: rehearsal 189/189, CNN 475/475, SpliceBERT 475/475, locality 95/95, ClinVar 95/95
+matched and 95/95 mismatched.
+
+**The gate itself failed twice today and both are recorded in golden.yaml.** It passed 33/33
+while certifying an inflated pooled statistic, and separately certified a 3.94x gain ratio
+that nothing in the write-up claimed. Same failure both times: checking the number the code
+produced rather than whether that number was the right number. The unflattering results --
+the all-datasets stratum that shows nothing, and `model_minus_prevalence_max` -- are now
+asserted so they cannot be quietly dropped.
 
 ## 4. Where the rebuild is right now
 

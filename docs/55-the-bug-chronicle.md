@@ -439,3 +439,123 @@ pipeline exists because of that shape:
 And the two diagnosis bugs are a different lesson entirely, one no guard fixes: **I chose a
 cause that fit the story I already had, twice.** The defence is mechanical, not intellectual —
 print the matching line rather than counting matches, and measure again after the fix.
+
+---
+
+# The 2026-08-26 batch: seven more, and the worst four were mine
+
+The bugs above are infrastructure. These are worse, because six of the seven produced
+**green checks on wrong answers** rather than failures.
+
+## Bug 25 — A stage did ninety minutes of correct work and 403'd on the last line
+
+Stage 11 ran assign, score and phyloP over 66,010 variants, uploaded three correct tables,
+then died writing `variants-complete.json` at the bucket root. `rbp-analysis` is scoped by an
+IAM condition to `results/`, `variants/` and `driver/`; the bucket root is outside every
+allowed prefix.
+
+Four consecutive jobs recomputed identical results to reach the same failing line, because
+`run_existing()` raised before `stage_out()` could save anything. The guard was right and the
+path was wrong — the third time in this project an IAM condition caught a real mistake.
+
+**Fix:** marker moved under `results/`; finished work now uploads even when a later sub-stage
+fails. **And the general fix:** `tests/unit/test_write_paths_are_permitted.py` resolves every
+static blob key in the codebase, including function locals, and checks it against the
+Terraform conditions — treating `variant_splicebert.py` as dual-identity because Modal shells
+out to it, so its writes must satisfy the *intersection* of two identities.
+
+That test immediately found **three more** of the same bug waiting: `analysis-complete.json`
+at the root, the phyloP cache to `interim/` (which I had just introduced), and the variant
+task manifest to `manifest/`. All three would have failed at the end of a completed stage.
+
+## Bug 26 — `tar --exclude='data'` deleted a source package
+
+Packaging the repo for the driver VM, I wrote `--exclude='data'`. That matches a path
+component **at any depth**, so it silently dropped `src/rbp/data/` — a Python package, not a
+data directory. Modal uploaded that tree to 188 containers and every one died with
+`ModuleNotFoundError: No module named 'rbp.data'`.
+
+This is **the same bug as the `.gitignore data/` entry** already recorded above, in a
+different tool. Knowing the story did not stop me typing the unanchored version.
+
+**Fix:** `cloud/package_repo.sh` replaces the inline tar and *proves* the archive before
+upload — every package under `src/rbp/` present, entrypoints present, and all nine modules
+actually importable from an unpacked copy. It refuses to upload otherwise.
+
+## Bug 27 — A task count typed instead of read, in the one place not driven by `submit.sh`
+
+`modal_variants.py` had `N_TASKS = 94`, the earlier study's variant panel. This pipeline's
+manifest lists 95, so `range(N_TASKS)` skipped index 94 — K562 ZNF800, 288 variants — with
+nothing in any log. The driver's own gate was `-ge 94`, so it would have been *satisfied* by
+94 of 95 and proceeded to the analysis.
+
+`submit.sh` derives every Batch count from `manifest_rows()` for exactly this reason. Modal
+was the one path that did not.
+
+## Bug 28 — The analysis fetched its own output
+
+`cloud_analysis.main()` fetched `results/tables/locality_ism.csv` from GCS — an object nothing
+ever created. Stage 10 wrote 95 per-dataset JSONs and nothing aggregated them. So R3 quietly
+had no table, `do_figures()` skipped the R3 figure without complaint, and **stage 14 was the
+first thing to notice**, after the whole pipeline had run green.
+
+Every other result had a producer. R3's was a fetch of itself.
+
+## Bug 29 — The verifier certified a number nobody claimed
+
+Stage 14 computed R1's "gain over composition" as `auroc - composition_auroc`: the difference
+between two *separately fitted* models, with no confidence interval and no p-value. The claim
+is the **nested** gain — composition alone versus composition plus the sequence score — which
+the rehearsal already computes as `delta_auroc` with a CI and a per-dataset `helps` flag.
+
+Naive: 3.94x. Nested: 2.50x. The gate was blessing 3.94x while the write-up quoted the nested
+figure. **A gate that certifies a number nobody claims is worse than no gate, because it reads
+as confirmation.**
+
+## Bug 30 — The headline statistic was the wrong statistic, and 33/33 passed
+
+R4 pooled ~19k variants across 95 datasets into one AUROC per arm. Mean |delta| per dataset
+correlates with that dataset's pathogenic rate at **+0.73** and spans **10.4x**, so the pooled
+number partly measured *which dataset a variant came from*. Matched 0.829 pooled against 0.755
+paired; the specificity gap +0.149 against +0.065.
+
+Conservation was the only arm immune, being on a fixed external scale — **so the artefact was
+invisible precisely because the uninflatable arm was winning anyway.**
+
+This was found only because a council reviewer challenged the wrong-protein control as
+possibly contaminated. The contamination test came back clean; the pooling problem fell out
+of the same analysis. **The bug was found by attacking a different claim.**
+
+## Bug 31 — A trivial baseline beat the model, and nothing was checking
+
+"What fraction of the OTHER variants in this 1-Mb window are pathogenic", leave-one-out, no
+sequence and no model, reaches 0.8139 where the model reaches 0.7553. The model does not beat
+it in any stratum. Nothing in the pipeline had ever asked.
+
+`golden.yaml` now asserts `model_minus_prevalence_max: 0.02`, so a future run **fails** if
+anyone claims the model beat the trivial rule, and asserts the all-datasets stratum that shows
+nothing (gap −0.011, p=0.87) so it cannot be quietly dropped.
+
+---
+
+# What this batch has in common, and it is not what the first batch had
+
+The first twenty-four were mostly **infrastructure failing loudly**. These seven are
+**verification succeeding on the wrong thing**:
+
+- three write paths that would 403 only after the work was done (25)
+- a package that imported fine locally and not in the container (26)
+- a count that silently dropped one dataset in 95 (27)
+- a result table nothing produced, hidden by a tolerant figure guard (28)
+- a gate certifying a quantity the paper never claimed (29)
+- a gate certifying an inflated statistic, 33/33 green (30)
+- a trivial baseline nobody had run (31)
+
+**The pattern: every check I wrote confirmed the thing it was derived from.** The write-path
+test, the golden values, the figure guards — each was built from the code it was checking, so
+each agreed with it. The three that actually caught something came from *outside*: an IAM
+condition written from a security model rather than from the code, a council reviewer with no
+stake in the result, and a baseline borrowed from a paper that disagreed with us.
+
+The defence is not more tests. It is **at least one check per claim that was not derived from
+the code producing it.**
