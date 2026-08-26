@@ -5,9 +5,13 @@
 # RESUMABILITY IS THE WHOLE DESIGN. Every stage is guarded by a completion marker in GCS, so
 # this script can be killed at any instant and restarted with no loss and no double work:
 #
-#   variants   guarded by variants-complete.json
+#   variants   guarded by results/variants-complete.json
 #   clinvar    guarded by per-dataset objects under variants/scores_sb/ and scores_mm/
-#   analysis   guarded by analysis-complete.json
+#   analysis   guarded by results/analysis-complete.json
+#
+# The markers live under results/ rather than at the bucket root because rbp-analysis is
+# restricted by an IAM condition to results/, variants/ and driver/. A root-level marker is
+# a 403 at the end of an otherwise successful stage.
 #
 # If the VM is preempted, deleted, or the script crashes, relaunching it resumes from the
 # first incomplete stage. Nothing here is idempotent by accident; each check is deliberate.
@@ -80,7 +84,7 @@ done
 say "image digest in use: $(gsutil cat gs://${PROJECT}-artifacts/images/cpu_digest.txt 2>/dev/null | head -c 22)"
 
 # --- stage 11: variants -------------------------------------------------------------------
-if gsutil -q stat "gs://${DERIVED}/variants-complete.json" 2>/dev/null; then
+if gsutil -q stat "gs://${DERIVED}/results/variants-complete.json" 2>/dev/null; then
   say "stage 11 already complete, skipping"
 else
   say "stage 11: variants (assign -> score -> phylop)"
@@ -91,24 +95,60 @@ else
   wait_job "$JOB" || die "variants failed; rerun the driver to resume"
 fi
 
-# --- stage 12: ClinVar on Modal -----------------------------------------------------------
+# --- stage 12a: the four-model table ------------------------------------------------------
+# THIS RUNS BEFORE MODAL AND THAT ORDER IS THE POINT.
+#
+# The window cutter restricts to the datasets that have all four models, which it reads from
+# results/tables/matched_four_models.csv. That table is written by cloud_analysis.four_models()
+# -- a stage 13 function. So stage 12 depends on an artefact of stage 13, and the original
+# order here (variants -> clinvar -> analysis) would have failed on a missing file after
+# booting a VM and installing a toolchain.
+#
+# four_models() only needs results/rehearsal_binding_dinuc.csv and results/sweep_dinuc.csv,
+# both of which stages 7 to 9 already produced, so it can run now. `--what tables` writes no
+# completion marker, which is what makes running the analysis twice safe.
+if gsutil -q stat "gs://${DERIVED}/results/tables/matched_four_models.csv" 2>/dev/null; then
+  say "stage 12a: four-model table already present, skipping"
+else
+  say "stage 12a: four-model table (needed by the window cutter)"
+  OUT=$(cd /opt/rbp && ANALYSIS_WHAT=tables ./cloud/submit.sh analysis 2>&1); echo "$OUT" >>"$LOG"
+  JOB=$(echo "$OUT" | grep -oE "submitted [a-z0-9-]+" | awk '{print $2}')
+  [ -n "$JOB" ] || die "analysis(tables) did not submit: $(echo "$OUT" | tail -3)"
+  say "  submitted $JOB"
+  wait_job "$JOB" || die "analysis(tables) failed"
+fi
+
+# --- stage 12b: cut the variant windows ---------------------------------------------------
+# Runs as a Batch job rather than here, because it needs the 3.1 GB genome and pyfaidx, and
+# cloud_variants.py already stages both. Doing it on this 2 GB VM would have meant a second
+# genome download and a longer pip list.
+if gsutil -q stat "gs://${DERIVED}/variants/variant_tasks.tsv" 2>/dev/null; then
+  say "stage 12b: windows already cut, skipping"
+else
+  say "stage 12b: cutting ref/alt windows for every ClinVar variant"
+  OUT=$(cd /opt/rbp && VARIANTS_WHAT=windows ./cloud/submit.sh variants 2>&1); echo "$OUT" >>"$LOG"
+  JOB=$(echo "$OUT" | grep -oE "submitted [a-z0-9-]+" | awk '{print $2}')
+  [ -n "$JOB" ] || die "windows did not submit: $(echo "$OUT" | tail -3)"
+  say "  submitted $JOB"
+  wait_job "$JOB" || die "window cutting failed"
+fi
+
+# --- stage 12c: ClinVar on Modal ----------------------------------------------------------
 # The token comes from GCS, not from this script, and is removed from disk immediately after
 # use. The bucket is private and the key is the one credential that leaves Google's network,
 # so it should be rotated once the run finishes.
 SB=$(gsutil ls "gs://${DERIVED}/variants/scores_sb/" 2>/dev/null | wc -l | tr -d ' ')
 MM=$(gsutil ls "gs://${DERIVED}/variants/scores_mm/" 2>/dev/null | wc -l | tr -d ' ')
 if [ "${SB:-0}" -ge 94 ] && [ "${MM:-0}" -ge 94 ]; then
-  say "stage 12 already complete ($SB matched, $MM mismatched), skipping"
+  say "stage 12c already complete ($SB matched, $MM mismatched), skipping"
 else
-  say "stage 12: ClinVar on Modal (matched + mismatched heads)"
+  say "stage 12c: ClinVar on Modal (matched + mismatched heads)"
   gsutil -q cp "gs://${DERIVED}/driver/modaltok" /tmp/tok || die "no modal token staged"
   modal token set --token-id "$(sed -n 1p /tmp/tok)" \
                   --token-secret "$(sed -n 2p /tmp/tok)" --profile=driver >>"$LOG" 2>&1
   modal profile activate driver >>"$LOG" 2>&1
   rm -f /tmp/tok
   cd /opt/rbp || die "workdir gone"
-  $PY scripts/variant_splicebert.py --what tables >>"$LOG" 2>&1 || die "variant tables"
-  say "  window tables uploaded"
   # --detach: the app must outlive this shell, exactly as it must outlive a laptop.
   modal run --detach cloud/modal/modal_variants.py::sweep >>"$LOG" 2>&1 || say "  matched arm returned nonzero"
   modal run --detach cloud/modal/modal_variants.py::mismatch_sweep >>"$LOG" 2>&1 || say "  mismatched arm returned nonzero"
@@ -123,7 +163,7 @@ else
 fi
 
 # --- stage 13: analysis --------------------------------------------------------------------
-if gsutil -q stat "gs://${DERIVED}/analysis-complete.json" 2>/dev/null; then
+if gsutil -q stat "gs://${DERIVED}/results/analysis-complete.json" 2>/dev/null; then
   say "stage 13 already complete, skipping"
 else
   say "stage 13: aggregate + figures"

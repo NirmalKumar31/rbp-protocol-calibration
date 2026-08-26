@@ -37,7 +37,10 @@ from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 FIGS = ROOT / "results" / "figures"
-MARKER = "analysis-complete.json"
+# Under results/ for the same IAM reason as the variants marker: rbp-analysis is scoped to
+# results/, variants/ and driver/, so a root-level marker is a guaranteed 403 at the very end
+# of the stage. See scripts/cloud_variants.py for the full account.
+MARKER = "results/analysis-complete.json"
 
 
 def log(m):

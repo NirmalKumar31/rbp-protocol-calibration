@@ -55,7 +55,19 @@ RAW_OBJECTS = [
 # payload, for the same reason as everywhere else in this project: a task preempted between
 # two uploads must redo its work, not be skipped by a marker that arrived early.
 OUTPUTS = ["variant_assignments.csv", "variant_scores.csv", "variant_conservation.csv"]
-MARKER = "variants-complete.json"
+# UNDER results/, NOT AT THE BUCKET ROOT, and that is an IAM constraint rather than taste.
+#
+# rbp-analysis may write to results/, variants/ and driver/ and nowhere else -- an IAM
+# condition on an object prefix, exactly as intended. A marker at the bucket root is outside
+# every allowed prefix, so the job ran assign, score and phyloP to completion, uploaded all
+# three tables, and then died with 403 storage.objects.create on variants-complete.json.
+# Ninety minutes of correct work, thrown away by the last line of the stage.
+#
+# The guard was right and the path was wrong, which is the third time in this project that an
+# IAM condition has caught a genuine mistake in where something writes. Widening the condition
+# would have "fixed" it by giving the analysis identity the whole bucket. Moving the marker
+# next to the results it certifies costs nothing and keeps the restriction honest.
+MARKER = "results/variants-complete.json"
 
 # Which sub-stage produces which file. The chain is assign -> score -> phylop, and each link
 # costs real time: assign ~10 min over 189 datasets, score ~12 min over 66,010 variants,
@@ -79,12 +91,38 @@ STAGE_OUTPUT = {
 # assign writes this too; it is not part of the completion contract but the analysis reads it.
 EXTRA_OUTPUTS = ["variant_availability_panel.csv"]
 
+# Tables this stage READS but does not produce. matched_four_models.csv comes from
+# cloud_analysis.four_models() and names the datasets that have all four models, which is the
+# panel the window cutter restricts to. Staged read-only; never uploaded back.
+INPUT_TABLES = ["matched_four_models.csv", "matched95_four_models.csv"]
+
+# THE WINDOW-CUTTING SUB-STAGE, and it lives here rather than on the driver VM for one
+# reason: this file already stages the 3.1 GB genome.
+#
+# variant_splicebert.py --what tables cuts a ref and an alt sequence window around every
+# ClinVar variant and uploads them, so the Modal GPUs never need a FASTA. It therefore needs
+# the genome, pyfaidx, the assignments table and the four-model panel -- which is exactly what
+# stage_in already provides. Running it on the driver instead would have meant a second copy
+# of the genome download, on a 2 GB machine, with pyfaidx added to a pip list that did not
+# have it.
+#
+# Its output is 94 objects under variants/tables/ plus a manifest, not a local CSV, so it is
+# gated on the manifest in GCS rather than on a file on disk.
+WINDOW_SCRIPT = "variant_splicebert.py"
+WINDOW_MANIFEST = "variants/variant_tasks.tsv"
+
 # phyloP's own cache: (chrom, pos) -> score, one line each. Round-tripping it through GCS
 # means a run that dies halfway through 27,492 remote lookups resumes at the position it
 # reached rather than at zero. This is the only stage whose cost is external and rate-limited,
 # so it is the one stage where partial progress is worth carrying.
 PHYLOP_CACHE = ROOT / "data" / "interim" / "phylop_cache.tsv"
-PHYLOP_CACHE_OBJ = "interim/phylop_cache.tsv"
+
+# Under variants/, NOT interim/. interim/ belongs to rbp-prep; this stage runs as
+# rbp-analysis, which may write results/, variants/ and driver/ only. I wrote "interim/" here
+# by analogy with the local path and would have reintroduced the exact 403 that this same
+# commit is fixing for the marker -- caught by auditing every write path against the IAM
+# conditions before running, rather than by another failed job.
+PHYLOP_CACHE_OBJ = "variants/phylop_cache.tsv"
 
 
 def log(m):
@@ -171,7 +209,7 @@ def stage_in(bucket, raw_bucket):
     # Anything a previous attempt already finished. Downloading these is what turns a rerun
     # into a resume: main() skips any sub-stage whose output is already on disk.
     resumed = []
-    for name in OUTPUTS + EXTRA_OUTPUTS:
+    for name in OUTPUTS + EXTRA_OUTPUTS + INPUT_TABLES:
         b = bucket.get_blob(f"results/tables/{name}")
         if b is None:
             continue
@@ -224,19 +262,19 @@ def stage_out(bucket):
             "must redo the work rather than skip it")
 
 
-def run_existing(what):
-    """Call rehearsal_variants.py in-place. Same code, same numbers, different filesystem."""
-    cmd = [sys.executable, str(ROOT / "scripts" / "rehearsal_variants.py"), "--what", what]
+def run_existing(what, script="rehearsal_variants.py"):
+    """Call the existing script in-place. Same code, same numbers, different filesystem."""
+    cmd = [sys.executable, str(ROOT / "scripts" / script), "--what", what]
     log("running: " + " ".join(cmd[1:]))
     rc = subprocess.run(cmd, cwd=str(ROOT)).returncode
     if rc != 0:
-        raise SystemExit(f"rehearsal_variants.py --what {what} failed (rc={rc})")
+        raise SystemExit(f"{script} --what {what} failed (rc={rc})")
 
 
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--what", default="all",
-                   choices=["assign", "score", "phylop", "all"])
+                   choices=["assign", "score", "phylop", "windows", "all"])
     p.add_argument("--force", action="store_true")
     a = p.parse_args()
 
@@ -244,7 +282,9 @@ def main():
     raw_bucket = cloudcfg.client().bucket(cloudcfg.raw_bucket())
     log(cloudcfg.describe())
 
-    if bucket.blob(MARKER).exists() and not a.force:
+    # The marker certifies the assign/score/phyloP chain, not the window cutter, so `--what
+    # windows` must still run after the marker exists. Window cutting has its own gate.
+    if a.what != "windows" and bucket.blob(MARKER).exists() and not a.force:
         log(f"{MARKER} already present, nothing to do")
         return
 
@@ -263,6 +303,16 @@ def main():
     # the baseline the whole result is measured from.
     # stage_out runs whether or not the chain completes. Without the finally, a failure in
     # phylop discarded a finished assign and a finished score -- see STAGE_OUTPUT above.
+    if a.what == "windows":
+        if bucket.blob(WINDOW_MANIFEST).exists() and not a.force:
+            log(f"{WINDOW_MANIFEST} already present, windows already cut")
+            return
+        run_existing("tables", script=WINDOW_SCRIPT)
+        if not bucket.blob(WINDOW_MANIFEST).exists():
+            raise SystemExit(f"window cutting reported success but {WINDOW_MANIFEST} is absent")
+        log("done")
+        return
+
     failure = None
     try:
         for what in (["assign", "score", "phylop"] if a.what == "all" else [a.what]):

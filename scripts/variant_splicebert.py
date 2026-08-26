@@ -36,7 +36,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from rbp.models import registry  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.variants import assign  # noqa: E402
 from rbp.utils import cloud as cloudcfg  # noqa: E402
@@ -46,11 +45,45 @@ TABLES = ROOT / "results" / "tables"
 INTERIM = ROOT / "data" / "interim" / "vsb"
 BUCKET = cloudcfg.derived_bucket()
 PROJECT = cloudcfg.project()
-MANIFEST = "manifest/variant_tasks.tsv"
+# Under variants/, NOT manifest/.
+#
+# `--what tables` runs on the driver VM, which runs as rbp-analysis, and rbp-analysis may
+# write results/, variants/ and driver/. manifest/ belongs to rbp-prep. Left at manifest/ this
+# would have thrown 403 storage.objects.create AFTER cutting and uploading 164,835 variant
+# windows -- the same failure mode as the variants marker, one stage later.
+#
+# Nothing else references this object, and rbp-modal has read access across the whole derived
+# bucket, so moving it costs nothing.
+MANIFEST = "variants/variant_tasks.tsv"
 
 
 def log(m):
     print(f"[{time.strftime('%H:%M:%S')}] {m}", flush=True)
+
+
+# The four-model table is written under one name and was read under another.
+#
+# cloud_analysis.four_models() writes matched_four_models.csv. This script read
+# matched95_four_models.csv -- the earlier study's filename, which encoded the panel size in
+# the name and which nothing in this pipeline produces. So `--what tables` would have died
+# with FileNotFoundError before cutting a single window, and the failure was invisible to
+# every test because the tests that touch that file SKIP when it is absent.
+#
+# verify.py already tried both names. Doing the same here rather than renaming the producer
+# keeps the one script that gates the science as the authority on what the file is called.
+DEEP_PANEL_NAMES = ("matched_four_models.csv", "matched95_four_models.csv")
+
+
+def deep_panel():
+    """The datasets that have all four models, i.e. the panel the variant arm scores."""
+    for name in DEEP_PANEL_NAMES:
+        p = TABLES / name
+        if p.exists():
+            return set(pd.read_csv(p).dataset)
+    raise SystemExit(
+        f"none of {DEEP_PANEL_NAMES} is present in {TABLES}. It is written by "
+        f"cloud_analysis.py's four_models(), which needs results/rehearsal_binding_dinuc.csv "
+        f"and results/sweep_dinuc.csv -- run `cloud_analysis.py --what tables` first.")
 
 
 def fetch_folds(client, cell, protein, dest):
@@ -113,7 +146,7 @@ def stage_score(cfg, limit):
     tmp = ROOT / ".cache" / "vsb_ckpt"
 
     a = pd.read_csv(TABLES / "variant_assignments.csv")
-    have = set(pd.read_csv(TABLES / "matched95_four_models.csv").dataset)
+    have = deep_panel()
     a["ds"] = a.protein + ":" + a.cell
     a = a[a.ds.isin(have)]
 
@@ -122,6 +155,7 @@ def stage_score(cfg, limit):
     how = cfg["variants"]["delta"]
 
     client = storage.Client(project=PROJECT)
+    from rbp.models import registry     # torch-importing; see module docstring
     handle = registry.build("splicebert", cfg)          # built once, reloaded per fold
 
     groups = list(a.groupby(["protein", "cell"]))
@@ -182,7 +216,7 @@ def stage_tables(cfg, limit):
     from google.cloud import storage
 
     a = pd.read_csv(TABLES / "variant_assignments.csv")
-    have = set(pd.read_csv(TABLES / "matched95_four_models.csv").dataset)
+    have = deep_panel()
     a["ds"] = a.protein + ":" + a.cell
     a = a[a.ds.isin(have)]
 
@@ -262,6 +296,7 @@ def stage_cloud(cfg, index, force, mismatch=0):
     t = pd.read_csv(io.BytesIO(gzip.decompress(raw)), sep="\t")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    from rbp.models import registry     # torch-importing; see module docstring
     handle = registry.build("splicebert", cfg)
     tmp = Path("/tmp/ckpt")
     ckpts = fetch_folds(storage.Client(project=PROJECT), wcell, wprot, tmp)

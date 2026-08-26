@@ -91,7 +91,10 @@ case "$JOB_TYPE" in
     # one that can write the output; rbp-ingest has no access to the derived bucket at all
     # and took a 403 on its first read.
     SA=rbp-analysis
-    SCRIPT="scripts/cloud_variants.py"; ARGS="--what all"
+    # VARIANTS_WHAT selects the sub-stage. Default `all` is the assign/score/phyloP chain;
+    # `windows` cuts the ClinVar sequence windows, which needs the same staged genome and so
+    # lives in the same job type rather than duplicating a 3.1 GB download.
+    SCRIPT="scripts/cloud_variants.py"; ARGS="--what ${VARIANTS_WHAT:-all}"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-4; CPU=4000; MEM=16384
     EXTERNAL=1; DISK=200; TIMEOUT=14400 ;;
   sweep)
@@ -114,7 +117,10 @@ case "$JOB_TYPE" in
     EXTERNAL=0; DISK=100; TIMEOUT=14400 ;;
   analysis)
     SA=rbp-analysis
-    SCRIPT="scripts/cloud_analysis.py"; ARGS="--what all"
+    # ANALYSIS_WHAT=tables builds the derived tables without figures and without writing the
+    # completion marker, which is what lets the analysis run twice: once early, because the
+    # window cutter needs matched_four_models.csv, and once at the end for the R4 ladder.
+    SCRIPT="scripts/cloud_analysis.py"; ARGS="--what ${ANALYSIS_WHAT:-all}"
     COUNT=1; PAR=1; PER_NODE=1; MACHINE=e2-standard-4; CPU=4000; MEM=16384
     EXTERNAL=0; DISK=100; TIMEOUT=7200 ;;
   *) echo "unknown job type: $JOB_TYPE" >&2; exit 1 ;;
