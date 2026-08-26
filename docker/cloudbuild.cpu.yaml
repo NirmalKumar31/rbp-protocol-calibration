@@ -116,7 +116,11 @@ options:
   logging: CLOUD_LOGGING_ONLY
   machineType: E2_HIGHCPU_8   # faster build, still inside the free daily allowance
 
-timeout: 1200s
+# 40 minutes, not 20. Building pyBigWig from source against libcurl adds a compile step that
+# a wheel install did not have, and the first attempt hit the old 1200s ceiling and was killed
+# as TIMEOUT -- which looks like a hang rather than a limit. The build is cached after the
+# first success, so this ceiling is only reached when the dependency layer actually changes.
+timeout: 2400s
 
 substitutions:
   # NOTE ON $PROJECT_ID BELOW. Cloud Build does NOT recursively expand a user-defined
