@@ -115,17 +115,28 @@ def stage_in(bucket, raw_bucket):
         peaks += 1
     log(f"staged {peaks} peak files")
 
-    # Only the study panel's datasets. Pulling all 189 would move data the stage never reads.
-    for r in panel.itertuples():
-        dest = PROC_DIR / r.cell_line / r.protein / "dataset.tsv"
+    # EVERY processed dataset in the dinuc arm, not just the study panel's 95.
+    #
+    # Third time this exact mistake bit, so it is worth stating as a rule rather than a fix.
+    # stage_score walks variant_assignments.csv, which covers every dataset that has a variant
+    # near a peak -- not the study subset -- because a variant's nearest binding site can
+    # belong to a protein the study never scores. Staging only the panel's datasets fails on
+    # the first protein outside it, exactly as staging only the panel's peaks failed on ADAT1.
+    #
+    # 462 MiB against a 3.15 GB genome already being pulled. Every attempt to be selective
+    # about staging has cost a failed run and saved nothing measurable.
+    staged = 0
+    for b in bucket.client.list_blobs(bucket.name, prefix="processed/dinuc/"):
+        if not b.name.endswith("dataset.tsv"):
+            continue
+        # processed/dinuc/{cell}/{protein}/dataset.tsv -> data/processed/{cell}/{protein}/
+        parts = b.name.split("/")
+        dest = PROC_DIR / parts[2] / parts[3] / "dataset.tsv"
         if dest.exists():
             continue
         dest.parent.mkdir(parents=True, exist_ok=True)
-        b = bucket.blob(f"processed/dinuc/{r.cell_line}/{r.protein}/dataset.tsv")
-        if not b.exists():
-            log(f"WARNING no processed dataset for {r.protein}:{r.cell_line}, skipping")
-            continue
         b.download_to_filename(str(dest))
+        staged += 1
     log(f"staged {sum(1 for _ in PROC_DIR.rglob('dataset.tsv'))} processed datasets")
     return panel
 
