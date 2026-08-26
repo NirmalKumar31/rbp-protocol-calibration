@@ -46,8 +46,33 @@ from modal_sweep import image as _base  # noqa: E402
 image = _base.add_local_file(f"{HERE}/modal_sweep.py", "/root/modal_sweep.py")
 
 APP = "rbp-variants"
-N_TASKS = 94
+
+# TASK COUNTS COME FROM THE MANIFEST, NEVER FROM A TYPED NUMBER.
+#
+# N_TASKS was hardcoded to 94, the earlier study's variant panel. This pipeline's manifest has
+# 95 rows, so range(N_TASKS) dispatched indices 0..93 and silently skipped index 94, K562
+# ZNF800 -- 288 variants dropped from R4 with nothing in any log to say so. The driver's own
+# gate was `>= 94`, so it would have been satisfied by 94 of 95 and moved on.
+#
+# cloud/submit.sh already derives every Batch task count from manifest_rows() for exactly this
+# reason. Modal was the one place that did not, because it is not driven by submit.sh.
+MANIFEST_OBJ = "variants/variant_tasks.tsv"
 N_LOCALITY = 95
+
+
+def n_tasks():
+    """How many datasets the variant manifest actually lists."""
+    import io
+
+    import pandas as pd
+    from google.cloud import storage
+
+    b = storage.Client(project=PROJECT).bucket(DERIVED).blob(MANIFEST_OBJ)
+    if not b.exists():
+        raise SystemExit(
+            f"gs://{DERIVED}/{MANIFEST_OBJ} is absent. Run "
+            f"`cloud_variants.py --what windows` before scoring.")
+    return len(pd.read_csv(io.StringIO(b.download_as_text()), sep="\t"))
 
 # T4, not the A10G the sweep used. The sweep was compute-bound -- fine-tuning 20M parameters
 # for twelve epochs -- so a card at 1.98x for 1.42x the price was the cheaper unit of work.
@@ -107,14 +132,16 @@ def probe(index: int = 0):
     rc = task.remote(index, True)
     el = time.time() - t0
     print(f"rc={rc} in {el:.0f}s")
-    print(f"projected {N_TASKS} tasks / {MAX_CONTAINERS} containers: "
-          f"{el * N_TASKS / MAX_CONTAINERS / 60:.1f} min wall, "
-          f"${el * N_TASKS / 3600 * 0.59:.2f} at T4 rates")
+    n = n_tasks()
+    print(f"projected {n} tasks / {MAX_CONTAINERS} containers: "
+          f"{el * n / MAX_CONTAINERS / 60:.1f} min wall, "
+          f"${el * n / 3600 * 0.59:.2f} at T4 rates")
 
 
 @app.local_entrypoint()
 def sweep(force: bool = False):
-    rcs = list(task.map(range(N_TASKS), kwargs={"force": force}))
+    n = n_tasks()
+    rcs = list(task.map(range(n), kwargs={"force": force}))
     bad = [i for i, rc in enumerate(rcs) if rc != 0]
     print(f"{len(rcs) - len(bad)}/{len(rcs)} ok" + (f", failed {bad}" if bad else ""))
 
@@ -127,7 +154,8 @@ def mismatch_sweep(offset: int = 47):
     paired with one of a very different size as well as a different protein -- the donor
     cannot be a near-duplicate assay of the same factor.
     """
-    rcs = list(task.map(range(N_TASKS), kwargs={"force": True, "mismatch": offset}))
+    n = n_tasks()
+    rcs = list(task.map(range(n), kwargs={"force": True, "mismatch": offset}))
     bad = [i for i, rc in enumerate(rcs) if rc != 0]
     print(f"{len(rcs) - len(bad)}/{len(rcs)} ok" + (f", failed {bad}" if bad else ""))
 
@@ -137,7 +165,7 @@ def status():
     from google.cloud import storage
     c = storage.Client(project=PROJECT)
     n = sum(1 for _ in c.list_blobs(DERIVED, prefix="variants/scores_sb/"))
-    print(f"{n}/{N_TASKS} datasets scored")
+    print(f"{n}/{n_tasks()} datasets scored")
 
 
 # --- the ISM locality probe, same image, same discipline ---------------------------------

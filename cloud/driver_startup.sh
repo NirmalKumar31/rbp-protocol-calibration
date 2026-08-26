@@ -137,9 +137,17 @@ fi
 # The token comes from GCS, not from this script, and is removed from disk immediately after
 # use. The bucket is private and the key is the one credential that leaves Google's network,
 # so it should be rotated once the run finishes.
+# The target comes from the manifest, not from the number 94.
+#
+# This gate read `-ge 94` while the manifest listed 95 datasets, so it would have been
+# satisfied by 94 of 95 and moved on to the analysis with K562 ZNF800 missing -- the same
+# typed-count bug as modal_variants.py's N_TASKS, in the check that was supposed to catch it.
+NEED=$(( $(gsutil cat "gs://${DERIVED}/variants/variant_tasks.tsv" 2>/dev/null | wc -l) - 1 ))
+[ "${NEED:-0}" -gt 0 ] || die "cannot read the variant manifest to know how many to expect"
+say "variant manifest lists $NEED datasets"
 SB=$(gsutil ls "gs://${DERIVED}/variants/scores_sb/" 2>/dev/null | wc -l | tr -d ' ')
 MM=$(gsutil ls "gs://${DERIVED}/variants/scores_mm/" 2>/dev/null | wc -l | tr -d ' ')
-if [ "${SB:-0}" -ge 94 ] && [ "${MM:-0}" -ge 94 ]; then
+if [ "${SB:-0}" -ge "$NEED" ] && [ "${MM:-0}" -ge "$NEED" ]; then
   say "stage 12c already complete ($SB matched, $MM mismatched), skipping"
 else
   say "stage 12c: ClinVar on Modal (matched + mismatched heads)"
@@ -156,10 +164,14 @@ else
   for i in $(seq 1 60); do
     SB=$(gsutil ls "gs://${DERIVED}/variants/scores_sb/" 2>/dev/null | wc -l | tr -d ' ')
     MM=$(gsutil ls "gs://${DERIVED}/variants/scores_mm/" 2>/dev/null | wc -l | tr -d ' ')
-    say "  matched $SB/94  mismatched $MM/94"
-    [ "${SB:-0}" -ge 94 ] && [ "${MM:-0}" -ge 94 ] && break
+    say "  matched $SB/$NEED  mismatched $MM/$NEED"
+    [ "${SB:-0}" -ge "$NEED" ] && [ "${MM:-0}" -ge "$NEED" ] && break
     sleep 60
   done
+  # Do NOT fall through to the analysis on a partial arm: R4 computed on a subset, with no
+  # log line saying which datasets are absent, is worse than no R4.
+  [ "${SB:-0}" -ge "$NEED" ] && [ "${MM:-0}" -ge "$NEED" ] \
+    || die "Modal finished with matched $SB/$NEED, mismatched $MM/$NEED. Relaunch to resume."
 fi
 
 # --- stage 13: analysis --------------------------------------------------------------------
