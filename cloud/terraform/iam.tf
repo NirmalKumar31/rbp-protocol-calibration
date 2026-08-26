@@ -329,9 +329,32 @@ resource "google_storage_bucket_iam_member" "analysis_derived_write" {
     description = "Result tables, figures and variant scores"
     expression = <<-EOT
       resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/results/") ||
-      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/variants/")
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/variants/") ||
+      resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/driver/")
     EOT
   }
+}
+
+# The driver VM runs as rbp-analysis and its whole job is to SUBMIT other jobs and wait. That
+# needs the Batch editor role and the ability to act as the service accounts those jobs run
+# as. It deliberately cannot create VMs or change IAM: a sequencer that can rewrite its own
+# permissions is not a sequencer, it is an administrator.
+resource "google_project_iam_member" "analysis_batch" {
+  project = google_project.rbp.project_id
+  role    = "roles/batch.jobsEditor"
+  member  = "serviceAccount:${google_service_account.analysis.email}"
+}
+
+resource "google_project_iam_member" "analysis_actas" {
+  project = google_project.rbp.project_id
+  role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${google_service_account.analysis.email}"
+}
+
+resource "google_project_iam_member" "analysis_build_viewer" {
+  project = google_project.rbp.project_id
+  role    = "roles/cloudbuild.builds.viewer"
+  member  = "serviceAccount:${google_service_account.analysis.email}"
 }
 
 resource "google_storage_bucket_iam_member" "modal_derived_write" {

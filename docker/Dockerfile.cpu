@@ -65,9 +65,13 @@ WORKDIR /app
 COPY docker/requirements-cpu.txt /tmp/requirements-cpu.txt
 RUN pip install --no-cache-dir -r /tmp/requirements-cpu.txt
 
-# --no-binary forces a source build, which links the libcurl installed above. Without it pip
-# silently prefers the wheel and remote support stays off.
-RUN pip install --no-cache-dir --force-reinstall --no-binary :all: pyBigWig==0.3.25 \
+# --no-binary pyBigWig, NOT :all:.
+#
+# ":all:" applies to every package in the resolution, so pip rebuilt numpy, scipy and pandas
+# from source too. Two consecutive 40-minute builds were killed as TIMEOUT before I read my
+# own flag properly. Naming the single package builds only that one, in seconds, and still
+# links the libcurl installed above -- which is the entire point.
+RUN pip install --no-cache-dir --force-reinstall --no-binary pyBigWig pyBigWig==0.3.25 \
     && python -c "import pyBigWig, sys; sys.exit(0 if pyBigWig.remote else 'pyBigWig has NO remote support; the phyloP stage cannot work')"
 
 # --- source layer: changes constantly -------------------------------------------------

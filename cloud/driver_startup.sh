@@ -69,7 +69,10 @@ say "environment ready"
 # SUCCEEDED while doing nothing.
 say "waiting for any in-flight Cloud Build"
 for i in $(seq 1 60); do
-  W=$(gcloud builds list --project="$PROJECT" --ongoing --format="value(id)" 2>/dev/null | wc -l | tr -d ' ')
+  # NOT --ongoing: it returned zero while a build was plainly WORKING, so the driver used
+  # the stale digest. Filter on the status field, which is what the console shows.
+  W=$(gcloud builds list --project="$PROJECT" \
+        --filter="status=WORKING OR status=QUEUED" --format="value(id)" 2>/dev/null | wc -l | tr -d ' ')
   [ "${W:-0}" -eq 0 ] && { say "  no builds in flight"; break; }
   say "  $W build(s) still running"
   sleep 60
@@ -83,7 +86,7 @@ else
   say "stage 11: variants (assign -> score -> phylop)"
   OUT=$(cd /opt/rbp && ./cloud/submit.sh variants 2>&1); echo "$OUT" >>"$LOG"
   JOB=$(echo "$OUT" | grep -oE "submitted [a-z0-9-]+" | awk '{print $2}')
-  [ -n "$JOB" ] || die "variants did not submit"
+  [ -n "$JOB" ] || die "variants did not submit: $(echo "$OUT" | tail -3)"
   say "  submitted $JOB"
   wait_job "$JOB" || die "variants failed; rerun the driver to resume"
 fi
