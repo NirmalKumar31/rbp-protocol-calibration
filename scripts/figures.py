@@ -61,6 +61,75 @@ def need(*names):
     return out
 
 
+# --- f0: what the panel actually is ------------------------------------------------------
+#
+# The paper needs this before any result. A reader's first question about a 95-dataset panel
+# drawn from a larger candidate pool is "which 95, and are they the easy ones", and the answer
+# has to be a figure rather than a sentence -- particularly because dataset size correlates
+# with AUROC at r = +0.55 here, so a size-biased panel would inflate every model equally and
+# invisibly.
+#
+# Panel c is therefore load-bearing, not decorative: it shows the study panel spanning the
+# candidate pool's whole size range rather than sitting at the top of it.
+
+def f0():
+    t = need("panel_summary.csv")
+    if t is None:
+        return
+    d = t[0]
+    fig, ax = plt.subplots(1, 3, figsize=(10.5, 3.0))
+
+    # (a) THE SIZE-SAMPLE CHECK, and the reason this figure exists. Study panel against the
+    # candidate pool it was drawn from. The pool is a step outline rather than a second filled
+    # histogram: two translucent fills muddied each other and the comparison was unreadable,
+    # which for the one panel a reviewer will actually interrogate is not acceptable.
+    bins = np.linspace(np.log10(d.pairs).min() - 0.05, np.log10(d.pairs).max() + 0.05, 24)
+    pool = need("candidate_sizes.csv")
+    if pool is not None:
+        p = pool[0]
+        ax[0].hist(np.log10(p.pairs), bins=bins, density=True, histtype="step",
+                   color="#404040", linewidth=1.4, label=f"candidate pool (n={len(p)})")
+        lo = (p.pairs < d.pairs.min()).mean() * 100
+        hi = (p.pairs < d.pairs.max()).mean() * 100
+        sub = f"a  panel spans pool percentile {lo:.0f}-{hi:.0f}"
+    else:
+        sub = "a  size distribution"
+    ax[0].hist(np.log10(d.pairs), bins=bins, density=True, color="#4878a8", alpha=0.75,
+               label=f"study panel (n={len(d)})")
+    ax[0].legend(frameon=False, fontsize=7.5)
+    ax[0].set_xlabel("dataset size, log$_{10}$(pairs)")
+    ax[0].set_ylabel("density")
+    ax[0].set_title(sub, loc="left", fontsize=9)
+
+    # (b) how the panel splits across the two cell lines, and how many proteins appear in both.
+    by = d.groupby("cell").size()
+    n_both = int((d.protein.value_counts() == 2).sum())
+    ax[1].bar(by.index, by.values, color=["#8c8c8c", "#2b6a4d"], width=0.6)
+    for i, v in enumerate(by.values):
+        ax[1].text(i, v + 0.8, str(v), ha="center", fontsize=8)
+    ax[1].set_ylabel("datasets")
+    ax[1].set_ylim(0, by.max() * 1.18)
+    ax[1].set_title(f"b  {d.protein.nunique()} proteins, {n_both} in both lines",
+                    loc="left", fontsize=9)
+
+    # (c) ClinVar coverage per dataset, which is what R4's power actually rests on. Reported
+    # rather than assumed: the ladder pools ~19k variants, but they are distributed very
+    # unevenly across datasets and the median dataset contributes far fewer than the mean.
+    if "n_variants" in d.columns and d.n_variants.notna().any():
+        v = d.n_variants.dropna()
+        ax[2].hist(np.log10(v.clip(lower=1)), bins=22, color="#7a5195",
+                   edgecolor="white", linewidth=0.4)
+        ax[2].axvline(np.log10(v.median()), color="#404040", linestyle="--", linewidth=1.1)
+        ax[2].text(np.log10(v.median()), ax[2].get_ylim()[1] * 0.92,
+                   f" median {int(v.median())}", fontsize=7.5, va="top")
+        ax[2].set_xlabel("ClinVar variants per dataset, log$_{10}$")
+        ax[2].set_ylabel("datasets")
+        ax[2].set_title(f"c  {int(v.sum()):,} variant-dataset pairs", loc="left", fontsize=9)
+    else:
+        ax[2].axis("off")
+    save(fig, "f0_panel_overview")
+
+
 # --- f1: the cost of the negative-set protocol -------------------------------------------
 
 def f1():
@@ -250,7 +319,7 @@ def f5():
     save(fig, "f5_size_confound")
 
 
-FIGURES = {"f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5}
+FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5}
 
 
 def main():

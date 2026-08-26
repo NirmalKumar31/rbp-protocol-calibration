@@ -62,6 +62,68 @@ def fetch_prefix(bucket, prefix):
     return pd.concat(parts, ignore_index=True) if parts else None
 
 
+# --- the panel itself, which every result is conditional on ----------------------------
+
+def panel_description(bucket):
+    """Table 1: what the 95 datasets are, and the candidate pool they were drawn from.
+
+    THIS WAS MISSING ENTIRELY. Every result table described model behaviour and none described
+    the data, so the panel existed only as a manifest and a sentence. A reader's first question
+    about a 95-dataset panel drawn from a larger pool is which 95 and whether they are the easy
+    ones -- and that question is sharper here than usual, because dataset size correlates with
+    SpliceBERT AUROC at r = +0.55, so a size-biased panel would inflate every model at once and
+    leave no trace in any of the four results.
+
+    Writes two tables: the per-dataset panel with its variant coverage, and the candidate
+    pool's sizes, so f0 can show the panel spanning the pool rather than sitting on top of it.
+    """
+    import io
+
+    panel = bucket.blob("manifest/study_panel.tsv")
+    if not panel.exists():
+        log("skip panel: no manifest/study_panel.tsv")
+        return None
+    d = pd.read_csv(io.StringIO(panel.download_as_text()), sep="\t")
+    d = d.rename(columns={"cell_line": "cell"})
+
+    # Variant coverage per dataset, from the window manifest the ClinVar arm actually scored.
+    vt = bucket.blob("variants/variant_tasks.tsv")
+    if vt.exists():
+        v = pd.read_csv(io.StringIO(vt.download_as_text()), sep="\t")
+        v["dataset"] = v.protein + ":" + v.cell
+        d = d.merge(v[["dataset", "n_variants", "n_windows"]], on="dataset", how="left")
+
+    d = d.sort_values("dataset", kind="mergesort").reset_index(drop=True)
+    d.to_csv(TABLES / "panel_summary.csv", index=False)
+
+    # THE CANDIDATE POOL, from the panel files select_panel.py itself drew from.
+    #
+    # First attempt used sweep_dinuc.csv, which is one row per dataset per MODEL and covers
+    # only the 95 already selected -- so the "pool" came out as n=95 and the figure compared
+    # the panel against itself, drawing a comparison that looked reassuring and said nothing.
+    # The real pool is panel/{arm}/panel_final_{cell}_{arm}.tsv, the same objects the selector
+    # reads, which is the only defensible denominator for "the panel spans the pool".
+    pool = []
+    for cell in ("K562", "HepG2"):
+        b = bucket.blob(f"panel/dinuc/panel_final_{cell}_dinuc.tsv")
+        if b.exists():
+            pool.append(pd.read_csv(io.StringIO(b.download_as_text()), sep="\t"))
+    if pool:
+        p = pd.concat(pool, ignore_index=True).rename(columns={"cell_line": "cell"})
+        p["dataset"] = p.protein + ":" + p.cell
+        p = p.drop_duplicates("dataset").sort_values("dataset", kind="mergesort")
+        p.to_csv(TABLES / "candidate_sizes.csv", index=False)
+        log(f"candidate pool: {len(p)} datasets, pairs {int(p.pairs.min())}-"
+            f"{int(p.pairs.max())}; panel covers percentile "
+            f"{(p.pairs < d.pairs.min()).mean() * 100:.0f}-{(p.pairs < d.pairs.max()).mean() * 100:.0f}")
+
+    both = int((d.protein.value_counts() == 2).sum())
+    log(f"panel: {len(d)} datasets, {d.protein.nunique()} proteins ({both} in both lines), "
+        f"pairs {int(d.pairs.min())}-{int(d.pairs.max())} median {int(d.pairs.median())}"
+        + (f", variants {int(d.n_variants.sum()):,}" if "n_variants" in d else ""))
+    return d
+
+
 # --- R3 -------------------------------------------------------------------------------
 
 def locality(bucket):
@@ -281,6 +343,7 @@ def main():
             d.to_csv(TABLES / Path(key).name, index=False)
 
     if a.what in ("tables", "all"):
+        panel_description(bucket)
         cost_of_matching(bucket)
         four_models(bucket)
         locality(bucket)
