@@ -10,10 +10,13 @@ file plus `git log` is enough to continue without re-deriving anything.
 | path | what it is | status |
 |---|---|---|
 | `Deep Learning Project/rna-binding-proteins/` | **the original study.** All four results live here, verified. Do not break it. | scientifically COMPLETE |
-| `Deep Learning Project/rbp-repro/` | **the reproducible rebuild.** Same science, rebuilt as cloud stages. | mid-run, stage 5 |
+| `Deep Learning Project/rbp-repro/` | **THE PROJECT.** The first build is being discarded; only this one is published or discussed. | stages 0-10 done, 11 running |
 
-The original's results are the ground truth the rebuild is checked against
-(`rbp-repro/config/golden.yaml`). **A near-miss deleted them once** — see §6.
+**The user has decided the first build is discarded entirely** -- not published, not
+mentioned, treated as a standalone project in interviews. So there is no "two swapped
+proteins" story and no "reproduce the original" framing: `golden.yaml` holds THIS
+pipeline's reference values. The first build survives only as a cross-check while the rebuild
+finishes. **A near-miss deleted it once** -- see §6.
 
 ## 2. Two GCP projects, two Modal accounts
 
@@ -50,22 +53,40 @@ GAP between rungs, not the top number. Conservation still beats all of it.
 `VARIANT 94 ⊂ DEEP 95 ⊂ FULL 189`, and `MATCHED 187 ⊂ FULL 189`. Never mix them without
 saying so.
 
+## 3b. RESULTS REPRODUCED on rbp-repro-2026 (2026-08-25)
+
+Three of four, all inside golden.yaml tolerances (8/8 checks pass).
+
+| | reproduced | reference |
+|---|---|---|
+| **R1** | -0.1095, **94/94 fall**, p=3.81e-17, gain +0.0154 -> +0.0607 (**3.94x**) | -0.107, 3.61x |
+| **R2** | composition 0.6279, k-mer 0.6875, CNN 0.7063, SpliceBERT 0.8091 | 0.628/0.688/0.708/0.809 |
+| **R3** | median +0.064, more local 91/95, **significantly reversed 0/95**, p=3.94e-17 | +0.062, 91/95 |
+| **R4** | OUTSTANDING -- blocked on stage 11 | |
+
+Integrity: 0 NaN, 0 at chance, no duplicates, all 95 datasets have full 5-fold sets for both
+CNN and SpliceBERT. Sweeps: rehearsal 189/189, CNN 475/475, SpliceBERT 475/475, locality 95/95.
+
+**R1's n is 94, not 187** -- restricting the study to 95 datasets means only 94 clear the
+min_pairs=400 floor in BOTH arms (NCBP2:K562 matches 384 pairs under GC, 406 under dinuc).
+Stage 7 is 189 TASKS: 95 dinuc + 94 gc, one per dataset per arm.
+
 ## 4. Where the rebuild is right now
 
 ```
 0 preflight   DONE   21 passed
 1 terraform   DONE   78 resources, 4 buckets, 6 service accounts
-2 images      DONE   cpu sha256:9265f8c8..., gpu sha256:23e7d9cb...
+2 images      DONE   REBUILD AFTER EVERY CODE CHANGE (see 5b)
 3 ingest      DONE   3.97 GiB, byte-identical total to the original
 4 panel       DONE   139 K562 + 105 HepG2, identical to the original
-5 prep        RUNNING  488 tasks, ~2.2/min, ETA ~16:00, job prep-0825-121949
-6 select      next   writes manifest/study_panel.tsv -- THE panel
-7 rehearsal   -> R1
-8 cnn         GPU image (it has torch; the cpu image does not)
-9 splicebert  MODAL, ~$31, ASK THE USER FIRST -- this is a standing instruction
-10 locality   MODAL
-11 variants   needs a public IP (UCSC phyloP)
-12 clinvar    MODAL
+5 prep        DONE   488/488, panel counts identical to reference
+6 select      DONE   95 datasets, 79 proteins, deterministic sort
+7 rehearsal   DONE   189/189 -> R1 REPRODUCED
+8 cnn         DONE   475/475 -> R2 REPRODUCED (gpu image + --device cpu)
+9 splicebert  DONE   475/475 on FREE credit, $0 out of pocket
+10 locality   DONE   95/95 -> R3 REPRODUCED
+11 variants   RUNNING after 3 fixes (SA, raw read, get_blob, all peaks)
+12 clinvar    NEXT, ~$0.60 Modal -> R4
 13 analysis
 14 verify     asserts golden.yaml; exit 1 means the science did not reproduce
 ```
@@ -85,6 +106,27 @@ Run with: `export GOOGLE_CLOUD_PROJECT=rbp-repro-2026; ./run.sh stage N`.
   comments, no echo spam.
 - The user is testing the pipeline on a fresh project deliberately. **Bugs found are the
   point, not a setback.** Report them plainly.
+
+## 5b. THE FOUR TRAPS THAT COST THE MOST TIME (full record: docs/58-the-run-chronicle.md)
+
+**A stale image makes a job succeed while doing nothing.** The rehearsal reported 189/189
+SUCCEEDED with an empty rehearsal/gc/, because the container predated the arm-from-row change
+and every task took ARM=dinuc from the environment, hit an existing marker, and exited 0.
+After ANY code change: `gsutil cat gs://${PROJECT}-artifacts/images/cpu_digest.txt`.
+
+**The laptop keeps sneaking back into the pipeline, on both clouds.** Once as a shell loop
+sequencing two Batch jobs; three hours later as `modal run` without `--detach`, which ties the
+app's lifetime to the local client and killed 475 GPU tasks at 43%. Fixed the pattern on GCP
+and did not think to look for it on Modal.
+
+**A stage-in list is a contract with every function the stage calls.** Stage 11 failed three
+times: wrong service account, then missing read on raw, then missing ENCODE peaks -- twice,
+because I first staged peaks only for the study panel and `--what assign` walks the full
+candidate panel. 19.7 MiB. Being selective saved nothing.
+
+**Safety mechanisms fire on wrong instructions, and that is them working.** An IAM condition
+(twice), a device guard, a completion marker, an app-lifetime default. Five of the 24 bugs.
+Each cost minutes instead of a corrupted result. Do not weaken the guard; fix the instruction.
 
 ## 6. The mistakes worth remembering, because they will recur
 
