@@ -86,14 +86,32 @@ def verify_r1(T, g):
     near("mean AUROC, dinuc arm", d.auroc_dn.mean(), spec["auroc_dinuc"])
     near("cost of proper matching", d.cost.mean(), spec["cost"])
 
-    gain_gc = (d.auroc_gc - d.composition_auroc_gc).mean()
-    gain_dn = (d.auroc_dn - d.composition_auroc_dn).mean()
-    near("gain over composition, GC", gain_gc, spec["gain_gc"])
-    near("gain over composition, dinuc", gain_dn, spec["gain_dinuc"])
+    # THE NESTED GAIN, NOT THE DIFFERENCE OF TWO STANDALONE AUROCs.
+    #
+    # This computed (auroc - composition_auroc): how much better the sequence model is than a
+    # composition model fitted separately. That is not the claim. The claim is that the
+    # sequence score adds information OVER AND ABOVE composition, which is a nested comparison
+    # -- composition alone against composition plus the score -- and the rehearsal already
+    # computes it as delta_auroc = with_score_auroc - composition_auroc, with a bootstrap CI,
+    # a p-value and a per-dataset `helps` flag attached.
+    #
+    # The two disagree materially: naive gives +0.0154 -> +0.0607 (ratio 3.94), nested gives
+    # +0.0265 -> +0.0662 (ratio 2.50). Both support the direction, but the verifier was
+    # certifying 3.94x while the manuscript's framing quotes the nested figure. A gate that
+    # blesses a number nobody claims is worse than no gate, because it reads as confirmation.
+    gain_gc = d.delta_auroc_gc.mean()
+    gain_dn = d.delta_auroc_dn.mean()
+    near("nested gain over composition, GC", gain_gc, spec["gain_gc"])
+    near("nested gain over composition, dinuc", gain_dn, spec["gain_dinuc"])
     # THE THESIS. If this does not hold the paper's central claim is false, regardless of
     # how close every other number lands.
     at_least("gain RATIO (the paper's thesis)", gain_dn / gain_gc if gain_gc else None,
              spec["gain_ratio_min"])
+    # The gain must be significant, not merely bigger. `helps` is the rehearsal's own verdict
+    # on the nested comparison for that dataset.
+    if "helps_dn" in d.columns:
+        at_least("nested gain significant, dinuc arm", float(d.helps_dn.mean()),
+                 spec["gain_significant_on_min_fraction"])
     near("fraction of datasets falling", float((d.cost < 0).mean()),
          spec["fraction_datasets_falling"])
     from scipy.stats import wilcoxon

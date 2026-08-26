@@ -116,9 +116,14 @@ def cost_of_matching(bucket):
         return None
     m = gc.merge(dn, on="dataset", suffixes=("_gc", "_dn"))
     m["cost"] = m.auroc_dn - m.auroc_gc
+    # delta_p and helps travel with the gains. The claim is not just that the nested gain is
+    # larger under dinucleotide matching but that it is REAL, and the significance of the
+    # nested comparison is what says so. Carrying the point estimate without its inference is
+    # how a ratio of two noisy numbers becomes a headline.
     keep = ["dataset", "protein_gc", "cell_gc", "pairs_gc", "auroc_gc", "auroc_dn", "cost",
             "composition_auroc_gc", "composition_auroc_dn",
-            "delta_auroc_gc", "delta_auroc_dn"]
+            "delta_auroc_gc", "delta_auroc_dn",
+            "delta_p_gc", "delta_p_dn", "helps_gc", "helps_dn"]
     out = m[keep].rename(columns={"protein_gc": "protein", "cell_gc": "cell",
                                   "pairs_gc": "pairs"})
     out.to_csv(TABLES / "cost_of_matching.csv", index=False)
