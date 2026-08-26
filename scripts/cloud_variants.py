@@ -95,17 +95,23 @@ def stage_in(bucket, raw_bucket):
     # assign half died with "no peak file for AATF in /app/data/raw/peaks/K562" after
     # successfully staging 95 datasets. A stage-in list is a contract with every function the
     # stage calls, not just the one you had in mind while writing it.
+    # ALL the peaks, not just the study panel's.
+    #
+    # My first attempt staged peaks only for the 95 datasets in the study panel, which failed
+    # on ADAT1: rehearsal_variants.py --what assign walks the FULL candidate panel, not the
+    # study subset, so it needs peaks for proteins the study never scores. Two ways to fix
+    # that -- teach the assign stage about the study panel, or stage everything it might read.
+    # The whole design of this file is to run the existing code UNCHANGED, so it stages
+    # everything. The peaks are a few hundred MB against a 3.1 GB genome already being pulled;
+    # narrowing them saved nothing and cost two failed runs.
     peaks = 0
-    for r in panel.itertuples():
-        cell = getattr(r, "cell_line", None) or r.cell
-        for b in raw_bucket.client.list_blobs(raw_bucket.name,
-                                              prefix=f"peaks/{cell}/{r.protein}"):
-            dest = RAW_DIR / b.name
-            if dest.exists():
-                continue
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            b.download_to_filename(str(dest))
-            peaks += 1
+    for b in raw_bucket.client.list_blobs(raw_bucket.name, prefix="peaks/"):
+        dest = RAW_DIR / b.name
+        if dest.exists():
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        b.download_to_filename(str(dest))
+        peaks += 1
     log(f"staged {peaks} peak files")
 
     # Only the study panel's datasets. Pulling all 189 would move data the stage never reads.
