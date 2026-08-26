@@ -216,7 +216,11 @@ def main():
 
     print("=" * 78)
     print("VERIFY -- does the reproduction match the original science?")
-    print(f"golden: {g['meta']['source_run']} measured {g['meta']['measured_on']}")
+    # golden.yaml's meta keys are reference_run/established. They were source_run/measured_on
+    # when the file described the earlier study, and renaming them there left this line
+    # reading keys that no longer exist -- a KeyError before a single check ran.
+    m = g["meta"]
+    print(f"golden: {m['reference_run']} established {m['established']}")
     print("=" * 78)
 
     for fn in (verify_r1, verify_r2, verify_r3, verify_r4, verify_integrity):

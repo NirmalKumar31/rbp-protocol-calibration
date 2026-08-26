@@ -62,6 +62,44 @@ def fetch_prefix(bucket, prefix):
     return pd.concat(parts, ignore_index=True) if parts else None
 
 
+# --- R3 -------------------------------------------------------------------------------
+
+def locality(bucket):
+    """Aggregate the 95 per-dataset ISM runs into R3's table.
+
+    THIS STEP WAS SIMPLY ABSENT. Stage 10 wrote one JSON per dataset to runs/locality/, and
+    main() then *fetched* results/tables/locality_ism.csv from GCS -- an object nothing ever
+    created. So the analysis quietly produced no R3 table, do_figures() skipped the R3 figure
+    without complaint, and stage 14 was the first thing to notice, reporting the table as
+    MISSING after the whole pipeline had run green.
+
+    Every other result has a producer here; R3's was a fetch of its own output. The tolerant
+    guard in do_figures() is what let it stay invisible, which is the pattern already recorded
+    in the chronicle: a lenient gate needs a strict counterpart, and stage 14 was it.
+    """
+    import json
+
+    rows = []
+    for b in bucket.client.list_blobs(bucket.name, prefix="runs/locality/"):
+        if b.name.endswith(".json"):
+            rows.append(json.loads(b.download_as_text()))
+    if not rows:
+        log("skip R3: no runs/locality/*.json")
+        return None
+
+    d = pd.DataFrame(rows)
+    # Deterministic order, so the committed table is byte-stable across runs. mergesort
+    # because the default quicksort is unstable and two datasets tying on any key would
+    # reorder run to run -- the same defect that made the study panel non-reproducible.
+    d = d.sort_values("dataset", kind="mergesort").reset_index(drop=True)
+    d.to_csv(TABLES / "locality_ism.csv", index=False)
+
+    more = int((d.sb_gini > d.kmer_gini).sum())
+    log(f"R3: {len(d)} datasets, SpliceBERT more concentrated on {more}/{len(d)}, "
+        f"median delta Gini {(d.sb_gini - d.kmer_gini).median():+.4f}")
+    return d
+
+
 # --- R1 -------------------------------------------------------------------------------
 
 def cost_of_matching(bucket):
@@ -228,10 +266,11 @@ def main():
     TABLES.mkdir(parents=True, exist_ok=True)
     FIGS.mkdir(parents=True, exist_ok=True)
 
-    # Pull anything a downstream table needs that lives only in GCS.
+    # Pull anything a downstream table needs that lives only in GCS. locality_ism.csv is NOT
+    # in this list any more: it is built by locality() below, not fetched. Fetching your own
+    # output is how R3's table went missing without a single error.
     for key in ("results/tables/variant_conservation.csv",
-                "results/tables/variant_scores.csv",
-                "results/tables/locality_ism.csv"):
+                "results/tables/variant_scores.csv"):
         d = fetch(bucket, key)
         if d is not None:
             d.to_csv(TABLES / Path(key).name, index=False)
@@ -239,6 +278,7 @@ def main():
     if a.what in ("tables", "all"):
         cost_of_matching(bucket)
         four_models(bucket)
+        locality(bucket)
         variant_ladder(bucket)
     figs_ok = do_figures() if a.what in ("figures", "all") else True
 
