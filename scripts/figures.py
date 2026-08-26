@@ -269,51 +269,80 @@ def f3():
 # --- f4: the variant arm -----------------------------------------------------------------
 
 def f4():
-    """The ClinVar ladder. Three rungs plus conservation.
+    """R4, as a paired per-dataset comparison rather than one pooled AUROC.
 
-    The claim is the GAPS between rungs, not any single number: a wrong-protein head already
-    beats the k-mer, so part of the signal is generic sequence plausibility inherited from
-    pretraining, and only the matched-minus-mismatched gap is binding-specific. Plotting one
-    bar would hide exactly the thing that makes the result defensible.
+    THE POOLED VERSION OF THIS FIGURE WAS WRONG AND LOOKED BETTER. It showed four bars,
+    matched 0.829 against a wrong-protein 0.680, and that gap of +0.149 was inflated by
+    between-dataset heterogeneity: mean |delta| per dataset correlates with that dataset's
+    pathogenic rate at rho +0.73 and spans 10.4x, so a pooled AUROC partly measures which
+    dataset a variant came from. Paired within dataset the gap is +0.065.
+
+    Conservation was the only arm immune to the artefact, because phyloP is on a fixed
+    external scale -- which is why the inflation stayed invisible: the arm that could not be
+    inflated was winning anyway.
+
+    Panel a is the honest ladder across power strata. Panel b is the paired test. Panel c
+    puts the size of the inflation on the record instead of quietly dropping it.
     """
-    got = need("variant_ladder.csv")
+    got = need("variant_ladder_paired.csv", "variant_specificity.csv",
+               "variant_coefficients.csv")
     if got is None:
         return
-    d = got[0]
-    order = ["kmer", "mismatched", "matched", "conservation"]
-    # Short labels: the four full phrases collide at this width, and a colliding axis is
-    # a broken figure however correct the numbers are.
-    label = {"kmer": "k-mer", "mismatched": "wrong\nprotein", "matched": "right\nprotein",
-             "conservation": "phyloP"}
-    colr = {"kmer": COLOR["kmer"], "mismatched": "#bdbdbd",
-            "matched": COLOR["splicebert"], "conservation": "#8c8c8c"}
-    d = d.set_index("arm").reindex([a for a in order if a in set(d.arm)]).reset_index()
+    paired, per, coef = got
+    fig, ax = plt.subplots(1, 3, figsize=(11.0, 3.2))
 
-    fig, ax = plt.subplots(1, 2, figsize=(7.6, 3.2))
-    ax[0].bar(range(len(d)), d.auroc, color=[colr[a] for a in d.arm],
-              edgecolor="white", linewidth=0.6)
-    ax[0].axhline(0.5, color="black", lw=0.8, ls="--")
-    for i, v in enumerate(d.auroc):
-        ax[0].text(i, v + 0.008, f"{v:.3f}", ha="center", fontsize=8)
-    ax[0].set_xticks(range(len(d)))
-    ax[0].set_xticklabels([label[a] for a in d.arm], fontsize=8)
-    ax[0].set_ylabel("pathogenic vs benign AUROC")
-    ax[0].set_ylim(0.45, 1.0)
-    ax[0].set_title("The ladder", loc="left", fontsize=9)
+    # (a) each arm against statistical power. The mismatched floor is flat; matched rises.
+    x = np.arange(len(paired))
+    for col, key, lab in (("conservation", "conservation", "phyloP conservation"),
+                          ("matched", "splicebert", "right protein"),
+                          ("mismatched", "kmer", "wrong protein")):
+        c = "#8c8c8c" if col == "conservation" else COLOR[key]
+        c = "#bdbdbd" if col == "mismatched" else c
+        ax[0].plot(x, paired[col], "o-", color=c, lw=1.6, ms=5, label=lab)
+    ax[0].set_xticks(x)
+    ax[0].set_xticklabels([f"\u2265{int(v)}\n(n={int(n)})"
+                           for v, n in zip(paired.min_pathogenic, paired.n_datasets)],
+                          fontsize=8)
+    ax[0].set_xlabel("pathogenic variants per dataset")
+    ax[0].set_ylabel("mean per-dataset AUROC")
+    # Headroom then upper-left: at center-right the box sat on the rising matched line.
+    ax[0].set_ylim(top=ax[0].get_ylim()[1] + 0.06)
+    ax[0].legend(frameon=False, fontsize=7.5, loc="upper left")
+    ax[0].set_title("a  the floor is flat, the signal is not", loc="left", fontsize=9)
 
-    # Cluster-corrected coefficients. Conservation has no delta coefficient by construction,
-    # so it is absent here rather than drawn as zero.
-    c = d[d.coef.notna()]
-    ax[1].bar(range(len(c)), c.coef, color=[colr[a] for a in c.arm],
-              edgecolor="white", linewidth=0.6)
-    ax[1].errorbar(range(len(c)), c.coef,
-                   yerr=[c.coef - c.ci_low, c.ci_high - c.coef],
-                   fmt="none", ecolor="black", elinewidth=0.9, capsize=3)
-    ax[1].axhline(0, color="black", lw=0.8)
-    ax[1].set_xticks(range(len(c)))
-    ax[1].set_xticklabels([label[a] for a in c.arm], fontsize=8)
-    ax[1].set_ylabel("standardised |delta| coefficient")
-    ax[1].set_title("Conservation controlled, gene-clustered", loc="left", fontsize=9)
+    # (b) the paired test itself, on the adequately powered datasets.
+    q = per[per.n_pathogenic >= 20]
+    ax[1].scatter(q.auroc_mismatched, q.auroc_matched, s=16,
+                  color=COLOR["splicebert"], alpha=0.75, edgecolor="white", linewidth=0.3)
+    lim = [min(q.auroc_mismatched.min(), q.auroc_matched.min()) - 0.03,
+           max(q.auroc_mismatched.max(), q.auroc_matched.max()) + 0.03]
+    ax[1].plot(lim, lim, "--", color="#999999", lw=1.0)
+    ax[1].set_xlim(lim); ax[1].set_ylim(lim)
+    ax[1].set_xlabel("wrong-protein head, AUROC")
+    ax[1].set_ylabel("right-protein head, AUROC")
+    row = paired[paired.min_pathogenic == 20]
+    if len(row):
+        r = row.iloc[0]
+        ax[1].set_title(f"b  right wins {int(r.matched_wins)}/{int(r.n_datasets)}, "
+                        f"p={r.p_specificity:.1e}", loc="left", fontsize=9)
+
+    # (c) the inflation, stated rather than deleted.
+    w = 0.36
+    arms = ["mismatched", "matched"]
+    for i, tag in enumerate(("pooled", "within_dataset")):
+        c = coef[coef.standardisation == tag].set_index("arm").reindex(arms)
+        pos = np.arange(len(arms)) + (i - 0.5) * w
+        ax[2].bar(pos, c.coef, width=w, color=["#bdbdbd", COLOR["splicebert"]],
+                  alpha=1.0 if tag == "within_dataset" else 0.45,
+                  edgecolor="white", linewidth=0.5,
+                  label="pooled (inflated)" if tag == "pooled" else "within dataset")
+        ax[2].errorbar(pos, c.coef, yerr=[c.coef - c.ci_low, c.ci_high - c.coef],
+                       fmt="none", ecolor="black", elinewidth=0.9, capsize=2.5)
+    ax[2].set_xticks(np.arange(len(arms)))
+    ax[2].set_xticklabels(["wrong\nprotein", "right\nprotein"], fontsize=8)
+    ax[2].set_ylabel("conservation-controlled coefficient")
+    ax[2].legend(frameon=False, fontsize=7.5)
+    ax[2].set_title("c  pooling inflates both arms", loc="left", fontsize=9)
     save(fig, "f4_variant_ladder")
 
 

@@ -175,8 +175,77 @@ def verify_r3(T, g):
     at_most("paired Wilcoxon p", wilcoxon(d.sb_gini, d.kmer_gini)[1], spec["wilcoxon_p_max"])
 
 
+def verify_r4_paired(T, g):
+    """R4 as the PAIRED per-dataset comparison. This is the reported result.
+
+    The pooled ladder is still checked by verify_r4 below, but it is no longer the claim:
+    pooling inflated the matched arm from 0.755 to 0.829 through between-dataset scale.
+    """
+    print("\nR4  specificity, paired per dataset (the reported result)")
+    per = T.get("variant_specificity.csv")
+    paired = T.get("variant_ladder_paired.csv")
+    coef = T.get("variant_coefficients.csv")
+    ctrl = T.get("variant_specificity_controls.csv")
+    if paired is None or per is None:
+        return record(False, "paired specificity tables present", "MISSING", "the tables")
+    spec = g["r4_paired_specificity"]
+
+    hl = paired[paired.min_pathogenic == spec["min_pathogenic_headline"]]
+    if not len(hl):
+        return record(False, "headline stratum present", "MISSING",
+                      f">={spec['min_pathogenic_headline']} pathogenic")
+    r = hl.iloc[0]
+    near("datasets in headline stratum", float(r.n_datasets), spec["n_datasets_headline"])
+    near("AUROC, right-protein head", r.matched, spec["matched_auroc"])
+    near("AUROC, wrong-protein head", r.mismatched, spec["mismatched_auroc"])
+    near("AUROC, conservation", r.conservation, spec["conservation_auroc"])
+    near("specificity gap", r.specificity_gap, spec["specificity_gap"])
+    at_most("specificity paired p", float(r.p_specificity), spec["specificity_p_max"])
+    at_least("right protein wins, fraction",
+             float(r.matched_wins) / float(r.n_datasets), spec["matched_wins_min_fraction"])
+    near("conservation still leads by", r.conservation_lead, spec["conservation_lead"])
+
+    # The unflattering stratum. Asserted so it cannot be quietly dropped from the paper.
+    allq = paired[paired.min_pathogenic == 0]
+    if len(allq):
+        near("all-datasets gap (shows nothing, by design)",
+             allq.iloc[0].specificity_gap, spec["all_datasets_gap"])
+
+    # A real effect grows with power; a pooling artefact need not.
+    from scipy.stats import spearmanr
+    rho = spearmanr(per.n_pathogenic, per.auroc_matched - per.auroc_mismatched).statistic
+    at_least("gap grows with statistical power (rho)", float(rho), spec["gap_power_rho_min"])
+
+    if coef is not None:
+        w = coef[coef.standardisation == "within_dataset"].set_index("arm")
+        near("coefficient, right protein (within dataset)",
+             float(w.loc["matched", "coef"]), spec["coef_matched_within"])
+        near("coefficient, wrong protein (within dataset)",
+             float(w.loc["mismatched", "coef"]), spec["coef_mismatched_within"])
+        if spec.get("coef_cis_must_separate"):
+            sep = float(w.loc["matched", "ci_low"]) > float(w.loc["mismatched", "ci_high"])
+            record(sep, "coefficient CIs separate (specificity established)",
+                   f"matched low {w.loc['matched','ci_low']:.3f} vs mismatched high "
+                   f"{w.loc['mismatched','ci_high']:.3f}", "no overlap")
+        at_least("inference is clustered", float(w.loc["matched", "n_clusters"]),
+                 spec["min_clusters"])
+
+    # The wrong-protein floor must NOT be explained by donor similarity, or the control is
+    # contaminated and the whole result goes with it.
+    if ctrl is not None:
+        c = ctrl.set_index("check")
+        if "floor vs donor cell line" in c.index:
+            at_least("floor independent of donor cell line (p)",
+                     float(c.loc["floor vs donor cell line", "p"]),
+                     spec["floor_cell_line_p_min"])
+        if "floor vs donor's own strength" in c.index:
+            at_most("floor barely tracks donor strength (rho)",
+                    abs(float(c.loc["floor vs donor's own strength", "value"])),
+                    spec["floor_donor_strength_rho_max"])
+
+
 def verify_r4(T, g):
-    print("\nR4  the ClinVar ladder")
+    print("\nR4  the POOLED ladder (retained for comparison, NOT the reported result)")
     d = T.get("variant_ladder.csv")
     if d is None:
         return record(False, "variant_ladder.csv present", "MISSING",
@@ -241,7 +310,8 @@ def main():
     print(f"golden: {m['reference_run']} established {m['established']}")
     print("=" * 78)
 
-    for fn in (verify_r1, verify_r2, verify_r3, verify_r4, verify_integrity):
+    for fn in (verify_r1, verify_r2, verify_r3, verify_r4_paired, verify_r4,
+               verify_integrity):
         try:
             fn(T, g)
         except Exception as e:                  # a broken check is a failure, not a crash

@@ -97,6 +97,55 @@ r3_locality:
 
 # --- R4: the ClinVar ladder -----------------------------------------------------------
 # Three rungs. The claim is the GAPS between them, so each is checked and so is the order.
+# --- R4: the ClinVar arm, PAIRED PER DATASET ------------------------------------------
+#
+# THE POOLED LADDER IS NO LONGER THE REPORTED RESULT, and this block is the record of why.
+#
+# variant_ladder() concatenates ~19k variants across 95 datasets into one AUROC per arm.
+# That is inflated: a dataset's mean |delta| correlates with its pathogenic rate at Spearman
+# +0.73 for the matched arm and spans 10.4x across datasets, so the pooled number partly
+# measures which dataset a variant came from. Matched pooled 0.829 against 0.755 paired;
+# the pooled specificity gap of +0.149 is really +0.065.
+#
+# Conservation was the only arm immune, because phyloP is on a fixed external scale. That is
+# why the artefact stayed invisible for so long: the arm that could not be inflated was
+# winning anyway, so nothing looked wrong.
+#
+# The previous version of this block asserted the pooled numbers and passed, which is the
+# sharpest lesson in this file: a gate that checks the number the code computed, rather than
+# whether that number is the right statistic, reads as confirmation.
+r4_paired_specificity:
+  # The adequately powered stratum is the headline. Median coverage is 140 variants per
+  # dataset and many carry a handful of pathogenic ones, so the all-datasets stratum is
+  # noise-dominated -- it is asserted here too, unflattering value included, because
+  # reporting only the stratum that works is the thing this project exists not to do.
+  min_pathogenic_headline: 20
+  n_datasets_headline:    {value: 44,     tol: 3}
+  matched_auroc:          {value: 0.7553, tol: 0.03}
+  mismatched_auroc:       {value: 0.6908, tol: 0.03}
+  conservation_auroc:     {value: 0.8921, tol: 0.025}
+  specificity_gap:        {value: 0.0645, tol: 0.025}
+  specificity_p_max:      0.01
+  matched_wins_min_fraction: 0.65
+  # Conservation must still lead. If a model ever beats phyloP here that is a real result,
+  # but it would need saying out loud rather than slipping through a tolerance.
+  conservation_lead:      {value: 0.1368, tol: 0.05}
+  # The all-datasets stratum, which shows NOTHING. Asserted so it cannot be quietly dropped.
+  all_datasets_gap:       {value: -0.0114, tol: 0.03}
+  # The effect must grow with power. A spurious gap would not.
+  gap_power_rho_min:      0.30
+  # Within-dataset standardised, conservation-controlled, cluster-bootstrapped coefficients.
+  coef_matched_within:    {value: 0.7158, tol: 0.10}
+  coef_mismatched_within: {value: 0.4446, tol: 0.10}
+  # The two CIs must not overlap, or the specificity claim is not established.
+  coef_cis_must_separate: true
+  min_clusters: 800
+  # The three controls that tested whether the wrong-protein floor is a similarity artefact.
+  # All three must stay negative or the control is contaminated and R4 must be withdrawn.
+  floor_cell_line_p_min:  0.05
+  floor_donor_strength_rho_max: 0.40
+
+# --- R4: the pooled ladder, retained for comparison only ---
 r4_variant_ladder:
   # ESTABLISHED FROM THIS PIPELINE'S OWN RUN (2026-08-26), not carried over.
   #

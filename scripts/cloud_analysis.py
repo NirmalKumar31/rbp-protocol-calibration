@@ -225,7 +225,152 @@ def four_models(bucket):
     return d
 
 
-# --- R4 -------------------------------------------------------------------------------
+# --- R4, the honest version -------------------------------------------------------------
+
+def variant_specificity(bucket):
+    """R4's PRIMARY statistic: paired per-dataset comparison, not one pooled AUROC.
+
+    WHY THE POOLED LADDER IS NOT THE RESULT. variant_ladder() below concatenates ~19k
+    variants across 95 datasets and computes a single AUROC per arm. That number is inflated,
+    and measurably so: a dataset's mean |delta| correlates with its pathogenic rate at
+    Spearman +0.73 for the matched arm, and mean |delta| spans 10.4x across datasets. So a
+    pooled AUROC partly measures WHICH DATASET a variant came from rather than whether the
+    model separates pathogenic from benign within a dataset.
+
+    The size of the error is not subtle. Matched: pooled 0.829 versus 0.755 paired
+    per-dataset. Mismatched: 0.680 versus 0.691. The pooled gap of +0.149 is really +0.065.
+    Conservation barely moves, 0.908 to 0.892, because phyloP is on a fixed external scale
+    and has no between-dataset inflation to contribute -- which is exactly why the artefact
+    was invisible: the arm that could not be inflated was the one winning anyway.
+
+    This is the failure mode described for ClinVar benchmarks generally (heterogeneity
+    inflating apparent performance), reproduced inside this pipeline. The golden gate passed
+    33/33 while reporting it, because the gate checked the number the code computed and not
+    whether that number was the right statistic.
+
+    POWER STRATIFICATION IS NOT p-HACKING, and the reason is in the numbers. Median coverage
+    is 140 variants per dataset, and many datasets carry a handful of pathogenic ones, so
+    their per-dataset AUROC is noise. Across all 82 usable datasets the paired test gives
+    p=0.87; restricted to datasets with at least 20 pathogenic variants it gives +0.065 and
+    p<0.001, and at 50 it gives +0.103. The effect grows with power (rho=+0.52 between
+    pathogenic count and the matched-mismatched gap) and the MISMATCHED arm stays flat at
+    ~0.69 throughout. A spurious effect does not behave that way. Every stratum is reported
+    here, including the one that shows nothing.
+    """
+    from sklearn.metrics import roc_auc_score
+    from scipy.stats import mannwhitneyu, spearmanr, wilcoxon
+
+    from rbp.variants import conservation as cons
+
+    cv = fetch(bucket, "results/tables/variant_conservation.csv")
+    sb = fetch_prefix(bucket, "variants/scores_sb/")
+    mm = fetch_prefix(bucket, "variants/scores_mm/")
+    if cv is None or sb is None or mm is None:
+        log("skip R4-paired: need conservation and both score arms")
+        return None
+    cv = cv[["vid", "conservation"]]
+    for d in (sb, mm):
+        d["dataset"] = d.protein + ":" + d.cell
+    sb = sb.merge(cv, on="vid", how="left")
+    mm = mm.merge(cv, on="vid", how="left")
+
+    # --- per dataset -------------------------------------------------------------------
+    rows = []
+    for ds, s in sb.groupby("dataset"):
+        g = mm[mm.dataset == ds]
+        s = s.dropna(subset=["delta", "conservation"])
+        g = g.dropna(subset=["delta"])
+        if s.label.nunique() < 2 or g.label.nunique() < 2:
+            continue                      # a one-class dataset has no AUROC, not a zero one
+        donor = g.weights_from.iloc[0] if "weights_from" in g else ""
+        rows.append({
+            "dataset": ds, "protein": ds.split(":")[0], "cell": ds.split(":")[1],
+            "donor": donor,
+            "same_cell": bool(donor) and donor.split(":")[1] == ds.split(":")[1],
+            "n": len(s), "n_pathogenic": int(s.label.sum()),
+            "auroc_matched": roc_auc_score(s.label, s.delta.abs()),
+            "auroc_mismatched": roc_auc_score(g.label, g.delta.abs()),
+            "auroc_conservation": roc_auc_score(s.label, s.conservation),
+        })
+    per = pd.DataFrame(rows).sort_values("dataset", kind="mergesort").reset_index(drop=True)
+    per.to_csv(TABLES / "variant_specificity.csv", index=False)
+
+    # --- the stratified paired table ---------------------------------------------------
+    out = []
+    for lo in (0, 10, 20, 50):
+        q = per[per.n_pathogenic >= lo]
+        if len(q) < 8:
+            continue
+        out.append({
+            "min_pathogenic": lo, "n_datasets": len(q),
+            "matched": q.auroc_matched.mean(),
+            "mismatched": q.auroc_mismatched.mean(),
+            "conservation": q.auroc_conservation.mean(),
+            "specificity_gap": (q.auroc_matched - q.auroc_mismatched).mean(),
+            "matched_wins": int((q.auroc_matched > q.auroc_mismatched).sum()),
+            "p_specificity": wilcoxon(q.auroc_matched, q.auroc_mismatched).pvalue,
+            "conservation_lead": (q.auroc_conservation - q.auroc_matched).mean(),
+            "conservation_wins": int((q.auroc_conservation > q.auroc_matched).sum()),
+            "p_conservation": wilcoxon(q.auroc_conservation, q.auroc_matched).pvalue,
+        })
+    paired = pd.DataFrame(out)
+    paired.to_csv(TABLES / "variant_ladder_paired.csv", index=False)
+
+    # --- coefficients, with and without between-dataset scale --------------------------
+    coefs = []
+    for name, s in (("matched", sb), ("mismatched", mm)):
+        d = s.dropna(subset=["delta", "conservation"]).copy()
+        d["ad"] = d.delta.abs()
+        gp = d.groupby("dataset").ad
+        d["ad_within"] = (d.ad - gp.transform("mean")) / gp.transform("std").replace(0, np.nan)
+        d = d.dropna(subset=["ad_within"])
+        for tag, col in (("pooled", "ad"), ("within_dataset", "ad_within")):
+            # Deduplicate on the SAME column being analysed, or the selection reintroduces
+            # exactly the between-dataset scale the standardisation removed.
+            u = d.sort_values(col, key=abs, ascending=False).drop_duplicates("vid")
+            u = u.assign(block=u.vid.str.split(":").str[0] + "_" +
+                         (u.vid.str.split(":").str[1].astype(int) // 1_000_000).astype(str))
+            f = cons.fit_delta_coef(u[col].to_numpy(), u.label.to_numpy(),
+                                    u.conservation.to_numpy(), n_boot=500, seed=0,
+                                    blocks=u.block.to_numpy())
+            coefs.append({"arm": name, "standardisation": tag, "coef": f.coef,
+                          "ci_low": f.ci_low, "ci_high": f.ci_high, "p_wald": f.p_wald,
+                          "n_variants": len(u), "n_clusters": int(u.block.nunique())})
+    pd.DataFrame(coefs).to_csv(TABLES / "variant_coefficients.csv", index=False)
+
+    # --- is the wrong-protein floor a similarity artefact? ------------------------------
+    # The obvious attack on this control: RBPs co-bind and share motif families, so the
+    # "wrong" protein may be a similar one, making the floor a function of donor-target
+    # overlap rather than generic sequence plausibility. Three checks, all reported.
+    q = per[per.n_pathogenic >= 20]
+    sc, xc = q[q.same_cell], q[~q.same_cell]
+    checks = [{"check": "floor vs donor cell line",
+               "value": sc.auroc_mismatched.mean() - xc.auroc_mismatched.mean(),
+               "p": mannwhitneyu(sc.auroc_mismatched, xc.auroc_mismatched).pvalue
+                    if len(sc) > 2 and len(xc) > 2 else np.nan,
+               "note": f"same-cell {sc.auroc_mismatched.mean():.4f} n={len(sc)}, "
+                       f"cross-cell {xc.auroc_mismatched.mean():.4f} n={len(xc)}"}]
+    own = dict(zip(per.dataset, per.auroc_matched))
+    p2 = per.assign(donor_own=per.donor.map(own)).dropna(subset=["donor_own"])
+    rho, pv = spearmanr(p2.donor_own, p2.auroc_mismatched)
+    checks.append({"check": "floor vs donor's own strength", "value": rho, "p": pv,
+                   "note": f"spearman over n={len(p2)} donors"})
+    rho2, pv2 = spearmanr(per.n_pathogenic, per.auroc_matched - per.auroc_mismatched)
+    checks.append({"check": "gap vs statistical power", "value": rho2, "p": pv2,
+                   "note": "a real effect should grow with power; the floor should not"})
+    pd.DataFrame(checks).to_csv(TABLES / "variant_specificity_controls.csv", index=False)
+
+    best = paired[paired.min_pathogenic == 20].iloc[0] if (paired.min_pathogenic == 20).any() \
+        else paired.iloc[-1]
+    log(f"R4-paired: {len(per)} datasets usable; at >={int(best.min_pathogenic)} pathogenic "
+        f"(n={int(best.n_datasets)}) matched {best.matched:.4f} vs mismatched "
+        f"{best.mismatched:.4f}, gap {best.specificity_gap:+.4f}, "
+        f"{best.matched_wins}/{int(best.n_datasets)} wins, p={best.p_specificity:.2e}; "
+        f"conservation leads by {best.conservation_lead:+.4f}")
+    return per
+
+
+# --- R4, the pooled version, kept for comparison ----------------------------------------
 
 def variant_ladder(bucket):
     """The three rungs plus conservation, on identical variants with identical clustering.
@@ -347,6 +492,9 @@ def main():
         cost_of_matching(bucket)
         four_models(bucket)
         locality(bucket)
+        # The paired analysis runs FIRST and is the reported result; the pooled ladder is
+        # kept afterwards so the size of the inflation is on the record rather than deleted.
+        variant_specificity(bucket)
         variant_ladder(bucket)
     figs_ok = do_figures() if a.what in ("figures", "all") else True
 
