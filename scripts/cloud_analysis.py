@@ -227,6 +227,24 @@ def four_models(bucket):
 
 # --- R4, the honest version -------------------------------------------------------------
 
+def _prev_block(q):
+    """The model against the trivial positional rule, on the datasets where both exist.
+
+    Separated out because it is the single most deflating number in the study and it must not
+    be quietly skipped when the column is absent: a missing baseline reports as NaN, not as a
+    pass.
+    """
+    from scipy.stats import wilcoxon
+    z = q.dropna(subset=["auroc_block_prevalence"])
+    if len(z) < 8:
+        return {"block_prevalence": np.nan, "model_minus_prevalence": np.nan,
+                "model_beats_prevalence": np.nan, "p_vs_prevalence": np.nan}
+    return {"block_prevalence": z.auroc_block_prevalence.mean(),
+            "model_minus_prevalence": (z.auroc_matched - z.auroc_block_prevalence).mean(),
+            "model_beats_prevalence": int((z.auroc_matched > z.auroc_block_prevalence).sum()),
+            "p_vs_prevalence": wilcoxon(z.auroc_matched, z.auroc_block_prevalence).pvalue}
+
+
 def variant_specificity(bucket):
     """R4's PRIMARY statistic: paired per-dataset comparison, not one pooled AUROC.
 
@@ -283,6 +301,18 @@ def variant_specificity(bucket):
         if s.label.nunique() < 2 or g.label.nunique() < 2:
             continue                      # a one-class dataset has no AUROC, not a zero one
         donor = g.weights_from.iloc[0] if "weights_from" in g else ""
+        # THE TRIVIAL POSITIONAL BASELINE, computed per dataset because that is where the
+        # claim lives. "What fraction of the OTHER variants in this 1-Mb window are
+        # pathogenic" uses no sequence, no model and no biology, and it beats the model.
+        # Leave-one-out, so a variant never contributes to its own window's rate.
+        blk = (s.vid.str.split(":").str[0] + "_" +
+               (s.vid.str.split(":").str[1].astype(int) // 1_000_000).astype(str))
+        gb = s.assign(_b=blk).groupby("_b").label
+        tot, cnt = gb.transform("sum"), gb.transform("size")
+        prev = ((tot - s.label) / (cnt - 1)).where(cnt > 1, np.nan)
+        ok = prev.notna()
+        auroc_prev = (roc_auc_score(s.label[ok], prev[ok])
+                      if ok.sum() > 20 and s.label[ok].nunique() == 2 else np.nan)
         rows.append({
             "dataset": ds, "protein": ds.split(":")[0], "cell": ds.split(":")[1],
             "donor": donor,
@@ -291,6 +321,7 @@ def variant_specificity(bucket):
             "auroc_matched": roc_auc_score(s.label, s.delta.abs()),
             "auroc_mismatched": roc_auc_score(g.label, g.delta.abs()),
             "auroc_conservation": roc_auc_score(s.label, s.conservation),
+            "auroc_block_prevalence": auroc_prev,
         })
     per = pd.DataFrame(rows).sort_values("dataset", kind="mergesort").reset_index(drop=True)
     per.to_csv(TABLES / "variant_specificity.csv", index=False)
@@ -312,6 +343,7 @@ def variant_specificity(bucket):
             "conservation_lead": (q.auroc_conservation - q.auroc_matched).mean(),
             "conservation_wins": int((q.auroc_conservation > q.auroc_matched).sum()),
             "p_conservation": wilcoxon(q.auroc_conservation, q.auroc_matched).pvalue,
+            **_prev_block(q),
         })
     paired = pd.DataFrame(out)
     paired.to_csv(TABLES / "variant_ladder_paired.csv", index=False)
@@ -449,6 +481,139 @@ def do_figures():
     return rc == 0
 
 
+# --- robustness checks the reviewers will run if we do not ------------------------------
+
+def robustness(bucket):
+    """Three checks that decide whether the two surviving claims hold up.
+
+    1. A CONFIDENCE INTERVAL ON THE COMPOSITION SHARE. 94.8% and 67.8% were reported as bare
+       point estimates, and they are ratios of differences -- the least stable thing a
+       statistic can be. Bootstrapped over datasets, because datasets are the sampling unit.
+
+    2. THE SIZE CONFOUND, tested rather than assumed. Dataset size correlates with AUROC at
+       up to r=+0.67, which confounds any BETWEEN-model comparison across datasets. It cannot
+       confound either surviving claim, and the reason is structural: both are PAIRED within
+       dataset. The composition share compares two negative sets on the same datasets; the
+       specificity gap compares two weight sets on the same variants. Identical n on both
+       sides means size cannot bias the difference, only its precision. What size CAN do is
+       modify the effect, so that is what gets measured here.
+
+    3. A PREVALENCE BASELINE, run on our own variants before a reviewer runs one. The known
+       failure mode for ClinVar benchmarks is that a trivial rule exploiting where pathogenic
+       variants CLUSTER can beat real models. We have no variant-type annotation, so the
+       analogous rules here are the pathogenic rate of a variant's 1-Mb block and of its
+       dataset. Both are computed LEAVE-ONE-OUT: a variant never contributes to its own
+       group's rate, or the baseline trivially memorises the label.
+    """
+    from sklearn.metrics import roc_auc_score
+
+    out = []
+
+    # --- 1. composition share, with an interval ---------------------------------------
+    d = fetch(bucket, "results/tables/cost_of_matching.csv")
+    if d is not None:
+        rng = np.random.default_rng(7)
+
+        def share(x, a, c):
+            """Fraction of skill-above-chance recoverable from composition alone."""
+            num = x[c].mean() - 0.5
+            den = x[a].mean() - 0.5
+            return num / den if den > 0 else np.nan
+
+        for arm, a, c in (("GC-matched", "auroc_gc", "composition_auroc_gc"),
+                          ("dinuc-matched", "auroc_dn", "composition_auroc_dn")):
+            pt = share(d, a, c)
+            boot = [share(d.iloc[rng.integers(0, len(d), len(d))], a, c)
+                    for _ in range(2000)]
+            lo, hi = np.nanpercentile(boot, [2.5, 97.5])
+            out.append({"check": f"composition share, {arm}", "value": pt,
+                        "ci_low": lo, "ci_high": hi, "n": len(d),
+                        "note": "ratio of means, dataset bootstrap"})
+        # The DIFFERENCE is the claim, so it gets its own interval.
+        pt = share(d, "auroc_gc", "composition_auroc_gc") - share(d, "auroc_dn", "composition_auroc_dn")
+        boot = []
+        for _ in range(2000):
+            q = d.iloc[rng.integers(0, len(d), len(d))]
+            boot.append(share(q, "auroc_gc", "composition_auroc_gc")
+                        - share(q, "auroc_dn", "composition_auroc_dn"))
+        lo, hi = np.nanpercentile(boot, [2.5, 97.5])
+        out.append({"check": "composition share, GC minus dinuc", "value": pt,
+                    "ci_low": lo, "ci_high": hi, "n": len(d),
+                    "note": "the claim; excludes zero if the effect is real"})
+
+        # --- 2a. is R1's effect modified by dataset size? -----------------------------
+        lp = np.log10(d.pairs)
+        per_share = ((d.composition_auroc_gc - 0.5) / (d.auroc_gc - 0.5).replace(0, np.nan)
+                     - (d.composition_auroc_dn - 0.5) / (d.auroc_dn - 0.5).replace(0, np.nan))
+        ok = per_share.replace([np.inf, -np.inf], np.nan).notna()
+        from scipy.stats import spearmanr
+        rho, pv = spearmanr(lp[ok], per_share[ok])
+        out.append({"check": "R1 effect vs log10(dataset size)", "value": rho,
+                    "ci_low": np.nan, "ci_high": np.nan, "p": pv, "n": int(ok.sum()),
+                    "note": "paired design, so this is effect modification not confounding"})
+
+    # --- 2b. is the specificity gap explained by dataset size? ------------------------
+    per = fetch(bucket, "results/tables/variant_specificity.csv")
+    panel = fetch(bucket, "results/tables/panel_summary.csv")
+    if per is not None and panel is not None:
+        from scipy.stats import spearmanr
+        m = per.merge(panel[["dataset", "pairs"]], on="dataset", how="left").dropna(subset=["pairs"])
+        gap = m.auroc_matched - m.auroc_mismatched
+        rho, pv = spearmanr(np.log10(m.pairs), gap)
+        out.append({"check": "specificity gap vs log10(dataset size)", "value": rho,
+                    "ci_low": np.nan, "ci_high": np.nan, "p": pv, "n": len(m),
+                    "note": "paired within dataset, so size cannot confound the difference"})
+        # And within the powered stratum only, where the effect is claimed.
+        q = m[m.n_pathogenic >= 20]
+        rho2, pv2 = spearmanr(np.log10(q.pairs), q.auroc_matched - q.auroc_mismatched)
+        out.append({"check": "specificity gap vs size, powered stratum", "value": rho2,
+                    "ci_low": np.nan, "ci_high": np.nan, "p": pv2, "n": len(q),
+                    "note": "n_pathogenic >= 20"})
+
+    # --- 3. prevalence baselines ------------------------------------------------------
+    sb = fetch_prefix(bucket, "variants/scores_sb/")
+    cvt = fetch(bucket, "results/tables/variant_conservation.csv")
+    if sb is not None and cvt is not None:
+        v = sb.dropna(subset=["delta"]).copy()
+        v["dataset"] = v.protein + ":" + v.cell
+        v["block"] = (v.vid.str.split(":").str[0] + "_" +
+                      (v.vid.str.split(":").str[1].astype(int) // 1_000_000).astype(str))
+        u = v.sort_values("delta", key=abs, ascending=False).drop_duplicates("vid")
+        u = u.merge(cvt[["vid", "conservation"]], on="vid", how="left").dropna(subset=["conservation"])
+
+        def loo_rate(df, key):
+            """Group pathogenic rate EXCLUDING the variant itself."""
+            g = df.groupby(key).label
+            tot, cnt = g.transform("sum"), g.transform("size")
+            return ((tot - df.label) / (cnt - 1)).where(cnt > 1, np.nan)
+
+        for key, label in (("block", "1-Mb block prevalence"), ("dataset", "dataset prevalence")):
+            r = loo_rate(u, key)
+            m = r.notna()
+            if m.sum() > 100 and u.label[m].nunique() == 2:
+                out.append({"check": f"TRIVIAL baseline: {label}",
+                            "value": roc_auc_score(u.label[m], r[m]),
+                            "ci_low": np.nan, "ci_high": np.nan, "n": int(m.sum()),
+                            "note": "leave-one-out; a high value means positional leakage"})
+        out.append({"check": "reference: conservation, same variants",
+                    "value": roc_auc_score(u.label, u.conservation),
+                    "ci_low": np.nan, "ci_high": np.nan, "n": len(u), "note": "phyloP"})
+        out.append({"check": "reference: right-protein head, same variants",
+                    "value": roc_auc_score(u.label, u.delta.abs()),
+                    "ci_low": np.nan, "ci_high": np.nan, "n": len(u),
+                    "note": "pooled, i.e. the inflated framing"})
+
+    if not out:
+        log("skip robustness: inputs missing")
+        return None
+    r = pd.DataFrame(out)
+    r.to_csv(TABLES / "robustness.csv", index=False)
+    for _, x in r.iterrows():
+        ci = f" [{x.ci_low:.3f}, {x.ci_high:.3f}]" if pd.notna(x.get("ci_low")) else ""
+        log(f"  {x['check']:46} {x['value']:+.4f}{ci}")
+    return r
+
+
 def upload(bucket):
     n = 0
     for p in sorted(TABLES.glob("*.csv")):
@@ -496,6 +661,7 @@ def main():
         # kept afterwards so the size of the inflation is on the record rather than deleted.
         variant_specificity(bucket)
         variant_ladder(bucket)
+        robustness(bucket)
     figs_ok = do_figures() if a.what in ("figures", "all") else True
 
     upload(bucket)

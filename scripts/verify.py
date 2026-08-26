@@ -230,6 +230,30 @@ def verify_r4_paired(T, g):
         at_least("inference is clustered", float(w.loc["matched", "n_clusters"]),
                  spec["min_clusters"])
 
+    # THE TRIVIAL POSITIONAL BASELINE. Asserted with the sign that embarrasses us, because a
+    # gate that only checks flattering numbers is not a gate.
+    if "block_prevalence" in hl and pd.notna(r.get("block_prevalence")):
+        near("TRIVIAL positional baseline AUROC", float(r.block_prevalence),
+             spec["block_prevalence_auroc"])
+        at_most("model does NOT beat the trivial baseline",
+                float(r.model_minus_prevalence), spec["model_minus_prevalence_max"])
+
+    # The composition share, which had no interval until it was bootstrapped.
+    rob = T.get("robustness.csv")
+    if rob is not None:
+        rr = rob.set_index("check")
+        pairs = [("composition share, GC-matched", "composition_share_gc"),
+                 ("composition share, dinuc-matched", "composition_share_dinuc"),
+                 ("composition share, GC minus dinuc", "composition_share_drop")]
+        for k, gk in pairs:
+            if k in rr.index:
+                near(f"R1 {k}", float(rr.loc[k, "value"]), spec[gk])
+        for k in ("R1 effect vs log10(dataset size)",
+                  "specificity gap vs size, powered stratum"):
+            if k in rr.index:
+                at_most(f"size effect bounded: {k[:34]}",
+                        abs(float(rr.loc[k, "value"])), spec["size_rho_max"])
+
     # The wrong-protein floor must NOT be explained by donor similarity, or the control is
     # contaminated and the whole result goes with it.
     if ctrl is not None:

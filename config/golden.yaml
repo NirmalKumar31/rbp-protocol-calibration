@@ -140,6 +140,30 @@ r4_paired_specificity:
   # The two CIs must not overlap, or the specificity claim is not established.
   coef_cis_must_separate: true
   min_clusters: 800
+  # THE TRIVIAL POSITIONAL BASELINE, and it is the most deflating number in the study.
+  #
+  # "What fraction of the OTHER variants in this 1-Mb window are pathogenic" uses no sequence,
+  # no model and no biology. Leave-one-out, so a variant never contributes to its own window.
+  # It reaches 0.814 where the model reaches 0.755, and the model does not beat it in ANY
+  # stratum: 15/44 wins at >=20 pathogenic (p=0.007 AGAINST the model), and a tie at >=50
+  # (p=0.53). Pooled it is 0.818 against the model's inflated 0.829.
+  #
+  # This is asserted, with the sign that embarrasses us, for one reason: it means absolute
+  # AUROC on peak-proximal ClinVar variants is uninformative about model utility, and any
+  # version of this paper that reports 0.755 as evidence of usefulness is wrong. What survives
+  # is the PAIRED specificity contrast, which this baseline cannot explain because it applies
+  # equally to both arms.
+  block_prevalence_auroc: {value: 0.8139, tol: 0.03}
+  # The model must NOT be claimed to beat it. A positive value here would be a real result
+  # and would need arguing for, not absorbing into a tolerance.
+  model_minus_prevalence_max: 0.02
+  # The composition share, with the interval it was missing.
+  composition_share_gc:    {value: 0.948, tol: 0.03}
+  composition_share_dinuc: {value: 0.678, tol: 0.04}
+  composition_share_drop:  {value: 0.270, tol: 0.05}
+  # Both paired claims must be robust to dataset size. They are paired within dataset, so
+  # size cannot confound them; this bounds effect MODIFICATION.
+  size_rho_max: 0.35
   # The three controls that tested whether the wrong-protein floor is a similarity artefact.
   # All three must stay negative or the control is contaminated and R4 must be withdrawn.
   floor_cell_line_p_min:  0.05
