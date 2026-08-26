@@ -289,6 +289,28 @@ def main():
         return
 
     TABLES.mkdir(parents=True, exist_ok=True)
+
+    # ALL THE WORK IS ALREADY IN GCS: finish, without staging 3.1 GB to do nothing.
+    #
+    # This is the state the marker bug left behind -- three correct tables uploaded and no
+    # marker, because the 403 hit the last line. Resuming through stage_in would download the
+    # genome, every peak file and 244 processed datasets, then skip all three sub-stages
+    # because their outputs exist, then write the marker. Ten minutes and four gigabytes to
+    # create one 90-byte object.
+    if a.what == "all" and not a.force:
+        have = {n: bucket.get_blob(f"results/tables/{n}") for n in OUTPUTS}
+        if all(v is not None for v in have.values()):
+            log("all three tables already in GCS; downloading them and finalising")
+            for n, b in have.items():
+                b.download_to_filename(str(TABLES / n))
+            for n in EXTRA_OUTPUTS:
+                b = bucket.get_blob(f"results/tables/{n}")
+                if b is not None:
+                    b.download_to_filename(str(TABLES / n))
+            stage_out(bucket)
+            log("done")
+            return
+
     stage_in(bucket, raw_bucket)
 
     # ASSIGN, SCORE, PHYLOP -- and score is not optional.
