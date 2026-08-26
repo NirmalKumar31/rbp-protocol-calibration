@@ -40,8 +40,19 @@ ENV OMP_NUM_THREADS=1 \
 # System packages. `--no-install-recommends` keeps the layer small; the apt lists are
 # removed in the same RUN so they never enter the layer at all -- deleting them in a later
 # instruction would not shrink the image, because layers are additive.
+# libcurl4-openssl-dev and build-essential are here for ONE reason: pyBigWig.
+#
+# The PyPI manylinux wheel is built WITHOUT libcurl, so pyBigWig.remote == 0 and
+# pyBigWig.open("https://...") fails with "Received an error during file opening!" -- which
+# reads like a network error and is not one. The container simply cannot open a remote file.
+# Verified by probing the built image: remote support 0 here, 1 on the laptop where the
+# original run worked, same version 0.3.25.
+#
+# phyloP is a ~10 GB bigwig on a UCSC server, read by HTTP range request for a few thousand
+# positions. Mirroring it into GCS to dodge this would move 10 GB to avoid installing a
+# header. Building pyBigWig from source against libcurl is the smaller change.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        curl ca-certificates \
+        curl ca-certificates build-essential libcurl4-openssl-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -53,6 +64,11 @@ WORKDIR /app
 # problem.
 COPY docker/requirements-cpu.txt /tmp/requirements-cpu.txt
 RUN pip install --no-cache-dir -r /tmp/requirements-cpu.txt
+
+# --no-binary forces a source build, which links the libcurl installed above. Without it pip
+# silently prefers the wheel and remote support stays off.
+RUN pip install --no-cache-dir --force-reinstall --no-binary :all: pyBigWig==0.3.25 \
+    && python -c "import pyBigWig, sys; sys.exit(0 if pyBigWig.remote else 'pyBigWig has NO remote support; the phyloP stage cannot work')"
 
 # --- source layer: changes constantly -------------------------------------------------
 COPY src/ /app/src/
