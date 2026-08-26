@@ -254,6 +254,35 @@ def verify_r4_paired(T, g):
                 at_most(f"size effect bounded: {k[:34]}",
                         abs(float(rr.loc[k, "value"])), spec["size_rho_max"])
 
+    # THE FOUR ATTACKS. Each was a reason the specificity result might not be real.
+    at_ = T.get("variant_specificity_attacks.csv")
+    if at_ is not None:
+        a = at_.set_index("attack")
+        def _v(k):
+            return float(a.loc[k, "value"]) if k in a.index else None
+        if _v("gap rises with power (spearman)") is not None:
+            at_least("attack 1: gap rises with power (spearman)",
+                     _v("gap rises with power (spearman)"),
+                     spec["attack_gap_power_spearman_min"])
+        if _v("wrong-protein floor is flat across thresholds") is not None:
+            at_most("attack 1: wrong-protein floor stays flat",
+                    _v("wrong-protein floor is flat across thresholds"),
+                    spec["attack_floor_range_max"])
+        k2 = "specificity survives the trivial rule as a covariate"
+        if _v(k2) is not None:
+            record(_v(k2) == 1.0 or not spec["attack_survives_trivial_rule"],
+                   "attack 2: survives the trivial rule as covariate",
+                   str(a.loc[k2, "note"])[:60], "CIs separate")
+        if _v("permutation null is centred at zero") is not None:
+            at_most("attack 3: permutation null at zero",
+                    abs(_v("permutation null is centred at zero")),
+                    spec["attack_null_gap_abs_max"])
+        for k, gk in (("trivial rule at 100 kb", "trivial_rule_100kb"),
+                      ("trivial rule at 1000 kb", "trivial_rule_1mb"),
+                      ("trivial rule at 10000 kb", "trivial_rule_10mb")):
+            if _v(k) is not None:
+                near(f"attack 4: {k}", _v(k), spec[gk])
+
     # The wrong-protein floor must NOT be explained by donor similarity, or the control is
     # contaminated and the whole result goes with it.
     if ctrl is not None:

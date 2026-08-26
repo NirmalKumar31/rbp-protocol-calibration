@@ -70,7 +70,7 @@ class Fit:
 
 
 def fit_delta_coef(delta, label, conservation=None, n_boot=BOOT, seed=0,
-                   method="firth", blocks=None):
+                   method="firth", blocks=None, extra=None, take_abs=True):
     """Coefficient of |delta| predicting label, optionally controlling for conservation.
 
     Returns a Fit with the point estimate, a percentile bootstrap interval, and two
@@ -85,9 +85,24 @@ def fit_delta_coef(delta, label, conservation=None, n_boot=BOOT, seed=0,
     only honest choice given our measured concentration (up to 8.2 windows per gene).
     """
     y = np.asarray(label, dtype=int)
-    cols = [_z(np.abs(delta))]
+    # take_abs=False when the caller has ALREADY reduced delta to a magnitude and
+    # standardised it. A within-dataset z-score of |delta| is negative for anything below
+    # that dataset's mean, and abs() on it folds the low half back over the high half --
+    # silently fitting a different quantity. Caught when the same contrast returned 0.729
+    # here and 1.169 from a hand-written design matrix.
+    cols = [_z(np.abs(delta) if take_abs else np.asarray(delta, dtype=float))]
     if conservation is not None:
         cols.append(_z(conservation))
+    # `extra` carries any further controls, one column each. It exists so the specificity
+    # contrast can be re-fitted with the TRIVIAL POSITIONAL RULE alongside conservation: a
+    # reviewer's obvious objection is that a control validating a model which loses to that
+    # rule is validating nothing, and the answer has to be a number, not an argument.
+    # (It is unchanged: 1.169 vs 0.692, still non-overlapping.)
+    if extra is not None:
+        e = np.asarray(extra, dtype=float)
+        if e.ndim == 1:
+            e = e[:, None]
+        cols += [_z(e[:, i]) for i in range(e.shape[1])]
     X = np.column_stack(cols)
 
     coef, se = _coef_se(X, y, method)

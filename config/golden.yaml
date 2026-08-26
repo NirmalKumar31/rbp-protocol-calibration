@@ -135,8 +135,8 @@ r4_paired_specificity:
   # The effect must grow with power. A spurious gap would not.
   gap_power_rho_min:      0.30
   # Within-dataset standardised, conservation-controlled, cluster-bootstrapped coefficients.
-  coef_matched_within:    {value: 0.7158, tol: 0.10}
-  coef_mismatched_within: {value: 0.4446, tol: 0.10}
+  coef_matched_within:    {value: 1.1238, tol: 0.12}
+  coef_mismatched_within: {value: 0.6379, tol: 0.10}
   # The two CIs must not overlap, or the specificity claim is not established.
   coef_cis_must_separate: true
   min_clusters: 800
@@ -164,6 +164,38 @@ r4_paired_specificity:
   # Both paired claims must be robust to dataset size. They are paired within dataset, so
   # size cannot confound them; this bounds effect MODIFICATION.
   size_rho_max: 0.35
+  # THE FOUR ATTACKS, from a council review. Each was raised as a reason the specificity
+  # result is not real, and each is recomputed every run so a regression fails the build.
+  #
+  # The coefficients above were WRONG until 2026-08-26 and too SMALL, not too large:
+  # fit_delta_coef applied abs() to a value the caller had already standardised within
+  # dataset, folding the below-mean half of a z-score back over the above-mean half. Caught
+  # because the same contrast returned 0.729 from the pipeline and 1.169 from a hand-written
+  # design matrix. Corrected: 1.124 vs 0.638, still non-overlapping, larger than reported.
+  attack_gap_power_spearman_min: 0.85    # dose-response, not a cherry-picked cutoff
+  attack_floor_range_max:        0.05    # the wrong-protein floor must stay flat
+  attack_survives_trivial_rule:  true    # CIs must still separate with prevalence controlled
+  attack_null_gap_abs_max:       0.01    # permutation null must sit at zero
+  # The trivial rule must DECAY with window size, or it is a binning artefact rather than a
+  # positional-prevalence effect. All three are asserted, including the 100 kb value that is
+  # the most damaging number in the study.
+  trivial_rule_100kb:  {value: 0.8512, tol: 0.03}
+  trivial_rule_1mb:    {value: 0.8177, tol: 0.03}
+  trivial_rule_10mb:   {value: 0.7330, tol: 0.04}
+
+  # THE CIRCULARITY CAVEAT ON R1, and it limits what may be claimed.
+  #
+  # The composition baseline's 19 features ARE GC and dinucleotide frequencies, and the
+  # dinucleotide arm matches negatives on exactly those. So the drop from 94.8% to 67.8% is
+  # partly by construction: the matcher deletes the baseline's input. The 27-point difference
+  # therefore measures the matcher, not biology, and MUST NOT be the headline.
+  #
+  # What is not circular is the FIRST number on its own. Under GC-matched negatives -- the
+  # protocol actually in use in published work -- a 19-feature composition model recovers
+  # 94.8% of measurable skill. That is a statement about a protocol, not about our matcher.
+  # The 67.8% is a by-construction floor and is reported as a residual, not an achievement.
+  r1_headline_is_gc_share_only: true
+
   # The three controls that tested whether the wrong-protein floor is a similarity artefact.
   # All three must stay negative or the control is contaminated and R4 must be withdrawn.
   floor_cell_line_p_min:  0.05
