@@ -159,14 +159,32 @@ def f1():
     ax[0].set_xlim(-0.4, 1.4)
     ax[0].set_title(f"Every dataset falls ({len(d)}/{len(d)})", loc="left", fontsize=9)
 
-    ax[1].hist(d.cost, bins=28, color=COLOR["gc"], edgecolor="white", linewidth=0.4)
-    ax[1].axvline(0, color="black", lw=0.8)
-    ax[1].axvline(d.cost.mean(), color="black", lw=1.4, ls="--",
-                  label=f"mean {d.cost.mean():+.4f}")
-    ax[1].set_xlabel("AUROC(dinuc) - AUROC(GC)")
-    ax[1].set_ylabel("datasets")
-    ax[1].legend(frameon=False, fontsize=8)
-    ax[1].set_title("Cost of matching properly", loc="left", fontsize=9)
+    # PANEL B IS THE FINDING, AND IT USED TO BE A SECOND VIEW OF PANEL A.
+    #
+    # This was a histogram of the same AUROC drop the left panel already shows. That drop is
+    # very nearly tautological -- harder negatives lower AUROC by construction -- so the
+    # headline figure led with the one thing a reviewer would call obvious, and the actual
+    # result was in no figure at all.
+    #
+    # What is NOT obvious is that the model earns MORE credit under the harder control: the
+    # nested gain over composition rises from +0.027 to +0.066. Absolute performance falls
+    # while measured skill rises, because the GC-matched benchmark was handing most of its
+    # AUROC to composition alone. That is the paper, so it is now the panel.
+    g = d[["delta_auroc_gc", "delta_auroc_dn"]].mean()
+    ratio = g.delta_auroc_dn / g.delta_auroc_gc
+    for i, (col, arm) in enumerate([("delta_auroc_gc", "gc"), ("delta_auroc_dn", "dinuc")]):
+        ax[1].scatter(np.random.default_rng(7).normal(i, 0.055, len(d)), d[col], s=8,
+                      color=COLOR[arm], alpha=0.75, edgecolor="white", linewidth=0.25,
+                      zorder=3)
+        ax[1].hlines(d[col].mean(), i - 0.24, i + 0.24, color="black", lw=1.8, zorder=4)
+        ax[1].text(i, d[col].max() + 0.012, f"{d[col].mean():+.4f}", ha="center", fontsize=8)
+    ax[1].axhline(0, color="black", lw=0.8, zorder=2)
+    ax[1].set_xticks([0, 1])
+    ax[1].set_xticklabels(["GC-matched", "dinucleotide-matched"])
+    ax[1].set_xlim(-0.4, 1.4)
+    ax[1].set_ylabel("nested gain over composition")
+    ax[1].set_title(f"Gain RISES {ratio:.1f}x under the harder control", loc="left",
+                    fontsize=9)
     save(fig, "f1_cost_of_matching")
 
 
@@ -188,7 +206,11 @@ def f2():
         ax[0].hlines(d[m].mean(), i - 0.26, i + 0.26, color="black", lw=1.8, zorder=4)
         ax[0].text(i, 0.985, f"{d[m].mean():.3f}", ha="center", fontsize=8)
     ax[0].set_xticks(range(4))
-    ax[0].set_xticklabels([LABEL[m] for m in order], fontsize=8)
+    # "composition (19 feat)" and "k-mer LR" overlapped at this figure width. The full name
+    # stays in the legend of f5 and in the caption; the axis gets a short form.
+    SHORT = {"composition": "composition\n(19 feat)", "kmer": "k-mer LR",
+             "cnn": "CNN", "splicebert": "SpliceBERT"}
+    ax[0].set_xticklabels([SHORT[m] for m in order], fontsize=8)
     ax[0].set_ylabel("pooled out-of-fold AUROC")
     ax[0].set_ylim(0.45, 1.0)
     ax[0].set_title(f"{len(d)} datasets, identical splits", loc="left", fontsize=9)
@@ -314,8 +336,10 @@ def f5():
     ax.set_xscale("log")
     ax.set_xlabel("training pairs per dataset")
     ax.set_ylabel("pooled out-of-fold AUROC")
-    ax.legend(frameon=False, fontsize=7.5, loc="lower right")
-    ax.set_title("AUROC tracks dataset size", loc="left", fontsize=9)
+    # Outside the axes, not "lower right": at this size the legend covered the composition
+    # cloud, which is the series the panel exists to contrast against.
+    ax.legend(frameon=False, fontsize=7.5, loc="upper left", bbox_to_anchor=(1.02, 1.0))
+    ax.set_title("Better models depend MORE on dataset size", loc="left", fontsize=9)
     save(fig, "f5_size_confound")
 
 
