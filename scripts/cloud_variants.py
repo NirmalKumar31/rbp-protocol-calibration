@@ -69,10 +69,17 @@ def stage_in(bucket, raw_bucket):
         if dest.exists():
             log(f"have {name}")
             continue
-        b = raw_bucket.blob(name)
-        if not b.exists():
+        # get_blob(), not blob() + exists().
+        #
+        # bucket.blob(name) builds a LOCAL reference and fetches nothing; exists() issues a
+        # HEAD and returns a bool without populating metadata. So b.size stayed None and the
+        # progress line -- b.size / 1e9 -- raised TypeError before a single byte downloaded.
+        # A log line took the stage down. get_blob() does one GET and returns a hydrated blob,
+        # or None if it is absent, which also collapses the existence check into the same call.
+        b = raw_bucket.get_blob(name)
+        if b is None:
             raise SystemExit(f"missing gs://{raw_bucket.name}/{name} -- stage 3 incomplete")
-        log(f"downloading {name} ({b.size / 1e9:.2f} GB)")
+        log(f"downloading {name} ({(b.size or 0) / 1e9:.2f} GB)")
         b.download_to_filename(str(dest))
 
     panel = pd.read_csv(
