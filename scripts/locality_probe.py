@@ -146,7 +146,12 @@ def cloud_one(cfg, index, force):
     if index >= len(man):
         sys.exit(f"index {index} beyond manifest of {len(man)}")
     r = man.iloc[index]
-    cell, prot = r.cell, r.protein
+    # cell_line OR cell. The study panel writes cell_line; an earlier hand-built manifest
+    # wrote cell. Accepting both costs one line and avoids a column rename propagating into
+    # every consumer of the panel -- which is the sort of change that quietly invalidates a
+    # file other stages already read.
+    cell = getattr(r, "cell_line", None) or r.cell
+    prot = r.protein
     out = f"runs/locality/{cell}_{prot}.json"
     if bucket.blob(out).exists() and not force:
         log(f"{prot}:{cell} already done")

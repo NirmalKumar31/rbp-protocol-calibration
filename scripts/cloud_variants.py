@@ -87,6 +87,27 @@ def stage_in(bucket, raw_bucket):
             bucket.blob("manifest/study_panel.tsv").download_as_text()), sep="\t")
     log(f"study panel: {len(panel)} datasets")
 
+    # THE ENCODE PEAK FILES, which this stage needs and I forgot.
+    #
+    # rehearsal_variants.py --what assign reads peaks to find where each protein binds before
+    # it can decide which ClinVar variants sit near a site. RAW_OBJECTS listed the genome, its
+    # index and the VCF -- the three files the phyloP half needs -- and nothing else, so the
+    # assign half died with "no peak file for AATF in /app/data/raw/peaks/K562" after
+    # successfully staging 95 datasets. A stage-in list is a contract with every function the
+    # stage calls, not just the one you had in mind while writing it.
+    peaks = 0
+    for r in panel.itertuples():
+        cell = getattr(r, "cell_line", None) or r.cell
+        for b in raw_bucket.client.list_blobs(raw_bucket.name,
+                                              prefix=f"peaks/{cell}/{r.protein}"):
+            dest = RAW_DIR / b.name
+            if dest.exists():
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            b.download_to_filename(str(dest))
+            peaks += 1
+    log(f"staged {peaks} peak files")
+
     # Only the study panel's datasets. Pulling all 189 would move data the stage never reads.
     for r in panel.itertuples():
         dest = PROC_DIR / r.cell_line / r.protein / "dataset.tsv"
