@@ -513,6 +513,55 @@ def verify_multidonor(T, g):
                cell(POW, "intercept | advantage+size+power", "ci_low"), "<= 0")
 
 
+def verify_incremental_value(T, g):
+    """R4: the model's variant signal net of conservation and position.
+
+    THIS IS THE PRIMARY ClinVar CLAIM AS OF 2026-08-27, and it is gated on the same day it was
+    promoted -- because the last thing promoted to a headline without a gate turned out to be
+    an algebraic identity that had already been retracted once.
+
+    The gate is on the attenuation FRACTION, not on a difference. Two coefficients drifting
+    together would satisfy an absolute check and would not satisfy this one, which is the whole
+    point: the claim is that conservation does not explain the model away, and that is a
+    statement about a ratio.
+    """
+    print("\nR4  incremental value over conservation and position")
+    d = T.get("incremental_value.csv")
+    if d is None:
+        return record(False, "incremental_value.csv present", "MISSING",
+                      "run scripts/incremental_value.py")
+    spec = g["r4_incremental_value"]
+    q = d.set_index("check")
+
+    def v(k):
+        return float(q.loc[k, "value"]) if k in q.index else None
+
+    for k, gk in (("coef, matched, unconditional", "coef_matched_unconditional"),
+                  ("coef, matched, controls = conservation only", "coef_matched_given_phylop"),
+                  ("coef, matched, controls = plus trivial window rule",
+                   "coef_matched_given_both"),
+                  ("coef, mismatched, controls = conservation only",
+                   "coef_mismatched_given_phylop")):
+        if v(k) is not None:
+            near(k[6:], v(k), spec[gk])
+
+    # THE CLAIM.
+    a = v("attenuation fraction after conditioning on phyloP")
+    if a is not None:
+        at_most("conservation does not explain the model away (attenuation)", abs(a),
+                spec["max_attenuation_fraction"])
+    s = v("arms separated under control")
+    if s is not None and spec["arms_must_not_overlap_under_control"]:
+        record(s == 1.0, "right- and wrong-protein CIs separated under control",
+               "separated" if s == 1.0 else "OVERLAPPING", "separated")
+
+    # And the second baseline must be a SECOND baseline, not conservation wearing a hat.
+    m = v("positional rule, MIN AUROC within a phyloP decile")
+    if m is not None:
+        at_least("positional rule survives within every phyloP decile", m,
+                 spec["positional_rule_min_auroc_within_phylop_decile"])
+
+
 def verify_strand_audit(T, g):
     """The negatives are ~45% antisense, and that must not be what the contrast measures.
 
@@ -693,7 +742,7 @@ def main():
     print("=" * 78)
 
     for fn in (verify_r1, verify_r2, verify_r3, verify_r4_paired, verify_r4,
-               verify_multidonor, verify_strand_audit, verify_recompute,
+               verify_multidonor, verify_incremental_value, verify_strand_audit, verify_recompute,
                verify_integrity):
         try:
             fn(T, g)

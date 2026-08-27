@@ -408,3 +408,30 @@ strand_audit:
 recompute:
   max_abs_diff: 1.0e-09    # sklearn on identical floats; anything larger is drift
   min_datasets: 90         # of 95; a few absent folds is a broken mirror, not a broken claim
+
+# --- R4: incremental value over conservation and position (the primary ClinVar claim) -----
+#
+# PROMOTED TO PRIMARY 2026-08-27 after peer review, and gated on the same day, because the
+# last claim promoted to a headline without a gate turned out to be an algebraic identity.
+#
+# The previous framing ("conservation 0.892 and a positional rule 0.818 beat the model 0.755")
+# is a replication of Grimm 2015 / Schreiber 2020 AND is circular: PP3 evidence behind ClinVar
+# pathogenic assertions is conservation-derived, so phyloP partly re-reads the labels. An
+# incremental-value analysis is immune to that, because label leakage inflates a competitor's
+# AUROC without manufacturing incremental value for the model.
+#
+# What must hold: the model's coefficient barely moves when conservation is controlled, it does
+# not collapse when the positional rule is added, and the wrong-protein arm stays separated.
+r4_incremental_value:
+  coef_matched_unconditional:   {value: 1.1238, tol: 0.06}
+  coef_matched_given_phylop:    {value: 1.1214, tol: 0.06}
+  coef_matched_given_both:      {value: 1.1689, tol: 0.07}
+  coef_mismatched_given_phylop: {value: 0.6364, tol: 0.06}
+  # THE CLAIM. Conditioning on conservation must not explain the model away. Stated as a
+  # fraction so it cannot be satisfied by both coefficients drifting together.
+  max_attenuation_fraction:     0.10
+  # The arms must stay separated under control, or "specific to the protein" is unsupported.
+  arms_must_not_overlap_under_control: true
+  # The positional rule must remain informative WITHIN conservation strata, or it is just
+  # conservation in disguise and the paper has one baseline, not two.
+  positional_rule_min_auroc_within_phylop_decile: 0.70
