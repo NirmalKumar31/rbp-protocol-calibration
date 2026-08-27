@@ -51,10 +51,13 @@ meta:
 r1_cost_of_matching:
   auroc_gc:        {value: 0.7963, tol: 0.015}
   auroc_dinuc:     {value: 0.6893, tol: 0.015}
-  # -0.1095 on the 94-dataset study panel, -0.1070 across the full 189-dataset panel. The
-  # tolerance spans both, because which panel is in play is a scoping decision, not a change
-  # in the science: the effect is unanimous either way.
-  cost:            {value: -0.1080, tol: 0.012}
+  # CENTRED ON WHAT THE PAPER CLAIMS AND ON WHAT THE TABLE CONTAINS, which are the same
+  # number. This was {value: -0.1080, tol: 0.012}, split between the 94-dataset study panel
+  # (-0.1095) and the full 189-dataset panel (-0.1070) so the tolerance would span both. But
+  # verify_r1 reads cost_of_matching.csv, which IS the 94-dataset panel, so the gate was
+  # centred 0.0015 away from the only value it can ever see and the abstract's figure sat off
+  # centre in its own check. Measured mean -0.1095, bootstrap CI half-width 0.0116.
+  cost:            {value: -0.1095, tol: 0.012}
   # A SUPPORTING CHECK, NOT THE HEADLINE, and this block used to contradict itself. It
   # called the gain ratio "the actual finding" while the R4 block said the same comparison
   # must not be the headline, because the composition baseline's features ARE the ones the
@@ -341,6 +344,14 @@ integrity:
   # Checked against the actual suite, not a number typed once and left to drift. It read 480
   # while the suite had grown to 575.
   min_tests_passing: 570
+  # HOW MANY CHECKS RAN, asserted, because almost every gate in verify.py is written
+  # `if value is not None:` and therefore DISAPPEARS when a row is missing instead of failing.
+  # Deleting five rows from one table once produced "106/106 passed". Asserting the count
+  # catches that for every gate at once, including the ones nobody has attacked yet.
+  # Raise this deliberately when checks are added; that is the point, not an inconvenience.
+  # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
+  # number here is directly comparable to the per-section output above it.
+  min_domain_checks: 131
 
 # --- the wrong-protein control's donor must actually be a WRONG protein -----------------
 #
@@ -425,19 +436,21 @@ r4_multidonor:
 # half -- the objection predicts a much LARGER contrast where the artifact is strongest, and
 # the data give a slightly smaller one.
 strand_audit:
+  # WHAT THIS BLOCK USED TO CONTAIN, AND WHY IT IS GONE. Six keys here gated the stability of
+  # the composition-SHARE contrast across antisense-rich and antisense-poor halves
+  # (contrast_rho_max, contrast_rho_p_min, share_rho_min, contrast_antisense_rich 0.2485,
+  # contrast_antisense_poor 0.2644, contrast_halves_max_diff). That contrast is RETRACTED: it
+  # is an algebraic identity, share_m = C/gain_m with C constant across models, so
+  # share_kmer/share_SB equals gain_SB/gain_kmer exactly and the comparison excluded zero with
+  # probability 1. Gating a retracted quantity is worse than not gating it, because the passing
+  # count then certifies something the paper does not claim -- and those six checks were part
+  # of every "N/N passed" this project has reported.
+  #
+  # WHAT SURVIVES is the measurement itself, which is real and is a genuine limitation:
+  # negatives inherit the POSITIVE's strand (negatives.py:328), so only ~55% of them carry
+  # their own gene's strand and the rest are antisense. It inflates every absolute AUROC in R1.
   frac_sense:              {value: 0.552, tol: 0.06}
   frac_no_gene_max:        0.02      # negatives really are inside genes, so "antisense" is meaningful
-  # THE GATE THAT DEFENDS THE HEADLINE. If the artifact ever starts predicting the contrast,
-  # the model-dependence claim is no longer safe and this must fail loudly.
-  contrast_rho_max:        0.40
-  contrast_rho_p_min:      0.05      # must stay NON-significant
-  # Both shares are expected to track it. Asserted so that a future run where they DON'T is
-  # flagged, because that would mean the mechanism is not what this file says it is.
-  share_rho_min:           0.30
-  # The model-free version: the contrast must be stable across the two halves.
-  contrast_antisense_rich: {value: 0.2485, tol: 0.06}
-  contrast_antisense_poor: {value: 0.2644, tol: 0.06}
-  contrast_halves_max_diff: 0.08
 
 # --- the correctness half of verification -------------------------------------------------
 #

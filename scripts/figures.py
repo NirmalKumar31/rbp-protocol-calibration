@@ -471,7 +471,7 @@ def f7():
         return
     (c,) = got
     c = c.sort_values("min_pathogenic")
-    fig, ax = plt.subplots(1, 2, figsize=(8.6, 3.5))
+    fig, ax = plt.subplots(1, 2, figsize=(9.8, 3.5))
 
     ax[0].plot(c.min_pathogenic, c.matched, marker="o", ms=3.5, lw=1.6,
                color=COLOR["splicebert"], label="right protein")
@@ -480,23 +480,28 @@ def f7():
     ax[0].axvline(20, color="#999999", ls="--", lw=1)
     ax[0].text(21, ax[0].get_ylim()[0] + 0.005, "reported\nthreshold", fontsize=7.5,
                color="#666666")
-    ax[0].set_xlabel("minimum pathogenic variants per dataset")
+    ax[0].set_xlabel("minimum pathogenic variants per dataset (nested subsets)")
     ax[0].set_ylabel("mean per-dataset AUROC")
-    ax[0].set_title("a  the floor is flat; the model is not", loc="left")
+    # WAS "the floor is flat; the model is not", which the revised R5 text explicitly
+    # withdraws: the floor rises 0.634 -> 0.667, about 6x less steeply than the matched arm's
+    # 0.559 -> 0.755, and rho = +0.091 with CI [-0.01, +0.19] is a precise near-zero rather
+    # than a demonstration of flatness. The title now says the comparative thing that is true.
+    ax[0].set_title("a  the model's arm is ~6x steeper than the floor", loc="left")
     ax[0].legend(frameon=False, fontsize=8, loc="lower right")
 
-    sig = c[c.p < 0.05]
     ax[1].axhline(0, color="#999999", lw=1)
     ax[1].plot(c.min_pathogenic, c.gap, marker="o", ms=3.5, lw=1.8, color="#7b3294")
-    if len(sig):
-        ax[1].scatter(sig.min_pathogenic, sig.gap, s=52, facecolor="none",
-                      edgecolor="#7b3294", linewidth=1.4, zorder=4,
-                      label=f"p < 0.05 (from {int(sig.min_pathogenic.min())})")
-        ax[1].legend(frameon=False, fontsize=8, loc="upper left")
+    # THE p < 0.05 MARKERS ARE GONE ON PURPOSE. They read as "the effect becomes significant
+    # at 15", and it is not a test: each x value FILTERS datasets, so the points are nested
+    # subsets with dependent p-values, and low-power points are also weaker eCLIP experiments.
+    # The experiment that would license that claim holds the 44 powered datasets fixed and
+    # downsamples pathogenic variants, and it has not been run.
     ax[1].axvline(20, color="#999999", ls="--", lw=1)
-    ax[1].set_xlabel("minimum pathogenic variants per dataset")
+    ax[1].axvline(45, color="#666666", ls=":", lw=1.2)
+    ax[1].text(46, ax[1].get_ylim()[0] + 0.004, "plateau\n>=45", fontsize=7.5, color="#444444")
+    ax[1].set_xlabel("minimum pathogenic variants per dataset (nested subsets)")
     ax[1].set_ylabel("specificity gap (right - wrong protein)")
-    ax[1].set_title("b  monotone in power, not a spike at 20", loc="left")
+    ax[1].set_title("b  plateau at >=45, not at 20", loc="left")
 
     fig.tight_layout()
     save(fig, "f7_power_threshold")

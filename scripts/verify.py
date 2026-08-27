@@ -601,7 +601,14 @@ def verify_incremental_value(T, g):
     q = d.set_index("check")
 
     def v(k):
-        return float(q.loc[k, "value"]) if k in q.index else None
+        """A MISSING ROW IS A FAILURE. This was `return ... if k in q.index else None`, and
+        every caller below guarded on `is not None`, so a referee deleted the five R4 rows
+        from the table and the verifier reported 106/106 with no complaint. Rows are the
+        evidence; their absence is the loudest possible signal, not the quietest."""
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
 
     for k, gk in (("coef, matched, unconditional", "coef_matched_unconditional"),
                   ("coef, matched, controls = conservation only", "coef_matched_given_phylop"),
@@ -729,35 +736,13 @@ def verify_strand_audit(T, g):
     at_most("negatives outside any annotated gene", float(r.frac_no_gene.mean()),
             spec["frac_no_gene_max"])
 
-    q = s.set_index("check")
-
-    def cell(k, col="value"):
-        return float(q.loc[k, col]) if k in q.index else None
-
-    # THE GATE THAT DEFENDS THE HEADLINE. The artifact must move both shares and NOT the
-    # contrast. If it ever starts predicting the contrast, the model-dependence reading is
-    # unsafe and this fails loudly.
-    k = "frac_sense vs THE CLAIM: k-mer share minus SpliceBERT share"
-    if cell(k) is not None:
-        at_most("artifact does NOT predict the contrast (rho)", abs(cell(k)),
-                spec["contrast_rho_max"])
-        at_least("...and stays non-significant (p)", cell(k, "p"), spec["contrast_rho_p_min"])
-
-    # Both shares are expected to track it. Asserted so that a run where they DON'T is
-    # flagged, because that would mean the mechanism is not the one documented.
-    for k in ("frac_sense vs k-mer share", "frac_sense vs SpliceBERT share"):
-        if cell(k) is not None:
-            at_least(f"artifact DOES move: {k[14:]}", abs(cell(k)), spec["share_rho_min"])
-
-    rich = cell("share contrast, antisense-rich half")
-    poor = cell("share contrast, antisense-poor half")
-    if rich is not None and poor is not None:
-        near("contrast, antisense-rich half", rich, spec["contrast_antisense_rich"])
-        near("contrast, antisense-poor half", poor, spec["contrast_antisense_poor"])
-        # The model-free version of the same argument: the contrast must be stable across the
-        # two halves. The objection predicts a LARGER contrast where the artifact is strongest.
-        at_most("contrast is stable across the two halves", abs(rich - poor),
-                spec["contrast_halves_max_diff"])
+    # SIX CHECKS WERE DELETED HERE, DELIBERATELY. They asserted that the strand artifact does
+    # not predict the composition-SHARE contrast across antisense-rich and antisense-poor
+    # halves. That contrast is retracted -- it is an algebraic identity -- so those six checks
+    # were defending a claim the paper no longer makes while still counting toward the passing
+    # total. `s` (strand_audit_summary.csv) is still required to exist above, because its
+    # absence would mean the audit did not run, but nothing in it is asserted any more.
+    del s
 
 
 def verify_recompute(T, g):
@@ -893,6 +878,20 @@ def main():
             fn(T, g)
         except Exception as e:                  # a broken check is a failure, not a crash
             record(False, f"{fn.__name__} raised", type(e).__name__, "no exception", str(e)[:80])
+
+    # HOW MANY CHECKS RAN IS ITSELF A CHECK, and it is the only one that closes the whole
+    # class of silent skips at once. Most gates in this file are still written
+    # `if value is not None:`, so a table that exists but has had rows removed makes them
+    # vanish rather than fail -- which is exactly how deleting five rows once produced
+    # "106/106 passed". Rewriting 38 call sites would fix the instances; asserting the count
+    # fixes the category, including gates nobody has thought to attack yet.
+    #
+    # This floor MUST be raised whenever checks are legitimately added, the same discipline
+    # test_golden_keys_are_read.py enforces for golden keys. That is the intended cost.
+    floor = g["integrity"]["min_domain_checks"]
+    n_ran = len(checks)                          # domain checks only; this one is not counted
+    record(n_ran >= floor, "number of domain checks that ran", n_ran, f">= {floor}",
+           "" if n_ran >= floor else "gates were SKIPPED, not passed -- look for missing rows")
 
     bad = [c for c in checks if not c[0]]
     print("\n" + "=" * 78)
