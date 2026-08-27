@@ -47,6 +47,20 @@ EVIDENCE = ROOT / "data" / "evidence" / "scores"
 # The deep arms, and the column each one is published under.
 ARMS = (("splicebert", "splicebert"), ("cnn", "cnn"))
 N_FOLDS = 5
+
+# THE REHEARSAL ARM, WHICH IS THE ONE THE PRIMARY RESULT RESTS ON.
+#
+# This was missing until a referee pointed a gun at it. `recompute.py` covered the two deep
+# arms only, so R1 -- the paper's headline, built entirely on the composition and k-mer
+# rehearsal -- had no evidence-level check at all. The referee zeroed the `score` column in all
+# 74 rehearsal files and this script reported "Every recomputed AUROC matches", while
+# verify.py returned 105/105. The most-checked project I have worked on could not detect its
+# own primary result being deleted.
+#
+# The lesson generalises past this repo: coverage follows attention, and attention had gone to
+# the interesting models rather than the load-bearing ones.
+REHEARSAL = ROOT / "data" / "evidence" / "rehearsal"
+REHEARSAL_TABLE = "rehearsal_binding_dinuc.csv"
 TOL = 1.0e-9          # sklearn on the same floats; anything above this is drift, not noise
 MIN_DATASETS = 90     # of 95; a few missing folds is a broken mirror, not a broken claim
 
@@ -115,11 +129,41 @@ def main():
         for _, x in r[r.note != ""].iterrows():
             log(f"           {x.dataset}: {x.note}")
 
+    # --- the rehearsal (k-mer) arm: the evidence behind the PRIMARY result ----------------
+    reh = TABLES / REHEARSAL_TABLE
+    if reh.exists() and REHEARSAL.exists():
+        pub = pd.read_csv(reh)
+        rows = []
+        for _, r in pub.iterrows():
+            f = REHEARSAL / r.cell / f"{r.protein}.scores.tsv.gz"
+            if not f.exists():
+                continue
+            d = pd.read_csv(f, sep="\t")
+            score = np.zeros(len(d)) if a.zero_scores else d.score.to_numpy()
+            if d.label.nunique() < 2:
+                continue
+            got = roc_auc_score(d.label, score)
+            rows.append({"dataset": f"{r.protein}:{r.cell}", "model": "kmer (rehearsal)",
+                         "published": float(r.auroc), "recomputed": got,
+                         "abs_diff": abs(got - float(r.auroc)), "note": ""})
+        if rows:
+            rr = pd.DataFrame(rows)
+            parts.append(rr)
+            worst = rr.abs_diff.max()
+            good = len(rr) >= MIN_DATASETS and worst <= a.tol
+            failed |= not good
+            log(f"  [{'PASS' if good else 'FAIL'}] {'kmer':11} {len(rr):3d} datasets recomputed, "
+                f"max|diff| = {worst:.2e}  (want <= {a.tol:.0e} on >= {MIN_DATASETS})")
+        else:
+            log("  [FAIL] kmer        no rehearsal evidence found; the PRIMARY result is "
+                "unchecked")
+            failed = True
+
     if parts:
         out = pd.concat(parts, ignore_index=True)
         out.to_csv(TABLES / "recompute.csv", index=False)
         n = int(out.abs_diff.notna().sum())
-        log(f"\n  {n} published AUROCs across {len(ARMS)} architectures, "
+        log(f"\n  {n} published AUROCs across 3 arms, "
             f"recomputed from {len(glob.glob(str(EVIDENCE / '*/*/*/fold*/scores.tsv.gz')))} "
             f"committed score files")
         log(f"  wrote {TABLES / 'recompute.csv'}")
