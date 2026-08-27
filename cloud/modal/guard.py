@@ -1,8 +1,3 @@
-# src/ on the path before the rbp import: `modal run` executes this file directly, so the
-# package is not importable unless we say where it lives.
-sys.path.insert(0, os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "src"))
-from rbp.utils import cloud as cloudcfg  # noqa: E402
 """Cost guard for Modal. The thing killswitch.tf is for GCP, built by hand because Modal
 has no budget API.
 
@@ -43,9 +38,17 @@ An estimate that exceeds its own upper bound is telling you the model is broken.
 import argparse
 import datetime as dt
 import json
+import os
 import subprocess
 import sys
 import time
+
+# src/ on the path before the rbp import: `modal run` executes this file directly, so the
+# package is not importable unless we say where it lives. This block sat ABOVE the imports
+# until 2026-08-26, so the file raised NameError on line 3 and had never once run.
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "src"))
+from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 # A10G per hour. JUST the GPU price -- CPU and memory are NOT additive.
 #

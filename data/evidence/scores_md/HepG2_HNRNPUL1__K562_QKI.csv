@@ -1,0 +1,2 @@
+protein,cell,vid,label,fold,delta,platform,accelerator,weights_from
+HNRNPUL1,HepG2,chr16:31187015:G:C,0,2,1.2463645935058594,modal,cuda,QKI:K562

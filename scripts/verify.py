@@ -67,13 +67,19 @@ class Tables:
         self.bucket = None if local else cloudcfg.bucket()
 
     def get(self, name):
+        # Separator from the extension. Two of the artefacts are manifests written as TSV
+        # (donor_tasks.tsv, variant_tasks.tsv) and reading them with the comma default yields a
+        # single-column frame whose every attribute access raises AttributeError -- which is
+        # how the pair-identity check below failed on its first run with a confusing error
+        # rather than a missing file.
+        sep = "\t" if name.endswith((".tsv", ".tsv.gz")) else ","
         if self.local:
             p = self.local / name
-            return pd.read_csv(p) if p.exists() else None
+            return pd.read_csv(p, sep=sep) if p.exists() else None
         b = self.bucket.blob(f"results/tables/{name}")
         if not b.exists():
             return None
-        return pd.read_csv(io.BytesIO(b.download_as_bytes()))
+        return pd.read_csv(io.BytesIO(b.download_as_bytes()), sep=sep)
 
 
 def verify_r1(T, g):
@@ -254,6 +260,41 @@ def verify_r4_paired(T, g):
                 at_most(f"size effect bounded: {k[:34]}",
                         abs(float(rr.loc[k, "value"])), spec["size_rho_max"])
 
+        # THE SHARE IS MODEL-DEPENDENT, and this is now the paper's headline. These keys sat
+        # in golden.yaml unread for a day after being added -- Bug 29 (dead golden config)
+        # committed by the author of the Bug 29 write-up. Wired up 2026-08-27.
+        for k, gk in (("composition share vs k-mer", "composition_share_vs_kmer"),
+                      ("composition share vs CNN", "composition_share_vs_cnn"),
+                      ("composition share vs SpliceBERT", "composition_share_vs_splicebert"),
+                      ("composition share, k-mer minus SpliceBERT",
+                       "composition_share_model_gap")):
+            if k in rr.index:
+                near(f"R1 {k}", float(rr.loc[k, "value"]), spec[gk])
+
+        # THE IDENTITY, asserted instead of the CI. share_m = C/gain_m with C fixed across
+        # models, so the ratio of two shares must equal the inverse ratio of two gains. A
+        # "CI excludes zero" gate here would assert something true by construction; this
+        # asserts the structure, and fails if the estimator is ever changed.
+        four = T.get("matched_four_models.csv")
+        if four is not None and {"kmer_auroc", "splicebert", "composition_auroc"} <= set(four):
+            gk = four.kmer_auroc.mean() - 0.5
+            gs = four.splicebert.mean() - 0.5
+            c = four.composition_auroc.mean() - 0.5
+            if gk > 0 and gs > 0:
+                at_most("share ratio IS the inverse gain ratio (a rescaling, not a finding)",
+                        abs((c / gk) / (c / gs) - gs / gk),
+                        spec["share_ratio_equals_inverse_gain_ratio_max_diff"])
+
+        # THE CROSS-CHECK. "composition share vs k-mer" and "composition share, dinuc-matched"
+        # are the SAME quantity computed from two different tables (matched_four_models.csv and
+        # cost_of_matching.csv). If they ever disagree, one of the tables is wrong and the
+        # headline is built on it.
+        a_k, b_k = "composition share vs k-mer", "composition share, dinuc-matched"
+        if a_k in rr.index and b_k in rr.index:
+            at_most("k-mer share agrees across two tables",
+                    abs(float(rr.loc[a_k, "value"]) - float(rr.loc[b_k, "value"])),
+                    spec["kmer_share_cross_check_max_diff"])
+
     # THE FOUR ATTACKS. Each was a reason the specificity result might not be real.
     at_ = T.get("variant_specificity_attacks.csv")
     if at_ is not None:
@@ -331,32 +372,247 @@ def verify_r4(T, g):
             at_least("inference is clustered", int(m.n_clusters), spec["min_clusters"])
 
 
-def verify_donor_overlap(T, g):
-    """The wrong-protein control's donor must actually be a wrong protein."""
-    print("\ndonor overlap  (is the wrong protein actually wrong?)")
-    r = T.get("donor_overlap.csv")
-    st = T.get("donor_overlap_strata.csv")
-    if r is None or st is None:
-        return record(False, "donor overlap tables present", "MISSING", "the tables")
-    spec = g["donor_overlap"]
-    at_most("median donor-target overlap", float(r.shared_frac.median()),
-            spec["median_overlap_max"])
-    s = st.set_index("stratum")
-    k = "correlation of floor with donor overlap"
-    if k in s.index:
-        at_most("floor is not driven by co-binding (rho)", abs(float(s.loc[k, "gap"])),
-                spec["floor_overlap_rho_max"])
-    clean = "donors with negligible overlap"
-    if clean in s.index:
-        near("gap on clean donors", float(s.loc[clean, "gap"]), spec["clean_donor_gap"])
-        at_least("clean-donor wins, fraction",
-                 float(s.loc[clean, "wins"]) / float(s.loc[clean, "n"]),
-                 spec["clean_donor_wins_min_fraction"])
-        at_most("clean-donor paired p", float(s.loc[clean, "p"]), spec["clean_donor_p_max"])
-    dirty = "donors above median overlap"
-    if dirty in s.index:
-        at_most("contaminated donors show LESS, as they must",
-                float(s.loc[dirty, "gap"]), spec["dirty_donor_gap_max"])
+def verify_multidonor(T, g):
+    """The multi-donor control, and the two panels that disagree.
+
+    This replaced verify_donor_overlap, which gated the RETRACTED single-donor stratification.
+    That verifier asserted a gap on "clean" donors and a CEILING on the floor-vs-overlap
+    correlation -- a ceiling on the very association the claim needed to exist. It passed
+    71/71 while the claim underneath it was confounded, which is the failure this function is
+    written not to repeat.
+
+    So the gates here are deliberately two-sided: the powered stratum must show the effect AND
+    the full panel must show its absence. Asserting only the flattering panel is what went
+    wrong last time.
+    """
+    print("\nmulti-donor wrong-protein control  (both panels, including the null one)")
+    r = T.get("multidonor_specificity.csv")
+    if r is None:
+        return record(False, "multidonor_specificity.csv present", "MISSING", "the table")
+    spec = g["r4_multidonor"]
+
+    # THE ATTACK THIS BLOCKS, and it defeated every other gate in this function.
+    #
+    # A reviewer permuted the `donor` column WITHIN each target in multidonor_pairs.csv --
+    # every gap, floor and target unchanged, only the donor-to-gap correspondence destroyed --
+    # re-ran the analysis, and this verifier passed 86/86. Worse, the gate written specifically
+    # to catch Bug 32 ("gap is NOT driven by donor quality") is satisfied OPTIMALLY by noise,
+    # because scrambling guarantees rho ~ 0. A gate asserting the ABSENCE of an association
+    # cannot distinguish "confound removed" from "labels meaningless"; it needs a paired
+    # identity check, which is this.
+    pairs = T.get("multidonor_pairs.csv")
+    tasks = T.get("donor_tasks.tsv")
+    if pairs is not None and tasks is not None:
+        got = set(zip(pairs.dataset, pairs.donor))
+        want = set(zip(tasks.target, tasks.donor))
+        record(got <= want and len(got) > 0,
+               "every (target, donor) pair is one the draw actually assigned",
+               f"{len(got - want)} unassigned", "0")
+
+    # AND THE PAIR-SET CHECK ABOVE IS NOT ENOUGH, which is the point worth remembering.
+    # Permuting donors WITHIN a target preserves the pair set exactly, so the subset test
+    # passes on scrambled labels -- I wrote it, ran the attack, and it passed 103/103. The only
+    # thing that distinguishes "this donor produced this floor" from "these floors were dealt
+    # out at random" is recomputing the floor from that donor's own per-variant scores. So it
+    # is recomputed, for a sample, from data/evidence/scores_md/.
+    md = ROOT / "data" / "evidence" / "scores_md"
+    if pairs is not None and md.exists():
+        from sklearn.metrics import roc_auc_score
+        worst, n = 0.0, 0
+        for _, row in pairs.head(40).iterrows():
+            tp, tc = row.dataset.split(":")
+            dp, dc = row.donor.split(":")
+            f = md / f"{tc}_{tp}__{dc}_{dp}.csv"
+            if not f.exists():
+                continue
+            s = pd.read_csv(f).dropna(subset=["delta"])
+            if s.label.nunique() < 2:
+                continue
+            worst = max(worst, abs(roc_auc_score(s.label, s.delta.abs()) - float(row.auroc_floor)))
+            n += 1
+        at_least("donor floors recomputed from per-variant scores", n, 30)
+        at_most("max |recomputed - reported| wrong-protein floor", worst, 1.0e-09)
+
+    s = r.set_index(["panel", "estimator"])
+
+    def cell(panel, est, col="value"):
+        try:
+            return float(s.loc[(panel, est), col])
+        except KeyError:
+            return None
+
+    ALL, POW = "all usable", "powered (n_path>=20)"
+
+    n_pairs = cell(ALL, "mean gap (unadjusted)", "n_pairs")
+    if n_pairs is not None:
+        near("multi-donor (target, donor) pairs", n_pairs, spec["n_pairs"])
+        near("targets, all usable", cell(ALL, "mean gap (unadjusted)", "n_targets"),
+             spec["n_targets_all"])
+        near("targets, powered", cell(POW, "mean gap (unadjusted)", "n_targets"),
+             spec["n_targets_powered"])
+
+    # THE GATE THAT WOULD HAVE CAUGHT THE ORIGINAL ERROR. In the single-donor arm this was
+    # -0.533: the gap tracked how much weaker the donor's model was. It must stay near zero,
+    # or the control is measuring model capacity again.
+    rho = cell(POW, "gap vs donor advantage (spearman)")
+    if rho is not None:
+        at_most("gap is NOT driven by donor quality (rho)", abs(rho),
+                spec["gap_vs_donor_advantage_rho_max"])
+
+    # powered stratum: the effect is there
+    v = cell(POW, "mean gap (unadjusted)")
+    if v is not None:
+        near("powered stratum gap", v, spec["powered_gap"])
+        at_least("powered wins, fraction",
+                 cell(POW, "mean gap (unadjusted)", "wins")
+                 / cell(POW, "mean gap (unadjusted)", "n_targets"),
+                 spec["powered_wins_min_fraction"])
+        at_most("powered paired p", cell(POW, "mean gap (unadjusted)", "p"),
+                spec["powered_p_max"])
+    v = cell(POW, "intercept | advantage+size")
+    if v is not None:
+        near("powered intercept at zero donor advantage", v, spec["powered_intercept"])
+        if spec["powered_intercept_ci_excludes_zero"]:
+            record(cell(POW, "intercept | advantage+size", "ci_low") > 0,
+                   "powered intercept CI excludes zero",
+                   cell(POW, "intercept | advantage+size", "ci_low"), "> 0")
+    v = cell(POW, "donors STRONGER than target")
+    if v is not None:
+        near("gap where the DONOR is the better model", v, spec["stronger_donor_gap"])
+        w, n = (cell(POW, "donors STRONGER than target", c) for c in ("wins", "n_targets"))
+        if w and n:
+            at_least("stronger-donor wins, fraction", w / n,
+                     spec["stronger_donor_wins_min_fraction"])
+
+    # THE MECHANISM behind the two panels disagreeing: a generic floor should not care how
+    # many pathogenic variants a dataset has, and the protein's own head should.
+    v = cell(POW, "floor vs power (spearman)")
+    if v is not None:
+        at_most("wrong-protein floor is FLAT in power", abs(v), spec["floor_vs_power_rho_max"])
+    v = cell(POW, "matched arm vs power (spearman)")
+    if v is not None:
+        at_least("matched arm is STEEP in power", v, spec["matched_vs_power_rho_min"])
+
+    # THE FULL PANEL, WHICH SHOWS NOTHING, asserted with its unflattering value
+    v = cell(ALL, "mean gap (unadjusted)")
+    if v is not None:
+        near("all-panel gap (the null)", v, spec["all_panel_gap"])
+    v = cell(ALL, "intercept | advantage+size")
+    if v is not None:
+        near("all-panel intercept (the null)", v, spec["all_panel_intercept"])
+        record(not (cell(ALL, "intercept | advantage+size", "ci_low") > 0) if not spec["all_panel_intercept_ci_excludes_zero"] else True,
+               "all-panel intercept CI INCLUDES zero, as reported",
+               cell(ALL, "intercept | advantage+size", "ci_low"), "<= 0")
+    # and the specification fragility, also asserted rather than hidden
+    v = cell(POW, "intercept | advantage+size+power")
+    if v is not None:
+        near("powered intercept once power is adjusted", v,
+             spec["powered_intercept_with_power"])
+        record(not (cell(POW, "intercept | advantage+size+power", "ci_low") > 0) if not spec["powered_intercept_with_power_ci_excludes_zero"] else True,
+               "power-adjusted intercept CI INCLUDES zero, as reported",
+               cell(POW, "intercept | advantage+size+power", "ci_low"), "<= 0")
+
+
+def verify_strand_audit(T, g):
+    """The negatives are ~45% antisense, and that must not be what the contrast measures.
+
+    THIS FUNCTION EXISTS BECAUSE ITS ABSENCE WAS A FALSE STATEMENT. `golden.yaml` grew a
+    `strand_audit` block with 9 keys, and `docs/59` then claimed "all of it is now gated". It
+    was not: `grep strand scripts/verify.py` returned nothing. That is the 27th unread golden
+    key in this project, created by the commit that wired up the first 26 -- the same bug
+    class, one layer up, for the third time. The lesson that finally stuck is mechanical, not
+    intellectual: `tests/unit/test_golden_keys_are_read.py` now fails the build if any key in
+    golden.yaml is unreferenced, so this cannot recur by inspection failure again.
+    """
+    print("\nstrand audit  (the negatives are ~45% antisense; does it explain the contrast?)")
+    r = T.get("strand_audit.csv")
+    s = T.get("strand_audit_summary.csv")
+    if r is None or s is None:
+        return record(False, "strand audit tables present", "MISSING", "the tables")
+    spec = g["strand_audit"]
+
+    near("fraction of negatives on their own gene's strand", float(r.frac_sense.mean()),
+         spec["frac_sense"])
+    at_most("negatives outside any annotated gene", float(r.frac_no_gene.mean()),
+            spec["frac_no_gene_max"])
+
+    q = s.set_index("check")
+
+    def cell(k, col="value"):
+        return float(q.loc[k, col]) if k in q.index else None
+
+    # THE GATE THAT DEFENDS THE HEADLINE. The artifact must move both shares and NOT the
+    # contrast. If it ever starts predicting the contrast, the model-dependence reading is
+    # unsafe and this fails loudly.
+    k = "frac_sense vs THE CLAIM: k-mer share minus SpliceBERT share"
+    if cell(k) is not None:
+        at_most("artifact does NOT predict the contrast (rho)", abs(cell(k)),
+                spec["contrast_rho_max"])
+        at_least("...and stays non-significant (p)", cell(k, "p"), spec["contrast_rho_p_min"])
+
+    # Both shares are expected to track it. Asserted so that a run where they DON'T is
+    # flagged, because that would mean the mechanism is not the one documented.
+    for k in ("frac_sense vs k-mer share", "frac_sense vs SpliceBERT share"):
+        if cell(k) is not None:
+            at_least(f"artifact DOES move: {k[14:]}", abs(cell(k)), spec["share_rho_min"])
+
+    rich = cell("share contrast, antisense-rich half")
+    poor = cell("share contrast, antisense-poor half")
+    if rich is not None and poor is not None:
+        near("contrast, antisense-rich half", rich, spec["contrast_antisense_rich"])
+        near("contrast, antisense-poor half", poor, spec["contrast_antisense_poor"])
+        # The model-free version of the same argument: the contrast must be stable across the
+        # two halves. The objection predicts a LARGER contrast where the artifact is strongest.
+        at_most("contrast is stable across the two halves", abs(rich - poor),
+                spec["contrast_halves_max_diff"])
+
+
+def verify_recompute(T, g):
+    """The only check here that proves a number rather than reproducing it.
+
+    Every other assertion in this file reads a table the analysis pass wrote, so it detects
+    drift and not error: corrupting an input and re-running verify.py produces zero failures.
+    This one reads the per-example model scores committed under data/evidence/ and recomputes
+    the published AUROC from them, for both deep architectures. Zeroing the scores makes it
+    report max|diff| ~0.45 and fail, so it has power.
+
+    Kept deliberately duplicative of scripts/recompute.py: that script is what a cloner runs
+    in three seconds with no credentials, and this is the same arithmetic inside the gate.
+    """
+    print("\nrecompute  (published AUROCs, rebuilt from committed per-example scores)")
+    spec = g.get("recompute")
+    if spec is None:
+        return
+    four = T.get("matched_four_models.csv")
+    ev = ROOT / "data" / "evidence" / "scores"
+    if four is None:
+        return record(False, "matched_four_models.csv present", "MISSING", "the table")
+    if not ev.exists():
+        return record(False, "committed per-example scores present", "MISSING", str(ev))
+
+    import glob as _glob
+
+    from sklearn.metrics import roc_auc_score
+    pub = four.set_index("dataset")
+    for model, col in (("splicebert", "splicebert"), ("cnn", "cnn")):
+        if col not in pub.columns:
+            continue
+        diffs = []
+        for ds, want in pub[col].items():
+            protein, cell = ds.split(":")
+            fs = sorted(_glob.glob(str(ev / cell / protein / model / "fold*" / "scores.tsv.gz")))
+            if len(fs) != 5:
+                continue
+            d = pd.concat([pd.read_csv(f, sep="\t") for f in fs], ignore_index=True)
+            if d.label.nunique() < 2:
+                continue
+            diffs.append(abs(roc_auc_score(d.label, d.score) - float(want)))
+        if not diffs:
+            record(False, f"{model} recomputed from evidence", "NO DATASETS", ">= 1")
+            continue
+        at_least(f"{model}: datasets recomputed from evidence", len(diffs),
+                 spec["min_datasets"])
+        at_most(f"{model}: max |recomputed - published|", max(diffs), spec["max_abs_diff"])
 
 
 def verify_integrity(T, g):
@@ -375,8 +631,18 @@ def verify_integrity(T, g):
     # None of those 8 are in the powered stratum, so no reported number depends on them. The
     # exemption is listed per column rather than per table so that a NaN appearing anywhere
     # else still fails.
+    # The three *_common columns are NaN on EXACTLY the same rows and for exactly the same
+    # reason: they exist to score the model on the variants the block-prevalence baseline can
+    # score, so where the baseline is undefined they are undefined too. Added 2026-08-27 when
+    # the paired comparison was moved onto a common mask; the gate caught them immediately,
+    # which is the first time this file has failed on its own author's change.
     NAN_OK = {("variant_specificity.csv", "auroc_block_prevalence"): "undefined below ~10 "
-              "pathogenic variants; excluded from every reported stratum"}
+              "pathogenic variants; excluded from every reported stratum",
+              ("variant_specificity.csv", "n_common"): "defined only where the baseline is",
+              ("variant_specificity.csv", "auroc_matched_common"): "defined only where the "
+              "baseline is; this is the point of the column",
+              ("variant_specificity.csv", "auroc_conservation_common"): "defined only where "
+              "the baseline is"}
     worst, where = 0.0, ""
     for name in ("cost_of_matching.csv", "matched_four_models.csv", "locality_ism.csv",
                  "variant_specificity.csv", "variant_ladder_paired.csv"):
@@ -427,7 +693,8 @@ def main():
     print("=" * 78)
 
     for fn in (verify_r1, verify_r2, verify_r3, verify_r4_paired, verify_r4,
-               verify_donor_overlap, verify_integrity):
+               verify_multidonor, verify_strand_audit, verify_recompute,
+               verify_integrity):
         try:
             fn(T, g)
         except Exception as e:                  # a broken check is a failure, not a crash

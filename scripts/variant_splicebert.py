@@ -55,6 +55,7 @@ PROJECT = cloudcfg.project()
 # Nothing else references this object, and rbp-modal has read access across the whole derived
 # bucket, so moving it costs nothing.
 MANIFEST = "variants/variant_tasks.tsv"
+DONORS = "variants/donor_tasks.tsv"
 
 
 def log(m):
@@ -250,7 +251,7 @@ def stage_tables(cfg, limit):
         f"{man.n_variants.sum():,} variants -> gs://{BUCKET}/{MANIFEST}")
 
 
-def stage_cloud(cfg, index, force, mismatch=0):
+def stage_cloud(cfg, index, force, mismatch=0, donor_task=-1):
     """One dataset, from the uploaded table, weights straight out of GCS. No FASTA, no disk.
 
     Same completion-marker discipline as everywhere else in this project: the result object
@@ -264,6 +265,26 @@ def stage_cloud(cfg, index, force, mismatch=0):
 
     bucket = storage.Client(project=PROJECT).bucket(BUCKET)
     man = pd.read_csv(io.StringIO(bucket.blob(MANIFEST).download_as_text()), sep="\t")
+
+    # THE MULTI-DONOR CONTROL. donor_task indexes variants/donor_tasks.tsv, which names the
+    # target and donor explicitly instead of deriving the donor from an offset. Five donors
+    # per target, drawn to SPAN donor quality -- see scripts/donor_draw.py for why spanning
+    # rather than matching, and why the single-offset version was confounded.
+    if donor_task >= 0:
+        dm = pd.read_csv(io.StringIO(bucket.blob(DONORS).download_as_text()), sep="\t")
+        if donor_task >= len(dm):
+            sys.exit(f"donor task {donor_task} beyond manifest of {len(dm)}")
+        d = dm.iloc[donor_task]
+        index = int(d.target_idx)
+        r, w = man.iloc[index], man.iloc[int(d.donor_idx)]
+        cell, prot = r.cell, r.protein
+        wcell, wprot = w.cell, w.protein
+        out = f"variants/scores_md/{cell}_{prot}__{wcell}_{wprot}.csv"
+        if bucket.blob(out).exists() and not force:
+            log(f"{prot}:{cell} <- {wprot}:{wcell} already done")
+            return
+        return _score(cfg, bucket, cell, prot, wcell, wprot, out, torch)
+
     if index >= len(man):
         sys.exit(f"index {index} beyond manifest of {len(man)}")
     r = man.iloc[index]
@@ -277,8 +298,12 @@ def stage_cloud(cfg, index, force, mismatch=0):
     # protein binds" from "this model knows what human RNA looks like", and it needs no new
     # training because all 95 fine-tuned checkpoints are already on disk.
     #
-    # The offset walks the pair-rank-sorted manifest, so the donor is a genuinely different
-    # protein rather than the same protein in the other cell line.
+    # The offset walks the manifest, which is ALPHABETICAL -- a comment here once claimed it
+    # was sorted by pair rank and that the donor was therefore "one of a very different
+    # size". That was false (alphabetical predicts the observed donor 82/82, pair rank 1/82),
+    # and the property it asserted is the one the design lacked: donors came out
+    # systematically WEAKER than targets, which is the confound donor_draw.py exists to fix.
+    # Kept as-is so the original arm remains reproducible; superseded by --donor-task.
     wcell, wprot = cell, prot
     if mismatch:
         w = man.iloc[(index + mismatch) % len(man)]
@@ -291,6 +316,21 @@ def stage_cloud(cfg, index, force, mismatch=0):
     if bucket.blob(out).exists() and not force:
         log(f"{prot}:{cell} already done")
         return
+
+    return _score(cfg, bucket, cell, prot, wcell, wprot, out, torch)
+
+
+def _score(cfg, bucket, cell, prot, wcell, wprot, out, torch):
+    """Score one target's variants with one donor's weights. Shared by every arm.
+
+    Split out of stage_cloud when the multi-donor control arrived: three arms now differ
+    only in which checkpoint they load and where they write, and duplicating the scoring
+    body per arm is how the arms silently drift apart.
+    """
+    import gzip
+    import io
+
+    from google.cloud import storage
 
     raw = bucket.blob(f"variants/tables/{cell}_{prot}.tsv.gz").download_as_bytes()
     t = pd.read_csv(io.BytesIO(gzip.decompress(raw)), sep="\t")
@@ -412,6 +452,8 @@ def main():
     p.add_argument("--force", action="store_true")
     p.add_argument("--mismatch", type=int, default=0,
                    help="score with another protein's weights, offset N in the manifest")
+    p.add_argument("--donor-task", type=int, default=-1,
+                   help="row N of variants/donor_tasks.tsv: explicit target/donor pair")
     p.add_argument("--n-boot", type=int, default=500)
     a = p.parse_args()
     cfg = cfgmod.load()
@@ -421,7 +463,7 @@ def main():
         stage_tables(cfg, a.limit)
     elif a.what == "cloud":
         idx = a.index if a.index is not None else int(os.environ.get("TASK_INDEX", 0))
-        stage_cloud(cfg, idx, a.force, a.mismatch)
+        stage_cloud(cfg, idx, a.force, a.mismatch, a.donor_task)
     elif a.what == "gather":
         stage_gather(cfg)
     else:

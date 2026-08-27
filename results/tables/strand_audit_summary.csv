@@ -1,0 +1,7 @@
+check,value,p,n
+frac_sense vs THE CLAIM: k-mer share minus SpliceBERT share,0.22532833020637902,0.1621236841219711,40
+frac_sense vs k-mer share,0.4052532833020638,0.009483032391143167,40
+frac_sense vs SpliceBERT share,0.5166979362101314,0.0006414328237560063,40
+frac_sense vs composition AUROC,0.4172607879924954,0.007390510937427342,40
+"share contrast, antisense-rich half",0.24849647487153137,,20
+"share contrast, antisense-poor half",0.26441596289493197,,20

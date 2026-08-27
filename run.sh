@@ -275,7 +275,17 @@ s13_analysis() {
 
 s14_verify() {
   say "stage 14: verify against golden numbers"
-  $PY scripts/verify.py || die "THE SCIENCE DID NOT REPRODUCE -- see the failed claims above"
+  # TWICE, against two different artefacts, because they can disagree and the disagreement is
+  # the interesting case. --local checks the tables this run just wrote; the default checks
+  # what actually landed in GCS. A local pass with a GCS failure means the upload is broken or
+  # partial, which no other stage would notice.
+  #
+  # The --local pass also exists so that someone who clones the repo can verify every number
+  # with no cloud access at all. Until 2026-08-27 this line ran the GCS path only, so a cloner
+  # hit a bucket they have no credentials for and could check nothing -- in a repo whose whole
+  # pitch is that verification is a stage.
+  $PY scripts/verify.py --local results/tables || die "THE SCIENCE DID NOT REPRODUCE (local tables) -- see the failed claims above"
+  $PY scripts/verify.py || die "THE SCIENCE DID NOT REPRODUCE (GCS artefacts) -- local tables passed, so suspect the upload"
   say "reproduction verified"
 }
 

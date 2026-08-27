@@ -1,0 +1,8 @@
+attack,value,note
+gap rises with power (spearman),0.9834063912723829,gap -0.0114 to +0.1172 over 21 thresholds
+wrong-protein floor is flat across thresholds,0.023300154806424556,range 0.6759-0.6992
+specificity survives the trivial rule as a covariate,1.0,"matched 1.169 [1.066,1.268] vs mismatched 0.692 [0.623,0.760]"
+permutation null is centred at zero,0.000235542265087402,"sd 0.0090, observed +0.0645, p=0.0000, n=44"
+trivial rule at 100 kb,0.8512316809218782,"17,934 variants, 3,235 blocks"
+trivial rule at 1000 kb,0.8176818165652006,"18,762 variants, 1,426 blocks"
+trivial rule at 10000 kb,0.7329537839891118,"18,994 variants, 297 blocks"

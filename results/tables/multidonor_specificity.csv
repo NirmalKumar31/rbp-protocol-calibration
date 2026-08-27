@@ -1,0 +1,19 @@
+panel,estimator,n_targets,n_pairs,value,ci_low,ci_high,p,wins,note
+all usable,mean gap (unadjusted),82,409,0.0124492294467123,,,0.10417081836837133,56.0,target mean of per-donor gaps
+all usable,intercept | advantage,82,409,0.014063182462342045,-0.020294121136272762,0.04660384520813507,0.4068,,target-clustered bootstrap
+all usable,intercept | advantage+size,82,409,0.00680270120370533,-0.02784384859855507,0.039940279876956024,0.6884,,target-clustered bootstrap
+all usable,intercept | advantage+size+power,82,409,0.01027584035761025,-0.01657477145730286,0.03764842167100115,0.4572,,target-clustered bootstrap
+all usable,within-target adjusted,82,409,0.014027175106390226,-0.021679866739625804,0.04602646949702296,0.4268,,within-target slope -0.0981
+all usable,gap vs donor advantage (spearman),82,409,-0.028330631670545597,,,0.56778768580036,,negative = stronger donors close the gap
+all usable,floor vs power (spearman),82,409,0.09116249639581468,,,0.06549831761588033,,flat floor + steep matched arm = the detection threshold
+all usable,matched arm vs power (spearman),82,409,0.6312127750151086,,,7.584216212662595e-47,,flat floor + steep matched arm = the detection threshold
+all usable,donors STRONGER than target,81,279,0.009024815549089306,,,0.19784523236295493,53.0,adv > 0 only
+powered (n_path>=20),mean gap (unadjusted),44,219,0.08799338614737362,,,4.562241429084679e-08,39.0,target mean of per-donor gaps
+powered (n_path>=20),intercept | advantage,44,219,0.0879177703024513,0.06386563628698567,0.11061446186853757,0.0,,target-clustered bootstrap
+powered (n_path>=20),intercept | advantage+size,44,219,0.07842574390151735,0.05138466206820058,0.10376184468375835,0.0,,target-clustered bootstrap
+powered (n_path>=20),intercept | advantage+size+power,44,219,0.023583056638829113,-0.012032490883750751,0.059327173850030085,0.1984,,target-clustered bootstrap
+powered (n_path>=20),within-target adjusted,44,219,0.08813174231953369,0.06296775821267495,0.11121119900817791,0.0,,within-target slope +0.0393
+powered (n_path>=20),gap vs donor advantage (spearman),44,219,-0.002407257189210187,,,0.971744570753364,,negative = stronger donors close the gap
+powered (n_path>=20),floor vs power (spearman),44,219,0.09854464356652315,,,0.14607887079378146,,flat floor + steep matched arm = the detection threshold
+powered (n_path>=20),matched arm vs power (spearman),44,219,0.6243892734930914,,,4.504563123764897e-25,,flat floor + steep matched arm = the detection threshold
+powered (n_path>=20),donors STRONGER than target,44,141,0.0920431010665522,,,1.3223484529589768e-07,39.0,adv > 0 only

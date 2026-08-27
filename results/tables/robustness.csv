@@ -1,0 +1,15 @@
+check,value,ci_low,ci_high,n,note,p
+"composition share, GC-matched",0.948331166936274,0.9208815084618847,0.9743486198944842,94,"ratio of means, dataset bootstrap",
+"composition share, dinuc-matched",0.6783285532918891,0.6206783445805024,0.737974329706499,94,"ratio of means, dataset bootstrap",
+"composition share, GC minus dinuc",0.2700026136443848,0.23101884512537704,0.30881386825253393,94,the claim; excludes zero if the effect is real,
+R1 effect vs log10(dataset size),0.14106181072161797,,,94,"paired design, so this is effect modification not confounding",0.1750553444414254
+composition share vs k-mer,0.6817935328050708,0.6252061071075383,0.7394168277016658,95,"dinuc-matched; ratio of means, dataset bootstrap",
+composition share vs CNN,0.619665451380938,0.565331161174738,0.6714485312129702,95,"dinuc-matched; ratio of means, dataset bootstrap",
+composition share vs SpliceBERT,0.4136679733217547,0.3721199616417573,0.4596110710927986,95,"dinuc-matched; ratio of means, dataset bootstrap",
+"composition share, k-mer minus SpliceBERT",0.2681255594833161,0.24081885650724166,0.2950277249681481,95,"RESCALING of the AUROC ladder, not an independent finding",
+specificity gap vs log10(dataset size),0.10003156256462163,,,82,"paired within dataset, so size cannot confound the difference",0.37123431165338744
+"specificity gap vs size, powered stratum",0.22269203664552503,,,44,n_pathogenic >= 20,0.14623396952706735
+TRIVIAL baseline: 1-Mb block prevalence,0.8176818165652006,,,18762,leave-one-out; a high value means positional leakage,
+TRIVIAL baseline: dataset prevalence,0.6682391414412227,,,18998,leave-one-out; a high value means positional leakage,
+"reference: conservation, same variants",0.9078201121945343,,,18998,phyloP,
+"reference: right-protein head, same variants",0.8293956988033531,,,18998,"pooled, i.e. the inflated framing",

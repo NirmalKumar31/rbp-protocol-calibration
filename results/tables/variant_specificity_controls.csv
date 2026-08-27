@@ -1,0 +1,4 @@
+check,value,p,note
+floor vs donor cell line,-0.00999981666039329,0.8311354055964683,"same-cell 0.6865 n=25, cross-cell 0.6965 n=19"
+floor vs donor's own strength,0.2257545271629778,0.05835872173310189,spearman over n=71 donors
+gap vs statistical power,0.5203314413883782,5.428335328550515e-07,a real effect should grow with power; the floor should not

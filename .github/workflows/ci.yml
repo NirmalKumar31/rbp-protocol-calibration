@@ -36,7 +36,15 @@ jobs:
         env:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project
           PYTHONPATH: src
-        run: pytest tests/unit -q
+        # THE SAME TWO EXCLUSIONS docker/cloudbuild.cpu.yaml:55-56 has, and for the same
+        # reason: this job installs docker/requirements-cpu.txt, which has no torch by design.
+        # test_models.py imports torch directly; test_train_folds.py reaches it transitively
+        # through rbp.train.data (line 10). Without these flags pytest aborts with 2 collection
+        # errors and exits 2, so this workflow could never have passed -- and since there is no
+        # git remote it had never run, which is how a CI file whose own first line says
+        # "'575 tests pass' is a claim until something other than the author runs them" sat
+        # broken for two days.
+        run: pytest tests/unit -q --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
 
       # The golden values are the published numbers. Changing one must be a deliberate,
       # reviewable act, not a diff that rides along inside an unrelated commit. The hash is

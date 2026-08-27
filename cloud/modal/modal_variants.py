@@ -83,7 +83,12 @@ def n_tasks():
 # max_containers is the budget control, exactly as in modal_sweep.py, and it matters more
 # here because the $30 credit is gone and every second is out of pocket. 10 containers of
 # T4 burns roughly $6/hour; this job should take about ten minutes.
-MAX_CONTAINERS = 10
+# 20, not 10: this is the T4 inference arm, so the ceiling is 20 x $0.59 = $11.80/h, and the
+# per-task timeout of 30 min bounds a total hang at 20 x 0.5 x $0.59 = $5.90. The A10G
+# TRAINING sweep keeps its own lower cap in modal_sweep.py, where the same concurrency would
+# cost $22/h. Raising this one halves the wall clock on 475 tasks and changes the bill by the
+# price of ten extra cold starts, because Modal bills container-seconds, not containers.
+MAX_CONTAINERS = 20
 
 app = modal.App(APP, image=image)
 
@@ -99,7 +104,7 @@ def _env():
     }
 
 
-def _run_one(idx: int, force: bool = False, mismatch: int = 0) -> int:
+def _run_one(idx: int, force: bool = False, mismatch: int = 0, donor_task: int = -1) -> int:
     import json
     import pathlib
 
@@ -113,6 +118,8 @@ def _run_one(idx: int, force: bool = False, mismatch: int = 0) -> int:
         cmd.append("--force")
     if mismatch:
         cmd += ["--mismatch", str(mismatch)]
+    if donor_task >= 0:
+        cmd += ["--donor-task", str(donor_task)]
     return subprocess.run(cmd, env={**os.environ, **_env()}, cwd="/app").returncode
 
 
@@ -120,8 +127,42 @@ def _run_one(idx: int, force: bool = False, mismatch: int = 0) -> int:
               max_containers=MAX_CONTAINERS,
               secrets=[modal.Secret.from_name(SECRET)],
               retries=modal.Retries(max_retries=2))
-def task(idx: int, force: bool = False, mismatch: int = 0) -> int:
-    return _run_one(idx, force, mismatch)
+def task(idx: int, force: bool = False, mismatch: int = 0, donor_task: int = -1) -> int:
+    return _run_one(idx, force, mismatch, donor_task)
+
+
+def n_donor_tasks():
+    import io
+
+    import pandas as pd
+    from google.cloud import storage
+
+    b = storage.Client(project=PROJECT).bucket(DERIVED).blob("variants/donor_tasks.tsv")
+    if not b.exists():
+        raise SystemExit(f"gs://{DERIVED}/variants/donor_tasks.tsv is absent. Run "
+                         f"`scripts/donor_draw.py --upload` first.")
+    return len(pd.read_csv(io.StringIO(b.download_as_text()), sep="\t"))
+
+
+@app.local_entrypoint()
+def multidonor_sweep(force: bool = False, limit: int = 0):
+    """Five donors per target instead of one, so donor choice enters the uncertainty.
+
+    The single-offset arm confounded protein identity with donor model quality: donors came
+    out systematically weaker than targets and the gap tracked that (rho=-0.533). This arm
+    spans donor quality deliberately, so the estimand is the intercept at zero donor
+    advantage rather than a subset mean. See scripts/donor_draw.py.
+    """
+    n = n_donor_tasks()
+    if limit:
+        n = min(n, limit)
+    print(f"{n} donor tasks / {MAX_CONTAINERS} containers")
+    # starmap, not map: map varies the FIRST positional arg (idx), and here the thing that
+    # has to vary is donor_task. idx is ignored downstream once donor_task >= 0, because the
+    # donor manifest names the target itself.
+    rcs = list(task.starmap([(0, force, 0, i) for i in range(n)]))
+    bad = [i for i, rc in enumerate(rcs) if rc != 0]
+    print(f"{len(rcs) - len(bad)}/{len(rcs)} ok" + (f", failed {bad}" if bad else ""))
 
 
 @app.local_entrypoint()

@@ -165,6 +165,38 @@ r4_paired_specificity:
   composition_share_gc:    {value: 0.948, tol: 0.03}
   composition_share_dinuc: {value: 0.678, tol: 0.04}
   composition_share_drop:  {value: 0.270, tol: 0.05}
+  # THE SHARE IS A PROPERTY OF THE TASK *AND THE MODEL*, and stating it without naming the
+  # model is the error this project made in its own summaries for two weeks. The three above
+  # are measured against the k-mer model, because that is what the rehearsal arm trains.
+  # Same estimator, same datasets, same negatives -- only the model changes:
+  composition_share_vs_kmer:       {value: 0.6818, tol: 0.035}
+  composition_share_vs_cnn:        {value: 0.6197, tol: 0.035}
+  composition_share_vs_splicebert: {value: 0.4137, tol: 0.035}
+  # THE CONTRAST IS NOT A FINDING. Retracted as a headline 2026-08-27, one day after being
+  # promoted to one, and kept here with the reason attached.
+  #
+  # share_m = C / gain_m, where C = mean(composition_auroc) - 0.5 is IDENTICAL for every
+  # model. So share_kmer / share_SB == gain_SB / gain_kmer, exactly -- verified to 6 decimal
+  # places (1.648166 both ways). The "model-dependent composition share" is therefore a
+  # monotone rescaling of the four-model AUROC ladder, which is R2, which was cut in round 2
+  # as prior art (Horlacher 2023). And SpliceBERT beats the k-mer model on 95/95 datasets, so
+  # the contrast excludes zero with probability 1: the interval was decoration.
+  #
+  # THE SUBSTANTIVE VERSION OF THIS CLAIM IS UNMEASURED. "The negative-set protocol does not
+  # penalise every model equally" needs each model's AUROC drop from GC- to dinuc-matched
+  # negatives. Only composition and k-mer have both arms: sweep_dinuc.csv is the only sweep
+  # table and its `arm` column is {'dinuc'}, so the CNN and SpliceBERT never ran on GC-matched
+  # negatives. Measuring it costs GPU time and has not been spent.
+  composition_share_model_gap:    {value: 0.2681, tol: 0.05}
+  # Replaces composition_share_model_gap_ci_excludes_zero, which asserted something true by
+  # construction. This asserts the IDENTITY instead, which is a real invariant: if the
+  # estimator is ever changed so that the share stops being C/gain, this fails and whoever
+  # changed it finds out.
+  share_ratio_equals_inverse_gain_ratio_max_diff: 1.0e-6
+  # Cross-check: the k-mer share here is the same quantity as composition_share_dinuc above,
+  # computed from a different table. If these two ever disagree, one of the tables is wrong.
+  kmer_share_cross_check_max_diff: 0.01
+
   # Both paired claims must be robust to dataset size. They are paired within dataset, so
   # size cannot confound them; this bounds effect MODIFICATION.
   size_rho_max: 0.35
@@ -261,17 +293,109 @@ integrity:
 
 # --- the wrong-protein control's donor must actually be a WRONG protein -----------------
 #
-# RBPs co-bind, so a donor that occupies the target's sites is a partially-right protein and
-# the floor it produces is contaminated. Measured directly as the fraction of the target's
-# variants the donor also binds near. Contamination inflates the FLOOR and therefore SHRINKS
-# the gap, so the all-donor figure is a lower bound.
-donor_overlap:
-  median_overlap_max:   0.02     # the pairing must usually pick a genuinely different protein
-  floor_overlap_rho_max: 0.45    # some association is expected; a strong one means the
-                                 # control is measuring co-binding rather than specificity
-  clean_donor_gap:      {value: 0.1210, tol: 0.05}
-  clean_donor_wins_min_fraction: 0.80
-  clean_donor_p_max:    0.01
-  # The contaminated stratum must show LESS, or the interpretation is backwards. Asserted
-  # with the unflattering sign, like every other honest check in this file.
-  dirty_donor_gap_max:  0.05
+# RETRACTED 2026-08-27, and left here with its own obituary because deleting it would hide
+# the most instructive failure in this project.
+#
+# The original block asserted `clean_donor_gap: 0.1210` on the 17 donors with "negligible
+# overlap", and `floor_overlap_rho_max: 0.45` as a CEILING on the floor-vs-overlap
+# correlation. Both were wrong, in opposite directions:
+#
+#   1. The ceiling gated the opposite of the claim. The clean-donor result REQUIRES a real
+#      floor-vs-contamination association to exist; the gate passed as long as it was WEAK.
+#      A gate that passes when the claim fails is worse than no gate.
+#   2. `shared_frac = |t&d|/|t|` is normalised by the target, so it cannot be large when the
+#      donor is small. It correlated with donor variant-set size at rho=+0.696, and
+#      controlling for that the flagship association reversed and died (+0.299 p=0.049 ->
+#      -0.240 p=0.12). It was measuring donor size wearing a contamination costume.
+#   3. The placebo settled it: splitting the same 44 datasets by donor SIZE reproduced the
+#      "clean donor" result BETTER (+0.1362, 16/17) than splitting by co-binding overlap
+#      (+0.1210, 16/17). A variable with nothing to do with co-binding beat the real one.
+#
+# Superseded by r4_multidonor below, which screens donors on JACCARD (size-symmetric) and
+# spans donor quality instead of stratifying on a proxy for it.
+donor_overlap_RETRACTED:
+  see: r4_multidonor
+
+# --- the multi-donor wrong-protein control ----------------------------------------------
+#
+# Five donors per target instead of one, drawn to SPAN donor binding quality (-0.296..+0.296
+# realised) and screened to jaccard <= 0.02. 474/475 tasks, 409 usable (target, donor) pairs.
+#
+# THE VERDICT THIS ENCODES IS "NOT IDENTIFIED", NOT "CONFIRMED". Three reviewers set
+# acceptance criteria BEFORE seeing this table and all three ruled the same way: the effect
+# is real on the powered stratum, absent on the full panel, and therefore conditional. The
+# gates below assert BOTH panels for exactly that reason -- asserting only the powered one is
+# how the retracted block above survived as long as it did.
+r4_multidonor:
+  n_pairs:              {value: 409, tol: 12}
+  n_targets_all:        {value: 82,  tol: 2}
+  n_targets_powered:    {value: 44,  tol: 3}
+  # The confound that killed the single-donor design must be GONE. This is the gate that
+  # would have caught the original error, and it is the only one here that matters.
+  gap_vs_donor_advantage_rho_max: 0.20   # was -0.533 in the single-donor arm
+  # Powered stratum: the effect is present.
+  powered_gap:          {value: 0.0880, tol: 0.025}
+  powered_wins_min_fraction: 0.80
+  powered_p_max:        1.0e-05
+  powered_intercept:    {value: 0.0784, tol: 0.030}
+  powered_intercept_ci_excludes_zero: true
+  # The stratum where the donor is the STRONGER model. The single-donor design returned a
+  # null here (-0.0025, 9/18, p=1.00) and that null was a one-draw artifact.
+  stronger_donor_gap:   {value: 0.0920, tol: 0.030}
+  stronger_donor_wins_min_fraction: 0.80
+  # THE FULL PANEL, WHICH SHOWS NOTHING. Asserted with the unflattering value, because the
+  # disagreement between the two panels IS the result.
+  all_panel_gap:        {value: 0.0124, tol: 0.025}
+  all_panel_intercept:  {value: 0.0068, tol: 0.030}
+  all_panel_intercept_ci_excludes_zero: false
+  # Adding power as a covariate removes the powered-stratum effect too. Also asserted.
+  powered_intercept_with_power: {value: 0.0236, tol: 0.030}
+  powered_intercept_with_power_ci_excludes_zero: false
+  # The mechanism: the floor is flat in power, the matched arm is not.
+  floor_vs_power_rho_max:   0.25
+  matched_vs_power_rho_min: 0.45
+
+# --- the negatives are ~45% antisense, and that must not be what the contrast measures ----
+#
+# `negatives.py:328` gives each negative the POSITIVE's strand. A negative's location is
+# chosen to match composition, not strand, so whether it lands on a gene running the assigned
+# direction is a coin flip: measured 55.2% sense. The other 45% are sequence no transcript
+# produces, while every positive is true sense RNA.
+#
+# This is a non-compositional cue that survives dinucleotide matching (matching is done on
+# forward DNA and revcomp applies to both pair members), and a pre-mRNA language model can
+# read direction where a dinucleotide model cannot. So it is a live alternative explanation
+# for composition_share_model_gap and it has to be gated, not just mentioned.
+#
+# It loses on the DIFFERENTIAL. The artifact must act unequally on the two models to create a
+# contrast between them, and it does not: it moves both shares hard (rho +0.41 and +0.52) and
+# the contrast not at all (rho +0.23, p=0.16). Splitting the panel at the median sense
+# fraction gives contrast +0.249 in the antisense-rich half and +0.264 in the antisense-poor
+# half -- the objection predicts a much LARGER contrast where the artifact is strongest, and
+# the data give a slightly smaller one.
+strand_audit:
+  frac_sense:              {value: 0.552, tol: 0.06}
+  frac_no_gene_max:        0.02      # negatives really are inside genes, so "antisense" is meaningful
+  # THE GATE THAT DEFENDS THE HEADLINE. If the artifact ever starts predicting the contrast,
+  # the model-dependence claim is no longer safe and this must fail loudly.
+  contrast_rho_max:        0.40
+  contrast_rho_p_min:      0.05      # must stay NON-significant
+  # Both shares are expected to track it. Asserted so that a future run where they DON'T is
+  # flagged, because that would mean the mechanism is not what this file says it is.
+  share_rho_min:           0.30
+  # The model-free version: the contrast must be stable across the two halves.
+  contrast_antisense_rich: {value: 0.2485, tol: 0.06}
+  contrast_antisense_poor: {value: 0.2644, tol: 0.06}
+  contrast_halves_max_diff: 0.08
+
+# --- the correctness half of verification -------------------------------------------------
+#
+# Every other block here is checked by reading a table the analysis pass wrote, so the gate
+# detects DRIFT and not ERROR: corrupting an input and re-running verify.py produced zero
+# failures when someone finally tested it. This block is checked by recomputing the published
+# AUROC from the per-example scores committed under data/evidence/, for both deep
+# architectures. Zeroing the score column makes it report max|diff| ~0.45 and fail, so unlike
+# the rest of this file it cannot pass on nonsense.
+recompute:
+  max_abs_diff: 1.0e-09    # sklearn on identical floats; anything larger is drift
+  min_datasets: 90         # of 95; a few absent folds is a broken mirror, not a broken claim

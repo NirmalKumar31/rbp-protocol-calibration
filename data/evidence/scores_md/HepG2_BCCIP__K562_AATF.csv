@@ -1,0 +1,3 @@
+protein,cell,vid,label,fold,delta,platform,accelerator,weights_from
+BCCIP,HepG2,chr14:39267489:G:T,0,2,-0.8870242238044739,modal,cuda,AATF:K562
+BCCIP,HepG2,chr22:50406363:A:G,1,3,0.1147889494895935,modal,cuda,AATF:K562

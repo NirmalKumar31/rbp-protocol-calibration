@@ -313,6 +313,26 @@ def variant_specificity(bucket):
         ok = prev.notna()
         auroc_prev = (roc_auc_score(s.label[ok], prev[ok])
                       if ok.sum() > 20 and s.label[ok].nunique() == 2 else np.nan)
+
+        # THE BASELINE AND THE MODEL MUST BE SCORED ON THE SAME VARIANTS.
+        #
+        # A variant alone in its 1-Mb block has no leave-one-out prevalence, so `ok` drops it
+        # -- a mean of 20.2% of variants per dataset, up to 38.9%. The model's AUROC above is
+        # computed on ALL variants. Differencing the two therefore compared two arms on two
+        # different variant sets, and the "smooth decay" across 100 kb / 1 Mb / 10 Mb was
+        # partly the evaluated set changing size (17,934 / 18,762 / 18,994) rather than the
+        # rule getting worse.
+        #
+        # The bias turned out to be small -- conservation, which is scoreable either way,
+        # gives 0.8921 on all variants and 0.8904 on the baseline's subset, so -0.0017 -- and
+        # the headline survives it. But "small" is a measurement, not a licence, so the
+        # common-mask columns are computed here and the paired comparison uses them.
+        common = {}
+        if ok.sum() > 20 and s.label[ok].nunique() == 2:
+            common = {"n_common": int(ok.sum()),
+                      "auroc_matched_common": roc_auc_score(s.label[ok], s.delta.abs()[ok]),
+                      "auroc_conservation_common": roc_auc_score(s.label[ok],
+                                                                 s.conservation[ok])}
         rows.append({
             "dataset": ds, "protein": ds.split(":")[0], "cell": ds.split(":")[1],
             "donor": donor,
@@ -322,6 +342,7 @@ def variant_specificity(bucket):
             "auroc_mismatched": roc_auc_score(g.label, g.delta.abs()),
             "auroc_conservation": roc_auc_score(s.label, s.conservation),
             "auroc_block_prevalence": auroc_prev,
+            **common,
         })
     per = pd.DataFrame(rows).sort_values("dataset", kind="mergesort").reset_index(drop=True)
     per.to_csv(TABLES / "variant_specificity.csv", index=False)
@@ -751,16 +772,22 @@ def robustness(bucket):
 
     out = []
 
+    def share(x, a, c):
+        """Fraction of skill-above-chance recoverable from composition alone.
+
+        Defined at function scope, not inside the block below: 1b uses the SAME estimator on
+        a different table, and the two shares are only comparable if they are literally the
+        same function. It used to be a closure inside `if d is not None`, which made 1b a
+        NameError whenever cost_of_matching.csv was missing.
+        """
+        num = x[c].mean() - 0.5
+        den = x[a].mean() - 0.5
+        return num / den if den > 0 else np.nan
+
     # --- 1. composition share, with an interval ---------------------------------------
     d = fetch(bucket, "results/tables/cost_of_matching.csv")
     if d is not None:
         rng = np.random.default_rng(7)
-
-        def share(x, a, c):
-            """Fraction of skill-above-chance recoverable from composition alone."""
-            num = x[c].mean() - 0.5
-            den = x[a].mean() - 0.5
-            return num / den if den > 0 else np.nan
 
         for arm, a, c in (("GC-matched", "auroc_gc", "composition_auroc_gc"),
                           ("dinuc-matched", "auroc_dn", "composition_auroc_dn")):
@@ -793,6 +820,55 @@ def robustness(bucket):
         out.append({"check": "R1 effect vs log10(dataset size)", "value": rho,
                     "ci_low": np.nan, "ci_high": np.nan, "p": pv, "n": int(ok.sum()),
                     "note": "paired design, so this is effect modification not confounding"})
+
+    # --- 1b. THE SHARE IS MODEL-DEPENDENT, and this is the headline --------------------
+    #
+    # The share above is measured against the k-mer model, because that is what the rehearsal
+    # arm trains. Stated without the model named it reads as a fact about the TASK, and it is
+    # not: it is a joint fact about the task and the model class. Composition reproduces most
+    # of a k-mer model's skill and well under half of a fine-tuned language model's, on the
+    # SAME datasets with the SAME negatives -- so the negative-set protocol does not penalise
+    # every model equally, and a benchmark that reports one model's drop is not describing the
+    # others. Horlacher 2023 published the drop across 11 methods; the decomposition into a
+    # per-model share, and the finding that it separates model classes, is what is new here.
+    #
+    # Same estimator as 1a (ratio of means, dataset bootstrap) so the two are comparable, and
+    # the k-mer row is a CROSS-CHECK: it must reproduce the dinuc arm above to 3 decimals,
+    # because it is the same quantity computed from a different table.
+    fm = fetch(bucket, "results/tables/matched_four_models.csv")
+    if fm is not None and {"kmer_auroc", "cnn", "splicebert"} <= set(fm.columns):
+        # ONE resample stream, all three models scored on the SAME resample. The first
+        # version drew independently per model and then differenced the streams, which is an
+        # unpaired difference of paired quantities: it gave [0.198, 0.339], width 0.141,
+        # against a correctly paired [0.241, 0.295], width 0.054. Off by 2.6x, in the
+        # direction that looks more conservative and is simply wrong. Section 1a above always
+        # did this correctly; 1b did not, because it was written separately.
+        rng = np.random.default_rng(7)
+        cols = (("k-mer", "kmer_auroc"), ("CNN", "cnn"), ("SpliceBERT", "splicebert"))
+        draws = {lab: [] for lab, _ in cols}
+        for _ in range(2000):
+            q = fm.iloc[rng.integers(0, len(fm), len(fm))]
+            for lab, col in cols:
+                draws[lab].append(share(q, col, "composition_auroc"))
+        draws = {k: np.array(v) for k, v in draws.items()}
+        for lab, col in cols:
+            lo, hi = np.nanpercentile(draws[lab], [2.5, 97.5])
+            out.append({"check": f"composition share vs {lab}",
+                        "value": share(fm, col, "composition_auroc"),
+                        "ci_low": lo, "ci_high": hi, "n": len(fm),
+                        "note": "dinuc-matched; ratio of means, dataset bootstrap"})
+        pt = share(fm, "kmer_auroc", "composition_auroc") - share(fm, "splicebert",
+                                                                  "composition_auroc")
+        lo, hi = np.nanpercentile(draws["k-mer"] - draws["SpliceBERT"], [2.5, 97.5])
+        # NOT A FINDING, AND THE INTERVAL IS DECORATION. share_m = C/gain_m with a numerator C
+        # that is IDENTICAL across models, so share_kmer/share_SB == gain_SB/gain_kmer exactly
+        # (verified to 6 dp). This contrast is a monotone rescaling of the AUROC ladder, and
+        # SpliceBERT beats the k-mer model on 95/95 datasets, so it excludes zero with
+        # probability 1. It is retained as a readable presentation of the ladder and MUST NOT
+        # be reported as an independent result. See r1_headline_is_gc_share_only.
+        out.append({"check": "composition share, k-mer minus SpliceBERT", "value": pt,
+                    "ci_low": lo, "ci_high": hi, "n": len(fm),
+                    "note": "RESCALING of the AUROC ladder, not an independent finding"})
 
     # --- 2b. is the specificity gap explained by dataset size? ------------------------
     per = fetch(bucket, "results/tables/variant_specificity.csv")

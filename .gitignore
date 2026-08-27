@@ -7,8 +7,25 @@ __pycache__/
 # and `results/` would match any nested results dir. git stopped tracking the rbp.data
 # package, `gcloud builds submit` honours .gitignore, so the image was built without it and
 # its own test step failed with ModuleNotFoundError: No module named 'rbp.data'.
-/data/
-/results/
+# /data/* not /data/ -- git cannot re-include anything inside a directory that is itself
+# excluded, so `!/data/evidence/` below is silently ignored unless the exclusion names the
+# CONTENTS. This is the same class as the `/results/` mistake below and cost ten minutes to
+# spot, because `git status` simply shows nothing rather than complaining.
+/data/*
+# The published numbers and the evidence for them ARE the artifact, so they ship. `/results/`
+# was ignored wholesale, which meant `git ls-files results` returned 0: a cloner saw no
+# tables, no figures, and could not check one of the 86 golden assertions in a repo whose
+# entire pitch is that verification is a stage.
+#
+# data/evidence/ is the per-example model scores (1120 files, 35 MB). It is under /data/,
+# which is ignored, so it needs an explicit un-ignore. It is what makes every deep-model AUROC
+# recomputable offline -- verified: 95/95 datasets reproduce the published SpliceBERT and CNN
+# numbers to 3.33e-16 and 2.22e-16. Without it the whole evidence base lives only in a GCS
+# bucket whose billing credit expires 2026-11-18.
+/results/*
+!/results/tables/
+!/results/figures/
+!/data/evidence/
 /logs/
 /.preflight-ok
 /.preflight-modal-ok
