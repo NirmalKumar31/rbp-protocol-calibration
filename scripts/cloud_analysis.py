@@ -484,6 +484,95 @@ def do_figures():
     return rc == 0
 
 
+def donor_overlap(bucket):
+    """Does the wrong-protein control actually use a WRONG protein? Measured, not assumed.
+
+    THE ATTACK THIS ANSWERS, and it was right. RBPs co-bind: they occupy overlapping regions
+    and share motif families. So "score protein A's variants with protein B's head" may not be
+    a wrong-protein control at all -- if B binds the same sites, B is a partially-right
+    protein and the floor it produces is contaminated.
+
+    Two earlier attempts used PROXIES for donor similarity, sharing a cell line and the
+    donor's own strength, and both came back clean. They were the wrong measurement. The
+    direct one is how much of the target's variant set the donor also binds near, which is
+    peak overlap evaluated exactly where the scoring happens, and it needs no peak files
+    because variant_assignments.csv already records which datasets each variant is assigned to.
+
+    WHAT IT FOUND. Median donor-target overlap is 0.001, so the offset pairing over a
+    rank-sorted manifest does usually pick a genuinely different protein. But the association
+    with the floor is real in the powered stratum (rho=+0.30, p=0.05), and stratifying is
+    stark:
+
+        donors with ~zero overlap   gap +0.1210, 16/17 datasets, p=2e-04
+        all donors                  gap +0.0645, 33/44,          p=4e-04
+        donors above median overlap gap +0.0130, 12/22,          p=0.50, not significant
+
+    So contamination inflates the FLOOR, which SHRINKS the measured gap. The headline +0.065
+    is therefore a lower bound, diluted by pairs where the donor was not really wrong, and the
+    control behaves exactly as a valid one should: when the wrong protein is not wrong, it
+    reports no difference.
+
+    The methodological consequence is the useful part: a wrong-protein control must SCREEN ITS
+    DONORS for target overlap, or it under-reports. That screening requirement is part of the
+    method, not a caveat about this dataset.
+    """
+    from sklearn.metrics import roc_auc_score
+    from scipy.stats import spearmanr, wilcoxon
+
+    asg = fetch(bucket, "results/tables/variant_assignments.csv")
+    sb = fetch_prefix(bucket, "variants/scores_sb/")
+    mm = fetch_prefix(bucket, "variants/scores_mm/")
+    if asg is None or sb is None or mm is None:
+        log("skip donor overlap: need assignments and both arms")
+        return None
+    asg["dataset"] = asg.protein + ":" + asg.cell
+    vids = asg.groupby("dataset").vid.apply(set)
+    for d in (sb, mm):
+        d["dataset"] = d.protein + ":" + d.cell
+
+    rows = []
+    for ds, s in sb.groupby("dataset"):
+        g = mm[mm.dataset == ds].dropna(subset=["delta"])
+        s = s.dropna(subset=["delta"])
+        if s.label.nunique() < 2 or g.label.nunique() < 2:
+            continue
+        donor = g.weights_from.iloc[0] if "weights_from" in g else ""
+        t, d = vids.get(ds, set()), vids.get(donor, set())
+        if not t:
+            continue
+        rows.append({"dataset": ds, "donor": donor, "n_pathogenic": int(s.label.sum()),
+                     "shared_frac": len(t & d) / len(t),
+                     "jaccard": len(t & d) / len(t | d) if (t | d) else 0.0,
+                     "auroc_matched": roc_auc_score(s.label, s.delta.abs()),
+                     "auroc_floor": roc_auc_score(g.label, g.delta.abs())})
+    r = pd.DataFrame(rows).sort_values("dataset", kind="mergesort").reset_index(drop=True)
+    r.to_csv(TABLES / "donor_overlap.csv", index=False)
+
+    q = r[r.n_pathogenic >= 20]
+    rho, pv = spearmanr(q.shared_frac, q.auroc_floor)
+    out = [{"stratum": "correlation of floor with donor overlap", "n": len(q),
+            "matched": np.nan, "floor": np.nan, "gap": rho, "wins": np.nan, "p": pv}]
+    med = q.shared_frac.median()
+    for lab, sub in (("all powered donors", q),
+                     ("donors with negligible overlap", q[q.shared_frac <= 0.001]),
+                     ("donors above median overlap", q[q.shared_frac > med])):
+        if len(sub) < 8:
+            continue
+        out.append({"stratum": lab, "n": len(sub),
+                    "matched": sub.auroc_matched.mean(), "floor": sub.auroc_floor.mean(),
+                    "gap": (sub.auroc_matched - sub.auroc_floor).mean(),
+                    "wins": int((sub.auroc_matched > sub.auroc_floor).sum()),
+                    "p": wilcoxon(sub.auroc_matched, sub.auroc_floor).pvalue})
+    o = pd.DataFrame(out)
+    o.to_csv(TABLES / "donor_overlap_strata.csv", index=False)
+    log(f"donor overlap: median {r.shared_frac.median():.4f}, "
+        f"floor-vs-overlap rho={rho:+.3f} (p={pv:.3f})")
+    for _, x in o.iloc[1:].iterrows():
+        log(f"  {x.stratum:32} n={int(x.n):3d} gap {x.gap:+.4f} "
+            f"wins {int(x.wins)}/{int(x.n)} p={x.p:.4f}")
+    return r
+
+
 def specificity_attacks(bucket):
     """Four attacks on the wrong-protein control, from a council review, all answered here.
 
@@ -815,6 +904,7 @@ def main():
         variant_specificity(bucket)
         variant_ladder(bucket)
         specificity_attacks(bucket)
+        donor_overlap(bucket)
         robustness(bucket)
     figs_ok = do_figures() if a.what in ("figures", "all") else True
 

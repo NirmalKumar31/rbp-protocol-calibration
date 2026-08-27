@@ -1,0 +1,57 @@
+# CI, because "575 tests pass" is a claim until something other than the author runs them.
+#
+# A council reviewer looked for .github/ first, found nothing, and discounted the whole
+# testing story on the spot. That is the correct reaction: a suite nobody runs on a clean
+# checkout is a suite that passes on one laptop.
+#
+# This deliberately does NOT run the pipeline. The pipeline needs GCP credentials, a genome
+# and about $50. What CI can prove on a clean clone is that the code imports, the tests pass,
+# and the numbers nobody is allowed to edit silently have not been edited silently.
+
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docker/requirements-cpu.txt
+
+      # GOOGLE_CLOUD_PROJECT is resolved at import by src/rbp/utils/cloud.py and raises with
+      # no default, on purpose. CI supplies an obviously fake one: nothing here touches GCS,
+      # and a real project id in a public workflow would be a leak.
+      - name: unit tests
+        env:
+          GOOGLE_CLOUD_PROJECT: ci-no-such-project
+          PYTHONPATH: src
+        run: pytest tests/unit -q
+
+      # The golden values are the published numbers. Changing one must be a deliberate,
+      # reviewable act, not a diff that rides along inside an unrelated commit. The hash is
+      # printed on every run so a change is visible in the log even before the diff is read.
+      - name: golden values checksum
+        run: |
+          echo "golden.yaml sha256:"
+          sha256sum config/golden.yaml
+          if git diff --name-only "${{ github.event.before }}" HEAD 2>/dev/null | grep -q '^config/golden.yaml$'; then
+            echo "::warning file=config/golden.yaml::A published number changed. The commit message must say which claim moved and why."
+          fi
+
+      # The packaging script proves the archive the driver VM unpacks is importable. It caught
+      # a tar --exclude that silently deleted a source package and killed 188 GPU containers.
+      - name: repo package verifies
+        env:
+          GOOGLE_CLOUD_PROJECT: ci-no-such-project
+        run: PY=python ./cloud/package_repo.sh /tmp/repo.tgz

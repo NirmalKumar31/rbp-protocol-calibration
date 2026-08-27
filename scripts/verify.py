@@ -331,9 +331,72 @@ def verify_r4(T, g):
             at_least("inference is clustered", int(m.n_clusters), spec["min_clusters"])
 
 
+def verify_donor_overlap(T, g):
+    """The wrong-protein control's donor must actually be a wrong protein."""
+    print("\ndonor overlap  (is the wrong protein actually wrong?)")
+    r = T.get("donor_overlap.csv")
+    st = T.get("donor_overlap_strata.csv")
+    if r is None or st is None:
+        return record(False, "donor overlap tables present", "MISSING", "the tables")
+    spec = g["donor_overlap"]
+    at_most("median donor-target overlap", float(r.shared_frac.median()),
+            spec["median_overlap_max"])
+    s = st.set_index("stratum")
+    k = "correlation of floor with donor overlap"
+    if k in s.index:
+        at_most("floor is not driven by co-binding (rho)", abs(float(s.loc[k, "gap"])),
+                spec["floor_overlap_rho_max"])
+    clean = "donors with negligible overlap"
+    if clean in s.index:
+        near("gap on clean donors", float(s.loc[clean, "gap"]), spec["clean_donor_gap"])
+        at_least("clean-donor wins, fraction",
+                 float(s.loc[clean, "wins"]) / float(s.loc[clean, "n"]),
+                 spec["clean_donor_wins_min_fraction"])
+        at_most("clean-donor paired p", float(s.loc[clean, "p"]), spec["clean_donor_p_max"])
+    dirty = "donors above median overlap"
+    if dirty in s.index:
+        at_most("contaminated donors show LESS, as they must",
+                float(s.loc[dirty, "gap"]), spec["dirty_donor_gap_max"])
+
+
 def verify_integrity(T, g):
     print("\nintegrity")
     spec = g["integrity"]
+
+    # NaN fraction across every published table. This key existed and was never read.
+    #
+    # COLUMN-AWARE, and the distinction is not a loophole. One column legitimately carries
+    # NaN as a value: auroc_block_prevalence is undefined for a dataset whose 1-Mb blocks
+    # never contain both a pathogenic and a benign variant, which happens for the 8 datasets
+    # holding between 1 and 6 pathogenic variants. NaN there means "not computable", and
+    # writing 0.5 or dropping the row would both be worse -- one invents a result, the other
+    # hides that the baseline could not be run.
+    #
+    # None of those 8 are in the powered stratum, so no reported number depends on them. The
+    # exemption is listed per column rather than per table so that a NaN appearing anywhere
+    # else still fails.
+    NAN_OK = {("variant_specificity.csv", "auroc_block_prevalence"): "undefined below ~10 "
+              "pathogenic variants; excluded from every reported stratum"}
+    worst, where = 0.0, ""
+    for name in ("cost_of_matching.csv", "matched_four_models.csv", "locality_ism.csv",
+                 "variant_specificity.csv", "variant_ladder_paired.csv"):
+        d = T.get(name)
+        if d is None:
+            continue
+        num = d.select_dtypes(include="number")
+        cols = [c for c in num.columns if (name, c) not in NAN_OK]
+        if not cols:
+            continue
+        frac = float(num[cols].isna().to_numpy().mean())
+        if frac > worst:
+            worst, where = frac, name
+    at_most(f"NaN fraction, claim-bearing columns ({where or 'all clean'})",
+            worst, spec["max_nan_fraction"])
+    # And the exempted column is reported rather than ignored, so it cannot quietly grow.
+    d = T.get("variant_specificity.csv")
+    if d is not None and "auroc_block_prevalence" in d:
+        at_most("uncomputable block-prevalence baselines, fraction",
+                float(d.auroc_block_prevalence.isna().mean()), 0.15)
     for name in ("cost_of_matching.csv", "locality_ism.csv"):
         d = T.get(name)
         if d is None:
@@ -364,7 +427,7 @@ def main():
     print("=" * 78)
 
     for fn in (verify_r1, verify_r2, verify_r3, verify_r4_paired, verify_r4,
-               verify_integrity):
+               verify_donor_overlap, verify_integrity):
         try:
             fn(T, g)
         except Exception as e:                  # a broken check is a failure, not a crash
