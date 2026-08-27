@@ -84,7 +84,25 @@ Gate is a **ratchet at 45, not a clean bill of health** - most survivors are sub
 **8. f7 retitled** (both titles contradicted the revised R5 text), Takeaway 3 rewritten around
 the calibrated null, all 42 em-dashes gone.
 
-## NEXT, in order. All $0, all CPU.
+## QUEUED, do these first when the session resumes
+
+**Q1. Strand-test the surviving contrast. ~45 min, $0.** THE REASON THIS IS BACK: old Tier D1
+(the $25 strand fix) was cancelled on the evidence that the contrast *grew* on sense-only
+negatives, +0.2643 -> +0.2787. But +0.2643 is the composition-SHARE contrast, which is now
+retracted as an algebraic identity. The cancellation rests on a withdrawn number, and the
+surviving claim, the **+0.0397 nested gain**, has never been strand-tested. The paper already
+admits this in its limitations.
+
+Do it from committed data: `strand_audit.csv` carries per-dataset `frac_sense`; both rehearsal
+arms carry per-dataset `delta_auroc`. Regress the per-dataset nested contrast on `frac_sense`,
+and recompute the contrast within sense-rich and sense-poor halves. Flat means the artifact
+does not drive it and the biggest referee objection largely dies. Not flat means we need to
+know before submitting. Gate whichever way it lands, and do NOT reuse the retracted
+`strand_audit` share machinery: that block was deleted from golden.yaml on purpose.
+
+**Q2. Triage the 45 manuscript orphans. ~1 h, $0.** See item 3 below.
+
+## THEN, in order. All $0, all CPU.
 
 1. **R4 on SpliceBERT is the only thing left needing a download.** ~10 MB of
    `variants/scores_sb/` + `variants/scores_mm/`, ~$0.001. The procedure and the calibrated
@@ -102,6 +120,13 @@ the calibrated null, all 42 em-dashes gone.
 4. **Quote headline numbers to 4 decimals, not 3.** The audit's 3-dp grid is 44% occupied, so
    a 3-decimal number is roughly a coin flip to slip through; 4-dp is 1 in 15.
 5. Held until the above lands: README rewrite, billing-ID scrub + git remote.
+
+## The old Tier A-E list, reconciled 2026-08-27
+
+Mostly closed. A1, A2, B1, B3, B4, E2 done; C1 dropped then actually delivered as R6; B5, C2,
+C3 deliberately dropped; A3 partly (f7 retitled, f4 not revisited); B2 (README) and E1
+(manuscript) still open. **D1 is the live one**: cancelled on a number that has since been
+retracted, so its strand question is reopened as Q1 above.
 
 ## Still stated as limitations rather than fixed
 
