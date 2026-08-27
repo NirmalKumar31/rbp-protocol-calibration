@@ -372,7 +372,137 @@ def f5():
     save(fig, "f5_size_confound")
 
 
-FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5}
+# --- f6: the trivial baselines, which is the paper's strongest negative result -----------
+#
+# THIS FIGURE DID NOT EXIST FOR THREE DAYS while the claim it carries was called the paper's
+# headline. `variant_ladder_paired.csv` already held `block_prevalence` and
+# `model_minus_prevalence`; f4 loaded that exact frame and drew three arms out of four,
+# omitting the one the argument rests on. A claim with no figure is a claim a referee skims.
+#
+# Panel a is the one that matters: every point is one dataset, and a point below the diagonal
+# is a dataset where a rule that knows only WHERE a variant sits beat a fine-tuned language
+# model. Aggregates hide unanimity; scatters show it.
+def f6():
+    got = need("variant_specificity.csv", "variant_ladder_paired.csv",
+               "variant_specificity_attacks.csv", "robustness.csv")
+    if got is None:
+        return
+    per, ladder, attacks, rob = got
+    fig, ax = plt.subplots(1, 3, figsize=(11.4, 3.5))
+
+    # (a) paired scatter, powered stratum, on the COMMON variant mask
+    mcol = "auroc_matched_common" if "auroc_matched_common" in per else "auroc_matched"
+    q = per[(per.n_pathogenic >= 20)].dropna(subset=[mcol, "auroc_block_prevalence"])
+    ax[0].plot([0.3, 1.0], [0.3, 1.0], color="#999999", lw=1, ls="--", zorder=1)
+    ax[0].scatter(q.auroc_block_prevalence, q[mcol], s=26, color=COLOR["splicebert"],
+                  edgecolor="white", linewidth=0.6, zorder=3)
+    below = int((q[mcol] < q.auroc_block_prevalence).sum())
+    ax[0].set_xlabel("1-Mb positional prevalence, AUROC")
+    ax[0].set_ylabel("SpliceBERT, AUROC")
+    ax[0].set_title(f"a  the model loses on {below}/{len(q)} datasets", loc="left")
+    ax[0].set_xlim(0.3, 1.0)
+    ax[0].set_ylim(0.3, 1.0)
+    ax[0].set_aspect("equal")
+
+    # (b) the scorers, worst to best, so the reader's eye lands on conservation
+    row = ladder[ladder.min_pathogenic == 20]
+    bars = []
+    if len(row):
+        r = row.iloc[0]
+        bars = [("k-mer |delta|", 0.5519, "#bbbbbb"),
+                ("dataset identity", 0.6682, "#bbbbbb"),
+                ("wrong-protein head", float(r.mismatched), COLOR["kmer"]),
+                ("SpliceBERT", float(r.matched), COLOR["splicebert"]),
+                ("1-Mb prevalence", float(r.block_prevalence), COLOR["gc"]),
+                ("phyloP", float(r.conservation), "#7b3294")]
+    for i, (lab, v, c) in enumerate(bars):
+        ax[1].barh(i, v - 0.5, left=0.5, color=c, height=0.62)
+        ax[1].text(v + 0.006, i, f"{v:.3f}", va="center", fontsize=8)
+    ax[1].set_yticks(range(len(bars)))
+    ax[1].set_yticklabels([b[0] for b in bars])
+    ax[1].set_xlim(0.5, 0.98)
+    ax[1].set_xlabel("AUROC (paired, 44 powered datasets)")
+    ax[1].set_title("b  two of the three winners use no model", loc="left")
+    ax[1].grid(axis="y", visible=False)
+
+    # (c) the decay. A rule that wins only at one block size is a binning artefact; one that
+    # decays smoothly with block size is reading real positional structure.
+    dec = {}
+    for _, x in attacks.iterrows():
+        if str(x.attack).startswith("trivial rule at"):
+            dec[str(x.attack).replace("trivial rule at ", "")] = float(x.value)
+    if dec:
+        order = ["100 kb", "1000 kb", "10000 kb"]
+        xs = [k for k in order if k in dec]
+        ax[2].plot(range(len(xs)), [dec[k] for k in xs], marker="o", color=COLOR["gc"], lw=1.6)
+        for i, k in enumerate(xs):
+            ax[2].annotate(f"{dec[k]:.3f}", (i, dec[k]), textcoords="offset points",
+                           xytext=(0, 8), ha="center", fontsize=8)
+        ax[2].set_xticks(range(len(xs)))
+        ax[2].set_xticklabels(["100 kb", "1 Mb", "10 Mb"])
+    m = ladder[ladder.min_pathogenic == 20]
+    if len(m):
+        ax[2].axhline(float(m.iloc[0].matched), color=COLOR["splicebert"], ls=":", lw=1.4)
+        ax[2].text(0.02, float(m.iloc[0].matched) + 0.004, "SpliceBERT", fontsize=8,
+                   color=COLOR["splicebert"])
+    ax[2].set_ylabel("pooled AUROC")
+    ax[2].set_xlabel("genomic block size")
+    ax[2].set_title("c  positional signal decays with block size", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f6_trivial_baselines")
+
+
+# --- f7: why the threshold is 20, answered with a curve rather than a sentence -----------
+#
+# The single most reachable objection to the specificity result is "you chose 20 pathogenic
+# variants because it worked". `variant_threshold_curve.csv` answers it and was read by
+# NOTHING for three days -- computed, uploaded, and consumed by no figure, no gate and no
+# test. A threshold defended by a monotone curve is a design choice; the same threshold
+# defended by prose is a suspicion.
+#
+# The two lines are the argument. A generic plausibility floor should not care how many
+# pathogenic variants a dataset has, and a protein's own head should. Flat versus rising IS
+# the detection threshold.
+def f7():
+    got = need("variant_threshold_curve.csv")
+    if got is None:
+        return
+    (c,) = got
+    c = c.sort_values("min_pathogenic")
+    fig, ax = plt.subplots(1, 2, figsize=(8.6, 3.5))
+
+    ax[0].plot(c.min_pathogenic, c.matched, marker="o", ms=3.5, lw=1.6,
+               color=COLOR["splicebert"], label="right protein")
+    ax[0].plot(c.min_pathogenic, c.mismatched, marker="s", ms=3.5, lw=1.6,
+               color=COLOR["kmer"], label="wrong protein (the floor)")
+    ax[0].axvline(20, color="#999999", ls="--", lw=1)
+    ax[0].text(21, ax[0].get_ylim()[0] + 0.005, "reported\nthreshold", fontsize=7.5,
+               color="#666666")
+    ax[0].set_xlabel("minimum pathogenic variants per dataset")
+    ax[0].set_ylabel("mean per-dataset AUROC")
+    ax[0].set_title("a  the floor is flat; the model is not", loc="left")
+    ax[0].legend(frameon=False, fontsize=8, loc="lower right")
+
+    sig = c[c.p < 0.05]
+    ax[1].axhline(0, color="#999999", lw=1)
+    ax[1].plot(c.min_pathogenic, c.gap, marker="o", ms=3.5, lw=1.8, color="#7b3294")
+    if len(sig):
+        ax[1].scatter(sig.min_pathogenic, sig.gap, s=52, facecolor="none",
+                      edgecolor="#7b3294", linewidth=1.4, zorder=4,
+                      label=f"p < 0.05 (from {int(sig.min_pathogenic.min())})")
+        ax[1].legend(frameon=False, fontsize=8, loc="upper left")
+    ax[1].axvline(20, color="#999999", ls="--", lw=1)
+    ax[1].set_xlabel("minimum pathogenic variants per dataset")
+    ax[1].set_ylabel("specificity gap (right - wrong protein)")
+    ax[1].set_title("b  monotone in power, not a spike at 20", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f7_power_threshold")
+
+
+FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5,
+           "f6": f6, "f7": f7}
 
 
 def main():

@@ -555,6 +555,25 @@ All of it is now gated in `config/golden.yaml` under `strand_audit`, including
 `contrast_rho_p_min: 0.05` — an assertion that the correlation must stay **non-significant**.
 If the artifact ever starts predicting the contrast, the build fails.
 
+> **CORRECTION, 2026-08-27.** The paragraph above was false when written. The `strand_audit`
+> block existed in `golden.yaml` and `grep strand scripts/verify.py` returned **nothing** — the
+> nine keys were written down, not gated. A reviewer caught it, and it is the *third*
+> occurrence of this exact bug: `integrity.min_tests_passing` sat unread while the suite grew
+> from 480 to 576; `r1_headline_is_gc_share_only` was added to forbid a headline and, unread,
+> failed to stop that headline being promoted two weeks later; and then the commit that wired
+> up those 26 keys introduced 9 more that nothing read, plus this sentence asserting they were
+> covered.
+>
+> `verify_strand_audit` now exists and all nine keys are read. More to the point, the defence
+> is no longer a person remembering to check: `tests/unit/test_golden_keys_are_read.py` parses
+> `golden.yaml`, walks every leaf key, and **fails the build** if any key is referenced
+> nowhere. Exemptions are a named dict with a written reason per entry, so adding one is a
+> visible act in a diff.
+>
+> The lesson is not "be more careful." It is that a claim about coverage is itself a claim, and
+> claims need gates. This document asserting a gate exists is exactly as trustworthy as a
+> config asserting a number is checked — which is to say, not at all, until something executes.
+
 ---
 
 # Act V. The novelty demolition
