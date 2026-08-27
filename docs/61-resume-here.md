@@ -1,7 +1,7 @@
 # Resume here
 
-Updated 2026-08-27, after the R1 scale check and the corrected refit. **138/138 verifier
-checks, 587 tests, 31 tables, 9 figures.** Uncommitted: last commit is still `60a5ded`.
+Updated 2026-08-27. **139/139 verifier checks, 588 tests, 32 tables, 9 figures.**
+Branch `r1-scale-check-and-corrected-refit`, commits `d7e645a`, `dd386d7`, `9314e71`.
 **$0 spent this session, no cloud touched.**
 
 ## DONE this session
@@ -65,6 +65,25 @@ R4d. Methods demonstration, not R4: the k-mer arm is the only per-variant table 
 - R4's own section now carries a DO-NOT-SUBMIT banner. `golden.yaml: r4_incremental_value`
   still gates the retracted numbers, deliberately, so the contradiction is visible in config.
 
+**6. Verifier integrity, the whole skip class.** `integrity.min_domain_checks` asserts how
+many checks ran. Most gates are still `if value is not None:` and vanish rather than fail when
+a row goes missing; asserting the count fixes the category rather than 38 instances.
+Demonstrated: deleting 2 rows from `multidonor_specificity.csv` silently disables **7 checks**
+in a section never touched, and the floor is the only thing that notices. Also:
+`recompute.py`'s rehearsal arm is now mandatory (deleting the evidence used to pass silently);
+six retracted strand-contrast gates deleted; `cost` recentred -0.1080 -> -0.1095;
+`auroc_gc`/`auroc_dinuc` recentred 0.7963/0.6893 -> 0.7981/0.6886.
+
+**7. `scripts/audit_manuscript.py`** checks every number quoted to >=3 dp against the tables.
+Found six unsourced cells in R1's own headline table, and that R4's 5-row table splices its
+top row from a different table with a different n. **My first version was near-vacuous**: it
+pooled 66k-row tables, saturating the 4-dp grid 73.9%, so a fabricated 0.9427 passed; it also
+read its own report back as evidence. Now 6.3% saturated and the injection fails the build.
+Gate is a **ratchet at 45, not a clean bill of health** - most survivors are subset aggregates.
+
+**8. f7 retitled** (both titles contradicted the revised R5 text), Takeaway 3 rewritten around
+the calibrated null, all 42 em-dashes gone.
+
 ## NEXT, in order. All $0, all CPU.
 
 1. **R4 on SpliceBERT is the only thing left needing a download.** ~10 MB of
@@ -74,13 +93,14 @@ R4d. Methods demonstration, not R4: the k-mer arm is the only per-variant table 
 2. **Same leakage bug in `cloud_analysis.py:686-690`**, where `prev` is a regression
    covariate, so the 1.1689 row conditions on a covariate contaminated with the outcome.
    Requires rerunning the cloud analysis, so it is blocked on item 1.
-3. **Remaining gate fixes:** delete the retracted strand contrast gate
-   (`golden.yaml:396-398`, `verify.py:608-616`); add `min_verify_checks` to `main()`; convert
-   the remaining `if v(k) is not None` skips to failures; make the rehearsal block mandatory
-   in `recompute.py:134`; `cost` gate is centred on -0.1080 while the paper claims -0.1095
-   (documented as spanning two panels, so check before changing).
-4. **Manuscript:** retitle `figures.py` f7a/f7b, both still contradict the revised text.
-   Rewrite Takeaway #3. Scrub em-dashes from the paper (new R1b text is already clean).
+3. **Triage the 45 manuscript orphans** (`results/tables/manuscript_orphans.csv`). Each is a
+   number in the paper that traces to nothing. Expect most to be legitimate SUBSET aggregates
+   (e.g. 0.8904 = mean `auroc_conservation_common` over the 44 powered rows having both
+   columns; 0.8921 is the same rows' `auroc_conservation`, hence the -0.0017). Emit the
+   legitimate ones into the table that owns them and lower `max_manuscript_orphans` toward 0.
+   Purely mechanical, no judgement calls about claims, and it is the highest-value $0 work left.
+4. **Quote headline numbers to 4 decimals, not 3.** The audit's 3-dp grid is 44% occupied, so
+   a 3-decimal number is roughly a coin flip to slip through; 4-dp is 1 in 15.
 5. Held until the above lands: README rewrite, billing-ID scrub + git remote.
 
 ## Still stated as limitations rather than fixed
