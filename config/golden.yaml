@@ -49,8 +49,13 @@ meta:
 # --- R1: the negative-set protocol effect ---------------------------------------------
 # The headline is the unanimity and the second-order gain, not the drop.
 r1_cost_of_matching:
-  auroc_gc:        {value: 0.7963, tol: 0.015}
-  auroc_dinuc:     {value: 0.6893, tol: 0.015}
+  # RECENTRED on what cost_of_matching.csv actually contains. These read 0.7963 and 0.6893
+  # against measured 0.7981 and 0.6886, drift that a 0.015 tolerance absorbed silently -- the
+  # same defect as `cost` below, found by cross-checking against the identical quantity now
+  # emitted by scripts/scale_check.py from the two rehearsal arms. The two paths are gated
+  # separately on purpose: if they ever disagree, one of the tables is stale.
+  auroc_gc:        {value: 0.7981, tol: 0.010}
+  auroc_dinuc:     {value: 0.6886, tol: 0.010}
   # CENTRED ON WHAT THE PAPER CLAIMS AND ON WHAT THE TABLE CONTAINS, which are the same
   # number. This was {value: -0.1080, tol: 0.012}, split between the 94-dataset study panel
   # (-0.1095) and the full 189-dataset panel (-0.1070) so the tolerance would span both. But
@@ -104,6 +109,15 @@ r1_cost_of_matching:
 # gives the scale-only contrast; what remains is the protocol effect. Measured: 21% scale,
 # 79% protocol.
 r1_scale_check:
+  # THE SIX CELLS OF R1's HEADLINE TABLE. Printed in the manuscript, computed on the fly and
+  # stored in no table until scripts/audit_manuscript.py went looking -- the same state the
+  # +0.0397 contrast survived six review rounds in.
+  mean_composition_gc:   {value: 0.7827, tol: 0.010}
+  mean_composition_dn:   {value: 0.6280, tol: 0.010}
+  mean_score_gc:         {value: 0.7981, tol: 0.010}
+  mean_score_dn:         {value: 0.6886, tol: 0.010}
+  mean_full_gc:          {value: 0.8092, tol: 0.010}
+  mean_full_dn:          {value: 0.6941, tol: 0.010}
   contrast_auroc:        {value: 0.0397, tol: 0.004}
   nested_gc:             {value: 0.0265, tol: 0.004}
   nested_dn:             {value: 0.0662, tol: 0.007}
@@ -351,7 +365,22 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 131
+  min_domain_checks: 138
+  # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
+  # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
+  # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
+  # table computed on the fly and stored nowhere (precisely the state the +0.0397 contrast
+  # survived six review rounds in, now written by scripts/scale_check.py), and it found that
+  # R4's five-row table splices its top row in from a different table with a different n.
+  #
+  # 45 IS NOT A CLEAN BILL OF HEALTH. Most survivors are aggregates over a SUBSET, such as the
+  # mean conservation AUROC over the 44 powered datasets, which no whole-column aggregate can
+  # reproduce. They need triaging one at a time, and the legitimate ones need emitting into
+  # tables so this can ratchet toward zero. Until then the gate buys one thing, which is that a
+  # NEW unsourced number fails the build.
+  #
+  # DO NOT RAISE THIS TO MAKE A BUILD PASS. Add the number to the table that owns it.
+  max_manuscript_orphans: 45
 
 # --- the wrong-protein control's donor must actually be a WRONG protein -----------------
 #

@@ -541,6 +541,12 @@ def verify_scale_check(T, g):
         return float(q.loc[k, col])
 
     for k, gk in (
+            ("mean AUROC, composition alone, GC arm", "mean_composition_gc"),
+            ("mean AUROC, composition alone, dinuc arm", "mean_composition_dn"),
+            ("mean AUROC, score alone, GC arm", "mean_score_gc"),
+            ("mean AUROC, score alone, dinuc arm", "mean_score_dn"),
+            ("mean AUROC, composition + score, GC arm", "mean_full_gc"),
+            ("mean AUROC, composition + score, dinuc arm", "mean_full_dn"),
             ("nested contribution, GC arm", "nested_gc"),
             ("nested contribution, dinuc arm", "nested_dn"),
             ("CONTRAST, AUROC scale (published headline)", "contrast_auroc"),
@@ -796,6 +802,19 @@ def verify_recompute(T, g):
 def verify_integrity(T, g):
     print("\nintegrity")
     spec = g["integrity"]
+
+    # EVERY NUMBER IN THE MANUSCRIPT MUST HAVE A SOURCE. scripts/audit_manuscript.py lists the
+    # ones that appear in no committed table and in no golden key. The paper's primary contrast
+    # was in exactly that state through six rounds of adversarial review, because a reviewer
+    # reads a number rather than goes looking for it. Ratcheted: three orphans are known and
+    # documented in golden.yaml, and a fourth fails the build.
+    orph = T.get("manuscript_orphans.csv")
+    if orph is None:
+        record(False, "manuscript_orphans.csv present", "MISSING",
+               "run scripts/audit_manuscript.py")
+    else:
+        at_most("manuscript numbers with no source in any table", len(orph),
+                spec["max_manuscript_orphans"])
 
     # NaN fraction across every published table. This key existed and was never read.
     #

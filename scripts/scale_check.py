@@ -122,6 +122,16 @@ def main():
         rows.append({"check": check, "value": float(value), "ci_low": lo, "ci_high": hi,
                      "n": npt, "note": note})
 
+    # THE R1 TABLE'S OWN CELLS. Printed in the manuscript, computed on the fly, and stored
+    # nowhere until now -- the same state the +0.0397 contrast was in. scripts/audit_manuscript.py
+    # found six of them still orphaned after that one was fixed.
+    for lab, col in (("composition alone", "composition_auroc"),
+                     ("score alone", "auroc"),
+                     ("composition + score", "with_score_auroc")):
+        for arm, tag in (("gc", "GC"), ("dn", "dinuc")):
+            add(f"mean AUROC, {lab}, {tag} arm", float(m[f"{col}_{arm}"].mean()),
+                note="cell of the R1 table")
+
     add("nested contribution, GC arm", obs["nested_gc"], "nested_gc")
     add("nested contribution, dinuc arm", obs["nested_dn"], "nested_dn")
     add("CONTRAST, AUROC scale (published headline)", obs["contrast_auroc"], "contrast_auroc",

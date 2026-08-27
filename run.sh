@@ -284,6 +284,8 @@ s13b_local_analysis() {
   $PY scripts/incremental_value.py || die "incremental value"
   $PY scripts/unconditional_refit.py || die "unconditional refit"
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
+  # LAST, because it audits the tables the four above have just written.
+  $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"
   # scripts/strand_audit.py is deliberately NOT here. It needs --gtf and --datasets, i.e. a
   # GENCODE annotation and the window tables, neither of which is in the repo, so it cannot
   # run from committed evidence. Its table IS committed and IS verified, which means one gated

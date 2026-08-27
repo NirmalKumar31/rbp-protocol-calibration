@@ -1,4 +1,10 @@
 check,value,ci_low,ci_high,n,note
+"mean AUROC, composition alone, GC arm",0.7827305894799742,,,94,cell of the R1 table
+"mean AUROC, composition alone, dinuc arm",0.6279577163719093,,,94,cell of the R1 table
+"mean AUROC, score alone, GC arm",0.7981348703252871,,,94,cell of the R1 table
+"mean AUROC, score alone, dinuc arm",0.6886367833860715,,,94,cell of the R1 table
+"mean AUROC, composition + score, GC arm",0.8092423107126487,,,94,cell of the R1 table
+"mean AUROC, composition + score, dinuc arm",0.6941490555219909,,,94,cell of the R1 table
 "nested contribution, GC arm",0.026511721232674708,0.021001979796338,0.032431513755279015,94,
 "nested contribution, dinuc arm",0.06619133915008159,0.05588347544637779,0.07654198065448982,94,
 "CONTRAST, AUROC scale (published headline)",0.03967961791740689,0.033607985175735065,0.045776955467476094,94,dinuc larger in 88/94; this number appeared in no committed table before now
