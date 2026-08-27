@@ -513,6 +513,73 @@ def verify_multidonor(T, g):
                cell(POW, "intercept | advantage+size+power", "ci_low"), "<= 0")
 
 
+def verify_scale_check(T, g):
+    """R1: the protocol effect must survive removal of AUROC-scale compression.
+
+    THIS IS THE GATE ON THE PAPER'S PRIMARY CLAIM, and until now that claim had no gate at
+    all. +0.0397 was printed in the manuscript, appeared in no committed table, and was
+    produced by no script that could be found. It could not be reproduced and it could not
+    fail. Every other headline in this project that reached that state turned out to be wrong.
+
+    Missing rows are FAILURES here, not skips. The rest of this file guards its rows with
+    `if v(k) is not None`, and a referee deleted five rows from a table and got 106/106. A
+    check that a corrupted input can switch off is not a check.
+    """
+    print("\nR1  scale check  (is the protocol effect real, or the AUROC ceiling?)")
+    d = T.get("scale_check.csv")
+    if d is None:
+        return record(False, "scale_check.csv present", "MISSING",
+                      "run scripts/scale_check.py")
+    spec = g["r1_scale_check"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        """Read a row, or fail loudly. Returns None only after recording the failure."""
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    for k, gk in (
+            ("nested contribution, GC arm", "nested_gc"),
+            ("nested contribution, dinuc arm", "nested_dn"),
+            ("CONTRAST, AUROC scale (published headline)", "contrast_auroc"),
+            ("contrast attributable to SCALE alone", "contrast_scale_only"),
+            ("CONTRAST, protocol effect net of scale", "contrast_protocol"),
+            ("CONTRAST, d-prime scale (unbounded)", "contrast_dprime"),
+            ("fraction of the contribution hidden by GC matching, corrected",
+             "hidden_fraction_corrected"),
+            ("CONTRAST, log-odds scale (REVERSES)", "contrast_logodds"),
+            ("CONTRAST, log-odds normalised by total signal",
+             "contrast_logodds_normalised")):
+        val = must(k)
+        if val is not None:
+            near(k, val, spec[gk])
+
+    # THE CLAIM. The protocol effect must be positive with its interval clear of zero.
+    lo = must("CONTRAST, protocol effect net of scale", "ci_low")
+    if lo is not None and spec["protocol_ci_must_exclude_zero"]:
+        record(lo > 0, "protocol effect survives with CI excluding zero", f"{lo:+.4f}", "> 0")
+
+    # ...and compression must be a minority of it, or the headline IS the artefact.
+    share = must("scale share of the published contrast")
+    if share is not None:
+        at_most("AUROC compression is a minority of the contrast", share,
+                spec["max_scale_share"])
+
+    # The log-odds reversal is disqualified only by this fingerprint. Assert both halves: the
+    # coefficient gap must track total signal, and must NOT track incremental value. If that
+    # ever flips, the reversal is real evidence against R1.
+    rt = must("spearman(coef gap, TOTAL-signal gap)")
+    if rt is not None:
+        at_least("coef gap tracks TOTAL signal (why it is not comparable)", abs(rt),
+                 spec["min_rho_coef_gap_total"])
+    ri = must("spearman(coef gap, INCREMENTAL-value gap)")
+    if ri is not None:
+        at_most("coef gap does NOT track incremental value", abs(ri),
+                spec["max_rho_coef_gap_increment"])
+
+
 def verify_incremental_value(T, g):
     """R4: the model's variant signal net of conservation and position.
 
@@ -560,6 +627,83 @@ def verify_incremental_value(T, g):
     if m is not None:
         at_least("positional rule survives within every phyloP decile", m,
                  spec["positional_rule_min_auroc_within_phylop_decile"])
+    # The printed values, which the floor above did not pin. Both moved when own-label leakage
+    # was removed from the prevalence baseline, so they are asserted rather than trusted.
+    u = v("positional rule, unstratified")
+    if u is not None:
+        near("positional rule, unstratified", u, spec["positional_rule_unstratified_auroc"])
+    r = v("spearman(positional rule, phyloP)")
+    if r is not None:
+        near("spearman(positional rule, phyloP)", r, spec["positional_rule_phylop_spearman"])
+
+
+def verify_unconditional_refit(T, g):
+    """The corrected attenuation analysis, and its calibrated null.
+
+    Gated separately from r4_incremental_value because it CONTRADICTS it. The retracted
+    version read near-zero attenuation as independence; with a proper null that same number
+    means substantial sharing. Both sets of keys exist so the contradiction is visible in the
+    config rather than resolved silently.
+
+    Missing rows are failures, per verify_scale_check.
+    """
+    print("\nunconditional refit  (near-zero attenuation is NOT independence)")
+    d = T.get("unconditional_refit.csv")
+    if d is None:
+        return record(False, "unconditional_refit.csv present", "MISSING",
+                      "run scripts/unconditional_refit.py")
+    spec = g["r4_unconditional_refit"]
+    w = d[d.standardisation == "within_dataset"].set_index("check")
+    allrows = d.set_index(["standardisation", "check"])
+
+    def must(k):
+        if k not in w.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(w.loc[k, "value"])
+
+    for k, gk in (("coef, TRULY unconditional", "coef_unconditional_within"),
+                  ("coef, conditional on phyloP", "coef_conditional_within"),
+                  ("NULL attenuation at rho=0 (simulated)", "null_attenuation_simulated"),
+                  ("NULL attenuation at rho=0 (analytic cross-check)",
+                   "null_attenuation_analytic"),
+                  ("correlation implied by the observed attenuation", "implied_rho"),
+                  ("spearman(|delta|, phyloP), MEASURED", "measured_rho")):
+        val = must(k)
+        if val is not None:
+            near(k, val, spec[gk])
+
+    # The raw attenuation is small and sign-unstable. Asserted as small so that a run where
+    # it is LARGE is flagged: that would mean the estimator changed, not that the claim got
+    # stronger.
+    raw = must("attenuation fraction (identical rows)")
+    if raw is not None:
+        at_most("raw attenuation is near zero (and not the claim)", abs(raw),
+                spec["max_abs_raw_attenuation"])
+
+    # Two routes to the null must agree, or the interpretation rests on nothing.
+    sim = must("NULL attenuation at rho=0 (simulated)")
+    ana = must("NULL attenuation at rho=0 (analytic cross-check)")
+    if sim is not None and ana is not None:
+        at_most("simulated and analytic nulls agree", abs(sim - ana),
+                spec["null_sim_analytic_max_gap"])
+
+    # THE CLAIM, required under BOTH standardisations because the raw attenuation flips sign
+    # between them and the conclusion must not.
+    for tag in ("pooled", "within_dataset"):
+        k = (tag, "excess attenuation over the null")
+        if k not in allrows.index:
+            record(False, f"row present: {tag} excess attenuation", "MISSING", "the row")
+            continue
+        at_least(f"excess attenuation over the null, {tag}",
+                 float(allrows.loc[k, "value"]), spec["min_excess_attenuation"])
+
+    # ...and the sharing the attenuation implies must match the sharing measured directly.
+    imp = must("correlation implied by the observed attenuation")
+    mea = must("spearman(|delta|, phyloP), MEASURED")
+    if imp is not None and mea is not None:
+        at_most("implied and measured correlation agree", abs(imp - mea),
+                spec["max_implied_measured_gap"])
 
 
 def verify_strand_audit(T, g):
@@ -741,8 +885,9 @@ def main():
     print(f"golden: {m['reference_run']} established {m['established']}")
     print("=" * 78)
 
-    for fn in (verify_r1, verify_r2, verify_r3, verify_r4_paired, verify_r4,
-               verify_multidonor, verify_incremental_value, verify_strand_audit, verify_recompute,
+    for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
+               verify_multidonor, verify_incremental_value, verify_unconditional_refit,
+               verify_strand_audit, verify_recompute,
                verify_integrity):
         try:
             fn(T, g)

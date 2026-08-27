@@ -2,7 +2,7 @@
 
 **Manuscript source of truth.** Written 2026-08-27 after six rounds of adversarial review.
 Every number here is in a committed table under `results/tables/` and gated by
-`scripts/verify.py` (105/105). If a number in the manuscript disagrees with this file, this
+`scripts/verify.py` (125/125). If a number in the manuscript disagrees with this file, this
 file is wrong and must be fixed — not the manuscript quietly edited.
 
 **Working title:** *What GC-matched negatives and ClinVar AUROC actually measure: trivial-baseline
@@ -14,12 +14,15 @@ calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
 
 ## The one-sentence claim
 
-> Under negatives matched only on GC content — the protocol in general use — a 5-mer model's
+> Under negatives matched only on GC content, the protocol in general use, a 5-mer model's
 > measured contribution over a mono+dinucleotide baseline is **+0.0265 AUROC**; matching on
-> full dinucleotide composition raises it to **+0.0662** (difference **+0.0397** [+0.0334,
-> +0.0461], larger in 88/94 datasets) while lowering the model's apparent AUROC by **0.1095**
-> in **94/94** datasets. The standard protocol simultaneously inflates reported performance and
-> hides two-thirds of the model's real contribution.
+> full dinucleotide composition raises it to **+0.0662** (difference **+0.0397** [+0.0336,
+> +0.0458], larger in 88/94 datasets) while lowering the model's apparent AUROC by **0.1095**
+> in **94/94** datasets. One fifth of that difference is arithmetic rather than biology,
+> because a nested AUROC gain compresses against a higher baseline; net of compression the
+> protocol effect is **+0.0313** [+0.0267, +0.0363], positive in 87/94. The standard protocol
+> simultaneously inflates reported performance and conceals about half of the model's
+> measurable contribution.
 
 ---
 
@@ -30,13 +33,19 @@ calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
 | quantity | GC-matched | dinuc-matched |
 |---|---|---|
 | composition alone (19 features) | 0.7827 | 0.6280 |
-| composition + 5-mer score | 0.7981 | 0.6886 |
-| **nested contribution of the score** | **+0.0265** [+0.0212, +0.0325] | **+0.0662** |
+| 5-mer score alone | 0.7981 | 0.6886 |
+| composition + 5-mer score | 0.8092 | 0.6941 |
+| **nested contribution of the score** | **+0.0265** [+0.0210, +0.0324] | **+0.0662** [+0.0559, +0.0765] |
 | datasets where the score adds significantly | **80/94** | 82/94 |
-| datasets where composition ≥ the k-mer model | **29/94** | — |
+| datasets where composition ≥ the k-mer model | **29/94** | n/a |
+
+An earlier draft of this table put 0.7981 and 0.6886 on the "composition + score" row. Those
+are the *standalone* 5-mer AUROCs. The nested values are 0.8092 and 0.6941, and the reported
+contributions were always the nested ones, so the claim did not change; the row label was
+wrong and is corrected here.
 
 - cost of proper matching: **−0.1095** AUROC, **94/94 datasets fall**, paired Wilcoxon p < 1e-15
-- contrast in nested contribution: **+0.0397** [+0.0334, +0.0461]
+- contrast in nested contribution: **+0.0397** [+0.0336, +0.0458]
 - **effect modification by dataset size is real: rho = +0.307, p = 0.0026** on the reported
   nested contrast. The paired design still rules out size *confounding* — both arms use the
   same datasets — but the effect is larger in larger datasets and that must be printed. (An
@@ -52,6 +61,61 @@ of 15** and the dinucleotide arm controls **15 of 15**. (An earlier draft said 1
 18-of-18 while simultaneously conceding mono is spanned by dinuc; both cannot hold.) The *sign* of the +0.0397 contrast is therefore
 implied by the design; only its *magnitude* is informative. Say exactly this. Do not lead with
 the 94.8% / 67.8% share framing — see the retraction below.
+
+## R1b — the contrast is not an artefact of the AUROC scale
+
+`scale_check.csv`, `scripts/scale_check.py`, 13 gated checks. Figure **f8**.
+
+**The objection.** R1 compares two nested AUROC gains whose baselines differ a lot: composition
+alone reaches 0.7827 in the GC arm and 0.6280 in the dinucleotide arm. AUROC is bounded at 1,
+so a fixed increment of real discriminative signal buys a smaller AUROC increment when the
+baseline is already high. The measured compression factor between these two baselines is
+**1.51x**. The objection is therefore not vague: scale compression predicts the observed
+direction with no protocol effect at all, and it has to be answered with a number.
+
+Somers' D does not answer it. D = 2·AUROC − 1, so the nested gain on the D scale is exactly
+twice the same quantity and the contrast merely doubles. It is a linear rescaling of the thing
+in question.
+
+**The decomposition.** Under a binormal model d′ = √2·Φ⁻¹(AUROC) is linear in signal and
+unbounded. Transplanting the GC arm's own d′ increment onto the dinucleotide arm's baseline
+predicts what that arm would show if the protocol moved the baseline and changed nothing else.
+
+| component of the +0.0397 contrast | value | share |
+|---|---|---|
+| attributable to AUROC compression | **+0.0083** [+0.0061, +0.0109] | 21% |
+| **protocol effect, net of compression** | **+0.0313** [+0.0267, +0.0363] | **79%** |
+
+The protocol effect is positive in **87/94** datasets and its interval excludes zero. The same
+comparison computed directly on the unbounded d′ scale gives **+0.1290** [+0.1091, +0.1499],
+larger in 87/94, which would be zero if compression were the whole story. Corrected for
+compression, GC matching conceals **47.4%** of the model's measurable contribution, so the
+honest phrase is "about half", not "two-thirds" (the uncorrected figure is 60%, and an earlier
+draft said two-thirds, which was wrong on both counts).
+
+**The reversal, which must be reported.** The same comparison on a third scale, the Firth
+coefficient of the standardised score in the nested fit, **changes sign**: +1.063 in the GC arm
+against +0.686 in the dinucleotide arm, dinucleotide larger in only 11/94. A result whose sign
+depends on the scale is not a result unless the reversal itself has a diagnosis, and it does. A
+logistic coefficient is identified only against the latent residual scale, so coefficients from
+two fits with different total signal are not comparable (Mood 2010, *Eur Sociol Rev*; the same
+non-collapsibility that voided this paper's earlier conservation analysis, R4c). The GC task
+carries **1.79x** the total signal of the dinucleotide task. The fingerprint is direct: across
+the 94 datasets the between-arm coefficient gap tracks each task's **total** signal at
+Spearman **+0.520** (p = 8e-08) and tracks the **incremental value** it is supposed to measure
+at **+0.065** (p = 0.53). Dividing each coefficient by its own fit's total signal restores the
+sign, **+0.1154** [+0.0715, +0.1597], larger in 68/94.
+
+So two of three scales agree with R1 and the third is measuring task difficulty rather than
+incremental value. Both the reversal and its fingerprint are gated, so if the fingerprint ever
+inverts the verifier fails and the reversal becomes real evidence against R1.
+
+**Provenance note, stated because it matters.** Before this analysis the +0.0397 contrast
+appeared in the manuscript, in no committed table, and under no golden key. It could not be
+recomputed and it could not fail. It is now derived by `scripts/scale_check.py` from the two
+rehearsal arms and asserted by `r1_scale_check`. Its interval, recomputed with a paired
+dataset-level bootstrap (2000 draws, seed 0), is [+0.0336, +0.0458]; the manuscript previously
+printed [+0.0334, +0.0461] from an unrecorded computation.
 
 ## R2 — the model ladder (methods table, not a result)
 
@@ -92,6 +156,17 @@ argument that pooled AUROC is unbiased for its own estimand and simply answers a
 question.
 
 ## R4 — the model's variant signal is orthogonal to conservation and position (primary ClinVar result)
+
+> **DO NOT SUBMIT THIS SECTION. Its headline number is retracted and its conclusion is
+> backwards.** Every fit in `variant_specificity_refit.csv` was produced by a caller that
+> passes conservation into the model ([`cloud_analysis.py:389`](../scripts/cloud_analysis.py)),
+> so the row labelled "controls = none" was *already* conservation-adjusted and the published
+> "0.21% attenuation" is the effect of dropping 168 rows (18,998 to 18,830), not of
+> conditioning. Worse, near-zero attenuation was read as evidence of independence when it is
+> evidence of the opposite: see **R4d**, which redoes the estimator correctly and inverts the
+> conclusion. The text below is retained unedited so the error is auditable. Recomputing it on
+> the SpliceBERT arm requires `variants/scores_sb/` and `variants/scores_mm/`, which are
+> GCS-only, and is pending.
 
 **RESTRUCTURED 2026-08-27 after peer review.** The previous version of this section led with
 "conservation and a positional rule beat the model", which is (a) a replication of Grimm 2015
@@ -148,11 +223,17 @@ paper whose R3 *is* the pooled-versus-paired distinction cannot mix them in its 
 - decay across block sizes (pooled): 100 kb **0.851**, 1 Mb 0.818, 10 Mb 0.733
 
 **The positional rule is not conservation in disguise, and this matters.** Spearman(prevalence,
-phyloP) = **+0.339**, and the rule retains AUROC **0.768–0.832 within every one of ten phyloP
-deciles** (unstratified 0.825, n=27,364 unique variants). So it is a second, independent
+phyloP) = **+0.338**, and the rule retains AUROC **0.755–0.817 within every one of ten phyloP
+deciles** (unstratified **0.816**, n=27,364 unique variants). So it is a second, independent
 benchmark leak — and unlike phyloP it is **not** exposed to the PP3 circularity, because no
 ACMG criterion is "this variant is near other pathogenic variants." Of the two baselines that
 outrank the model, this is the one a referee cannot explain away.
+
+*Correction, 2026-08-27.* An earlier draft printed 0.825 unstratified and 0.768–0.832 across
+deciles. Those were computed with leave-one-out block prevalence taken on the pre-deduplicated
+assignment table, which carries 2.40 rows per variant; subtracting one copy left roughly 1.4
+copies of a variant's own label inside its own block. Deduplicating first gives the values
+above. The conclusion is unchanged and slightly weaker, which is the direction that matters.
 
 **Prior art, cited in the Introduction rather than buried.** Grimm et al. 2015, *Human
 Mutation* (type-2 circularity); Schreiber, Singh, Bilmes & Noble 2020, *Genome Biology*
@@ -189,6 +270,70 @@ cell-type specificity). Also Livesey & Marsh; Notin et al. 2023 (ProteinGym); Ma
 (BEND); Tang & Koo; Sasse et al. 2023; Karollus & Gagneur 2023. **This result is a replication
 in a new tissue, not a discovery.** The contribution is the specific instrument (a leave-one-out
 positional-prevalence rule on RBP variant data) and the calibration in R5.
+
+## R4d — the estimator done correctly, and why it reverses R4's conclusion
+
+`unconditional_refit.csv`, `scripts/unconditional_refit.py`, 11 gated checks. n = 27,492
+unique variants, 189 datasets, 1-Mb block cluster bootstrap, 2000 draws.
+
+**This is a methods result, not R4.** It runs on the **k-mer** arm, which is the only
+per-variant score table committed to the repository. R4's claim is about SpliceBERT, whose
+scores are GCS-only. What transfers is the procedure and, more importantly, the
+interpretation, because both were wrong.
+
+**The correction is one argument.** `fit_delta_coef` has always accepted `conservation=None`;
+nothing ever passed it. With both fits run on one row set built once, so the comparison cannot
+absorb a change in n:
+
+| standardisation | truly unconditional | conditional on phyloP | attenuation |
+|---|---|---|---|
+| pooled | +0.2673 [+0.218, +0.319] | +0.2609 [+0.199, +0.321] | **+2.4%** |
+| within-dataset | +0.2915 [+0.258, +0.326] | +0.3067 [+0.265, +0.351] | **−5.2%** |
+
+The raw attenuation is near zero, and it **flips sign** depending on a preprocessing choice
+that has nothing to do with the hypothesis. That instability alone disqualifies it as a
+headline.
+
+**Near-zero attenuation is not independence. It is the signature of real sharing.** Logistic
+regression is not collapsible: adding a strong predictor of the outcome inflates the other
+coefficients even when the two predictors are exactly independent, because the latent residual
+scale is fixed. phyloP's coefficient here is **+2.12**, which is very strong. So the null for
+"conservation carries no information about the model's signal" is not 0% attenuation, it is a
+large *amplification*:
+
+| quantity | pooled | within-dataset |
+|---|---|---|
+| **null attenuation at ρ = 0**, forward simulation | **−68.4%** | **−68.5%** |
+| same, analytic cross-check 1 − √(1 + 0.346·c²) | −59.9% | −60.1% |
+| **excess attenuation over the null** | **+70.8%** | **+63.3%** |
+| ρ implied by the observed attenuation | +0.085 | +0.084 |
+| **ρ between \|δ\| and phyloP, measured directly** | **+0.066** | **+0.064** |
+
+The last two rows are the check that makes this trustworthy. The correlation needed to cancel
+a −68% amplification and land at ~0% is ρ ≈ 0.085; the correlation actually present is ρ ≈
+0.065. They agree to within 0.02, so the whole picture is internally consistent and the
+original reading was simply inverted. Both standardisations give the same large positive
+excess even though their raw attenuations have opposite signs, which is the robustness the raw
+number lacks.
+
+**Honest statement of what this licenses.** On the k-mer arm, the model's variant signal is
+*partly* shared with conservation, by an amount that a modest correlation fully accounts for.
+It is not orthogonal to conservation, and it is not explained away by conservation either. The
+same analysis on SpliceBERT is the outstanding work.
+
+**A first version of this null was wrong and is recorded rather than deleted.** It generated
+the synthetic covariate from the label, C = μ·y + noise, reasoning that this makes it
+independent of the score. It does not make it a valid null: C is then a descendant of the
+outcome, conditioning on it is conditioning on a collider, and the amplification mostly
+disappears. It reported a null of −1.5%, which would have reproduced exactly the retracted
+conclusion by a new route. The analytic cross-check is in the table and gated for this reason:
+two independent routes to the null must agree or neither is usable.
+
+**Prior art on the estimator itself.** Pepe, Janes, Longton, Leisenring & Newcomb 2004, *Am J
+Epidemiol*, "Limitations of the odds ratio in gauging the performance of a marker": a large,
+tightly bounded coefficient implies very little about added discrimination. A coefficient was
+the wrong summary for "does the model add anything" regardless of what it was conditioned on,
+which is why R1's nested AUROC framing is the one the paper leads with.
 
 ## R5 — the wrong-protein control, and the detection threshold (conditional)
 

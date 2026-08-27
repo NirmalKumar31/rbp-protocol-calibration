@@ -24,6 +24,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+from scipy.stats import norm, spearmanr  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "results" / "tables"
@@ -501,8 +502,81 @@ def f7():
     save(fig, "f7_power_threshold")
 
 
+# --- f8: R1 is not the AUROC ceiling -----------------------------------------------------
+#
+# The figure exists to answer one referee objection, so each panel is one step of that answer
+# and nothing else. (a) the raw paired effect. (b) how much of it survives once AUROC
+# compression is removed, which is the only number that matters. (c) why the third scale
+# disagrees: the coefficient gap tracks total task signal, not incremental value, so it is
+# measuring difficulty. Panel c is two scatters rather than one because the argument IS the
+# contrast between the two correlations.
+
+def f8():
+    t = need("rehearsal_binding_gc.csv", "rehearsal_binding_dinuc.csv", "scale_check.csv")
+    if t is None:
+        return
+    gc, dn, sc = t
+    m = gc.merge(dn, on="dataset", suffixes=("_gc", "_dn"))
+    q = sc.set_index("check")
+    val = lambda k: float(q.loc[k, "value"])
+    err = lambda k: [[val(k) - float(q.loc[k, "ci_low"])], [float(q.loc[k, "ci_high"]) - val(k)]]
+
+    r2 = np.sqrt(2.0)
+    dp = lambda a: r2 * norm.ppf(np.clip(a, 1e-6, 1 - 1e-6))
+    for a in ("gc", "dn"):
+        m[f"dd_{a}"] = dp(m[f"with_score_auroc_{a}"]) - dp(m[f"composition_auroc_{a}"])
+        m[f"dfull_{a}"] = dp(m[f"with_score_auroc_{a}"])
+
+    fig, ax = plt.subplots(1, 3, figsize=(11.4, 3.5))
+
+    # (a) the paired effect, per dataset
+    lim = [0, max(m.delta_auroc_gc.max(), m.delta_auroc_dn.max()) * 1.06]
+    ax[0].plot(lim, lim, color="#999999", ls="--", lw=1, zorder=1)
+    ax[0].scatter(m.delta_auroc_gc, m.delta_auroc_dn, s=22, alpha=0.8,
+                  color=COLOR["kmer"], edgecolor="white", linewidth=0.4, zorder=3)
+    n_up = int((m.delta_auroc_dn > m.delta_auroc_gc).sum())
+    ax[0].set(xlim=lim, ylim=lim, xlabel="nested gain, GC-matched",
+              ylabel="nested gain, dinuc-matched")
+    ax[0].set_title(f"a  larger under proper matching in {n_up}/{len(m)}", loc="left")
+
+    # (b) the decomposition: what survives removing compression
+    # observed contrast first, then the two things it decomposes into. Three distinct hues,
+    # because these are three different quantities and two shades of the same blue read as one.
+    keys = [("CONTRAST, AUROC scale (published headline)", "observed\ncontrast", COLOR["kmer"]),
+            ("contrast attributable to SCALE alone", "AUROC\ncompression", "#b0b0b0"),
+            ("CONTRAST, protocol effect net of scale", "protocol effect\n(what survives)",
+             COLOR["splicebert"])]
+    for i, (k, lab, c) in enumerate(keys):
+        ax[1].bar(i, val(k), width=0.62, color=c, edgecolor="white", linewidth=1.2, zorder=3)
+        ax[1].errorbar(i, val(k), yerr=err(k), color="#333333", capsize=3, lw=1.2, zorder=4)
+        ax[1].text(i, float(q.loc[k, "ci_high"]) + 0.0016, f"{val(k):+.4f}",
+                   ha="center", fontsize=8)
+    ax[1].axhline(0, color="#333333", lw=0.8)
+    ax[1].set_xticks(range(3), [lab for _, lab, _ in keys], fontsize=8)
+    ax[1].set_ylim(0, val(keys[0][0]) * 1.34)
+    ax[1].set_ylabel("contrast in nested gain")
+    share = val("scale share of the published contrast")
+    ax[1].set_title(f"b  compression explains {share:.0%}, not all of it", loc="left")
+
+    # (c) why the log-odds scale disagrees
+    cgap = m.coef_gc - m.coef_dn
+    for x, lab, c in ((m.dfull_gc - m.dfull_dn, "vs TOTAL task signal", COLOR["gc"]),
+                      (m.dd_dn - m.dd_gc, "vs INCREMENTAL value", COLOR["splicebert"])):
+        rho = spearmanr(cgap, x).statistic
+        ax[2].scatter(x, cgap, s=20, alpha=0.75, color=c, edgecolor="white",
+                      linewidth=0.3, zorder=3, label=f"{lab}   rho {rho:+.2f}")
+    ax[2].axhline(0, color="#999999", lw=0.8, ls="--")
+    ax[2].legend(frameon=False, fontsize=7.5, loc="lower right")
+    ax[2].set(xlabel="between-arm gap (d' units)",
+              ylabel="between-arm gap in coefficient")
+    ax[2].set_title("c  the coefficient tracks difficulty, not value", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f8_scale_check")
+
+
 FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5,
-           "f6": f6, "f7": f7}
+           "f6": f6, "f7": f7, "f8": f8}
 
 
 def main():

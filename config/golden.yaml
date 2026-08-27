@@ -87,6 +87,48 @@ r1_cost_of_matching:
   fraction_datasets_falling: {value: 1.0, tol: 0.0}
   wilcoxon_p_max: 1.0e-15
 
+# --- R1, continued: is the protocol effect real or an AUROC-scale artefact? ------------
+#
+# WHY THIS BLOCK EXISTS. R1's headline contrast, +0.0397, was printed in the manuscript and
+# existed in NO committed table and under NO golden key. It could not be recomputed and it
+# could not fail. `contrast_auroc` below is the first assertion of it in the project's
+# history, and it is now derived by `scripts/scale_check.py` from the two rehearsal arms.
+#
+# THE OBJECTION IT ANSWERS. A nested AUROC gain is compressed when the baseline is already
+# high, and the two arms start at 0.7827 and 0.6280. Measured compression factor: 1.51x. So
+# the observed direction is predicted by the scale alone, and the claim needs the part that
+# is NOT scale. Transplanting the GC arm's own d' increment onto the dinucleotide baseline
+# gives the scale-only contrast; what remains is the protocol effect. Measured: 21% scale,
+# 79% protocol.
+r1_scale_check:
+  contrast_auroc:        {value: 0.0397, tol: 0.004}
+  nested_gc:             {value: 0.0265, tol: 0.004}
+  nested_dn:             {value: 0.0662, tol: 0.007}
+  contrast_scale_only:   {value: 0.0083, tol: 0.002}
+  # THE HONEST HEADLINE. If this fails, R1 fails and there is no paper.
+  contrast_protocol:     {value: 0.0313, tol: 0.004}
+  protocol_ci_must_exclude_zero: true
+  # Scale must be a minority of the effect. Measured 0.21; a run where compression accounts
+  # for most of the contrast means the claim is an artefact.
+  max_scale_share:       0.35
+  # The same comparison on an unbounded scale, which would be zero if compression were the
+  # whole story.
+  contrast_dprime:       {value: 0.1290, tol: 0.015}
+  # The corrected version of the abstract's "hides two-thirds". It is about half.
+  hidden_fraction_corrected: {value: 0.4735, tol: 0.05}
+  #
+  # THE REVERSAL, GATED SO IT CANNOT BE QUIETLY DROPPED. On the log-odds scale the contrast
+  # changes sign. That is reported in the paper, not hidden, and these three keys are why it
+  # is not fatal: the between-arm coefficient gap tracks each task's TOTAL signal and is
+  # uncorrelated with the incremental value it is supposed to measure, which is the standard
+  # non-comparability of logistic coefficients across fits (Mood 2010). If the fingerprint
+  # ever inverts -- the gap tracking increment rather than total signal -- the reversal
+  # becomes real evidence against R1 and this block must fail.
+  contrast_logodds:      {value: -0.3771, tol: 0.06}
+  min_rho_coef_gap_total:     0.35
+  max_rho_coef_gap_increment: 0.25
+  contrast_logodds_normalised: {value: 0.1154, tol: 0.035}
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -435,3 +477,46 @@ r4_incremental_value:
   # The positional rule must remain informative WITHIN conservation strata, or it is just
   # conservation in disguise and the paper has one baseline, not two.
   positional_rule_min_auroc_within_phylop_decile: 0.70
+  # The two positional-rule numbers the paper actually prints, which were ungated while the
+  # floor above was the only assertion. They also both MOVED: prevalence was computed on the
+  # pre-deduplicated assignment table (2.40 rows per variant), so leave-one-out removed one
+  # copy and left ~1.4 copies of a variant's own label in its own block. 0.8246 -> 0.8164 and
+  # 0.7678 -> 0.7548 after deduplicating first.
+  positional_rule_unstratified_auroc: {value: 0.8164, tol: 0.010}
+  positional_rule_phylop_spearman:    {value: 0.3375, tol: 0.030}
+
+# --- the estimator R4 needed, done correctly, on the arm that is in the repo -----------
+#
+# WHAT THIS BLOCK REPLACES. `variant_specificity_refit.csv` was built by a caller that passed
+# conservation into EVERY fit, so its "controls = none" row was already adjusted and the
+# published "0.21% attenuation" was the effect of dropping 168 rows. The keys above
+# (r4_incremental_value) still gate those retracted numbers and must not be trusted; this
+# block gates the corrected procedure on the k-mer arm, which is the only variant score table
+# committed to the repo. It is a methods demonstration, not R4.
+#
+# THE POINT, AND IT INVERTS THE ORIGINAL READING. Near-zero attenuation was presented as
+# evidence that the model's signal is independent of conservation. It is the opposite. Logistic
+# regression is not collapsible, so a covariate this strong (phyloP coefficient ~2.12) AMPLIFIES
+# the other coefficient by ~65% when it is genuinely independent. Landing at ~0% therefore
+# requires real sharing, and the amount of sharing it requires (rho ~0.085) is close to the
+# correlation actually measured (rho ~0.065). The two agree, so the picture is consistent and
+# the original conclusion was backwards.
+r4_unconditional_refit:
+  coef_unconditional_within: {value: 0.2915, tol: 0.020}
+  coef_conditional_within:   {value: 0.3067, tol: 0.020}
+  # Raw attenuation is near zero AND flips sign between the two standardisations (+0.024
+  # pooled, -0.052 within). That instability is itself a reason it was never a safe headline.
+  max_abs_raw_attenuation:   0.10
+  # The null, twice, by independent routes. If the simulation and the closed form disagree,
+  # one of them is broken and the interpretation rests on nothing. The first attempt at this
+  # simulation WAS broken -- it drew the covariate from the label, making it a collider, and
+  # reported -1.5% instead of -68% -- which would have reproduced the retracted conclusion.
+  null_attenuation_simulated: {value: -0.684, tol: 0.060}
+  null_attenuation_analytic:  {value: -0.599, tol: 0.060}
+  null_sim_analytic_max_gap:  0.15
+  # THE CLAIM. Both standardisations must show a large positive excess over the null, and the
+  # correlation the attenuation implies must land near the correlation measured directly.
+  min_excess_attenuation:    0.50
+  implied_rho:               {value: 0.0842, tol: 0.020}
+  measured_rho:              {value: 0.0640, tol: 0.015}
+  max_implied_measured_gap:  0.040

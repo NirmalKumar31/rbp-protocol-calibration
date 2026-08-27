@@ -273,6 +273,24 @@ s13_analysis() {
   ./cloud/submit.sh analysis || die "analysis"
 }
 
+s13b_local_analysis() {
+  say "stage 13b: post-hoc analyses that run on committed evidence, no cloud"
+  # THESE WERE WIRED INTO NOTHING. verify.py asserts scale_check.csv, incremental_value.csv,
+  # strand_audit.csv and the recompute, and until now no stage regenerated any of them: the
+  # tables were produced by hand and committed, so `run.sh all` could not have reproduced the
+  # numbers it then verified. They need no GPU and no bucket -- only results/tables and
+  # data/evidence, both of which are in the repo -- so they belong in the pipeline.
+  $PY scripts/scale_check.py       || die "scale check"
+  $PY scripts/incremental_value.py || die "incremental value"
+  $PY scripts/unconditional_refit.py || die "unconditional refit"
+  $PY scripts/recompute.py         || die "recompute from per-example evidence"
+  # scripts/strand_audit.py is deliberately NOT here. It needs --gtf and --datasets, i.e. a
+  # GENCODE annotation and the window tables, neither of which is in the repo, so it cannot
+  # run from committed evidence. Its table IS committed and IS verified, which means one gated
+  # table in this project is not regenerable offline. That is a real gap; it is stated in the
+  # limitations rather than hidden behind a stage that would fail on a clean clone.
+}
+
 s14_verify() {
   say "stage 14: verify against golden numbers"
   # TWICE, against two different artefacts, because they can disagree and the disagreement is
@@ -291,7 +309,7 @@ s14_verify() {
 
 STAGES=(s0_preflight s1_terraform s2_images s3_ingest s4_panel s5_prep s6_select \
         s7_rehearsal s8_cnn s9_splicebert s10_locality s11_variants s12_clinvar \
-        s13_analysis s14_verify)
+        s13_analysis s13b_local_analysis s14_verify)
 
 status() {
   say "project=$PROJECT_ID derived=$DERIVED raw=$RAW region=$REGION panel=every-$EVERY"
