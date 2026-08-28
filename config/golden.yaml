@@ -281,6 +281,30 @@ r1_robustness:
   composition_beats_model_gc: {value: 29.0, tol: 0.0}
   composition_beats_model_dn: {value: 14.0, tol: 0.0}
 
+# --- R1e: is the contrast an artifact of k, and can it be REBUILT? ---------------------
+#
+# THE SECOND VERIFICATION IN THIS REPOSITORY. Every other R1 number is READ from a table the
+# analysis pass wrote, so its gate detects drift and not error. k_sweep.py refits composition
+# and k-mer models from `dataset.tsv` sequence for all 94 datasets in both arms and rebuilds
+# the contrast. It lands on the committed value exactly. If the published contrast were wrong,
+# this column could not agree with it.
+#
+# All 94 datasets pass the per-arm reproduction gate at k=4 before any other k is trusted.
+r1_k_sweep:
+  n_datasets:        {value: 94.0, tol: 0.0}
+  contrast_k3:       {value: 0.0311, tol: 0.005}
+  contrast_k4:       {value: 0.0397, tol: 0.005}
+  contrast_k5:       {value: 0.0397, tol: 0.005}
+  contrast_k6:       {value: 0.0355, tol: 0.005}
+  # THE PROOF. Rebuilt from sequence against the committed table, same datasets.
+  max_rebuild_diff:  0.0005
+  # THE ROBUSTNESS. The contrast must survive every k, or it is a k artifact.
+  min_contrast_any_k: 0.020
+  min_datasets_positive_all_k: 75
+  # And the manuscript's "5-mer" error must be shown to be inconsequential, not merely
+  # corrected: k=5 and k=4 must agree.
+  max_k5_minus_k4:   0.004
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -500,7 +524,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 192
+  min_domain_checks: 201
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

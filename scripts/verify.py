@@ -725,6 +725,51 @@ def verify_strand_contrast(T, g):
                 spec["max_frac_sense_leverage"])
 
 
+def verify_k_sweep(T, g):
+    """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
+    print("\nR1e  k sweep and rebuild-from-sequence")
+    d = T.get("k_sweep.csv")
+    if d is None:
+        return record(False, "k_sweep.csv present", "MISSING", "run scripts/k_sweep.py")
+    spec = g["r1_k_sweep"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = float(q.loc["contrast, k=4", "n"]) if "contrast, k=4" in q.index else None
+    if n is not None:
+        record(n == spec["n_datasets"]["value"], "datasets rebuilt from sequence", n,
+               spec["n_datasets"]["value"])
+    # Keys spelled out rather than built with an f-string. tests/unit/test_golden_keys_are_read
+    # reads this file as TEXT, so `spec[f"contrast_k{k}"]` is invisible to it and four gated
+    # keys registered as unread. A check the key-coverage test cannot see is a check that can
+    # silently disappear later.
+    for k, gk in ((3, "contrast_k3"), (4, "contrast_k4"),
+                  (5, "contrast_k5"), (6, "contrast_k6")):
+        v = must(f"contrast, k={k}")
+        if v is not None:
+            near(f"contrast, k={k}", v, spec[gk])
+
+    diff = must("absolute difference")
+    if diff is not None:
+        at_most("REBUILT from sequence matches the committed contrast", diff,
+                spec["max_rebuild_diff"])
+    lo = must("smallest contrast across k=3..6")
+    if lo is not None:
+        at_least("contrast survives every k", lo, spec["min_contrast_any_k"])
+    cnt = must("datasets positive at EVERY k")
+    if cnt is not None:
+        at_least("datasets positive at every k", cnt, spec["min_datasets_positive_all_k"])
+    d54 = must("k=5 minus k=4")
+    if d54 is not None:
+        at_most("k=5 and k=4 agree (the '5-mer' error was inconsequential)", abs(d54),
+                spec["max_k5_minus_k4"])
+
+
 def verify_r1_robustness(T, g):
     """Replication across cell lines, and the efficiency the protocol buys.
 
@@ -1153,7 +1198,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cross_tables, verify_integrity):
         try:

@@ -230,6 +230,40 @@ truth".** A benchmark built on dinucleotide-matched negatives reports a lower he
 and a more precisely measured, more reproducible, and roughly twice as large estimate of what
 the model actually contributes.
 
+## R1e: the contrast rebuilt from sequence, and independent of k
+
+`k_sweep.csv`, `scripts/k_sweep.py`, 11 gated checks, all 94 datasets, both arms.
+
+**Rebuilt, not re-read.** Every other number in R1 is read from `rehearsal_binding_*.csv`,
+which the analysis pass wrote, so its gate detects drift rather than error. This section refits
+the composition baseline and the k-mer model from `dataset.tsv` sequence for all 94 datasets in
+both arms and recomputes the contrast from scratch. Every dataset first passes a per-arm
+reproduction gate at k = 4; **none was skipped**. The rebuilt contrast is **+0.0397** against a
+committed **+0.0397**, absolute difference **1.2e-06**. With `recompute.py`, which rebuilds 285
+published AUROCs from per-example scores, this is the second result in the study that is proved
+rather than reproduced.
+
+**Independent of the k-mer size.**
+
+| k | GC-arm gain | dinuc-arm gain | contrast | dinuc larger |
+|---|---|---|---|---|
+| 3 | 0.0168 | 0.0479 | **+0.0311** [+0.0267, +0.0355] | 90/94 |
+| 4 | 0.0265 | 0.0662 | **+0.0397** [+0.0336, +0.0458] | 88/94 |
+| 5 | 0.0277 | 0.0674 | **+0.0397** [+0.0334, +0.0461] | 89/94 |
+| 6 | 0.0245 | 0.0600 | **+0.0355** [+0.0291, +0.0422] | 91/94 |
+
+The contrast is positive at every k, and positive at *every* k in **82/94** datasets
+individually. So it is not an artifact of one arbitrary modelling choice.
+
+**A disclosure this table also settles.** Four places in an earlier draft described the model as
+a 5-mer. It is a 4-mer: both rehearsal tables record k = 4 on all 189 rows, and the "5" came
+from `config/params.yaml` `cv: k: 5`, which is the cross-validation fold count. The error is
+corrected throughout, and the table above shows what it would have cost: the k = 5 and k = 4
+contrasts differ by **+0.0001**, paired Wilcoxon **p = 0.84**. Not one conclusion in this paper
+turns on it. The reason it survived 150 gated numeric assertions is worth stating plainly,
+because it generalises: every one of those assertions checked a *value*, and none checked
+*which model produced it*. `k` is now gated.
+
 ## R2: the model ladder (methods table, not a result)
 
 `matched_four_models.csv`, n = 95, identical chromosome-level folds. Figure **f2**.
