@@ -84,6 +84,50 @@ Gate is a **ratchet at 45, not a clean bill of health** - most survivors are sub
 **8. f7 retitled** (both titles contradicted the revised R5 text), Takeaway 3 rewritten around
 the calibrated null, all 42 em-dashes gone.
 
+## THE DECISION (council round 8, 2026-08-28): PAPER A, gated on ONE pre-registered test
+
+**Paper A.** "Negative-set matching changes what an RBP benchmark measures." R1 + R1b on 94
+paired ENCODE datasets. The scale decomposition is demoted to a robustness section citing
+Pencina 2012. Venue: NAR Genomics & Bioinformatics (Methods).
+
+**Paper B is dead** and must not be attempted. Each of its three "traps" has a published owner,
+and two of the remedies are better than mine: scale compression is Pencina, D'Agostino,
+Pencina, Janssens & Greenland 2012 *Am J Epidemiol* 176(6):473-481; cross-fit coefficient
+non-comparability is Karlson, Holm & Breen 2012 *Sociological Methodology* 42:286-313, which
+decomposes rescaling vs confounding WITH a significance test that mine lacks; the calibrated
+attenuation null is Schuster, Twisk, ter Riet, Heymans & Rijnhart 2021 *BMC Med Res Methodol*
+21:136 (verified in Europe PMC), plus Janes, Dominici & Zeger 2010 *Biostatistics* and Pang,
+Kaufman & Platt 2013 *SMMR*. Whalen, Schreiber, Noble & Pollard 2022 *Nat Rev Genet*
+23:169-181 already owns the "bundle of genomics ML pitfalls" slot. Cite these; do not compete
+with them. (KHB is not in Europe PMC because *Sociological Methodology* is not indexed there;
+verify it directly before citing.)
+
+### PRE-REGISTERED, WRITTEN BEFORE THE TEST IS RUN
+
+The strand wound is the only thing standing between here and submission, and the current
+evidence has no leverage (`frac_sense` spans 0.433-0.615; extrapolation [-0.189, +0.072]).
+
+**The test.** Fix the strand bug and regenerate negatives for a random **15-20 datasets**,
+seed fixed and recorded before selection. Recompute the +0.0397 nested-gain contrast
+**paired within dataset**, strand-correct against original, at `frac_sense` ~ 1.0. Windows
+whose gene strand is ambiguous are EXCLUDED, never coin-flipped.
+
+**Root cause, verified.** `annotation.py:126` `build_index` states "Strand is deliberately
+dropped", so `negatives.py:328` falls back to `"strand": p["strand"]` and computes
+`seq_rna = to_rna(dna, p["strand"])` from the POSITIVE's strand. Fix: retain strand in the
+region index, recompute `to_rna` with each negative's OWN gene strand. **CPU-only, $0.** The
+$25 estimate belonged to the SpliceBERT arm, which paper A does not use.
+
+**Pass criteria, all three required:**
+1. the contrast keeps its sign (positive), and
+2. its bootstrap CI excludes zero, and
+3. at least **60%** of the original point estimate survives (i.e. >= +0.0238 against +0.0397).
+
+**Decision rule.** Pass -> write paper A, with a strand control Horlacher 2023 does not have.
+Fail -> paper D: ship the repo as the portfolio artifact, post an honest short preprint, and
+write the negative result up, which is itself worth publishing. **Do not renegotiate these
+thresholds after seeing the result.**
+
 ## QUEUED, do these first when the session resumes
 
 **Q1. Strand-test the surviving contrast. ~45 min, $0.** THE REASON THIS IS BACK: old Tier D1
