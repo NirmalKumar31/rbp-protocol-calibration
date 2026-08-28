@@ -19,4 +19,6 @@ scale share of the published contrast,0.21006619532083454,,,94,"fraction of +0.0
 "total signal ratio, GC over dinuc",1.7945342390692414,,,94,d'(composition+score); logistic coefficients are not comparable across fits with different total signal
 "spearman(coef gap, TOTAL-signal gap)",0.5197196835603078,,,94,p=7.97e-08; the coefficient gap tracks total signal
 "spearman(coef gap, INCREMENTAL-value gap)",0.06534696384062422,,,94,p=0.531; and not the quantity it is supposed to measure
+log-odds gap predicted by SCALE alone,-0.492670857971168,-0.559777649193711,-0.4288296038829517,94,what the reversal would be if it were only latent rescaling
+log-odds residual after the scale null,0.11559661939247606,0.0549583906508909,0.17347319899122146,94,"POSITIVE means incremental value survives the rescaling, i.e. R1's direction"
 "CONTRAST, log-odds normalised by total signal",0.11539268026530039,0.0715312147477841,0.15966548945860654,94,sign restored; dinuc larger in 68/94

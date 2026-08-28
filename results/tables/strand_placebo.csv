@@ -6,4 +6,4 @@ change from restriction,-0.0091075772271163,-0.013761738268220905,-0.00477279614
 change from placebo,-0.003175116181375913,-0.005330592146524375,-0.0013675846788881597,40,"the same shrinkage, with no strand involved"
 STRAND-SPECIFIC EXCESS,-0.005932461045740378,-0.009816704400007493,-0.002083214524840515,40,THE ANSWER: restriction minus placebo
 strand-CORRECTED contrast,0.03183281502372278,0.023432210772680574,0.04147079071290945,40,full contrast with only the strand-specific part removed
-fraction of the published contrast surviving,0.8505677318453305,,,40,pre-registered floor was 0.60
+fraction of the contrast surviving,0.8429122817789396,,,40,"floor was 0.60, pre-registered; panel's own contrast is +0.0378, not the n=94 +0.0397"

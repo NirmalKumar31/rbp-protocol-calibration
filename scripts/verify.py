@@ -558,7 +558,9 @@ def verify_scale_check(T, g):
              "hidden_fraction_corrected"),
             ("CONTRAST, log-odds scale (REVERSES)", "contrast_logodds"),
             ("CONTRAST, log-odds normalised by total signal",
-             "contrast_logodds_normalised")):
+             "contrast_logodds_normalised"),
+            ("log-odds gap predicted by SCALE alone", "logodds_scale_null"),
+            ("log-odds residual after the scale null", "logodds_residual")):
         val = must(k)
         if val is not None:
             near(k, val, spec[gk])
@@ -573,6 +575,14 @@ def verify_scale_check(T, g):
     if share is not None:
         at_most("AUROC compression is a minority of the contrast", share,
                 spec["max_scale_share"])
+
+    # THE ARITHMETIC ANSWER TO THE REVERSAL, stronger than the correlation below: subtract
+    # what pure latent rescaling predicts and a positive residual remains.
+    rlo = must("log-odds residual after the scale null", "ci_low")
+    rv = must("log-odds residual after the scale null")
+    if rv is not None and rlo is not None and spec["residual_ci_must_exclude_zero"]:
+        record(rv > 0 and rlo > 0, "incremental value survives the latent rescaling",
+               f"{rv:+.4f} [{rlo:+.4f}, ...]", "> 0")
 
     # The log-odds reversal is disqualified only by this fingerprint. Assert both halves: the
     # coefficient gap must track total signal, and must NOT track incremental value. If that
@@ -767,7 +777,7 @@ def verify_strand_placebo(T, g):
     if cv is not None and clo is not None and spec["corrected_ci_must_exclude_zero"]:
         record(cv > 0 and clo > 0, "PRE-REGISTERED: sign kept and CI excludes zero",
                f"{cv:+.4f} [{clo:+.4f}, ...]", "> 0")
-    fr = must("fraction of the published contrast surviving")
+    fr = must("fraction of the contrast surviving")
     if fr is not None:
         at_least("PRE-REGISTERED: fraction of the contrast surviving", fr,
                  spec["min_fraction_surviving"])

@@ -216,9 +216,12 @@ def summarise(m):
         note="THE ANSWER: restriction minus placebo")
     add("strand-CORRECTED contrast", m.corrected.mean(), "corrected",
         note="full contrast with only the strand-specific part removed")
-    add("fraction of the published contrast surviving",
-        (0.0397 + m.excess.mean()) / 0.0397,
-        note="pre-registered floor was 0.60")
+    # ON THIS PANEL'S OWN CONTRAST, not the n=94 published one. Inserting +0.0397 into an
+    # n=40 computation mixes panels and reported 0.8506 where the honest figure is 0.8429.
+    add("fraction of the contrast surviving",
+        m.corrected.mean() / m.c_full.mean(),
+        note=f"floor was 0.60, pre-registered; panel's own contrast is "
+             f"{m.c_full.mean():+.4f}, not the n=94 +0.0397")
 
     res = pd.DataFrame(out)
     res.to_csv(TABLES / "strand_placebo.csv", index=False)

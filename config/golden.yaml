@@ -149,6 +149,14 @@ r1_scale_check:
   min_rho_coef_gap_total:     0.35
   max_rho_coef_gap_increment: 0.25
   contrast_logodds_normalised: {value: 0.1154, tol: 0.035}
+  # THE REVERSAL, TURNED INTO EVIDENCE. If the coefficient gap were nothing but the latent
+  # rescaling, it would be coef_dn * (1 - total-signal ratio) = -0.4927. It is -0.3771, so
+  # +0.1156 of incremental value shows through the rescaling, and its interval excludes zero.
+  # This is a stronger answer to the reversal than the correlational fingerprint, because it
+  # is arithmetic on the same fits rather than a correlation across datasets.
+  logodds_scale_null:    {value: -0.4927, tol: 0.040}
+  logodds_residual:      {value: 0.1156, tol: 0.035}
+  residual_ci_must_exclude_zero: true
 
 # --- R1: does the strand artifact drive the surviving contrast? ------------------------
 #
@@ -438,7 +446,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 162
+  min_domain_checks: 165
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

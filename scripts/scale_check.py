@@ -95,6 +95,13 @@ def quantities(m):
         "contrast_scale_only": (m.pred_dn - m.delta_auroc_gc).mean(),
         "contrast_protocol": (m.delta_auroc_dn - m.pred_dn).mean(),
         "contrast_logodds_normalised": (m.coef_dn / m.dfull_dn - m.coef_gc / m.dfull_gc).mean(),
+        # THE PURE-SCALE NULL FOR THE REVERSAL. If the coefficient gap were nothing but the
+        # latent-scale difference, coef_gc would equal coef_dn times the total-signal ratio,
+        # and the gap would be coef_dn * (1 - ratio). Anything less negative than that is
+        # incremental value showing through the rescaling, and it points R1's way.
+        "logodds_scale_null": (m.coef_dn * (1.0 - m.dfull_gc / m.dfull_dn)).mean(),
+        "logodds_residual": ((m.coef_dn - m.coef_gc)
+                             - m.coef_dn * (1.0 - m.dfull_gc / m.dfull_dn)).mean(),
         "nested_gc": m.delta_auroc_gc.mean(),
         "nested_dn": m.delta_auroc_dn.mean(),
     }
@@ -182,6 +189,12 @@ def main():
         note=f"p={rho_t.pvalue:.3g}; the coefficient gap tracks total signal")
     add("spearman(coef gap, INCREMENTAL-value gap)", rho_i.statistic,
         note=f"p={rho_i.pvalue:.3g}; and not the quantity it is supposed to measure")
+    add("log-odds gap predicted by SCALE alone", obs["logodds_scale_null"],
+        "logodds_scale_null",
+        note="what the reversal would be if it were only latent rescaling")
+    add("log-odds residual after the scale null", obs["logodds_residual"],
+        "logodds_residual",
+        note="POSITIVE means incremental value survives the rescaling, i.e. R1's direction")
     add("CONTRAST, log-odds normalised by total signal",
         obs["contrast_logodds_normalised"], "contrast_logodds_normalised",
         note=f"sign restored; dinuc larger in "
