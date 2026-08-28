@@ -284,6 +284,7 @@ s13b_local_analysis() {
   $PY scripts/incremental_value.py || die "incremental value"
   $PY scripts/unconditional_refit.py || die "unconditional refit"
   $PY scripts/strand_contrast.py    || die "strand contrast"
+  $PY scripts/strand_placebo.py --from-cache --gtf x --gc-root x --dn-root x || die "strand placebo"
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
   $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"

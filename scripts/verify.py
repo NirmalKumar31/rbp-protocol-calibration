@@ -715,6 +715,64 @@ def verify_strand_contrast(T, g):
                 spec["max_frac_sense_leverage"])
 
 
+def verify_strand_placebo(T, g):
+    """The pre-registered strand test: restriction against a matched random-drop placebo.
+
+    This is the gate on R1's last open wound. The criteria in golden.yaml were written into
+    docs/61 BEFORE the experiment ran, and they must not be loosened afterwards.
+    """
+    print("\nR1  strand placebo  (the pre-registered test)")
+    d = T.get("strand_placebo.csv")
+    if d is None:
+        return record(False, "strand_placebo.csv present", "MISSING",
+                      "run scripts/strand_placebo.py")
+    spec = g["r1_strand_placebo"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    n = must("contrast, full data", "n")
+    if n is not None:
+        record(n == spec["n_datasets"]["value"], "datasets in the test", n,
+               spec["n_datasets"]["value"])
+
+    for k, gk in (("contrast, full data", "contrast_full"),
+                  ("contrast, sense-only pairs", "contrast_sense_only"),
+                  ("contrast, PLACEBO (same n, random)", "contrast_placebo"),
+                  ("change from restriction", "change_from_restriction"),
+                  ("change from placebo", "change_from_placebo"),
+                  ("STRAND-SPECIFIC EXCESS", "strand_excess"),
+                  ("strand-CORRECTED contrast", "corrected_contrast")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+
+    # The artifact must be real (interval excludes zero) AND small.
+    ex = must("STRAND-SPECIFIC EXCESS")
+    elo, ehi = must("STRAND-SPECIFIC EXCESS", "ci_low"), must("STRAND-SPECIFIC EXCESS", "ci_high")
+    if ex is not None:
+        at_most("strand artifact is small relative to the contrast", abs(ex),
+                spec["max_abs_strand_excess"])
+    if elo is not None and ehi is not None and spec["excess_ci_must_exclude_zero"]:
+        record(not (elo <= 0 <= ehi), "strand artifact is REAL, not a null",
+               f"[{elo:+.4f}, {ehi:+.4f}]", "excludes 0")
+
+    # THE PRE-REGISTERED CRITERIA.
+    clo = must("strand-CORRECTED contrast", "ci_low")
+    cv = must("strand-CORRECTED contrast")
+    if cv is not None and clo is not None and spec["corrected_ci_must_exclude_zero"]:
+        record(cv > 0 and clo > 0, "PRE-REGISTERED: sign kept and CI excludes zero",
+               f"{cv:+.4f} [{clo:+.4f}, ...]", "> 0")
+    fr = must("fraction of the published contrast surviving")
+    if fr is not None:
+        at_least("PRE-REGISTERED: fraction of the contrast surviving", fr,
+                 spec["min_fraction_surviving"])
+
+
 def verify_unconditional_refit(T, g):
     """The corrected attenuation analysis, and its calibrated null.
 
@@ -956,7 +1014,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast,
+               verify_strand_contrast, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_integrity):
         try:
