@@ -43,7 +43,7 @@ calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
 
 ## R1: the protocol effect (primary result)
 
-`cost_of_matching.csv`, n = 94 paired datasets. Figure **f1**.
+`cost_of_matching.csv`, n = 94 paired datasets. Figures **f0** (the panel) and **f1**.
 
 | quantity | GC-matched | dinuc-matched |
 |---|---|---|
@@ -62,7 +62,7 @@ wrong and is corrected here.
 - cost of proper matching: **−0.1095** AUROC, **94/94 datasets fall**, paired Wilcoxon p < 1e-15
 - contrast in nested contribution: **+0.0397** [+0.0336, +0.0458]
 - **effect modification by dataset size is real: rho = +0.307, p = 0.0026** on the reported
-  nested contrast. The paired design still rules out size *confounding* (both arms use the
+  nested contrast (Figure **f5**). The paired design still rules out size *confounding* (both arms use the
   same datasets), but the effect is larger in larger datasets and that must be printed. (An
   earlier draft printed rho = 0.141, p = 0.175, which is this correlation computed on the
   RETRACTED composition-share difference, not on the quantity the paper claims.)
@@ -135,6 +135,7 @@ printed [+0.0334, +0.0461] from an unrecorded computation.
 ## R1c: the strand artifact, measured against a matched placebo
 
 `strand_placebo.csv`, `scripts/strand_placebo.py`, 16 gated checks, n = 40 datasets.
+Figure **f3**.
 
 **The wound.** `annotation.py:126` drops region strand by design ("a window's strand comes from
 its peak"), which is right for positives and wrong for negatives, so `negatives.py:328` gives
@@ -198,7 +199,7 @@ because the difference between them is the methodological point.
 
 ## R1d: what the magnitude is worth
 
-`r1_robustness.csv`, `scripts/r1_robustness.py`, 11 gated checks.
+`r1_robustness.csv`, `scripts/r1_robustness.py`, 11 gated checks. Figure **f4**.
 
 R1 concedes that the *sign* of the contrast is implied by the design, so only the magnitude is
 informative. This section is what the magnitude is worth. Neither result below is implied by
@@ -233,6 +234,7 @@ the model actually contributes.
 ## R1e: the contrast rebuilt from sequence, and independent of k
 
 `k_sweep.csv`, `scripts/k_sweep.py`, 11 gated checks, all 94 datasets, both arms.
+Figure **f6**.
 
 **Rebuilt, not re-read.** Every other number in R1 is read from `rehearsal_binding_*.csv`,
 which the analysis pass wrote, so its gate detects drift rather than error. This section refits
@@ -267,6 +269,7 @@ because it generalises: every one of those assertions checked a *value*, and non
 ## R1f: the effect is twice as large for coding-region binders
 
 `region_heterogeneity.csv`, `scripts/region_heterogeneity.py`, 10 gated checks, n = 94.
+Figure **f7**.
 
 This is the only biological statement the study supports, and its limitation is printed beside
 it rather than below it. Grouping datasets by the region their positive windows mostly occupy:
