@@ -1,46 +1,45 @@
 line,value,context
-49,0.0026,"- **effect modification by dataset size is real: rho = +0.307, p = 0.0026** on the reported"
-118,0.0334,"printed [+0.0334, +0.0461] from an unrecorded computation."
-118,0.0461,"printed [+0.0334, +0.0461] from an unrecorded computation."
-137,0.8297,| SpliceBERT | 0.8091 | 0.8297 | **+0.0206** | 1.8e-16 |
-137,0.0206,| SpliceBERT | 0.8091 | 0.8297 | **+0.0206** | 1.8e-16 |
-138,0.7339,| CNN | 0.7063 | 0.7339 | **+0.0276** | 4.8e-17 |
-138,0.0276,| CNN | 0.7063 | 0.7339 | **+0.0276** | 4.8e-17 |
-139,0.0069,| **differential (CNN − SpliceBERT)** | | | **+0.0069** | **3.6e-05** |
-143,0.0065,"variance structure, predicts a penalty of +0.0065 rather than +0.0276, and rho(penalty"
-143,0.0276,"variance structure, predicts a penalty of +0.0065 rather than +0.0276, and rho(penalty"
-148,0.541,"0.257 for SpliceBERT vs 0.541 for the CNN, paired p=9e-17; rho(penalty, tau/sigma) = +0.78 and"
-222,0.0605,"- model vs the 1-Mb rule, common variant mask: **−0.0605**, wins **15/44**, p=0.0044"
-222,0.0044,"- model vs the 1-Mb rule, common variant mask: **−0.0605**, wins **15/44**, p=0.0044"
-232,0.825,"*Correction, 2026-08-27.* An earlier draft printed 0.825 unstratified and 0.768–0.832 across"
-232,0.832,"*Correction, 2026-08-27.* An earlier draft printed 0.825 unstratified and 0.768–0.832 across"
-258,0.0605,"- paired on a **common variant mask**: model **−0.0605** vs the 1-Mb rule, wins **15/44**,"
-259,0.0044,"p = 0.0044. (The baseline cannot score variants alone in their block (mean 20.2%,"
-262,0.8904,"is scoreable either way: 0.8921 all vs 0.8904 on-subset, **−0.0017**.)"
-348,0.0442,"| ↳ donor-clustered instead of target-clustered | +0.0784 [+0.0442, +0.1021] | n/a |"
-348,0.1021,"| ↳ donor-clustered instead of target-clustered | +0.0784 [+0.0442, +0.1021] | n/a |"
-356,0.559,"p=7.6e-47). Below ~20 pathogenic variants the target's own head sits at **0.559**, near"
-357,0.075,"chance, so the gap is negative (−0.075, 17/38, p=0.025). **Specificity claims below roughly 20"
-372,0.634,"flat"" overstates: the floor rises from 0.634 (<20 positives) to 0.667 (≥20), roughly 6× less"
-373,0.559,"steeply than the matched arm's 0.559 → 0.755, and rho = +0.091, p = 0.066 with CI [−0.01, +0.19]"
-380,0.1362,"reproduced the published co-binding stratification **better** (+0.1362 vs +0.1210, both 16/17)."
-389,0.705,"- 27,492 unique SNVs. Transition fraction: benign **0.705**, pathogenic **0.517**, the"
-392,0.5824,pooled AUROC **0.5824**.
-397,0.0113,"95% CI on the +0.0083 difference is **[-0.0113, +0.0284]**, a margin wider than half the k-mer"
-397,0.0284,"95% CI on the +0.0083 difference is **[-0.0113, +0.0284]**, a margin wider than half the k-mer"
-398,0.0544,model's entire above-chance signal (0.0544). The honest statement is that both scorers sit near
-399,0.578,"chance (substitution prior 0.5627 [0.548, 0.578]; k-mer 0.5544 [0.540, 0.568]) and **this panel"
-410,0.127853,`share_m = C / gain_m` where `C = mean(composition_auroc) − 0.5 = 0.127853` is identical across
-411,1.648166,"models, so `share_kmer / share_SB == gain_SB / gain_kmer` exactly, **1.648166 both ways to 6"
-425,0.240,flagship association reverses and dies under adjustment (+0.299 p=0.049 → −0.240 p=0.12).
-441,0.2643,numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
-441,0.2787,numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
-446,0.521,"SpliceBERT-specific (it ranks sense above antisense negatives at 0.576 against the CNN's 0.521,"
-482,0.832,"pathogenic variants"", and the rule holds AUROC 0.768–0.832 within all ten phyloP deciles."
-505,0.0215,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
-505,0.0998,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
-505,0.0269,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
-505,0.0993,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
-511,0.0360,"(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,"
-511,0.1163,"(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,"
-511,0.0034,"(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,"
+64,0.0026,"- **effect modification by dataset size is real: rho = +0.307, p = 0.0026** on the reported"
+133,0.0334,"printed [+0.0334, +0.0461] from an unrecorded computation."
+133,0.0461,"printed [+0.0334, +0.0461] from an unrecorded computation."
+152,0.8297,| SpliceBERT | 0.8091 | 0.8297 | **+0.0206** | 1.8e-16 |
+152,0.0206,| SpliceBERT | 0.8091 | 0.8297 | **+0.0206** | 1.8e-16 |
+153,0.7339,| CNN | 0.7063 | 0.7339 | **+0.0276** | 4.8e-17 |
+153,0.0276,| CNN | 0.7063 | 0.7339 | **+0.0276** | 4.8e-17 |
+154,0.0069,| **differential (CNN − SpliceBERT)** | | | **+0.0069** | **3.6e-05** |
+158,0.0065,"variance structure, predicts a penalty of +0.0065 rather than +0.0276, and rho(penalty"
+158,0.0276,"variance structure, predicts a penalty of +0.0065 rather than +0.0276, and rho(penalty"
+163,0.541,"0.257 for SpliceBERT vs 0.541 for the CNN, paired p=9e-17; rho(penalty, tau/sigma) = +0.78 and"
+237,0.0605,"- model vs the 1-Mb rule, common variant mask: **−0.0605**, wins **15/44**, p=0.0044"
+237,0.0044,"- model vs the 1-Mb rule, common variant mask: **−0.0605**, wins **15/44**, p=0.0044"
+247,0.825,"*Correction, 2026-08-27.* An earlier draft printed 0.825 unstratified and 0.768–0.832 across"
+247,0.832,"*Correction, 2026-08-27.* An earlier draft printed 0.825 unstratified and 0.768–0.832 across"
+273,0.0605,"- paired on a **common variant mask**: model **−0.0605** vs the 1-Mb rule, wins **15/44**,"
+274,0.0044,"p = 0.0044. (The baseline cannot score variants alone in their block (mean 20.2%,"
+277,0.8904,"is scoreable either way: 0.8921 all vs 0.8904 on-subset, **−0.0017**.)"
+363,0.0442,"| ↳ donor-clustered instead of target-clustered | +0.0784 [+0.0442, +0.1021] | n/a |"
+363,0.1021,"| ↳ donor-clustered instead of target-clustered | +0.0784 [+0.0442, +0.1021] | n/a |"
+371,0.559,"p=7.6e-47). Below ~20 pathogenic variants the target's own head sits at **0.559**, near"
+372,0.075,"chance, so the gap is negative (−0.075, 17/38, p=0.025). **Specificity claims below roughly 20"
+387,0.634,"flat"" overstates: the floor rises from 0.634 (<20 positives) to 0.667 (≥20), roughly 6× less"
+388,0.559,"steeply than the matched arm's 0.559 → 0.755, and rho = +0.091, p = 0.066 with CI [−0.01, +0.19]"
+395,0.1362,"reproduced the published co-binding stratification **better** (+0.1362 vs +0.1210, both 16/17)."
+404,0.705,"- 27,492 unique SNVs. Transition fraction: benign **0.705**, pathogenic **0.517**, the"
+407,0.5824,pooled AUROC **0.5824**.
+412,0.0113,"95% CI on the +0.0083 difference is **[-0.0113, +0.0284]**, a margin wider than half the k-mer"
+412,0.0284,"95% CI on the +0.0083 difference is **[-0.0113, +0.0284]**, a margin wider than half the k-mer"
+413,0.0544,model's entire above-chance signal (0.0544). The honest statement is that both scorers sit near
+414,0.578,"chance (substitution prior 0.5627 [0.548, 0.578]; k-mer 0.5544 [0.540, 0.568]) and **this panel"
+425,0.127853,`share_m = C / gain_m` where `C = mean(composition_auroc) − 0.5 = 0.127853` is identical across
+426,1.648166,"models, so `share_kmer / share_SB == gain_SB / gain_kmer` exactly, **1.648166 both ways to 6"
+456,0.2643,numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
+456,0.2787,numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
+461,0.521,"SpliceBERT-specific (it ranks sense above antisense negatives at 0.576 against the CNN's 0.521,"
+497,0.832,"pathogenic variants"", and the rule holds AUROC 0.768–0.832 within all ten phyloP deciles."
+520,0.0215,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
+520,0.0998,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
+520,0.0269,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
+520,0.0993,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
+526,0.0360,"(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,"
+526,0.1163,"(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,"
+526,0.0034,"(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,"

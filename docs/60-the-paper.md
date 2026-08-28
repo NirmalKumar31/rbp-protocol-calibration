@@ -1,9 +1,24 @@
 # 60. The paper: every claim, every number, every limitation
 
-**Manuscript source of truth.** Written 2026-08-27 after six rounds of adversarial review.
-Every number here is in a committed table under `results/tables/` and gated by
-`scripts/verify.py` (132/132). If a number in the manuscript disagrees with this file, this
-file is wrong and must be fixed, not the manuscript quietly edited.
+**Manuscript source of truth.** Written 2026-08-27 after seven rounds of adversarial review.
+If a number in the manuscript disagrees with this file, this file is wrong and must be fixed,
+not the manuscript quietly edited.
+
+**What the harness does and does not establish, stated precisely because the previous wording
+here was false.** This header used to read "every number here is in a committed table and
+gated by `scripts/verify.py`". It is not. `scripts/audit_manuscript.py` reports **45 numbers
+in this document that trace to no committed table and no golden key** (see
+`manuscript_orphans.csv`); most are aggregates over a subset that no whole-column aggregate
+reproduces, but until each is traced the blanket claim is untrue. What is true:
+
+- **150 numeric assertions** run in `scripts/verify.py` against `config/golden.yaml`, and the
+  count of assertions that ran is itself asserted, so a gate cannot silently skip.
+- Most of those are **regression gates**: they detect that a number changed, not that it was
+  correctly derived, and several corruption attacks used to pass them. Call this a
+  reproducibility harness, not verification.
+- The exception is `scripts/recompute.py`, which **proves** rather than reproduces: 285
+  published AUROCs rebuilt from committed per-example scores at max|difference| 2.2e-16, and
+  it fails if the evidence is zeroed or deleted.
 
 **Working title:** *What GC-matched negatives and ClinVar AUROC actually measure: trivial-baseline
 calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
