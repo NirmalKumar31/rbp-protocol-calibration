@@ -216,16 +216,45 @@ r1_strand_placebo:
   contrast_full:         {value: 0.0378, tol: 0.007}
   contrast_sense_only:   {value: 0.0287, tol: 0.007}
   contrast_placebo:      {value: 0.0346, tol: 0.007}
+  contrast_placebo_strat: {value: 0.0322, tol: 0.007}
   change_from_restriction: {value: -0.0091, tol: 0.003}
   change_from_placebo:   {value: -0.0032, tol: 0.0015}
-  strand_excess:         {value: -0.0059, tol: 0.003}
-  # The artifact must be SMALL relative to the contrast it threatens, and it must be real.
-  max_abs_strand_excess: 0.012
-  excess_ci_must_exclude_zero: true
-  # THE PRE-REGISTERED CRITERIA. Do not loosen these; they were fixed before the run.
-  corrected_contrast:    {value: 0.0318, tol: 0.006}
+  # THE THREE-WAY DECOMPOSITION. Restriction alone shows -0.0091 and a naive reading calls all
+  # of it strand. A random-drop placebo reproduces -0.0032 of it with no strand involved. A
+  # placebo matched to the retained set's REGION marginals accounts for a further -0.0024,
+  # because sense-kept pairs are more intronic (0.434 vs 0.402) and less exon_nc (0.100 vs
+  # 0.120) while GC is balanced to the third decimal (0.5318 vs 0.5329). What is left is
+  # strand.
+  strand_excess_unstratified: {value: -0.0059, tol: 0.003}
+  locus_mix:             {value: -0.0024, tol: 0.0015}
+  strand_excess:         {value: -0.0036, tol: 0.003}
+  # NO LONGER ASSERTED TO EXCLUDE ZERO, AND THAT IS A RETRACTION. The unstratified excess had
+  # an interval clear of zero and the manuscript said "the artifact is REAL". Once the placebo
+  # is matched on region the interval is [-0.0071, +0.0001] and it is not. The artifact is
+  # small and not distinguishable from zero; only its BOUND is claimed now.
+  max_abs_strand_excess: 0.008
+  # The locus-mix component IS distinguishable from zero, which is why the unstratified
+  # placebo was not a valid counterfactual. If this ever straddles zero the stratification is
+  # unnecessary and the simpler placebo can come back.
+  locus_mix_ci_must_exclude_zero: true
+  # PRE-REGISTERED, fixed before the run: sign kept, interval clear of zero, >=60% surviving.
+  corrected_contrast:    {value: 0.0342, tol: 0.006}
   corrected_ci_must_exclude_zero: true
   min_fraction_surviving: 0.60
+
+# --- R1: which arm carries the strand artifact? ----------------------------------------
+#
+# The direction of this asymmetry decides whether the artifact could be MANUFACTURING the
+# contrast or merely shrinking it. Measured: the cue is weaker in the GC arm, which is the arm
+# with the smaller nested gain, so it biases the contrast DOWNWARD and +0.0397 is conservative.
+# Coordinates only, no model fitting, independent of the placebo experiment.
+r1_strand_asymmetry:
+  frac_sense_gc:   {value: 0.4275, tol: 0.020}
+  frac_sense_dn:   {value: 0.4744, tol: 0.020}
+  asymmetry:       {value: 0.0469, tol: 0.012}
+  # THE CLAIM: the dinucleotide arm must be MORE sense, in most datasets.
+  min_datasets_dinuc_more_sense: 33
+  asymmetry_must_be_positive: true
 
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
@@ -446,7 +475,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 165
+  min_domain_checks: 181
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -461,7 +490,12 @@ integrity:
   # NEW unsourced number fails the build.
   #
   # DO NOT RAISE THIS TO MAKE A BUILD PASS. Add the number to the table that owns it.
-  max_manuscript_orphans: 30
+  max_manuscript_orphans: 22
+  # Duplicated numbers must agree. cost_of_matching.csv is a join of the two rehearsal arms and
+  # verify.py read only the join, so scrambling rehearsal_binding_dinuc.csv passed 166/166
+  # while breaking 88/94, 94/94 and the Wilcoxon p. Exact equality: these are copies, not
+  # recomputations, so any difference at all is corruption.
+  max_cross_table_diff: 0.0
 
 # --- the wrong-protein control's donor must actually be a WRONG protein -----------------
 #

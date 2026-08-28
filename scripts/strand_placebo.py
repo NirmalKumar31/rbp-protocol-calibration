@@ -83,6 +83,61 @@ def sense_pairs(d, idx):
     return set(keep)
 
 
+def strata_of(d):
+    """Negative's region class x within-dataset GC quintile, keyed by pair.
+
+    THE PLACEBO WAS NOT EXCHANGEABLE, AND THIS IS THE FIX. Dropping pairs uniformly at random
+    is the wrong counterfactual for a restriction that is not itself random: which pairs
+    survive is tied to gene density and locus type, measured as
+    rho(retention, frac_ambiguous) = -0.525, p = 5.1e-4 across the 40 datasets. So the
+    unstratified excess is strand PLUS locus mix. Matching the placebo to the retained set's
+    region-by-GC marginals removes the locus part; the difference between the two placebos IS
+    the locus-mix estimate and is reported alongside.
+
+    Strata are defined on the NEGATIVE only. Retention is a property of the negative, pairs
+    move as units, and the positive's GC is matched to the negative's by construction, so
+    stratifying on both would double-count one degree of freedom and create unfillable cells.
+
+    REGION ONLY, NOT REGION x GC, BECAUSE THE CONFOUND WAS MEASURED. Across all 40 datasets
+    and both arms, sense-kept pairs are more intronic (0.434 vs 0.402 dropped in the GC arm,
+    0.441 vs 0.400 in the dinucleotide arm) and less exon_nc (0.100 vs 0.120; 0.094 vs 0.125),
+    while GC is balanced to the third decimal (0.5318 vs 0.5329). Adding GC quintiles would
+    multiply the cell count sixfold, force more deficit redistribution, and match on a
+    dimension that is not confounded -- noise for nothing. `region` is also matched 1:1 within
+    every positive/negative pair, so restricting on the negative reweights the whole task.
+    """
+    neg = d[d.label == 0]
+    return dict(zip(pair_key(neg.id), neg.region.astype(str)))
+
+
+def stratified_pick(allk, keep, strata, rng):
+    """Sample len(keep) pairs reproducing the retained set's stratum counts.
+
+    Where a stratum cannot supply its quota from the unretained pool, take everything
+    available and redistribute the deficit proportionally over the remaining strata.
+    """
+    from collections import Counter, defaultdict
+    want = Counter(strata[k] for k in keep if k in strata)
+    pool = defaultdict(list)
+    for k in allk:
+        if k in strata:
+            pool[strata[k]].append(k)
+    for v in pool.values():
+        rng.shuffle(v)
+    out, deficit = [], 0
+    for st, need in want.items():
+        have = pool.get(st, [])
+        take = min(need, len(have))
+        out += have[:take]
+        pool[st] = have[take:]
+        deficit += need - take
+    if deficit:                       # redistribute proportionally over what is left
+        rest = [k for v in pool.values() for k in v]
+        rng.shuffle(rest)
+        out += rest[:deficit]
+    return set(out), deficit
+
+
 def subset(d, keys):
     k = pair_key(d.id)
     return d[np.isin(k, list(keys))]
@@ -147,14 +202,22 @@ def main():
             rec[f"full_{arm}"] = per[arm]["full"]
             rec[f"sense_{arm}"] = nested_gain(subset(d, sk))[0] if 0 < n_keep < len(allk) \
                 else np.nan
-            # PLACEBO: same number of pairs, chosen at random, several seeds.
-            pl = []
+            # PLACEBO, twice. Unstratified is the naive counterfactual; stratified matches
+            # the retained set's region-by-GC marginals. Their difference is the locus mix.
+            st = strata_of(d)
+            pl, pls, defs = [], [], 0
             for s in range(N_PLACEBO):
                 rng = np.random.default_rng(1000 + s)
                 pick = set(rng.choice(sorted(allk), size=n_keep, replace=False))
                 pl.append(nested_gain(subset(d, pick))[0])
+                rng2 = np.random.default_rng(2000 + s)
+                picks, dfc = stratified_pick(sorted(allk), sk, st, rng2)
+                defs += dfc
+                pls.append(nested_gain(subset(d, picks))[0])
             rec[f"placebo_{arm}"] = float(np.mean(pl))
             rec[f"placebo_sd_{arm}"] = float(np.std(pl))
+            rec[f"placebo_strat_{arm}"] = float(np.mean(pls))
+            rec[f"strat_deficit_{arm}"] = defs / N_PLACEBO
         rows.append(rec)
         log(f"  [{i:2d}/{len(audited)}] {ds:22} sense {rec['n_sense_gc']}/{rec['n_pairs_gc']} gc, "
             f"{rec['n_sense_dn']}/{rec['n_pairs_dn']} dn   "
@@ -174,17 +237,22 @@ def summarise(m):
         m["c_full"] = m.full_dn - m.full_gc
         m["c_sense"] = m.sense_dn - m.sense_gc
         m["c_placebo"] = m.placebo_dn - m.placebo_gc
+        m["c_placebo_strat"] = m.placebo_strat_dn - m.placebo_strat_gc
         m["excess"] = m.c_sense - m.c_placebo
+        m["excess_strat"] = m.c_sense - m.c_placebo_strat
+        m["locus_mix"] = m.c_placebo_strat - m.c_placebo
     # THE STRAND-CORRECTED CONTRAST. Only the strand-specific part is removed; the shrinkage
     # the placebo also shows is an artifact of discarding pairs, not of strand, so subtracting
     # it would be double-counting and would understate the effect the paper claims.
-    m["corrected"] = m.c_full + m.excess
+    # PRIMARY is the stratified excess, pre-committed before the run.
+    m["corrected"] = m.c_full + m.excess_strat
     m.to_csv(TABLES / "strand_placebo_per_dataset.csv", index=False)
 
     rng = np.random.default_rng(SEED)
     n = len(m)
     boots = {k: [] for k in ("c_full", "c_sense", "c_placebo", "excess",
-                             "d_sense", "d_placebo", "corrected")}
+                             "d_sense", "d_placebo", "corrected",
+                             "c_placebo_strat", "excess_strat", "locus_mix")}
     for _ in range(N_BOOT):
         s = m.iloc[rng.integers(0, n, n)]
         boots["c_full"].append(s.c_full.mean())
@@ -194,6 +262,9 @@ def summarise(m):
         boots["d_sense"].append((s.c_sense - s.c_full).mean())
         boots["d_placebo"].append((s.c_placebo - s.c_full).mean())
         boots["corrected"].append(s.corrected.mean())
+        boots["c_placebo_strat"].append(s.c_placebo_strat.mean())
+        boots["excess_strat"].append(s.excess_strat.mean())
+        boots["locus_mix"].append(s.locus_mix.mean())
 
     out = []
 
@@ -212,8 +283,14 @@ def summarise(m):
         note="what the naive test would have reported as strand")
     add("change from placebo", (m.c_placebo - m.c_full).mean(), "d_placebo",
         note="the same shrinkage, with no strand involved")
-    add("STRAND-SPECIFIC EXCESS", m.excess.mean(), "excess",
-        note="THE ANSWER: restriction minus placebo")
+    add("contrast, PLACEBO stratified on region x GC", m.c_placebo_strat.mean(),
+        "c_placebo_strat", note="matched to the retained set's marginals")
+    add("strand excess, UNSTRATIFIED placebo", m.excess.mean(), "excess",
+        note="strand PLUS locus mix; superseded")
+    add("STRAND-SPECIFIC EXCESS (stratified)", m.excess_strat.mean(), "excess_strat",
+        note="THE ANSWER, pre-committed as primary")
+    add("locus-mix component", m.locus_mix.mean(), "locus_mix",
+        note="stratified placebo minus unstratified")
     add("strand-CORRECTED contrast", m.corrected.mean(), "corrected",
         note="full contrast with only the strand-specific part removed")
     # ON THIS PANEL'S OWN CONTRAST, not the n=94 published one. Inserting +0.0397 into an

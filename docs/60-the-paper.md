@@ -132,49 +132,69 @@ rehearsal arms and asserted by `r1_scale_check`. Its interval, recomputed with a
 dataset-level bootstrap (2000 draws, seed 0), is [+0.0336, +0.0458]; the manuscript previously
 printed [+0.0334, +0.0461] from an unrecorded computation.
 
-## R1c: the strand artifact, measured rather than conceded
+## R1c: the strand artifact, measured against a matched placebo
 
-`strand_placebo.csv`, `scripts/strand_placebo.py`, 12 gated checks, n = 40 datasets.
+`strand_placebo.csv`, `scripts/strand_placebo.py`, 16 gated checks, n = 40 datasets.
 
-**The wound.** `annotation.py:126` drops region strand by design ("a window's strand comes
-from its peak"), which is right for positives and wrong for negatives, so `negatives.py:328`
-gives each negative the *positive's* strand. Only **55.2%** of negatives sit on the strand
-their own gene is transcribed from (**47.4%** counting the 14.0% ambiguous). Positives are
-100% true sense pre-mRNA. Direction is therefore a cue that separates the classes for a reason
-that is not binding, and it inflates absolute AUROCs in both arms.
+**The wound.** `annotation.py:126` drops region strand by design ("a window's strand comes from
+its peak"), which is right for positives and wrong for negatives, so `negatives.py:328` gives
+each negative the *positive's* strand. Only **55.6%** of negatives sit on the strand their own
+gene is transcribed from; positives are 100% true sense. Direction is therefore a cue that
+separates the classes for a reason that is not binding, and it inflates absolute AUROCs in both
+arms.
 
-**Why the obvious control lies.** Keeping only pairs whose negative is unambiguously sense
-discards **57%** of pairs. A 256-feature 4-mer model loses more from that than a 19-feature
+**Why the obvious control lies, twice.** Keeping only pairs whose negative is unambiguously
+sense discards 57% of pairs. A 256-feature 4-mer model loses more from that than a 19-feature
 composition baseline does, in both arms, so the contrast shrinks whether or not strand matters.
-Run alone, restriction reports **−0.0091** and the whole of it looks like strand.
+And the pairs that survive are not a random half: their negatives are more intronic (**0.4335**
+against **0.4024** dropped in the GC arm, 0.4413 against 0.4003 in the dinucleotide arm) while
+GC is balanced (**0.5314** against **0.5332**). So the restriction reweights the task by locus
+type, and a uniform-random placebo is the wrong counterfactual for it. That is why the placebo
+is stratified on region and not on GC (`strand_asymmetry.csv`).
 
-**The placebo settles it.** Dropping the same number of pairs *at random*, five seeds per
-dataset per arm, reproduces **−0.0032** of that shrinkage with no strand involved.
-
-| | contrast |
+| | contrast, n = 40 |
 |---|---|
-| full data (these 40 datasets) | **+0.0378** [+0.0288, +0.0478] |
+| full data | **+0.0378** [+0.0288, +0.0478] |
 | sense-only pairs (43% retained) | +0.0287 [+0.0201, +0.0383] |
 | placebo, same n dropped at random | +0.0346 [+0.0258, +0.0444] |
-| **strand-specific excess** | **−0.0059** [−0.0098, −0.0021] |
-| **strand-corrected contrast** | **+0.0318** [+0.0234, +0.0415] |
+| placebo, matched on the retained region marginals | +0.0322 [+0.0234, +0.0418] |
 
-**The artifact is real, and small.** Its interval excludes zero, so this is a measured control
-and not a null result. It costs about **15%** of the contrast, and **85%** survives.
+Decomposing the −0.0091 that restriction alone reports: **−0.0032** is the cost of discarding
+pairs at all, **−0.0024** [−0.0048, −0.0003] is locus mix, and the remainder,
+**−0.0036** [−0.0071, +0.0001], is strand. The strand-corrected contrast is
+**+0.0342** [+0.0253, +0.0442] and **90.6%** of the effect survives.
 
-**Pre-registered.** The criteria were written into `docs/61-resume-here.md` and committed
-before the experiment ran: sign retained, interval excluding zero, and at least 60% of the
-published point estimate surviving. All three hold. Every dataset used is gated on reproducing
-its own published row first; the dinucleotide arm's canonical window tables were fetched for
-this purpose because the local copy was a different draw and reproduced only 13 of 40.
+**Correction, and it goes the paper's way.** An earlier version of this section used the
+unstratified placebo, reported the excess as −0.0059 with an interval clear of zero, and said
+"the artifact is real". Once the placebo is matched on region the interval is [−0.0071,
++0.0001] and that statement is withdrawn: the strand artifact is **small and not
+distinguishable from zero**, and only a bound is claimed. The component that *is*
+distinguishable from zero is the locus mix, which is why the plain placebo was not a valid
+counterfactual in the first place.
 
-**A weaker version of this test is retained in `strand_contrast.py` and should not be relied
-on.** It regresses the per-dataset contrast on each dataset's sense fraction and returns
-rho = −0.24 [−0.54, +0.11]. It has almost no power: `frac_sense` spans only 0.433 to 0.615, so
-a *between*-dataset regression is being used against a bias present *within* every dataset, and
-`frac_sense` is not exogenous (it correlates +0.427 with GC-arm AUROC). Restriction moves the
-sense fraction to 1.0 by construction and has full leverage. The two designs are kept side by
-side because the difference between them is the methodological point.
+**The artifact cannot manufacture the contrast, only shrink it, and this does not depend on the
+placebo.** On the 40 datasets whose window tables are canonical in both arms, GC-matched
+negatives are **42.8%** sense (sd 0.018) against **47.4%** in the dinucleotide arm: a paired
+difference of **+0.047**, higher in **37/40**, Wilcoxon p = 5.0e-09 (`strand_asymmetry.csv`;
+percentages count ambiguous-strand windows in the denominator, the same convention as the
+47.4% quoted above). The spurious directional cue is therefore *stronger in the arm with the
+smaller nested gain*. It works against the reported direction, so **+0.0397 is conservative**
+rather than inflated. This argument uses coordinates only, no model fitting, and is independent
+of the placebo experiment.
+
+**Pre-registered.** The criteria were committed before the experiment ran: sign retained,
+interval excluding zero, at least 60% of the point estimate surviving. All three hold on the
+primary (stratified) estimator. Every dataset used is gated on reproducing its own published
+row first; the dinucleotide arm's canonical window tables were fetched for this purpose because
+the local copy was a different draw and reproduced only 13 of 40.
+
+**A weaker version is retained in `strand_contrast.py` and should not be relied on.** It
+regresses the per-dataset contrast on each dataset's sense fraction. On the 40 audited datasets
+it gives rho = −0.24 [−0.54, +0.11]; extended to all 94 it gives rho = −0.074, p = 0.478. It
+has almost no power because `frac_sense` spans only 0.433 to 0.640, so a *between*-dataset
+regression is being used against a bias present *within* every dataset, and `frac_sense` is not
+exogenous. Restriction moves the sense fraction to 1.0 by construction. Both designs are kept
+because the difference between them is the methodological point.
 
 ## R2: the model ladder (methods table, not a result)
 

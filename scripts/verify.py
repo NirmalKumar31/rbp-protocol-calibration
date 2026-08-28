@@ -725,11 +725,46 @@ def verify_strand_contrast(T, g):
                 spec["max_frac_sense_leverage"])
 
 
-def verify_strand_placebo(T, g):
-    """The pre-registered strand test: restriction against a matched random-drop placebo.
+def verify_strand_asymmetry(T, g):
+    """Which arm carries the strand cue. Its direction bounds the artifact's effect."""
+    print("\nR1  strand asymmetry  (which arm carries the cue?)")
+    d = T.get("strand_asymmetry.csv")
+    if d is None:
+        return record(False, "strand_asymmetry.csv present", "MISSING",
+                      "run scripts/strand_asymmetry.py")
+    spec = g["r1_strand_asymmetry"]
+    q = d.set_index("check")
 
-    This is the gate on R1's last open wound. The criteria in golden.yaml were written into
-    docs/61 BEFORE the experiment ran, and they must not be loosened afterwards.
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for k, gk in (("frac_sense, GC arm", "frac_sense_gc"),
+                  ("frac_sense, dinuc arm", "frac_sense_dn"),
+                  ("asymmetry, dinuc minus GC", "asymmetry")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+
+    asym = must("asymmetry, dinuc minus GC")
+    if asym is not None and spec["asymmetry_must_be_positive"]:
+        record(asym > 0, "cue is WEAKER in the GC arm, so the contrast is conservative",
+               f"{asym:+.4f}", "> 0")
+    cnt = must("datasets where dinuc is more sense")
+    if cnt is not None:
+        at_least("datasets where the dinuc arm is more sense", cnt,
+                 spec["min_datasets_dinuc_more_sense"])
+
+
+def verify_strand_placebo(T, g):
+    """The pre-registered strand test: restriction against a REGION-MATCHED placebo.
+
+    The criteria in golden.yaml were written into docs/61 before the experiment ran and must
+    not be loosened afterwards. The one thing that DID change is a retraction: with an
+    unstratified placebo the excess excluded zero and was reported as a real artifact; matched
+    on region it does not, so only a bound is asserted now.
     """
     print("\nR1  strand placebo  (the pre-registered test)")
     d = T.get("strand_placebo.csv")
@@ -753,23 +788,28 @@ def verify_strand_placebo(T, g):
     for k, gk in (("contrast, full data", "contrast_full"),
                   ("contrast, sense-only pairs", "contrast_sense_only"),
                   ("contrast, PLACEBO (same n, random)", "contrast_placebo"),
+                  ("contrast, PLACEBO stratified on region x GC", "contrast_placebo_strat"),
                   ("change from restriction", "change_from_restriction"),
                   ("change from placebo", "change_from_placebo"),
-                  ("STRAND-SPECIFIC EXCESS", "strand_excess"),
+                  ("strand excess, UNSTRATIFIED placebo", "strand_excess_unstratified"),
+                  ("locus-mix component", "locus_mix"),
+                  ("STRAND-SPECIFIC EXCESS (stratified)", "strand_excess"),
                   ("strand-CORRECTED contrast", "corrected_contrast")):
         v = must(k)
         if v is not None:
             near(k, v, spec[gk])
 
-    # The artifact must be real (interval excludes zero) AND small.
-    ex = must("STRAND-SPECIFIC EXCESS")
-    elo, ehi = must("STRAND-SPECIFIC EXCESS", "ci_low"), must("STRAND-SPECIFIC EXCESS", "ci_high")
+    ex = must("STRAND-SPECIFIC EXCESS (stratified)")
     if ex is not None:
-        at_most("strand artifact is small relative to the contrast", abs(ex),
+        at_most("strand artifact is bounded and small", abs(ex),
                 spec["max_abs_strand_excess"])
-    if elo is not None and ehi is not None and spec["excess_ci_must_exclude_zero"]:
-        record(not (elo <= 0 <= ehi), "strand artifact is REAL, not a null",
-               f"[{elo:+.4f}, {ehi:+.4f}]", "excludes 0")
+
+    # The locus mix must be real, or matching on region was unnecessary.
+    llo = must("locus-mix component", "ci_low")
+    lhi = must("locus-mix component", "ci_high")
+    if llo is not None and lhi is not None and spec["locus_mix_ci_must_exclude_zero"]:
+        record(not (llo <= 0 <= lhi), "locus mix is real, so the plain placebo was invalid",
+               f"[{llo:+.4f}, {lhi:+.4f}]", "excludes 0")
 
     # THE PRE-REGISTERED CRITERIA.
     clo = must("strand-CORRECTED contrast", "ci_low")
@@ -932,6 +972,41 @@ def verify_recompute(T, g):
         at_most(f"{model}: max |recomputed - published|", max(diffs), spec["max_abs_diff"])
 
 
+def verify_cross_tables(T, g):
+    """The two tables holding the SAME numbers must agree.
+
+    THIS EXISTS BECAUSE AN ATTACK GOT THROUGH. verify.py gates R1 on cost_of_matching.csv and
+    never opened rehearsal_binding_gc.csv or rehearsal_binding_dinuc.csv, which are where those
+    numbers come from and what the manuscript's component means and scale_check.py both read.
+    Nothing asserted the two agreed. Permuting rehearsal_binding_dinuc.csv against its dataset
+    labels therefore passed 166/166 while turning "larger in 88/94" into 67/94, "94/94 fall"
+    into 80/94, and the Wilcoxon p from 3.8e-17 into 1.5e-12 -- the last of which violates this
+    file's own wilcoxon_p_max of 1e-15, in a check that never ran on the corrupted table.
+
+    A duplicated number is only as trustworthy as the assertion that the copies match.
+    """
+    print("\ncross-table consistency")
+    cm = T.get("cost_of_matching.csv")
+    gc = T.get("rehearsal_binding_gc.csv")
+    dn = T.get("rehearsal_binding_dinuc.csv")
+    if cm is None or gc is None or dn is None:
+        return record(False, "both rehearsal arms and cost_of_matching present", "MISSING",
+                      "all three tables")
+    tol = g["integrity"]["max_cross_table_diff"]
+    for arm, src in (("gc", gc), ("dn", dn)):
+        j = cm.merge(src, on="dataset", how="inner", suffixes=("", "_src"))
+        record(len(j) == len(cm), f"{arm}: every cost_of_matching row present in the arm",
+               len(j), len(cm))
+        for cm_col, src_col in ((f"auroc_{arm}", "auroc"),
+                                (f"composition_auroc_{arm}", "composition_auroc"),
+                                (f"delta_auroc_{arm}", "delta_auroc")):
+            if cm_col not in j or src_col not in j:
+                record(False, f"{arm}: column {cm_col}", "MISSING", "present")
+                continue
+            at_most(f"{arm}: {cm_col} matches the rehearsal table",
+                    float((j[cm_col] - j[src_col]).abs().max()), tol)
+
+
 def verify_integrity(T, g):
     print("\nintegrity")
     spec = g["integrity"]
@@ -1024,9 +1099,9 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_strand_placebo,
+               verify_strand_contrast, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
-               verify_integrity):
+               verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
         except Exception as e:                  # a broken check is a failure, not a crash
