@@ -4,21 +4,21 @@
 If a number in the manuscript disagrees with this file, this file is wrong and must be fixed,
 not the manuscript quietly edited.
 
-**What the harness does and does not establish, stated precisely because the previous wording
-here was false.** This header used to read "every number here is in a committed table and
-gated by `scripts/verify.py`". It is not. `scripts/audit_manuscript.py` reports **45 numbers
-in this document that trace to no committed table and no golden key** (see
-`manuscript_orphans.csv`); most are aggregates over a subset that no whole-column aggregate
-reproduces, but until each is traced the blanket claim is untrue. What is true:
+**What the harness does and does not establish.** `scripts/verify.py` runs **210 numeric
+assertions** against `config/golden.yaml`, and the number of assertions that ran is itself
+asserted, so a gate cannot silently skip. Most of those are **regression gates**: they detect
+that a number changed, not that it was correctly derived. Two are stronger.
+`scripts/recompute.py` rebuilds 285 published AUROCs from committed per-example scores at
+max|difference| 2.2e-16 and fails if that evidence is zeroed or deleted, and `scripts/k_sweep.py`
+rebuilds the headline contrast from raw sequence to within 1.2e-06. Call the rest a
+reproducibility harness, not verification.
 
-- **150 numeric assertions** run in `scripts/verify.py` against `config/golden.yaml`, and the
-  count of assertions that ran is itself asserted, so a gate cannot silently skip.
-- Most of those are **regression gates**: they detect that a number changed, not that it was
-  correctly derived, and several corruption attacks used to pass them. Call this a
-  reproducibility harness, not verification.
-- The exception is `scripts/recompute.py`, which **proves** rather than reproduces: 285
-  published AUROCs rebuilt from committed per-example scores at max|difference| 2.2e-16, and
-  it fails if the evidence is zeroed or deleted.
+`scripts/audit_manuscript.py` reports every number in this document traceable to no committed
+table and no golden key. It stands at **2**, both of them the algebraic identity that retracted
+the composition-share claim, i.e. evidence about a retraction rather than a claim. **Its known
+blind spot:** it only checks values written to three or more decimals, because the coarser grids
+are too saturated to discriminate, so a percentage written as "55.2%" is invisible to it and has
+to be checked by hand.
 
 **Working title:** *What GC-matched negatives and ClinVar AUROC actually measure: trivial-baseline
 calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
@@ -29,15 +29,16 @@ calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
 
 ## The one-sentence claim
 
-> Under negatives matched only on GC content, the protocol in general use, a 4-mer model's
-> measured contribution over a mono+dinucleotide baseline is **+0.0265 AUROC**; matching on
-> full dinucleotide composition raises it to **+0.0662** (difference **+0.0397** [+0.0336,
-> +0.0458], larger in 88/94 datasets) while lowering the model's apparent AUROC by **0.1095**
-> in **94/94** datasets. One fifth of that difference is arithmetic rather than biology,
-> because a nested AUROC gain compresses against a higher baseline; net of compression the
-> protocol effect is **+0.0313** [+0.0267, +0.0363], positive in 87/94. The standard protocol
-> simultaneously inflates reported performance and conceals about half of the model's
-> measurable contribution.
+> Across 94 paired ENCODE eCLIP datasets, the negative-set protocol rather than the model
+> determines most of what a benchmark AUROC means. A 4-mer model's nested contribution over a
+> 19-feature mono+dinucleotide composition baseline is **+0.0265 AUROC** under GC-matched
+> negatives and **+0.0662** under dinucleotide-matched negatives (difference **+0.0397**
+> [+0.0336, +0.0458], larger in 88/94; **+0.0313** [+0.0267, +0.0363] once the 21% attributable
+> to AUROC-scale compression is removed), while apparent AUROC falls by **0.1095** in **94/94**.
+> The two protocols do not estimate a common quantity, so neither figure is the true one. What
+> the comparison establishes is that a headline AUROC is uninterpretable without the composition
+> baseline measured under the same protocol, and that the measured contribution of a sequence
+> model is a property of the benchmark's construction as much as of the model.
 
 ---
 
@@ -59,7 +60,7 @@ are the *standalone* 4-mer AUROCs. The nested values are 0.8092 and 0.6941, and 
 contributions were always the nested ones, so the claim did not change; the row label was
 wrong and is corrected here.
 
-- cost of proper matching: **−0.1095** AUROC, **94/94 datasets fall**, paired Wilcoxon p < 1e-15
+- change in apparent AUROC under dinucleotide matching: **−0.1095**, **94/94 datasets fall**, paired Wilcoxon p < 1e-15
 - contrast in nested contribution: **+0.0397** [+0.0336, +0.0458]
 - **effect modification by dataset size is real: rho = +0.307, p = 0.0026** on the reported
   nested contrast (Figure **f5**). The paired design still rules out size *confounding* (both arms use the
@@ -96,17 +97,29 @@ in question.
 unbounded. Transplanting the GC arm's own d′ increment onto the dinucleotide arm's baseline
 predicts what that arm would show if the protocol moved the baseline and changed nothing else.
 
-| component of the +0.0397 contrast | value | share |
+| transplant direction and link | compression | **protocol effect** |
 |---|---|---|
-| attributable to AUROC compression | **+0.0083** [+0.0061, +0.0109] | 21% |
-| **protocol effect, net of compression** | **+0.0313** [+0.0267, +0.0363] | **79%** |
+| GC increment onto the dinuc baseline, probit | +0.0083 [+0.0061, +0.0109] | **+0.0313** [+0.0267, +0.0363] |
+| dinuc increment onto the GC baseline, probit | +0.0182 [+0.0142, +0.0223] | **+0.0215** [+0.0180, +0.0252] |
+| GC onto dinuc, logit link | | +0.0288 [+0.0243, +0.0335] |
+| dinuc onto GC, logit link | | **+0.0188** [+0.0156, +0.0223] |
+
+**Report the range, not the point.** The same logic licenses transporting either arm's
+increment, and under either link, and the four disagree: compression accounts for 21% of the
+contrast in the most favourable member and 46% in the least. That choice moves the estimate
+further than any single interval is wide, so quoting **+0.0313** alone would be question-begging.
+What is robust is that **every member of the family keeps the sign and excludes zero**. The
+protocol effect is therefore **+0.0188 to +0.0313**, and compression is a minority of the
+contrast under all four. Each row's interval is a legitimate bootstrap interval *conditional on
+that transport choice*; none of them has coverage for "the protocol effect" as such.
 
 The protocol effect is positive in **87/94** datasets and its interval excludes zero. The same
 comparison computed directly on the unbounded d′ scale gives **+0.1290** [+0.1091, +0.1499],
 larger in 87/94, which would be zero if compression were the whole story. Corrected for
-compression, GC matching conceals **47.4%** of the model's measurable contribution, so the
-honest phrase is "about half", not "two-thirds" (the uncorrected figure is 60%, and an earlier
-draft said two-thirds, which was wrong on both counts).
+compression, the GC-matched arm reports **47.4%** less of the model's measurable contribution
+than the dinucleotide-matched arm does. The uncorrected figure is 60%, and an earlier draft
+said "two-thirds", which was wrong on both counts. Note the phrasing: neither arm is the truth,
+so the figure describes a difference between two protocols and not something one of them hides.
 
 **The reversal, which must be reported.** The same comparison on a third scale, the Firth
 coefficient of the standardised score in the nested fit, **changes sign**: +1.063 in the GC arm
@@ -121,8 +134,18 @@ Spearman **+0.520** (p = 8e-08) and tracks the **incremental value** it is suppo
 at **+0.065** (p = 0.53). Dividing each coefficient by its own fit's total signal restores the
 sign, **+0.1154** [+0.0715, +0.1597], larger in 68/94.
 
+*A correction to an earlier draft of this section.* It also reported a "scale-null residual" of
++0.1156 and presented it as a second, independent answer. It is not independent: the residual is
+algebraically identical to the normalised contrast above under a positive weight (verified at
+max|difference| 5.0e-16, sign agreement 94/94). And the null it is measured against, that the
+coefficient scales as the first power of total signal, is a choice rather than a derivation:
+under a square-root scaling the same residual is **−0.1721** and under a 3/2 power it is
+**+0.5278**, so its sign is a free exponent. Both numbers remain in the committed tables and
+nothing is claimed from them. The load-bearing answer to the reversal is the fingerprint, which
+does not depend on any assumed scaling.
+
 So two of three scales agree with R1 and the third is measuring task difficulty rather than
-incremental value. Both the reversal and its fingerprint are gated, so if the fingerprint ever
+incremental value. The reversal and its fingerprint are gated, so if the fingerprint ever
 inverts the verifier fails and the reversal becomes real evidence against R1.
 
 **Provenance note, stated because it matters.** Before this analysis the +0.0397 contrast
@@ -139,8 +162,8 @@ Figure **f3**.
 
 **The wound.** `annotation.py:126` drops region strand by design ("a window's strand comes from
 its peak"), which is right for positives and wrong for negatives, so `negatives.py:328` gives
-each negative the *positive's* strand. Only **55.6%** of negatives sit on the strand their own
-gene is transcribed from; positives are 100% true sense. Direction is therefore a cue that
+each negative the *positive's* strand. Only **55.2%** of negatives sit on the strand their own
+gene is transcribed from, counting unambiguous windows only (**47.4%** of all negatives); positives are 100% true sense. Direction is therefore a cue that
 separates the classes for a reason that is not binding, and it inflates absolute AUROCs in both
 arms.
 
@@ -211,9 +234,11 @@ line is an out-of-sample prediction of the other. Pearson **r = +0.909** [+0.812
 p = 2.6e-06; Spearman +0.932. Mean absolute difference between lines **0.0151**, against a
 between-dataset standard deviation of 0.0318.
 
-Crucially the contrast replicates **better than either arm it is built from** (GC-arm gain
-alone r = +0.518, dinucleotide-arm gain alone r = +0.813). The difference is a more stable
-property of the protein than either measurement, which is the opposite of what noise would do.
+The contrast replicates **at least as well as either arm it is built from** (GC-arm gain alone
+r = +0.518, dinucleotide-arm gain alone r = +0.813). Stated carefully, because the ordering
+itself is not established: a paired protein bootstrap gives r_contrast − max(r_arm) =
+**+0.113** [−0.082, +0.465], P(≤0) = 0.21 on n = 15. The claim is that differencing the two arms
+does not destroy the signal, not that it improves on them.
 The design guarantees the sign in each cell line independently and guarantees nothing about
 whether the magnitudes agree, so this is information about magnitude alone.
 
@@ -221,8 +246,12 @@ whether the magnitudes agree, so this is information about magnitude alone.
 rises 2.50x under dinucleotide matching, but its standard error rises only 2.18x, so the
 per-dataset signal-to-noise z = gain / SE rises **1.31x** (mean 9.97 to 13.11, median 7.01 to
 10.13), higher in **83/94**, paired Wilcoxon p = 3.1e-14. Because z grows as the square root of
-sample size, the same contribution reaches the same confidence with **58%** of the labelled
-windows. And composition alone beats the sequence model in **29/94** datasets under GC matching
+sample size, that converts into sample size, but it must be reported carefully: the ratio of
+means gives **58%** of the labelled windows, the **median dataset** needs **59%**, and the
+**mean over datasets is 96%** because the advantage is concentrated rather than universal.
+**14/94 datasets need *more* windows** under dinucleotide matching. The honest summary is that
+the median dataset reaches the same confidence on roughly 60% of the data and a sixth of
+datasets do worse. And composition alone beats the sequence model in **29/94** datasets under GC matching
 against **14/94** under dinucleotide matching: the harder protocol makes the model look better
 on that comparison, not worse.
 
@@ -432,10 +461,6 @@ Three things any RBP variant-effect claim must clear before it means anything:
    substantial sharing, not of independence. Reporting an attenuation without simulating the
    null it should be compared against is the single easiest way to publish a backwards result,
    and this paper did exactly that before catching it (R4d).
-
-And one design requirement: **a wrong-protein control must match donors on model capacity, and
-cannot detect specificity at all below ~20 positive variants** (with the gap still mid-slope
-there, and its plateau only at ≥45).
 
 **What this paper does not establish.** Whether the model beats conservation on ClinVar. The
 AUROC ladder that appeared to settle it is circular, because ClinVar pathogenic assertions lean

@@ -553,6 +553,12 @@ def verify_scale_check(T, g):
             ("CONTRAST, AUROC scale (published headline)", "contrast_auroc"),
             ("contrast attributable to SCALE alone", "contrast_scale_only"),
             ("CONTRAST, protocol effect net of scale", "contrast_protocol"),
+            ("CONTRAST, protocol effect, REVERSE transplant", "contrast_protocol_reverse"),
+            ("compression, REVERSE transplant", "contrast_scale_only_reverse"),
+            ("protocol effect, logit link", "contrast_protocol_logit"),
+            ("protocol effect, logit link REVERSE", "contrast_protocol_logit_reverse"),
+            ("scale-null residual under d' exponent 0.5", "logodds_residual_p05"),
+            ("scale-null residual under d' exponent 1.5", "logodds_residual_p15"),
             ("CONTRAST, d-prime scale (unbounded)", "contrast_dprime"),
             ("fraction of the contribution hidden by GC matching, corrected",
              "hidden_fraction_corrected"),
@@ -570,19 +576,23 @@ def verify_scale_check(T, g):
     if lo is not None and spec["protocol_ci_must_exclude_zero"]:
         record(lo > 0, "protocol effect survives with CI excluding zero", f"{lo:+.4f}", "> 0")
 
+    # BOTH transplant directions must keep the sign, or the decomposition is a choice of
+    # direction rather than a measurement.
+    rlo = must("CONTRAST, protocol effect, REVERSE transplant", "ci_low")
+    if rlo is not None and spec["reverse_ci_must_exclude_zero"]:
+        record(rlo > 0, "protocol effect survives the UNFAVOURABLE transplant direction",
+               f"{rlo:+.4f}", "> 0")
+
+    sm = must("smallest protocol effect across links and directions")
+    if sm is not None:
+        at_least("protocol effect survives EVERY transplant choice", sm,
+                 spec["min_protocol_effect_any_transplant"])
+
     # ...and compression must be a minority of it, or the headline IS the artefact.
     share = must("scale share of the published contrast")
     if share is not None:
         at_most("AUROC compression is a minority of the contrast", share,
                 spec["max_scale_share"])
-
-    # THE ARITHMETIC ANSWER TO THE REVERSAL, stronger than the correlation below: subtract
-    # what pure latent rescaling predicts and a positive residual remains.
-    rlo = must("log-odds residual after the scale null", "ci_low")
-    rv = must("log-odds residual after the scale null")
-    if rv is not None and rlo is not None and spec["residual_ci_must_exclude_zero"]:
-        record(rv > 0 and rlo > 0, "incremental value survives the latent rescaling",
-               f"{rv:+.4f} [{rlo:+.4f}, ...]", "> 0")
 
     # The log-odds reversal is disqualified only by this fingerprint. Assert both halves: the
     # coefficient gap must track total signal, and must NOT track incremental value. If that
@@ -836,8 +846,13 @@ def verify_r1_robustness(T, g):
                   ("REPLICATION of the contrast across cell lines", "replication_r"),
                   ("replication of the GC-arm gain alone", "replication_gc_alone"),
                   ("replication of the dinuc-arm gain alone", "replication_dn_alone"),
+                  ("contrast r minus the better arm's r", "replication_ordering_gap"),
                   ("EFFICIENCY GAIN, z ratio", "efficiency_z_ratio"),
-                  ("relative sample size for the same conclusion", "relative_sample_size"),
+                  ("relative sample size, ratio of means", "relative_sample_size"),
+                  ("relative sample size, median dataset", "relative_sample_median"),
+                  ("relative sample size, mean over datasets", "relative_sample_mean"),
+                  ("datasets needing MORE windows under dinuc matching",
+                   "datasets_needing_more_windows"),
                   ("datasets where composition BEATS the model, GC arm",
                    "composition_beats_model_gc"),
                   ("datasets where composition BEATS the model, dinuc arm",
@@ -851,14 +866,12 @@ def verify_r1_robustness(T, g):
         at_least("replication interval is well clear of zero", lo,
                  spec["min_replication_ci_low"])
 
-    # THE CLAIM: the contrast is a more stable property of the protein than either component.
-    rc = must("REPLICATION of the contrast across cell lines")
-    rg = must("replication of the GC-arm gain alone")
-    rd = must("replication of the dinuc-arm gain alone")
-    if None not in (rc, rg, rd) and spec["contrast_must_replicate_best"]:
-        record(rc > rg and rc > rd,
-               "the CONTRAST replicates better than either arm alone",
-               f"{rc:.3f} vs {rg:.3f}/{rd:.3f}", "contrast highest")
+    # The ordering must remain unassertable.
+    olo = must("contrast r minus the better arm's r", "ci_low")
+    ohi = must("contrast r minus the better arm's r", "ci_high")
+    if olo is not None and ohi is not None and spec["ordering_ci_must_include_zero"]:
+        record(olo <= 0 <= ohi, "replication ordering is NOT established (interval straddles 0)",
+               f"[{olo:+.3f}, {ohi:+.3f}]", "includes 0")
 
     z = must("EFFICIENCY GAIN, z ratio")
     if z is not None:

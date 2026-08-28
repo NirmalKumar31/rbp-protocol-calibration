@@ -128,6 +128,19 @@ r1_scale_check:
   contrast_scale_only:   {value: 0.0083, tol: 0.002}
   # THE HONEST HEADLINE. If this fails, R1 fails and there is no paper.
   contrast_protocol:     {value: 0.0313, tol: 0.004}
+  # THE TRANSPLANT RUNS BOTH WAYS AND ONLY THE FAVOURABLE DIRECTION WAS REPORTED. Moving the
+  # dinucleotide arm's increment onto the GC baseline instead attributes MORE to compression and
+  # leaves +0.0215. Both directions are legitimate under the same binormal logic, so the honest
+  # statement is a RANGE: the protocol effect is +0.0215 to +0.0313, and the choice of direction
+  # moves it further than either interval is wide. Every member of the family keeps the sign,
+  # which is what the paper now claims.
+  contrast_protocol_reverse: {value: 0.0215, tol: 0.004}
+  contrast_scale_only_reverse: {value: 0.0182, tol: 0.004}
+  contrast_protocol_logit: {value: 0.0288, tol: 0.004}
+  contrast_protocol_logit_reverse: {value: 0.0188, tol: 0.004}
+  # THE BOUND THE PAPER CLAIMS: every member of the family keeps the sign.
+  min_protocol_effect_any_transplant: 0.012
+  reverse_ci_must_exclude_zero: true
   protocol_ci_must_exclude_zero: true
   # Scale must be a minority of the effect. Measured 0.21; a run where compression accounts
   # for most of the contrast means the claim is an artefact.
@@ -149,14 +162,19 @@ r1_scale_check:
   min_rho_coef_gap_total:     0.35
   max_rho_coef_gap_increment: 0.25
   contrast_logodds_normalised: {value: 0.1154, tol: 0.035}
-  # THE REVERSAL, TURNED INTO EVIDENCE. If the coefficient gap were nothing but the latent
-  # rescaling, it would be coef_dn * (1 - total-signal ratio) = -0.4927. It is -0.3771, so
-  # +0.1156 of incremental value shows through the rescaling, and its interval excludes zero.
-  # This is a stronger answer to the reversal than the correlational fingerprint, because it
-  # is arithmetic on the same fits rather than a correlation across datasets.
+  # NOT A SECOND ANSWER TO THE REVERSAL, AND IT WAS PRESENTED AS ONE. The residual is
+  # algebraically identical to the normalised contrast above under a positive weight:
+  #   residual_i == dfull_gc_i * (coef_dn_i/dfull_dn_i - coef_gc_i/dfull_gc_i)
+  # verified at max|diff| 5.0e-16 with sign agreement 94/94. Reporting both as corroborating
+  # each other was wrong. Worse, the null coef ~ d' is CHOSEN, not derived: under coef ~ d'^0.5
+  # the residual is -0.1721 and under d'^1.5 it is +0.5278, so the sign of the "answer" is a
+  # free exponent. Both values stay gated so they cannot drift, but nothing is claimed from
+  # them; the load-bearing answer to the reversal is the correlational fingerprint below.
   logodds_scale_null:    {value: -0.4927, tol: 0.040}
   logodds_residual:      {value: 0.1156, tol: 0.035}
-  residual_ci_must_exclude_zero: true
+  # The exponent sensitivity that retired the argument, gated so the retraction has a source.
+  logodds_residual_p05:  {value: -0.1721, tol: 0.040}
+  logodds_residual_p15:  {value: 0.5278, tol: 0.060}
 
 # --- R1: does the strand artifact drive the surviving contrast? ------------------------
 #
@@ -270,14 +288,26 @@ r1_robustness:
   n_proteins_both_lines: {value: 15.0, tol: 0.0}
   replication_r:         {value: 0.9094, tol: 0.030}
   min_replication_ci_low: 0.70
-  # The contrast must replicate BETTER than either arm's gain alone, or it is not a property
-  # of the protein but of one arm's noise.
+  # THE ORDERING WAS ASSERTED AND IS NOT SUPPORTED. This block previously required the
+  # contrast to replicate BETTER than either arm alone. A paired protein bootstrap gives
+  # r_contrast - max(r_arm) = +0.113 [-0.082, +0.465] with P(<=0) = 0.21 on n = 15, so the
+  # ordering is a point estimate and not a finding. The arms are pinned; the ordering is not
+  # asserted. The claim in the text is "at least as well as".
   replication_gc_alone:  {value: 0.5179, tol: 0.060}
   replication_dn_alone:  {value: 0.8134, tol: 0.050}
-  contrast_must_replicate_best: true
+  replication_ordering_gap: {value: 0.1134, tol: 0.030}
+  # The ordering must NOT be assertable: its interval has to straddle zero, or the earlier
+  # claim was right after all and the text should be changed back deliberately.
+  ordering_ci_must_include_zero: true
   efficiency_z_ratio:    {value: 1.3150, tol: 0.050}
   min_efficiency_ratio:  1.10
+  # THE RATIO OF MEANS FLATTERS IT. The mean of the per-dataset ratios is 0.957, close to 1,
+  # and 14/94 datasets need MORE windows under dinucleotide matching. All four are gated so the
+  # favourable form cannot be quoted alone.
   relative_sample_size:  {value: 0.5783, tol: 0.040}
+  relative_sample_median: {value: 0.5938, tol: 0.040}
+  relative_sample_mean:  {value: 0.9570, tol: 0.060}
+  datasets_needing_more_windows: {value: 14.0, tol: 0.0}
   composition_beats_model_gc: {value: 29.0, tol: 0.0}
   composition_beats_model_dn: {value: 14.0, tol: 0.0}
 
@@ -549,7 +579,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 209
+  min_domain_checks: 220
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

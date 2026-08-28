@@ -72,6 +72,15 @@ def auroc(d):
     return norm.cdf(d / R2)
 
 
+def logit(a):
+    a = np.clip(a, 1e-6, 1.0 - 1e-6)
+    return np.log(a / (1.0 - a))
+
+
+def expit(d):
+    return 1.0 / (1.0 + np.exp(-d))
+
+
 def load():
     gc = pd.read_csv(TABLES / "rehearsal_binding_gc.csv")
     dn = pd.read_csv(TABLES / "rehearsal_binding_dinuc.csv")
@@ -83,6 +92,22 @@ def load():
     # what the dinucleotide arm would show if the GC arm's own added signal were moved onto
     # its baseline: protocol changes the starting point, nothing else
     m["pred_dn"] = auroc(m.dcomp_dn + m.dd_gc) - auroc(m.dcomp_dn)
+    # THE TRANSPLANT RUNS BOTH WAYS, AND THE PAPER MUST REPORT BOTH. The same binormal logic
+    # licenses moving the dinucleotide arm's increment onto the GC baseline instead. That is
+    # "what the standard protocol would show if only the baseline moved", and it attributes
+    # MORE of the contrast to compression. Reporting only the favourable direction would be
+    # question-begging: the direction moves the estimate several times further than its own
+    # interval is wide.
+    m["pred_gc"] = auroc(m.dcomp_gc + m.dd_dn) - auroc(m.dcomp_gc)
+    # THE LINK IS ALSO A CHOICE. Probit (binormal d') is conventional for ROC work, but a logit
+    # link is equally defensible and gives a different split. Both directions under both links
+    # bound the family the estimate lives in.
+    for a in ("gc", "dn"):
+        m[f"lc_{a}"] = logit(m[f"composition_auroc_{a}"])
+        m[f"lf_{a}"] = logit(m[f"with_score_auroc_{a}"])
+        m[f"ld_{a}"] = m[f"lf_{a}"] - m[f"lc_{a}"]
+    m["lpred_dn"] = expit(m.lc_dn + m.ld_gc) - expit(m.lc_dn)
+    m["lpred_gc"] = expit(m.lc_gc + m.ld_dn) - expit(m.lc_gc)
     return m
 
 
@@ -94,6 +119,17 @@ def quantities(m):
         "contrast_logodds": (m.coef_dn - m.coef_gc).mean(),
         "contrast_scale_only": (m.pred_dn - m.delta_auroc_gc).mean(),
         "contrast_protocol": (m.delta_auroc_dn - m.pred_dn).mean(),
+        "contrast_protocol_reverse": (m.pred_gc - m.delta_auroc_gc).mean(),
+        "contrast_scale_only_reverse": (m.delta_auroc_dn - m.pred_gc).mean(),
+        "contrast_protocol_logit": (m.delta_auroc_dn - m.lpred_dn).mean(),
+        "contrast_protocol_logit_reverse": (m.lpred_gc - m.delta_auroc_gc).mean(),
+        # THE EXPONENT SENSITIVITY THAT RETIRED THE SCALE-NULL ARGUMENT. The null coef ~ d' is
+        # a choice; under other powers the residual changes sign, which is why nothing is
+        # claimed from it. Emitted so the retraction has a source.
+        "logodds_residual_p05": ((m.coef_dn - m.coef_gc)
+                                 - m.coef_dn * (1.0 - (m.dfull_gc / m.dfull_dn) ** 0.5)).mean(),
+        "logodds_residual_p15": ((m.coef_dn - m.coef_gc)
+                                 - m.coef_dn * (1.0 - (m.dfull_gc / m.dfull_dn) ** 1.5)).mean(),
         "contrast_logodds_normalised": (m.coef_dn / m.dfull_dn - m.coef_gc / m.dfull_gc).mean(),
         # THE PURE-SCALE NULL FOR THE REVERSAL. If the coefficient gap were nothing but the
         # latent-scale difference, coef_gc would equal coef_dn times the total-signal ratio,
@@ -168,6 +204,19 @@ def main():
         "contrast_protocol",
         note=f"THE HONEST HEADLINE; positive in "
              f"{int((m.delta_auroc_dn > m.pred_dn).sum())}/{n}")
+    add("CONTRAST, protocol effect, REVERSE transplant", obs["contrast_protocol_reverse"],
+        "contrast_protocol_reverse",
+        note="dinuc increment moved onto the GC baseline; the unfavourable direction")
+    add("compression, REVERSE transplant", obs["contrast_scale_only_reverse"],
+        "contrast_scale_only_reverse", note="the unfavourable direction attributes more")
+    add("protocol effect, logit link", obs["contrast_protocol_logit"],
+        "contrast_protocol_logit", note="same transplant, different link")
+    add("protocol effect, logit link REVERSE", obs["contrast_protocol_logit_reverse"],
+        "contrast_protocol_logit_reverse", note="the fourth member of the family")
+    add("smallest protocol effect across links and directions",
+        min(obs["contrast_protocol"], obs["contrast_protocol_reverse"],
+            obs["contrast_protocol_logit"], obs["contrast_protocol_logit_reverse"]),
+        note="THE BOUND: every member of the family must keep the sign")
     add("scale share of the published contrast",
         obs["contrast_scale_only"] / obs["contrast_auroc"],
         note="fraction of +0.0397 that is the AUROC ceiling, not the protocol")
@@ -195,6 +244,10 @@ def main():
     add("log-odds residual after the scale null", obs["logodds_residual"],
         "logodds_residual",
         note="POSITIVE means incremental value survives the rescaling, i.e. R1's direction")
+    add("scale-null residual under d' exponent 0.5", obs["logodds_residual_p05"],
+        "logodds_residual_p05", note="RETIRED: the sign of the residual is a free exponent")
+    add("scale-null residual under d' exponent 1.5", obs["logodds_residual_p15"],
+        "logodds_residual_p15", note="...and so is its magnitude")
     add("CONTRAST, log-odds normalised by total signal",
         obs["contrast_logodds_normalised"], "contrast_logodds_normalised",
         note=f"sign restored; dinuc larger in "

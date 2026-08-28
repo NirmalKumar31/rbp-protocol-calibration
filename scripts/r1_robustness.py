@@ -24,8 +24,13 @@ do not require any new data.
                 immune to the design-implied-sign objection entirely: the sign being
                 predictable says nothing about how efficiently the effect is measured.
 
-SE is recovered from the committed bootstrap interval as (hi - lo) / (2 * 1.96). The rehearsal
-writes a 95% percentile interval, so this is exact up to the interval's own discreteness.
+SE is recovered as (hi - lo) / (2 * 1.96). THE PROVENANCE MATTERS AND AN EARLIER VERSION OF
+THIS DOCSTRING GOT IT WRONG: it called the source a bootstrap percentile interval, for which
+that recovery would only be approximate. It is not one. `nested.gain_over_composition` writes
+DeLong's diff +/- z*se (see src/rbp/eval/nested.py), which is symmetric by construction --
+verified at max asymmetry 2.0e-16 across all 188 rows -- so the recovery is exact. In a paper
+whose header repudiates one false provenance claim, another sitting under the efficiency
+headline is exactly what a referee finds.
 """
 
 import sys
@@ -75,13 +80,35 @@ def main():
     add("mean |difference| between the two lines", float(np.abs(a - b).mean()), n=n_rep,
         note=f"against a between-dataset sd of {cm.contrast.std():.4f}")
 
-    # The components replicate WORSE than their difference does, which is the point: the
-    # contrast is a more stable property of the protein than either arm's gain.
+    # The components, for comparison. The contrast replicates AT LEAST AS WELL as either, and
+    # the paper says only that: a paired protein bootstrap gives r_contrast - max(r_arm) =
+    # +0.113 [-0.082, +0.465], P(<=0) = 0.21 on n = 15, so the ordering is a point estimate and
+    # not a finding. An earlier version asserted the ordering and gated it.
     for col, lab in (("delta_auroc_gc", "GC-arm gain"), ("delta_auroc_dn", "dinuc-arm gain")):
         p = cm.pivot_table(index="protein", columns="cell", values=col).dropna()
         rr = pearsonr(p.iloc[:, 0], p.iloc[:, 1])
         add(f"replication of the {lab} alone", rr.statistic, n=len(p),
             note=f"p={rr.pvalue:.3g}; compare with the contrast above")
+
+    # THE ORDERING, TESTED RATHER THAN ASSERTED. An earlier version claimed the contrast
+    # replicates BETTER than either arm and gated it. A paired protein bootstrap says the
+    # ordering is a point estimate, not a finding, so the text now says "at least as well as".
+    pg = cm.pivot_table(index="protein", columns="cell", values="delta_auroc_gc").dropna()
+    pd_ = cm.pivot_table(index="protein", columns="cell", values="delta_auroc_dn").dropna()
+    common = w.index.intersection(pg.index).intersection(pd_.index)
+    rng2 = np.random.default_rng(SEED)
+    dif = []
+    for _ in range(N_BOOT):
+        idx = common[rng2.integers(0, len(common), len(common))]
+        try:
+            f = lambda P: pearsonr(P.loc[idx].iloc[:, 0], P.loc[idx].iloc[:, 1]).statistic
+            dif.append(f(w) - max(f(pg), f(pd_)))
+        except Exception:
+            continue
+    dif = np.asarray(dif)
+    dlo, dhi = np.percentile(dif, [2.5, 97.5])
+    add("contrast r minus the better arm's r", float(dif.mean()), dlo, dhi, len(common),
+        note=f"P(<=0) = {float((dif <= 0).mean()):.2f}; the ordering is NOT established")
 
     # --- statistical efficiency ----------------------------------------------------------
     gc = pd.read_csv(TABLES / "rehearsal_binding_gc.csv")
@@ -100,9 +127,18 @@ def main():
     add("EFFICIENCY GAIN, z ratio", float(ratio), n=len(m),
         note=f"higher in {int((m.z_dn > m.z_gc).sum())}/{len(m)}, paired Wilcoxon "
              f"p={wz.pvalue:.3g}")
-    # z grows as sqrt(n), so the sample needed for a fixed z scales as 1/ratio^2.
-    add("relative sample size for the same conclusion", float(1.0 / ratio ** 2), n=len(m),
-        note="z ~ sqrt(n), so this is the fraction of labelled windows still required")
+    # z grows as sqrt(n), so the sample needed for a fixed z scales as 1/ratio^2. REPORTED
+    # THREE WAYS, because the ratio of means flatters it: the mean of the per-dataset ratios
+    # is close to 1, and some datasets are worse off. Quoting only the first would be a
+    # ratio-of-means artifact.
+    per = (m.z_gc / m.z_dn) ** 2
+    add("relative sample size, ratio of means", float(1.0 / ratio ** 2), n=len(m),
+        note="z ~ sqrt(n); the headline form, and the most favourable")
+    add("relative sample size, median dataset", float(per.median()), n=len(m), note="")
+    add("relative sample size, mean over datasets", float(per.mean()), n=len(m),
+        note="close to 1: the advantage is concentrated, not universal")
+    add("datasets needing MORE windows under dinuc matching", float((per > 1).sum()),
+        n=len(m), note="the protocol is not better everywhere, and the paper says so")
     # And the blunt version a reader will remember.
     add("datasets where composition BEATS the model, GC arm",
         float((m.composition_auroc_gc >= m.auroc_gc).sum()), n=len(m), note="")
