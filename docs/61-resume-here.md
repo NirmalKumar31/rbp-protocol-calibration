@@ -123,6 +123,18 @@ $25 estimate belonged to the SpliceBERT arm, which paper A does not use.
 2. its bootstrap CI excludes zero, and
 3. at least **60%** of the original point estimate survives (i.e. >= +0.0238 against +0.0397).
 
+### RESULT, 2026-08-28: **PASSED on all three criteria. Write paper A.**
+
+    full data (40 datasets)        +0.0378 [+0.0288, +0.0478]
+    sense-only pairs (43% kept)    +0.0287 [+0.0201, +0.0383]
+    placebo, same n dropped random +0.0346 [+0.0258, +0.0444]
+    STRAND-SPECIFIC EXCESS         -0.0059 [-0.0098, -0.0021]
+    strand-CORRECTED contrast      +0.0318 [+0.0234, +0.0415]   85% surviving
+
+The artifact is REAL (interval excludes zero) and small. It costs ~15% of the contrast. That
+is a measured control, not a null, and it is better evidence for being so. Gated as
+`r1_strand_placebo`, 12 checks. Written up as R1c.
+
 **Decision rule.** Pass -> write paper A, with a strand control Horlacher 2023 does not have.
 Fail -> paper D: ship the repo as the portfolio artifact, post an honest short preprint, and
 write the negative result up, which is itself worth publishing. **Do not renegotiate these
