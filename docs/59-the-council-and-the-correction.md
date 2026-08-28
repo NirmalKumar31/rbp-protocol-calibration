@@ -1114,3 +1114,128 @@ Not "I built a control." The control was wrong. The defensible version:
 
 That is a person who can falsify their own result. It is worth more than the result would have
 been.
+
+---
+
+# Act X. Rounds 8, 9 and 10: the paper gets chosen, and three of my own results break
+
+Three more council rounds happened after Act IX. They are recorded here because two of them
+found errors in work I had already reported as finished, and because the paper's identity
+changed.
+
+## Round 8 — which paper, decided by argument
+
+The question was no longer "is this right" but "what is the paper". Four candidates went to a
+four-member council: **A** an RBP benchmarking note on R1; **B** a methods paper on three ways
+a benchmark delta misleads; **C** a negative-results calibration paper; **D** ship the repo and
+stop.
+
+**The editor opened with B**, on the grounds that A carried a revision request — the strand
+control — that could destroy its own headline, while B was immune to it. I challenged the
+condition they attached, a survey of 40-60 papers, because neither I nor the author can honestly
+hand-score papers we have not read; they improved it to a census of papers citing Horlacher 2023.
+
+**Then the prior-art referee killed B.** Every one of its three traps has a published owner, and
+two of the remedies are better than mine:
+
+| trap | owner |
+|---|---|
+| AUROC scale compression | Pencina, D'Agostino, Pencina, Janssens & Greenland 2012, *Am J Epidemiol* 176(6):473-481 |
+| coefficients not comparable across fits | Karlson, Holm & Breen 2012, *Sociological Methodology* 42:286-313 — with the significance test mine lacks |
+| attenuation against a calibrated null | Schuster, Twisk, ter Riet, Heymans & Rijnhart 2021, *BMC Med Res Methodol* 21:136 |
+
+Whalen, Schreiber, Noble & Pollard 2022, *Nat Rev Genet* 23:169-181 already occupies the
+"bundle of genomics ML pitfalls" slot. Put to the editor, they reversed: *"B is dead. Concede
+it."* Three of four then said **A**.
+
+**My own contribution to that debate was wrong in an instructive way.** I had measured that two
+of the three traps *invert the conclusion* on this data and argued that made B publishable. The
+correction is right: that establishes **severity**, not **novelty**, and severity was never in
+doubt. I was also overclaiming "2 in 3" as a base rate when n = 3, chosen post hoc from my own
+retractions.
+
+**The unlock.** The statistician traced the strand bug to `annotation.py:126`, which states
+outright that strand is "deliberately dropped", forcing `negatives.py:328` to inherit the
+positive's strand. I read both files and confirmed it. The fix is CPU-only and free; the $25
+estimate had always belonged to the SpliceBERT arm, which paper A does not use. A test was
+**pre-registered and committed before it ran**: sign retained, CI excluding zero, at least 60%
+of the point estimate surviving.
+
+## Round 9 — the test passes, and two of my results break
+
+**The pre-registered strand test passed.** But the design is the interesting part. Restricting
+to pairs whose negative is unambiguously sense discards 57% of pairs, and a 256-feature model
+loses more from that than a 19-feature baseline does. Restriction alone reports −0.0091 and a
+naive reading calls all of it strand. A matched random-drop placebo reproduces −0.0032 of the
+same shrinkage with no strand involved.
+
+**Then an auditor showed my placebo was not exchangeable.** Sense-kept pairs are more intronic
+(0.4335 against 0.4024 dropped) while GC is balanced (0.5314 against 0.5332), so a uniform
+random drop is the wrong counterfactual. With the placebo matched on region:
+
+    restriction alone            -0.0091
+     ...cost of dropping pairs   -0.0032
+     ...locus mix                -0.0024  [-0.0048, -0.0003]
+    STRAND-SPECIFIC (stratified) -0.0036  [-0.0071, +0.0001]
+    corrected contrast           +0.0342  90.6% surviving
+
+**A retraction inside a control.** The earlier section said "the artifact is REAL, its interval
+excludes zero" on the unstratified −0.0059. Matched on region the interval includes zero. The
+artifact is small and *not* distinguishable from zero; only a bound is claimed now. What *is*
+distinguishable from zero is the locus-mix component, which is exactly why the plain placebo
+was invalid. Two independent implementations agree: −0.0036 mine, −0.0039 theirs.
+
+**And an auditor broke the verifier.** `verify.py` mentioned `rehearsal_binding_gc.csv` and
+`rehearsal_binding_dinuc.csv` **zero times**. R1 was gated on `cost_of_matching.csv`, which is a
+join of those two, with nothing asserting the copies agree. Permuting the dinucleotide table
+passed **166/166** while turning "larger in 88/94" into 67/94, "94/94 fall" into 80/94, and the
+Wilcoxon p from 3.8e-17 into 1.5e-12 — the last of which violates this project's *own* threshold,
+in a check that never ran on the corrupted table. Eight cross-table assertions at exact equality
+now close it; the attack fails at max|diff| 0.282.
+
+**A third finding, cheap and decisive.** The manuscript called the model a **5-mer** in four
+places. Both rehearsal tables record **k = 4** on all 189 rows; the "5" came from
+`config/params.yaml` `cv: k: 5`, which is the cross-validation fold count. It survived 150 gated
+assertions because every one of them checks a *value* and none checked *what produced it*.
+
+## Round 10 — additions, and the cut
+
+The last round asked what could still be added. Everything below was run, not proposed:
+
+- **R1d.** The contrast replicates across cell lines at **r = +0.909** [+0.812, +0.972] over 15
+  proteins measured in separate experiments with separately drawn negatives — and it replicates
+  *better than either arm it is built from* (+0.518, +0.813). The design guarantees the sign in
+  each line independently and guarantees nothing about the magnitudes agreeing, so this is the
+  direct answer to "the sign is design-implied". Efficiency rises **×1.31**, so the same
+  conclusion needs 58% of the labelled windows.
+- **R1e.** The contrast **rebuilt from raw sequence** for all 94 datasets in both arms: +0.0397
+  against a committed +0.0397, difference **1.2e-06**. With `recompute.py` this is the second
+  thing in the repository that *proves* a headline rather than reproducing it. It is positive at
+  every k in 3..6, and k=5 minus k=4 is **+0.0001, p = 0.84** — so the 5-mer error would have
+  changed nothing.
+- **R1f.** CDS-dominant datasets show **+0.0635** against intron-dominant **+0.0316**,
+  p = 1.5e-05, with the mechanism confirmed: intronic sites are more compositional
+  (0.6656 vs 0.5765, p = 2.7e-08). The limitation is gated beside it — partialling out total
+  gain removes the association, so region indexes *how much* signal exists rather than acting
+  independently.
+- **The cut.** R3, R4/R4b/R4c, R4d, R5, R6 and the composition-share framing are gone, replaced
+  by one table saying what was rejected and why. Manuscript orphans fell **45 → 2**.
+
+**Three defects in my own R4d were fixed even though R4d was being cut**, because the script
+ships: the null had used a normal covariate when phyloP is skewed (+1.04), moving it from −68%
+to −87%; the script *asserted* that a closed-form approximation "must agree" with the simulation
+when that approximation is anti-conservative at this covariate strength and would have fired on
+the right answer; and the seed count was 12 against a seed-to-seed sd of 0.054.
+
+## What Act X should be remembered for
+
+Every serious finding in these three rounds was in work I had already reported as complete: a
+placebo that was not exchangeable, a verifier that never opened the tables it was certifying, a
+model misnamed in four places, and a null built on the wrong distribution. None was found by
+thinking harder about the write-up. All four were found by someone running the code against it.
+
+The rule that follows is narrower than "be careful": **a control is not evidence until something
+has tried to break the control.** A restriction needs a placebo; a placebo needs stratifying on
+whatever the restriction correlates with; a duplicated number needs an assertion that the copies
+match; a simulated null needs the real covariate's distribution. Each of those was obvious in
+hindsight and none was obvious in advance.
