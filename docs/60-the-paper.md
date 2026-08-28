@@ -359,30 +359,28 @@ flagship association reverses and dies under adjustment (+0.299 p=0.049 → −0
 
 ## LIMITATIONS: manuscript-ready
 
-**1. Negative strand assignment, and the primary result has no strand control.** Sampled
-negatives inherit the *positive's* strand while their location is chosen to match composition,
-so strand is effectively a coin flip. Audited on 40 of 95 datasets: **55.2%** of negatives carry
-the strand of the gene they sit in, but that is the fraction among *unambiguous* windows only.
-A further **14.0%** lie in genes transcribed on both strands and are excluded from the
-denominator, so the demonstrably-sense fraction is **47.4%**. 0.0% are intergenic. Roughly half
-the negative set is therefore antisense sequence no transcript produces, while every positive
-is true sense RNA. This inflates all absolute AUROCs in R1.
+**1. Negative strand assignment.** Sampled negatives inherit the *positive's* strand while
+their location is chosen to match composition, so strand is close to a coin flip. Audited on 40
+datasets: **55.2%** of negatives carry the strand of the gene they sit in among *unambiguous*
+windows; a further **14.0%** lie in genes transcribed on both strands, so the demonstrably-sense
+fraction is **47.4%**. None are intergenic. Roughly half the negative set is therefore antisense
+sequence no transcript produces, while every positive is true sense RNA. **This inflates all
+absolute AUROCs reported here**, in both arms, and no absolute number in this paper should be
+compared against a published benchmark that samples negatives differently.
 
-**An earlier draft defended this with the wrong statistic and the defence is withdrawn.** The
-numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
-panel halves) are the *composition-share contrast* (the quantity retracted below as an
-algebraic identity) and one of them appeared in no committed table. R1's reported contrast is
-the **+0.0397 nested gain**, and no strand-restricted recomputation of it exists. What survives
-from that analysis is narrower but real: the directional cue is detectable and
-SpliceBERT-specific (it ranks sense above antisense negatives at 0.576 against the CNN's 0.521,
-paired p=3.2e-6), so a pretrained RNA model can read strand. Whether that changes the +0.0397
-is **untested**. Regenerating the negatives with strand-correct sampling requires only the
-composition and k-mer arms, which are CPU-only, and is the first revision we owe.
+R1c measures what it does to the *contrast*, which is the quantity the paper claims, and bounds
+it at **−0.0036** [−0.0071, +0.0001] with 90.6% surviving. Two things limit that. The placebo
+design is an assumption, not a proof: matching on region removes the locus mix we could measure
+(**−0.0024**, interval clear of zero), and cannot remove a confound we did not think to match
+on. And the estimate rests on 40 of the 94 datasets, those with a strand audit and canonical
+window tables in both arms.
 
-*A previous draft also asserted that this convention is shared with the matched-negative
-samplers this work benchmarks against. That sentence is deleted: we have no citation for it,
-and it is probably false: RNA samplers such as GraphProt draw unbound windows from annotated
-transcripts on the transcribed strand, which is transcript space, not genome space.*
+*An earlier draft defended this with the composition-share contrast, which is retracted below as
+an algebraic identity, and one of the numbers it quoted appeared in no committed table. That
+defence is withdrawn and R1c replaces it. A further sentence claiming this strand convention is
+shared with the matched-negative samplers this work benchmarks against is also deleted: we have
+no citation for it and it is probably false, since samplers such as GraphProt draw unbound
+windows from annotated transcripts in transcript space rather than genome space.*
 
 **1b. Negatives are not filtered for expression.** Region pools are built from all GENCODE v45
 transcripts with no `gene_type` and no cell-line expression filter, and negatives are drawn
@@ -401,49 +399,15 @@ may be nil, but it is unfiltered by construction rather than by measurement. Not
 `src/rbp/data/encode.py` selects by replicate count, the code is right and the documentation
 is wrong.
 
-**1d. Conservation is partly a re-read of the labels.** ClinVar pathogenic assertions for
-noncoding SNVs rest substantially on PVS1 and PP3, and PP3 is operationalised through
-CADD/REVEL/GERP, all conservation-derived; benign assertions lean on BA1/BS1/BP4, i.e. allele
-frequency. In this study's own data benign variants have mean phyloP **0.022** (median −0.046,
-1.1% above phyloP 7) against pathogenic mean **5.06** (38.4% above phyloP 7). phyloP is
-therefore not an independent predictor of these labels but a partial proxy for the evidence
-that generated them, and its 0.892 must be read as a **ceiling on this benchmark**, never as a
-biological statement. The ClinVar sections that rested on it are cut, and this
-paragraph is retained only to record why: a benchmark whose labels are partly derived from the
-competitor being benchmarked cannot rank the two, however carefully the ranking is computed.
-
-**2. Pretraining exposure.** SpliceBERT is pretrained on human pre-mRNA. Every window in this
-study (positive and negative) lies inside an annotated gene (0.0% intergenic), so held-out
-chromosomes are plausibly represented in its pretraining corpus. It is therefore the only arm
-carrying information from the test folds, and its AUROC is an upper bound relative to the three
-arms trained from scratch. This cannot be quantified without the pretraining corpus, applies
-identically to every published genomic language model, and is one reason the primary result
-(R1) is stated without reference to SpliceBERT.
-
-**3. ClinVar assertion quality.** No review-status filter is applied: `CLNREVSTAT` is not
-parsed, so zero-star and single-submitter assertions are included. Exact CLNSIG matching does
-exclude Uncertain-significance and Conflicting records. A ≥1-star restriction would reduce the
-variant set and is the obvious first robustness request.
-
-**4. Region-class assignment is asymmetric between arms.** Positives are classified by a
+**2. Region-class assignment is asymmetric between arms, which matters for R1f.** Positives are classified by a
 priority order over overlapping annotations; negatives are drawn from a merged pool of the same
 region class. End to end, **6.1–8.7%** of negatives carry a region label the positive-side
 classifier would not have given them. This is a second-order mismatch within an arm, not
-between arms, and both arms share it.
+between arms, and both arms share it, so it cannot generate the contrast. It does blur the
+region split in R1f: a few percent of datasets may be assigned to the wrong dominant class,
+which attenuates the CDS-versus-intron difference rather than creating it.
 
-**5. Cross-dataset variant sharing.** 68% of a target's variants appear in at least one other
-powered dataset. Inference clusters on 1-Mb genomic blocks, and a cluster bootstrap over
-sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap
-substantially, so the sharing is real but not materially inflating.
-
-**6. The specificity estimate is not corrected for errors in a covariate.** Donor quality is a
-measured binding AUROC with its own sampling error, so regression dilution biases the R5
-intercept toward the unadjusted mean. A model-free local estimate on near-neutral donor pairs
-(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,
-agreeing with the regression intercept to three decimals, so the bias appears small, but it is
-not formally bounded.
-
-**7. Review process.** Every claim here has been through six rounds of structured adversarial
+**3. Review process.** Every claim here has been through ten rounds of structured adversarial
 critique with pre-registered acceptance criteria, and none of it has been through external peer
 review. See `docs/59-the-council-and-the-correction.md`, which records the criteria, the
 retractions, and a self-audit of whether those criteria were satisfied by construction.

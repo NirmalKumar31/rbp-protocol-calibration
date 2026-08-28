@@ -284,10 +284,21 @@ s13b_local_analysis() {
   $PY scripts/incremental_value.py || die "incremental value"
   $PY scripts/unconditional_refit.py || die "unconditional refit"
   $PY scripts/strand_contrast.py    || die "strand contrast"
-  $PY scripts/strand_placebo.py --from-cache --gtf x --gc-root x --dn-root x || die "strand placebo"
+  $PY scripts/strand_placebo.py --from-cache || die "strand placebo"
+  $PY scripts/strand_asymmetry.py --from-cache || die "strand asymmetry"
+  $PY scripts/r1_robustness.py     || die "replication and efficiency"
+  $PY scripts/k_sweep.py --from-cache || die "k sweep"
+  $PY scripts/region_heterogeneity.py --from-cache || die "region heterogeneity"
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
   $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"
+  # --from-cache REBUILDS THE SUMMARY FROM THE COMMITTED PER-DATASET TABLE. Four of these
+  # need window tables or a GENCODE GTF to do their per-dataset work, and neither is in the
+  # repo -- so without this flag the verifier would again be asserting tables that no stage
+  # regenerates, which is the exact defect this stage was created to fix. The per-dataset
+  # table IS the committed evidence; the summary is arithmetic on it, and that arithmetic is
+  # what the golden gates check.
+  #
   # scripts/strand_audit.py is deliberately NOT here. It needs --gtf and --datasets, i.e. a
   # GENCODE annotation and the window tables, neither of which is in the repo, so it cannot
   # run from committed evidence. Its table IS committed and IS verified, which means one gated

@@ -1,10 +1,10 @@
 check,value,n,note
-"frac_sense, GC arm",0.42754133842283404,40,sd 0.0176; 0.5 is a coin flip
+"frac_sense, GC arm",0.4275413384228339,40,sd 0.0176; 0.5 is a coin flip
 "frac_sense, dinuc arm",0.47442614745562184,40,sd 0.0356
-"asymmetry, dinuc minus GC",0.04688480903278779,40,"dinuc higher in 37/40, paired Wilcoxon p=5.03e-09"
+"asymmetry, dinuc minus GC",0.04688480903278776,40,"dinuc higher in 37/40, paired Wilcoxon p=5.03e-09"
 "intron fraction, sense-KEPT negatives, GC arm",0.4335358913783095,40,"vs dropped, below"
 "intron fraction, DROPPED negatives, GC arm",0.40242920900196566,40,kept pairs are more intronic: the restriction is not random
-"intron fraction, sense-KEPT negatives, dinuc arm",0.44134422590373656,40,
+"intron fraction, sense-KEPT negatives, dinuc arm",0.44134422590373645,40,
 "intron fraction, DROPPED negatives, dinuc arm",0.4003160017768176,40,
 "GC, sense-KEPT negatives",0.531427147757191,40,"balanced against dropped, so GC is NOT the confound"
 "GC, DROPPED negatives",0.5332475774394313,40,

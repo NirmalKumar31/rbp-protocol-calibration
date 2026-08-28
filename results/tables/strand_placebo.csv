@@ -1,12 +1,12 @@
 check,value,ci_low,ci_high,n,note
-"contrast, full data",0.037765276069463206,0.028788926729771087,0.047795377093157676,40,published contrast on all 94 is +0.0397
-"contrast, sense-only pairs",0.028657698842346903,0.020147456063296088,0.0383446608800615,40,mean 42.9% of GC pairs retained
-"contrast, PLACEBO (same n, random)",0.034590159888087293,0.025768527731519945,0.04439350777532666,40,5 seeds per dataset per arm
-change from restriction,-0.0091075772271163,-0.013761738268220905,-0.004772796141814144,40,what the naive test would have reported as strand
-change from placebo,-0.0031751161813759073,-0.0053305921465243615,-0.001367584678888169,40,"the same shrinkage, with no strand involved"
-"contrast, PLACEBO stratified on region x GC",0.03222523587209989,0.023433998933487885,0.04183474419245012,40,matched to the retained set's marginals
-"strand excess, UNSTRATIFIED placebo",-0.005932461045740393,-0.009816704400007512,-0.0020832145248405325,40,strand PLUS locus mix; superseded
-STRAND-SPECIFIC EXCESS (stratified),-0.003567537029752992,-0.007069865497070821,8.218832670229119e-05,40,"THE ANSWER, pre-committed as primary"
-locus-mix component,-0.002364924015987401,-0.004805154559656123,-0.0003183910473230087,40,stratified placebo minus unstratified
-strand-CORRECTED contrast,0.03419773903971021,0.025305049493671294,0.04418094754186817,40,full contrast with only the strand-specific part removed
-fraction of the contrast surviving,0.9055339348455688,,,40,"floor was 0.60, pre-registered; panel's own contrast is +0.0378, not the n=94 +0.0397"
+"contrast, full data",0.037765276069463165,0.028788926729771052,0.04779537709315763,40,published contrast on all 94 is +0.0397
+"contrast, sense-only pairs",0.028657698842346868,0.02014745606329606,0.038344660880061464,40,mean 42.9% of GC pairs retained
+"contrast, PLACEBO (same n, random)",0.03459015988808725,0.025768527731519907,0.044393507775326614,40,5 seeds per dataset per arm
+change from restriction,-0.0091075772271163,-0.013761738268220905,-0.004772796141814135,40,what the naive test would have reported as strand
+change from placebo,-0.003175116181375913,-0.005330592146524375,-0.0013675846788881597,40,"the same shrinkage, with no strand involved"
+"contrast, PLACEBO stratified on region x GC",0.03222523587209985,0.023433998933487837,0.04183474419245008,40,matched to the retained set's marginals
+"strand excess, UNSTRATIFIED placebo",-0.005932461045740378,-0.009816704400007493,-0.002083214524840515,40,strand PLUS locus mix; superseded
+STRAND-SPECIFIC EXCESS (stratified),-0.003567537029752977,-0.007069865497070793,8.218832670229496e-05,40,"THE ANSWER, pre-committed as primary"
+locus-mix component,-0.0023649240159873868,-0.0048051545596561095,-0.00031839104732301644,40,stratified placebo minus unstratified
+strand-CORRECTED contrast,0.03419773903971019,0.025305049493671294,0.04418094754186813,40,full contrast with only the strand-specific part removed
+fraction of the contrast surviving,0.9055339348455692,,,40,"floor was 0.60, pre-registered; panel's own contrast is +0.0378, not the n=94 +0.0397"

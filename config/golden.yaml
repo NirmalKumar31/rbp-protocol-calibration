@@ -564,20 +564,18 @@ integrity:
   # NEW unsourced number fails the build.
   #
   # DO NOT RAISE THIS TO MAKE A BUILD PASS. Add the number to the table that owns it.
-  # Down from 45. Cutting the dead sections removed most of them mechanically, which is what
-  # the auditor predicted: none of the orphans were ever in R1. The six that remain are all
-  # legitimate and are listed so a seventh cannot hide among them:
+  # Down from 45. Cutting the dead sections removed most of them, and pruning the limitations
+  # that belonged to those sections removed the rest. The two that remain are both the
+  # algebraic identity that retracted the composition-share claim:
   #
-  #   0.127853, 1.648166   the algebraic identity that retracted the composition-share claim.
-  #                        Evidence ABOUT a retraction, quoted to 6 dp precisely to show the
-  #                        two routes agree exactly. Not a claim.
-  #   0.2643, 0.2787       the withdrawn strand defence, recorded in RETRACTED so the reasoning
-  #                        that was abandoned stays auditable.
-  #   0.0993, 0.1163       multidonor bootstrap bounds on a powered subset, which no
-  #                        whole-column aggregate reproduces.
+  #   0.127853   C = mean(composition_auroc) - 0.5, the constant that makes share_m = C/gain_m
+  #   1.648166   share_kmer/share_SB == gain_SB/gain_kmer, quoted to 6 dp precisely to show the
+  #              two routes agree EXACTLY, which is what proves it is an identity
   #
-  # A SEVENTH MEANS SOMEONE PRINTED A NUMBER WITH NO SOURCE. Add it to the table that owns it.
-  max_manuscript_orphans: 6
+  # They are evidence ABOUT a retraction rather than claims, and reproducing them in a table
+  # would mean re-deriving a quantity the paper exists to disown. A THIRD ORPHAN MEANS SOMEONE
+  # PRINTED A NUMBER WITH NO SOURCE.
+  max_manuscript_orphans: 2
   # Duplicated numbers must agree. cost_of_matching.csv is a join of the two rehearsal arms and
   # verify.py read only the join, so scrambling rehearsal_binding_dinuc.csv passed 166/166
   # while breaking 88/94, 94/94 and the Wilcoxon p. Exact equality: these are copies, not

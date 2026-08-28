@@ -69,10 +69,14 @@ def frac_sense(path, idx):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--gtf", required=True)
-    p.add_argument("--gc-root", required=True)
-    p.add_argument("--dn-root", required=True)
+    p.add_argument("--gtf", default="")
+    p.add_argument("--gc-root", default="")
+    p.add_argument("--dn-root", default="")
+    p.add_argument("--from-cache", action="store_true")
     a = p.parse_args()
+
+    if a.from_cache:
+        return summarise(pd.read_csv(TABLES / "strand_asymmetry_per_dataset.csv"))
 
     idx = gene_index(a.gtf)
     audited = list(pd.read_csv(TABLES / "strand_audit.csv").dataset)
@@ -93,7 +97,13 @@ def main():
         log(f"  [{i:2d}/{len(audited)}] {ds:22} gc {sg:.3f}  dn {sd:.3f}")
 
     m = pd.DataFrame(rows)
-    m["diff"] = m.frac_sense_dn - m.frac_sense_gc
+    m.to_csv(TABLES / "strand_asymmetry_per_dataset.csv", index=False)
+    return summarise(m)
+
+
+def summarise(m):
+    if "diff" not in m.columns:
+        m["diff"] = m.frac_sense_dn - m.frac_sense_gc
     w = wilcoxon(m.frac_sense_dn, m.frac_sense_gc)
 
     out = [
@@ -124,7 +134,6 @@ def main():
     ]
     res = pd.DataFrame(out)
     res.to_csv(TABLES / "strand_asymmetry.csv", index=False)
-    m.to_csv(TABLES / "strand_asymmetry_per_dataset.csv", index=False)
     log("")
     for _, x in res.iterrows():
         log(f"  {x.check:38} {x.value:+.4f}   {x.note}")

@@ -145,9 +145,9 @@ def subset(d, keys):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--gtf", required=True)
-    p.add_argument("--gc-root", required=True)
-    p.add_argument("--dn-root", required=True)
+    p.add_argument("--gtf", default="")
+    p.add_argument("--gc-root", default="")
+    p.add_argument("--dn-root", default="")
     p.add_argument("--limit", type=int, default=0)
     # Rebuild the summary from the committed per-dataset table without redoing the ~30 minutes
     # of refits. The per-dataset table IS the evidence; the summary is arithmetic on it.

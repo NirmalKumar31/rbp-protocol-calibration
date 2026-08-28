@@ -1,11 +1,11 @@
 check,value,ci_low,ci_high,n,note
-"contrast, cds-dominant datasets",0.06350699360865658,,,24,see the matching composition row below
+"contrast, cds-dominant datasets",0.06350699360865657,,,24,see the matching composition row below
 "composition alone, cds-dominant datasets",0.576476261578143,,,24,dinucleotide arm
-"contrast, utr3-dominant datasets",0.03277297222595615,,,17,see the matching composition row below
+"contrast, utr3-dominant datasets",0.03277297222595613,,,17,see the matching composition row below
 "composition alone, utr3-dominant datasets",0.5971107544259954,,,17,dinucleotide arm
-"contrast, intron-dominant datasets",0.03161291688285351,,,49,see the matching composition row below
+"contrast, intron-dominant datasets",0.03161291688285348,,,49,see the matching composition row below
 "composition alone, intron-dominant datasets",0.6655510587626964,,,49,dinucleotide arm
-CDS minus intron,0.03189407672580307,0.019014244708847775,0.0453138513521656,73,Mann-Whitney p=1.51e-05; as large as the headline contrast itself
+CDS minus intron,0.031894076725803085,0.019014244708847775,0.045313851352165625,73,Mann-Whitney p=1.51e-05; as large as the headline contrast itself
 "composition alone, intron-dominant",0.6655510587626964,,,49,dinucleotide arm
 "composition alone, cds-dominant",0.576476261578143,,,24,Mann-Whitney p=2.69e-08; intronic sites ARE more compositional
 Kruskal-Wallis across region groups,21.472517505170572,,,94,"p=2.17e-05, 3 groups"

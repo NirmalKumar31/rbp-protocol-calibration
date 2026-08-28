@@ -1,11 +1,11 @@
 check,value,ci_low,ci_high,n,note
-"contrast, k=3",0.031109199665319314,0.02670411047307517,0.03546664526556871,94,gains 0.0168 -> 0.0479; dinuc larger in 90/94
-"contrast, k=4",0.0396808068161721,0.033611043913527074,0.04578643584813949,94,gains 0.0265 -> 0.0662; dinuc larger in 88/94
-"contrast, k=5",0.03973822380898722,0.03339740629520624,0.04609455204963564,94,gains 0.0277 -> 0.0674; dinuc larger in 89/94
-"contrast, k=6",0.035491558873355804,0.029091743916165647,0.04215209480551437,94,gains 0.0245 -> 0.0600; dinuc larger in 91/94
+"contrast, k=3",0.03110919966531927,0.026704110473075124,0.03546664526556867,94,gains 0.0168 -> 0.0479; dinuc larger in 90/94
+"contrast, k=4",0.03968080681617207,0.03361104391352703,0.04578643584813946,94,gains 0.0265 -> 0.0662; dinuc larger in 88/94
+"contrast, k=5",0.039738223808987186,0.03339740629520619,0.0460945520496356,94,gains 0.0277 -> 0.0674; dinuc larger in 89/94
+"contrast, k=6",0.03549155887335575,0.029091743916165595,0.04215209480551432,94,gains 0.0245 -> 0.0600; dinuc larger in 91/94
 committed contrast (read from tables),0.03967961791740689,,,94,restricted to the same 94 datasets rebuilt here
-rebuilt from raw sequence at k=4,0.0396808068161721,,,94,"independent re-derivation, not a table read"
-absolute difference,1.1888987652142191e-06,,,94,"THE PROOF: R1 is not merely re-read, it is rebuilt"
-smallest contrast across k=3..6,0.031109199665319314,,,94,positive at every k or the result is a k artifact
+rebuilt from raw sequence at k=4,0.03968080681617207,,,94,"independent re-derivation, not a table read"
+absolute difference,1.1888987651864635e-06,,,94,"THE PROOF: R1 is not merely re-read, it is rebuilt"
+smallest contrast across k=3..6,0.03110919966531927,,,94,positive at every k or the result is a k artifact
 datasets positive at EVERY k,82.0,,,94,of 94
-k=5 minus k=4,5.7416992815118976e-05,,,94,paired Wilcoxon p=0.84; the manuscript's '5-mer' error would have changed nothing
+k=5 minus k=4,5.7416992815116374e-05,,,94,paired Wilcoxon p=0.84; the manuscript's '5-mer' error would have changed nothing

@@ -58,12 +58,18 @@ def gain(d, k):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--gc-root", required=True)
-    p.add_argument("--dn-root", required=True)
+    p.add_argument("--gc-root", default="")
+    p.add_argument("--dn-root", default="")
     p.add_argument("--limit", type=int, default=0)
+    # Rebuild the summary from the committed per-dataset table without redoing the refits.
+    # The per-dataset table IS the evidence; the summary is arithmetic on it. This is what
+    # lets run.sh regenerate a table the verifier asserts, without the window tables.
+    p.add_argument("--from-cache", action="store_true")
     a = p.parse_args()
 
     cm = pd.read_csv(TABLES / "cost_of_matching.csv")
+    if a.from_cache:
+        return summarise(pd.read_csv(TABLES / "k_sweep_per_dataset.csv"), cm)
     pub = {"gc": pd.read_csv(TABLES / "rehearsal_binding_gc.csv").set_index("dataset"),
            "dn": pd.read_csv(TABLES / "rehearsal_binding_dinuc.csv").set_index("dataset")}
     root = {"gc": Path(a.gc_root), "dn": Path(a.dn_root)}
@@ -102,6 +108,10 @@ def main():
 
     m = pd.DataFrame(rows)
     m.to_csv(TABLES / "k_sweep_per_dataset.csv", index=False)
+    return summarise(m, cm)
+
+
+def summarise(m, cm):
     n = len(m)
     rng = np.random.default_rng(SEED)
     idx = [rng.integers(0, n, n) for _ in range(N_BOOT)]

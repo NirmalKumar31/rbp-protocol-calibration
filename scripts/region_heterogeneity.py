@@ -46,8 +46,12 @@ def log(m):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--gc-root", required=True)
+    p.add_argument("--gc-root", default="")
+    p.add_argument("--from-cache", action="store_true")
     a = p.parse_args()
+
+    if a.from_cache:
+        return summarise(pd.read_csv(TABLES / "region_heterogeneity_per_dataset.csv"))
 
     cm = pd.read_csv(TABLES / "cost_of_matching.csv")
     cm["contrast"] = cm.delta_auroc_dn - cm.delta_auroc_gc
@@ -67,6 +71,11 @@ def main():
                      **{f"frac_{k}": float(v) for k, v in vc.items()}})
     reg = pd.DataFrame(rows).fillna(0.0)
     m = cm.merge(reg, on="dataset")
+    m.to_csv(TABLES / "region_heterogeneity_per_dataset.csv", index=False)
+    return summarise(m)
+
+
+def summarise(m):
     log(f"  {len(m)} datasets with region annotation")
 
     out = []
@@ -121,7 +130,6 @@ def main():
 
     res_df = pd.DataFrame(out)
     res_df.to_csv(TABLES / "region_heterogeneity.csv", index=False)
-    m.to_csv(TABLES / "region_heterogeneity_per_dataset.csv", index=False)
     for _, x in res_df.iterrows():
         ci = f" [{x.ci_low:+.4f}, {x.ci_high:+.4f}]" if pd.notna(x.ci_low) else ""
         log(f"  {x.check:44} {x.value:+.4f}{ci}   {x.note}")
