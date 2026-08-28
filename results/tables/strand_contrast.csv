@@ -1,0 +1,16 @@
+check,value,ci_low,ci_high,n,note
+mean frac_sense on these datasets,0.5519308978631435,,,40,range 0.433-0.615
+mean contrast on these datasets,0.03776361561603486,,,40,the published contrast is +0.0397 on all 94
+"spearman(frac_sense, CONTRAST)",-0.23958724202626647,-0.5366200486878882,0.1064157467327321,40,p=0.136; THE TEST: near zero means the artifact does not drive it
+"spearman(frac_sense, GC arm gain)",-0.30900562851782365,-0.60315391264878,0.02379960318197755,40,p=0.0524
+"spearman(frac_sense, dinuc arm gain)",-0.36435272045028144,-0.6184828598139429,-0.0622240338356801,40,p=0.0208
+"spearman(frac_sense, GC arm AUROC)",0.426641651031895,0.0968137927008024,0.691542865006168,40,p=0.00604
+"spearman(frac_sense, dinuc arm AUROC)",0.11463414634146342,-0.19654857746973026,0.4093623234085805,40,p=0.481
+"spearman(frac_sense, log10 pairs)",-0.07617260787992497,,,40,p=0.64
+"PARTIAL rho(frac_sense, contrast | size)",-0.25215759849906194,,,40,p=0.116; size explains none of the association
+"contrast, sense-POOR half",0.04114809923051764,,,40,n=20
+"contrast, sense-RICH half",0.03437913200155207,,,40,n=20
+difference between halves,-0.0067689672289655695,-0.027347550056972286,0.012255498785364152,40,Mann-Whitney p=0.457; should straddle zero
+"OLS slope, contrast on frac_sense",-0.1865979268765555,-0.5112738455512771,0.076624789770189,40,negative = contrast shrinks as negatives become correctly stranded
+EXTRAPOLATED contrast at frac_sense = 1.0,-0.045845149940142216,-0.18919247546936976,0.07192311109043836,40,"EXTRAPOLATION beyond the observed 0.433-0.615; decision input, not an estimate"
+frac_sense leverage available,0.182180831349811,,,40,"the artifact barely varies across datasets, so this test is weak BY DESIGN"

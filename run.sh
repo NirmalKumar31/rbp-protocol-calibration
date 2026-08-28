@@ -283,6 +283,7 @@ s13b_local_analysis() {
   $PY scripts/scale_check.py       || die "scale check"
   $PY scripts/incremental_value.py || die "incremental value"
   $PY scripts/unconditional_refit.py || die "unconditional refit"
+  $PY scripts/strand_contrast.py    || die "strand contrast"
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
   $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"

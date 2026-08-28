@@ -650,6 +650,70 @@ def verify_incremental_value(T, g):
         near("spearman(positional rule, phyloP)", r, spec["positional_rule_phylop_spearman"])
 
 
+def verify_strand_contrast(T, g):
+    """Does the strand artifact drive R1's surviving contrast? Recorded, not cleared.
+
+    The deleted strand block gated a retracted quantity behind a ceiling loose enough to pass a
+    real confound. This one pins the measured values and asserts only what the data support:
+    the halves agree, and the association is not the known size effect relabelled. The adverse
+    extrapolation is gated too, so it cannot quietly disappear from the limitations.
+    """
+    print("\nR1  strand contrast  (does the artifact drive +0.0397?)")
+    d = T.get("strand_contrast.csv")
+    if d is None:
+        return record(False, "strand_contrast.csv present", "MISSING",
+                      "run scripts/strand_contrast.py")
+    spec = g["r1_strand_contrast"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    n = must("mean frac_sense on these datasets")
+    if n is not None:
+        near("mean frac_sense", n, spec["mean_frac_sense"])
+        record(float(q.loc["mean frac_sense on these datasets", "n"])
+               == spec["n_datasets"]["value"], "audited datasets in the test",
+               q.loc["mean frac_sense on these datasets", "n"], spec["n_datasets"]["value"])
+
+    for k, gk in (("mean contrast on these datasets", "contrast_on_subset"),
+                  ("spearman(frac_sense, CONTRAST)", "rho_frac_sense_contrast"),
+                  ("PARTIAL rho(frac_sense, contrast | size)", "partial_rho_given_size"),
+                  ("difference between halves", "halves_difference"),
+                  ("EXTRAPOLATED contrast at frac_sense = 1.0",
+                   "extrapolated_at_full_sense")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+
+    # The association must not be the size effect wearing a costume.
+    raw = must("spearman(frac_sense, CONTRAST)")
+    par = must("PARTIAL rho(frac_sense, contrast | size)")
+    if raw is not None and par is not None:
+        at_most("association is not the size effect relabelled", abs(raw - par),
+                spec["max_raw_partial_gap"])
+
+    # THE ONE REASSURING RESULT. Halves agree, and the gap is small against the +0.0397.
+    hd = must("difference between halves")
+    lo = must("difference between halves", "ci_low")
+    hi = must("difference between halves", "ci_high")
+    if hd is not None:
+        at_most("sense-rich and sense-poor halves agree", abs(hd),
+                spec["max_abs_halves_difference"])
+    if lo is not None and hi is not None and spec["halves_ci_must_include_zero"]:
+        record(lo <= 0 <= hi, "halves difference straddles zero",
+               f"[{lo:+.4f}, {hi:+.4f}]", "includes 0")
+
+    # And the reason the correlation is weak, asserted so nobody reads p > 0.05 as a result.
+    lev = must("frac_sense leverage available")
+    if lev is not None:
+        at_most("frac_sense leverage is small (test is weak BY DESIGN)", lev,
+                spec["max_frac_sense_leverage"])
+
+
 def verify_unconditional_refit(T, g):
     """The corrected attenuation analysis, and its calibrated null.
 
@@ -891,6 +955,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
+               verify_strand_contrast,
                verify_strand_audit, verify_recompute,
                verify_integrity):
         try:

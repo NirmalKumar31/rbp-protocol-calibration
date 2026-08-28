@@ -146,6 +146,41 @@ r1_scale_check:
   max_rho_coef_gap_increment: 0.25
   contrast_logodds_normalised: {value: 0.1154, tol: 0.035}
 
+# --- R1: does the strand artifact drive the surviving contrast? ------------------------
+#
+# READ THIS BLOCK AS A RECORD, NOT AS A CLEARANCE. The previous strand block in this file was
+# deleted because it gated a retracted quantity behind a ceiling (contrast_rho_max: 0.40) so
+# loose that a real confound would have passed it. This block must not repeat that. It pins the
+# measured values so they cannot drift, and it asserts only the two things the data actually
+# support: that the two halves agree, and that the association is not the known size effect
+# relabelled. It does NOT assert that the artifact is harmless, because this test cannot show
+# that -- frac_sense spans only 0.433 to 0.615 across the 40 audited datasets, so there is
+# almost no leverage, and rho = -0.24 carries an interval of [-0.54, +0.11].
+r1_strand_contrast:
+  n_datasets:            {value: 40.0, tol: 0.0}
+  mean_frac_sense:       {value: 0.5519, tol: 0.010}
+  # The contrast on this subset must match the published one, or the 40 are not representative
+  # and nothing measured on them transfers.
+  contrast_on_subset:    {value: 0.0378, tol: 0.006}
+  rho_frac_sense_contrast: {value: -0.2396, tol: 0.05}
+  # Size is the one confound already known to move the contrast (rho +0.307 on all 94). If the
+  # partial correlation ever diverges sharply from the raw one, the reading changes.
+  partial_rho_given_size: {value: -0.2522, tol: 0.05}
+  max_raw_partial_gap:   0.10
+  # THE ONE REASSURING RESULT, AND IT IS GATED AS SUCH: the sense-rich and sense-poor halves
+  # agree, and the difference between them is small against the +0.0397 being defended.
+  halves_difference:     {value: -0.0068, tol: 0.006}
+  max_abs_halves_difference: 0.020
+  halves_ci_must_include_zero: true
+  # THE ADVERSE NUMBER, GATED SO IT CANNOT BE DROPPED. A linear extrapolation to fully correct
+  # stranding lands at -0.046, i.e. sign reversal, on an interval of [-0.189, +0.072] that is
+  # far too wide to act on in either direction. It is recorded because the honest conclusion is
+  # "this cannot be settled from committed data", and deleting the number would make the
+  # limitation read softer than it is.
+  extrapolated_at_full_sense: {value: -0.0458, tol: 0.020}
+  # Leverage, asserted so that anyone reading the correlation sees why it is weak.
+  max_frac_sense_leverage: 0.25
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -365,7 +400,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 138
+  min_domain_checks: 149
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
