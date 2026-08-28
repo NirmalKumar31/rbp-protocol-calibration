@@ -43,8 +43,18 @@ Two things are enforced here that were not there:
   1 - sqrt(1 + 0.346*c^2), gives about -60%. Getting the null wrong in the anti-conservative
   direction would have turned "the signal is substantially shared with conservation" into "the
   signal is essentially independent of it" -- the same false conclusion the retracted version
-  reached, arrived at a different way. The analytic value is reported alongside the simulation
-  as a cross-check, and they must agree.
+  reached, arrived at a different way.
+
+  A SECOND CORRECTION, ALSO RECORDED. The null was first simulated with a NORMAL covariate,
+  and the closed form 1 - sqrt(1 + 0.346*c^2) was gated as a cross-check that "must agree"
+  with it. Both were wrong. Non-collapsibility depends on the omitted covariate's whole
+  distribution, not just its variance, and phyloP is skewed (+1.04); the covariate is now drawn
+  through a Gaussian copula onto phyloP's own empirical marginal. And the closed form is a
+  small-sigma probit approximation which at c = 2.12 is far outside its range and
+  ANTI-CONSERVATIVE, so gating agreement with it gated the wrong direction. Exact
+  Gauss-Hermite marginalisation says the simulation is correct. It is now reported as an
+  order-of-magnitude reference and nothing is asserted about the gap. Seeds raised 12 -> 40,
+  since the earlier estimate had a seed-to-seed sd of about 0.054.
 
 Reference for the estimator's limits, which applies to the original framing too: Pepe,
 Janes, Longton, Leisenring & Newcomb 2004, Am J Epidemiol -- a large, tightly bounded odds
@@ -57,7 +67,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import spearmanr
+from scipy.stats import norm, spearmanr
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -69,7 +79,7 @@ from rbp.variants import conservation as cons                          # noqa: E
 N_BOOT = 2000
 SEED = 0
 BLOCK = 1_000_000
-CAL_SEEDS = 12
+CAL_SEEDS = 40
 CAL_RHO = np.linspace(0.0, 0.40, 21)
 
 
@@ -102,20 +112,30 @@ def dedupe(d, col):
                     (u.vid.str.split(":").str[1].astype(int) // BLOCK).astype(str))
 
 
-def simulate_attenuation(rho, b, c, prev, n, method="firth"):
+def simulate_attenuation(rho, b, c, prev, n, marginal=None, method="firth"):
     """Attenuation under a KNOWN correlation between score and covariate.
 
-    Forward simulation: score and covariate are standard bivariate normal with correlation
-    `rho`, labels are generated from both with coefficients b and c, and the two fits are the
-    same two the real analysis runs. rho = 0 is the non-collapsibility null.
+    Forward simulation: draw the score and the covariate with correlation `rho`, generate
+    labels from both with coefficients b and c, and run the same two fits the real analysis
+    runs. rho = 0 is the non-collapsibility null.
+
+    THE COVARIATE USES phyloP's OWN MARGINAL, NOT A NORMAL ONE. Non-collapsibility depends on
+    the whole distribution of the omitted covariate and not merely its variance, and real
+    phyloP is skewed (+1.04, sd 3.19, range -20 to +10). Drawing normals understated the null
+    by roughly ten points. Correlation is induced with a Gaussian copula so `rho` still means
+    what it says while the marginal is empirical.
     """
     a = np.log(prev / (1.0 - prev))
     vals = []
     for s in range(CAL_SEEDS):
         rng = np.random.default_rng(2000 + s)
         x = rng.standard_normal(n)
-        cc = rho * x + np.sqrt(max(1.0 - rho * rho, 0.0)) * rng.standard_normal(n)
-        p = 1.0 / (1.0 + np.exp(-(a + b * x + c * cc)))
+        u = rho * x + np.sqrt(max(1.0 - rho * rho, 0.0)) * rng.standard_normal(n)
+        if marginal is None:
+            cc = u
+        else:                                   # copula: rank-map onto the empirical marginal
+            cc = np.quantile(marginal, np.clip(norm.cdf(u), 1e-9, 1 - 1e-9))
+        p = 1.0 / (1.0 + np.exp(-(a + b * z(x) + c * z(cc))))
         y = (rng.random(n) < p).astype(int)
         if len(np.unique(y)) < 2:
             continue
@@ -126,10 +146,17 @@ def simulate_attenuation(rho, b, c, prev, n, method="firth"):
     return float(np.mean(vals)) if vals else np.nan
 
 
-def calibrate(observed_att, b, c, prev, n):
-    """The null, the analytic cross-check, and the rho that reproduces what we observed."""
-    curve = np.array([simulate_attenuation(r, b, c, prev, n) for r in CAL_RHO])
+def calibrate(observed_att, b, c, prev, n, marginal):
+    """The null, an order-of-magnitude reference, and the rho reproducing what we observed."""
+    curve = np.array([simulate_attenuation(r, b, c, prev, n, marginal) for r in CAL_RHO])
     null = float(curve[0])
+    # NOT A CROSS-CHECK. 1 - sqrt(1 + 0.346 c^2) is a small-sigma probit approximation to the
+    # logistic-normal attenuation factor. At c = 2.12 it is far outside the range where it
+    # holds and it is ANTI-CONSERVATIVE: it understates the amplification, which biases the
+    # excess-over-null upward, i.e. in the direction that flatters the result. An earlier
+    # version of this script asserted that the two "must agree" to within 0.15 and gated it.
+    # Exact Gauss-Hermite marginalisation says the simulation is the correct one. It is kept
+    # only as an order-of-magnitude reference, and it is no longer gated as agreement.
     analytic = 1.0 - np.sqrt(1.0 + 0.346 * c * c)
     o = np.argsort(curve)
     implied = float(np.interp(observed_att, curve[o], CAL_RHO[o]))
@@ -159,7 +186,7 @@ def main():
         b, _ = coef_se(np.column_stack([z(xs), z(cv)]), y, "firth")
         phylop_coef = float(b[1])
         null_att, analytic, implied_rho = calibrate(att, float(b[0]), phylop_coef,
-                                                    float(y.mean()), len(y))
+                                                    float(y.mean()), len(y), cv)
 
         rho = spearmanr(xs, cv)
 
@@ -179,9 +206,9 @@ def main():
              "value": null_att, "ci_low": np.nan, "ci_high": np.nan, "n": len(u),
              "note": "non-collapsibility; this is what 'no sharing' predicts"},
             {"standardisation": tag,
-             "check": "NULL attenuation at rho=0 (analytic cross-check)",
+             "check": "NULL attenuation at rho=0 (analytic reference only)",
              "value": analytic, "ci_low": np.nan, "ci_high": np.nan, "n": len(u),
-             "note": "1 - sqrt(1 + 0.346 c^2); must agree with the simulation"},
+             "note": "small-sigma approximation, ANTI-CONSERVATIVE at this c; not a check"},
             {"standardisation": tag, "check": "excess attenuation over the null",
              "value": att - null_att, "ci_low": np.nan, "ci_high": np.nan, "n": len(u),
              "note": "THE INTERPRETABLE QUANTITY: >0 means signal IS shared"},

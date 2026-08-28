@@ -549,7 +549,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 210
+  min_domain_checks: 209
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -755,12 +755,25 @@ r4_unconditional_refit:
   # one of them is broken and the interpretation rests on nothing. The first attempt at this
   # simulation WAS broken -- it drew the covariate from the label, making it a collider, and
   # reported -1.5% instead of -68% -- which would have reproduced the retracted conclusion.
-  null_attenuation_simulated: {value: -0.684, tol: 0.060}
-  null_attenuation_analytic:  {value: -0.599, tol: 0.060}
-  null_sim_analytic_max_gap:  0.15
-  # THE CLAIM. Both standardisations must show a large positive excess over the null, and the
-  # correlation the attenuation implies must land near the correlation measured directly.
-  min_excess_attenuation:    0.50
-  implied_rho:               {value: 0.0842, tol: 0.020}
+  # CORRECTED TWICE, BOTH CORRECTIONS RECORDED. First the null was built by drawing the
+  # covariate FROM the label, which makes it a collider: -1.5%. Then by forward simulation with
+  # a NORMAL covariate: -68%. Non-collapsibility depends on the omitted covariate's whole
+  # distribution and not only its variance, and phyloP is skewed (+1.04, sd 3.19, range -20 to
+  # +10), so it is now drawn through a Gaussian copula onto phyloP's empirical marginal: -87%.
+  # Every correction moved the null further from zero, i.e. every earlier version was
+  # anti-conservative. Seeds raised 12 -> 40 (seed-to-seed sd was ~0.054).
+  null_attenuation_simulated: {value: -0.8740, tol: 0.040}
+  # NOT A CROSS-CHECK, AND NO LONGER GATED AS AGREEMENT. 1 - sqrt(1 + 0.346 c^2) is a
+  # small-sigma probit approximation; at c = 2.12 it is far outside its range and it is
+  # anti-conservative. This file previously asserted the two "must agree" to within 0.15, which
+  # gated a known-invalid approximation against the correct simulation. Pinned, not compared.
+  null_attenuation_analytic:  {value: -0.6005, tol: 0.040}
+  # THE CLAIM. Both standardisations must show a large positive excess over the null.
+  min_excess_attenuation:    0.60
+  # SELF-VALIDATION, AND IT IS WEAKER THAN IT LOOKED. With the corrected marginal the
+  # attenuation implies rho ~0.098 against a measured ~0.064. Same order, same sign, which is
+  # what supports the reading -- but they no longer agree to 0.02 as they appeared to under the
+  # normal-marginal null, and the tolerance now says so.
+  implied_rho:               {value: 0.0978, tol: 0.020}
   measured_rho:              {value: 0.0640, tol: 0.015}
-  max_implied_measured_gap:  0.040
+  max_implied_measured_gap:  0.045

@@ -992,7 +992,7 @@ def verify_unconditional_refit(T, g):
     for k, gk in (("coef, TRULY unconditional", "coef_unconditional_within"),
                   ("coef, conditional on phyloP", "coef_conditional_within"),
                   ("NULL attenuation at rho=0 (simulated)", "null_attenuation_simulated"),
-                  ("NULL attenuation at rho=0 (analytic cross-check)",
+                  ("NULL attenuation at rho=0 (analytic reference only)",
                    "null_attenuation_analytic"),
                   ("correlation implied by the observed attenuation", "implied_rho"),
                   ("spearman(|delta|, phyloP), MEASURED", "measured_rho")):
@@ -1008,12 +1008,9 @@ def verify_unconditional_refit(T, g):
         at_most("raw attenuation is near zero (and not the claim)", abs(raw),
                 spec["max_abs_raw_attenuation"])
 
-    # Two routes to the null must agree, or the interpretation rests on nothing.
-    sim = must("NULL attenuation at rho=0 (simulated)")
-    ana = must("NULL attenuation at rho=0 (analytic cross-check)")
-    if sim is not None and ana is not None:
-        at_most("simulated and analytic nulls agree", abs(sim - ana),
-                spec["null_sim_analytic_max_gap"])
+    # NO AGREEMENT ASSERTION between the two routes, deliberately. The closed form is
+    # anti-conservative at this covariate strength, so gating agreement would gate a
+    # known-invalid approximation against the correct simulation. Both are pinned separately.
 
     # THE CLAIM, required under BOTH standardisations because the raw attenuation flips sign
     # between them and the conclusion must not.
