@@ -725,6 +725,48 @@ def verify_strand_contrast(T, g):
                 spec["max_frac_sense_leverage"])
 
 
+def verify_region(T, g):
+    """Heterogeneity by binding region, gated together with the limitation on it."""
+    print("\nR1f  region heterogeneity")
+    d = T.get("region_heterogeneity.csv")
+    if d is None:
+        return record(False, "region_heterogeneity.csv present", "MISSING",
+                      "run scripts/region_heterogeneity.py")
+    spec = g["r1_region"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    for k, gk in (("contrast, cds-dominant datasets", "contrast_cds"),
+                  ("contrast, intron-dominant datasets", "contrast_intron"),
+                  ("contrast, utr3-dominant datasets", "contrast_utr3"),
+                  ("CDS minus intron", "cds_minus_intron"),
+                  ("composition alone, intron-dominant", "composition_intron"),
+                  ("composition alone, cds-dominant", "composition_cds")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+
+    lo = must("CDS minus intron", "ci_low")
+    if lo is not None and spec["cds_intron_ci_must_exclude_zero"]:
+        record(lo > 0, "CDS-intron difference excludes zero", f"{lo:+.4f}", "> 0")
+
+    ci, cc = must("composition alone, intron-dominant"), must("composition alone, cds-dominant")
+    if ci is not None and cc is not None and spec["intron_must_be_more_compositional"]:
+        record(ci > cc, "MECHANISM: intronic sites are more compositional",
+               f"{ci:.4f} vs {cc:.4f}", "intron higher")
+
+    # THE LIMITATION. It must NOT survive adjustment, and that is asserted.
+    pr = must("...partialling out total nested gain")
+    if pr is not None:
+        at_most("region acts THROUGH effect size, not independently", abs(pr),
+                spec["max_partial_rho"])
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -1198,7 +1240,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cross_tables, verify_integrity):
         try:

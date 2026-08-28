@@ -305,6 +305,31 @@ r1_k_sweep:
   # corrected: k=5 and k=4 must agree.
   max_k5_minus_k4:   0.004
 
+# --- R1f: heterogeneity by binding region ---------------------------------------------
+#
+# The one biological statement the study supports, gated together with the limitation that
+# qualifies it. The contrast is twice as large for CDS-dominant proteins as for intron-dominant
+# ones, and the mechanism is checkable: intronic sites are compositionally distinctive
+# (polypyrimidine tracts, U-rich stretches), so composition alone already discriminates them
+# and the protocol has less to expose. THE LIMITATION IS GATED TOO: partialling out the total
+# nested gain removes the association, so region indexes how much non-compositional signal
+# exists rather than acting as a separate mechanism. Claimed the second way it is right;
+# claimed the first way it is wrong.
+r1_region:
+  contrast_cds:      {value: 0.0635, tol: 0.008}
+  contrast_intron:   {value: 0.0316, tol: 0.006}
+  contrast_utr3:     {value: 0.0328, tol: 0.008}
+  cds_minus_intron:  {value: 0.0319, tol: 0.007}
+  cds_intron_ci_must_exclude_zero: true
+  # THE MECHANISM: intronic sites must be MORE compositional, or the explanation is wrong.
+  composition_intron: {value: 0.6656, tol: 0.015}
+  composition_cds:    {value: 0.5765, tol: 0.015}
+  intron_must_be_more_compositional: true
+  # THE LIMITATION, asserted so it cannot be dropped: the association must NOT survive
+  # partialling out total gain. If it ever does, the claim gets STRONGER and this must be
+  # revisited deliberately rather than silently.
+  max_partial_rho:   0.25
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -524,7 +549,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 201
+  min_domain_checks: 210
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -539,7 +564,20 @@ integrity:
   # NEW unsourced number fails the build.
   #
   # DO NOT RAISE THIS TO MAKE A BUILD PASS. Add the number to the table that owns it.
-  max_manuscript_orphans: 21
+  # Down from 45. Cutting the dead sections removed most of them mechanically, which is what
+  # the auditor predicted: none of the orphans were ever in R1. The six that remain are all
+  # legitimate and are listed so a seventh cannot hide among them:
+  #
+  #   0.127853, 1.648166   the algebraic identity that retracted the composition-share claim.
+  #                        Evidence ABOUT a retraction, quoted to 6 dp precisely to show the
+  #                        two routes agree exactly. Not a claim.
+  #   0.2643, 0.2787       the withdrawn strand defence, recorded in RETRACTED so the reasoning
+  #                        that was abandoned stays auditable.
+  #   0.0993, 0.1163       multidonor bootstrap bounds on a powered subset, which no
+  #                        whole-column aggregate reproduces.
+  #
+  # A SEVENTH MEANS SOMEONE PRINTED A NUMBER WITH NO SOURCE. Add it to the table that owns it.
+  max_manuscript_orphans: 6
   # Duplicated numbers must agree. cost_of_matching.csv is a join of the two rehearsal arms and
   # verify.py read only the join, so scrambling rehearsal_binding_dinuc.csv passed 166/166
   # while breaking 88/94, 94/94 and the Wilcoxon p. Exact equality: these are copies, not

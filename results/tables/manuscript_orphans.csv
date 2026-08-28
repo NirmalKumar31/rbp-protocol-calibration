@@ -1,22 +1,7 @@
 line,value,context
-194,0.640,"has almost no power because `frac_sense` spans only 0.433 to 0.640, so a *between*-dataset"
-284,0.8297,| SpliceBERT | 0.8091 | 0.8297 | **+0.0206** | 1.8e-16 |
-285,0.7339,| CNN | 0.7063 | 0.7339 | **+0.0276** | 4.8e-17 |
-295,0.541,"0.257 for SpliceBERT vs 0.541 for the CNN, paired p=9e-17; rho(penalty, tau/sigma) = +0.78 and"
-369,0.0605,"- model vs the 1-Mb rule, common variant mask: **−0.0605**, wins **15/44**, p=0.0044"
-379,0.825,"*Correction, 2026-08-27.* An earlier draft printed 0.825 unstratified and 0.768–0.832 across"
-379,0.832,"*Correction, 2026-08-27.* An earlier draft printed 0.825 unstratified and 0.768–0.832 across"
-405,0.0605,"- paired on a **common variant mask**: model **−0.0605** vs the 1-Mb rule, wins **15/44**,"
-409,0.8904,"is scoreable either way: 0.8921 all vs 0.8904 on-subset, **−0.0017**.)"
-495,0.1021,"| ↳ donor-clustered instead of target-clustered | +0.0784 [+0.0442, +0.1021] | n/a |"
-519,0.634,"flat"" overstates: the floor rises from 0.634 (<20 positives) to 0.667 (≥20), roughly 6× less"
-527,0.1362,"reproduced the published co-binding stratification **better** (+0.1362 vs +0.1210, both 16/17)."
-536,0.705,"- 27,492 unique SNVs. Transition fraction: benign **0.705**, pathogenic **0.517**, the"
-539,0.5824,pooled AUROC **0.5824**.
-557,0.127853,`share_m = C / gain_m` where `C = mean(composition_auroc) − 0.5 = 0.127853` is identical across
-558,1.648166,"models, so `share_kmer / share_SB == gain_SB / gain_kmer` exactly, **1.648166 both ways to 6"
-588,0.2643,numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
-588,0.2787,numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
-629,0.832,"pathogenic variants"", and the rule holds AUROC 0.768–0.832 within all ten phyloP deciles."
-652,0.0993,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
-658,0.1163,"(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,"
+338,0.127853,`share_m = C / gain_m` where `C = mean(composition_auroc) − 0.5 = 0.127853` is identical across
+339,1.648166,"models, so `share_kmer / share_SB == gain_SB / gain_kmer` exactly, **1.648166 both ways to 6"
+369,0.2643,numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
+369,0.2787,numbers offered (contrast +0.2643 → +0.2787 on sense-only negatives; +0.2485 vs +0.2644 across
+433,0.0993,"sharing components gives [0.0215, 0.0998] against [0.0269, 0.0993] iid; the intervals overlap"
+439,0.1163,"(|Δquality| < 0.05, |Δlog size| < 0.25) gives **+0.0774** [+0.0360, +0.1163], 14/18, p=0.0034,"

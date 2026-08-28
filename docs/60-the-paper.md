@@ -191,7 +191,7 @@ the local copy was a different draw and reproduced only 13 of 40.
 **A weaker version is retained in `strand_contrast.py` and should not be relied on.** It
 regresses the per-dataset contrast on each dataset's sense fraction. On the 40 audited datasets
 it gives rho = −0.24 [−0.54, +0.11]; extended to all 94 it gives rho = −0.074, p = 0.478. It
-has almost no power because `frac_sense` spans only 0.433 to 0.640, so a *between*-dataset
+has almost no power because `frac_sense` spans only 0.433 to 0.615, so a *between*-dataset
 regression is being used against a bias present *within* every dataset, and `frac_sense` is not
 exogenous. Restriction moves the sense fraction to 1.0 by construction. Both designs are kept
 because the difference between them is the methodological point.
@@ -264,6 +264,38 @@ turns on it. The reason it survived 150 gated numeric assertions is worth statin
 because it generalises: every one of those assertions checked a *value*, and none checked
 *which model produced it*. `k` is now gated.
 
+## R1f: the effect is twice as large for coding-region binders
+
+`region_heterogeneity.csv`, `scripts/region_heterogeneity.py`, 10 gated checks, n = 94.
+
+This is the only biological statement the study supports, and its limitation is printed beside
+it rather than below it. Grouping datasets by the region their positive windows mostly occupy:
+
+| dominant region | n | contrast | composition alone (dinuc arm) |
+|---|---|---|---|
+| CDS | 24 | **+0.0635** | 0.5765 |
+| 3'UTR | 17 | +0.0328 | 0.5971 |
+| intron | 49 | **+0.0316** | 0.6656 |
+
+CDS minus intron is **+0.0319** [+0.0190, +0.0453], Mann-Whitney p = 1.5e-05, Kruskal-Wallis
+across the three groups p = 2.2e-05. The difference between binding classes is as large as the
+headline contrast itself.
+
+**The mechanism is checkable and it checks out.** Intronic binding sites are compositionally
+distinctive: polypyrimidine tracts, U-rich stretches, the low-complexity sequence around splice
+signals. Composition alone should therefore already discriminate them, leaving the protocol
+less to expose. It does: composition-only AUROC under dinucleotide matching is **0.6656** for
+intron-dominant datasets against **0.5765** for CDS-dominant ones, p = 2.7e-08. Where
+recognition is compositional the protocol change matters less; where it is higher-order, it
+matters twice as much.
+
+**The limitation, and it is gated so it cannot be dropped.** Region does not act independently
+of effect size. The intronic fraction correlates with the contrast at Spearman −0.340
+(p = 8.0e-04), but once the total nested gain is partialled out the association disappears
+(+0.082, p = 0.435). So the honest claim is that **region indexes how much non-compositional
+signal there is to expose**, not that region is a separate mechanism. Stated the second way it
+is supported; stated the first way it would be wrong.
+
 ## R2: the model ladder (methods table, not a result)
 
 `matched_four_models.csv`, n = 95, identical chromosome-level folds. Figure **f2**.
@@ -274,281 +306,30 @@ SpliceBERT beats composition on **95/95**.
 **Prior art:** Horlacher et al. 2023, *Briefings in Bioinformatics* published the negative-set
 effect across 11 RBP methods. This is scaffolding for R1, cited as replication.
 
-## R3: the evaluation-protocol asymmetry (new, and it costs nothing)
+## Not in this paper, and why
 
-Recomputed from the 950 committed per-example score files, n = 95 datasets. The design is
-1:1 matched pairs, and pooled AUROC discards that pairing.
+Six sections that appeared in earlier drafts are cut. They are listed because a reader of the
+repository will find their code and tables still present, gated and reproducible, and should
+know they were considered and rejected rather than overlooked.
 
-| model | pooled AUROC | matched-pair concordance | pooling penalty | p |
-|---|---|---|---|---|
-| SpliceBERT | 0.8091 | 0.8297 | **+0.0206** | 1.8e-16 |
-| CNN | 0.7063 | 0.7339 | **+0.0276** | 4.8e-17 |
-| **differential (CNN − SpliceBERT)** | | | **+0.0069** | **3.6e-05** |
-
-**A measurement-protocol choice penalises architectures unequally.** It is not an accuracy
-artefact: degrading SpliceBERT to CNN accuracy under a binormal decomposition, holding its own
-variance structure, predicts a penalty of +0.0065 rather than +0.0276, and rho(penalty
-differential, accuracy differential) = -0.14.
-
-**But it is a composition result, not an architecture result, and an earlier draft claimed the
-opposite.** The driver is the ratio of pair-shared to within-pair score variance (tau/sigma
-0.257 for SpliceBERT vs 0.541 for the CNN, paired p=9e-17; rho(penalty, tau/sigma) = +0.78 and
-+0.83). Pairs are matched on composition, so the pair-shared component **is** composition and
-locale -- and the penalty correlates with each dataset's composition-only AUROC at rho ~ +0.50.
-So R3 is a third view of the R1/R2 composition story rather than an independent finding, and
-the sentence "with no composition features involved" has been deleted. Note also that the
-retracted pooled ClinVar ladder is the same non-collapsibility phenomenon in the other
-direction; presenting one as a result and the other as an artefact requires the explicit
-argument that pooled AUROC is unbiased for its own estimand and simply answers a different
-question.
-
-## R4: the model's variant signal is orthogonal to conservation and position (primary ClinVar result)
-
-> **DO NOT SUBMIT THIS SECTION. Its headline number is retracted and its conclusion is
-> backwards.** Every fit in `variant_specificity_refit.csv` was produced by a caller that
-> passes conservation into the model ([`cloud_analysis.py:389`](../scripts/cloud_analysis.py)),
-> so the row labelled "controls = none" was *already* conservation-adjusted and the published
-> "0.21% attenuation" is the effect of dropping 168 rows (18,998 to 18,830), not of
-> conditioning. Worse, near-zero attenuation was read as evidence of independence when it is
-> evidence of the opposite: see **R4d**, which redoes the estimator correctly and inverts the
-> conclusion. The text below is retained unedited so the error is auditable. Recomputing it on
-> the SpliceBERT arm requires `variants/scores_sb/` and `variants/scores_mm/`, which are
-> GCS-only, and is pending.
-
-**RESTRUCTURED 2026-08-27 after peer review.** The previous version of this section led with
-"conservation and a positional rule beat the model", which is (a) a replication of Grimm 2015
-and Schreiber 2020 and (b) exposed to a circularity the AUROC framing cannot survive: phyloP
-is conservation, and ClinVar pathogenic assertions lean on PP3 computational evidence supplied
-by conservation-derived tools (CADD, REVEL, GERP), while benign assertions lean on allele
-frequency. In this study's own data, benign variants have mean phyloP **0.022** against
-pathogenic **5.06**. An AUROC horse race between a model and a partial proxy for the labels is
-not interpretable.
-
-**The analysis that is interpretable was already computed and was sitting in a supplementary
-table.** It asks a different question (not *who wins*, but *does the model add anything
-conservation and position do not*) and that question is immune to the leakage, because
-leakage into the labels inflates the competitor's AUROC without creating incremental value for
-the model.
-
-Firth logistic regression on 18,830 variants, clustered on 1-Mb genomic blocks,
-within-dataset standardised |δ|. `variant_coefficients.csv`, `variant_specificity_refit.csv`.
-
-| arm | controls | coefficient | 95% CI |
-|---|---|---|---|
-| right protein | none | **1.1238** | [1.032, 1.225] |
-| right protein | **+ phyloP** | **1.1214** | [1.036, 1.213] |
-| right protein | **+ phyloP + 1-Mb positional rule** | **1.1689** | [1.066, 1.268] |
-| wrong protein | + phyloP | 0.6364 | [0.549, 0.712] |
-| wrong protein | + phyloP + 1-Mb rule | 0.6918 | [0.623, 0.760] |
-
-- **Attenuation of the model's coefficient after conditioning on conservation: +0.21%.** The
-  signal the model reads is essentially independent of phyloP.
-- Adding the positional rule as a covariate *raises* the coefficient to 1.1689 rather than
-  lowering it.
-- The right- and wrong-protein intervals are **non-overlapping** under both control sets
-  ([1.036, 1.213] vs [0.549, 0.712]).
-
-**Claim:** a fine-tuned RBP model contributes variant-effect information that neither
-conservation nor genomic position supplies, and roughly half of that contribution is specific
-to the protein it was trained on. This is stated as incremental value, never as a win.
-
-## R4b: and the two trivial baselines, reported as calibration
-
-Paired per-dataset over the 44 datasets with ≥20 pathogenic variants. Figure **f6**.
-**Estimator note:** the rows below are per-dataset means; the pooled versions differ and are
-in the supplement. Following peer review, one estimator is used throughout this section, a
-paper whose R3 *is* the pooled-versus-paired distinction cannot mix them in its own ladder.
-
-| scorer | AUROC (per-dataset mean) |
+| section | why it is gone |
 |---|---|
-| phyloP conservation | **0.892**, but see the circularity above; treat as a ceiling, not a competitor |
-| 1-Mb leave-one-out positional prevalence | **0.8139** |
-| SpliceBERT, right protein | **0.755** |
-| SpliceBERT, wrong protein | 0.691 |
+| **R2**, the four-model ladder | Horlacher et al. 2023, *Brief Bioinform* 24(5):bbad307 published the negative-set effect across 11 methods and 313 experiments. Retained above only as a methods table and cited as replication. |
+| **R3**, pooled vs paired AUROC | Prior art (van Klaveren et al. 2016, *Stat Med*; Janes & Pepe 2008), and on inspection a third view of the composition story rather than an independent result. |
+| **R4/R4b/R4c**, the ClinVar ladder | Retracted. Every fit passed conservation into the model, so the row labelled "controls = none" was already adjusted and the published "0.21% attenuation" measured the removal of 168 rows. The AUROC framing it replaced is separately circular: ClinVar pathogenic assertions lean on PP3 evidence from conservation-derived tools, so ranking a model against phyloP partly ranks it against the answer key. |
+| **R4d**, the corrected attenuation analysis | See the limitation below. The remedy is Schuster et al. 2021, *BMC Med Res Methodol* 21:136, and with R4 cut there is nothing left in this paper for it to correct. |
+| **R5**, the wrong-protein specificity control | Conditional and underpowered. The detection plateau moved from 20 to at least 45 pathogenic variants under scrutiny, and the downsampling experiment that would settle it was never run. |
+| **R6**, the substitution-spectrum baseline | Its interval, [−0.0113, +0.0284], is wider than half the effect. |
+| the composition-**share** framing | An algebraic identity: share_m = C/gain_m with C constant across models, so the model contrast excluded zero with probability 1. |
 
-- model vs the 1-Mb rule, common variant mask: **−0.0605**, wins **15/44**, p=0.0044
-- decay across block sizes (pooled): 100 kb **0.851**, 1 Mb 0.818, 10 Mb 0.733
-
-**The positional rule is not conservation in disguise, and this matters.** Spearman(prevalence,
-phyloP) = **+0.338**, and the rule retains AUROC **0.755–0.817 within every one of ten phyloP
-deciles** (unstratified **0.816**, n=27,364 unique variants). So it is a second, independent
-benchmark leak, and unlike phyloP it is **not** exposed to the PP3 circularity, because no
-ACMG criterion is "this variant is near other pathogenic variants." Of the two baselines that
-outrank the model, this is the one a referee cannot explain away.
-
-*Correction, 2026-08-27.* An earlier draft printed 0.825 unstratified and 0.768–0.832 across
-deciles. Those were computed with leave-one-out block prevalence taken on the pre-deduplicated
-assignment table, which carries 2.40 rows per variant; subtracting one copy left roughly 1.4
-copies of a variant's own label inside its own block. Deduplicating first gives the values
-above. The conclusion is unchanged and slightly weaker, which is the direction that matters.
-
-**Prior art, cited in the Introduction rather than buried.** Grimm et al. 2015, *Human
-Mutation* (type-2 circularity); Schreiber, Singh, Bilmes & Noble 2020, *Genome Biology*
-(average-activity baseline); Livesey & Marsh; Notin et al. 2023 (ProteinGym); Marin et al.
-2024 (BEND); Tang & Koo; Sasse et al. 2023; Karollus & Gagneur 2023. **This subsection is a
-replication in a new data type.** It is calibration for R4, not a finding.
-
-## R4c: superseded framing, retained for the record
-
-`variant_ladder_paired.csv`, `variant_specificity_attacks.csv`, paired over the 44 datasets
-with ≥20 pathogenic variants. Figure **f6**.
-
-| scorer | AUROC |
-|---|---|
-| phyloP conservation | **0.892**, beats the model 40/44, p = 1.1e-09 |
-| 1-Mb leave-one-out positional prevalence | **0.818** (100 kb **0.851**; 10 Mb 0.733) |
-| SpliceBERT, right protein | **0.755** |
-| SpliceBERT, wrong protein | 0.691 |
-| dataset identity alone | 0.668 |
-| k-mer \|δ\| | 0.552 |
-
-- paired on a **common variant mask**: model **−0.0605** vs the 1-Mb rule, wins **15/44**,
-  p = 0.0044. (The baseline cannot score variants alone in their block (mean 20.2%,
-  max 38.9%), so both arms are restricted to the same variants. Bias measured with
-  conservation, which
-  is scoreable either way: 0.8921 all vs 0.8904 on-subset, **−0.0017**.)
-- the decay across block sizes is smooth, so the rule is reading positional structure rather
-  than exploiting one lucky binning.
-
-**Prior art, and it must be cited in the Introduction, not buried.** Grimm et al. 2015,
-*Human Mutation* ("type-2 circularity": a predictor knowing only gene identity scores high, and
-benchmark rankings invert under gene-disjoint evaluation). Schreiber, Singh, Bilmes & Noble
-2020, *Genome Biology* (the average-activity baseline beats deep models that appear to learn
-cell-type specificity). Also Livesey & Marsh; Notin et al. 2023 (ProteinGym); Marin et al. 2024
-(BEND); Tang & Koo; Sasse et al. 2023; Karollus & Gagneur 2023. **This result is a replication
-in a new tissue, not a discovery.** The contribution is the specific instrument (a leave-one-out
-positional-prevalence rule on RBP variant data) and the calibration in R5.
-
-## R4d: the estimator done correctly, and why it reverses R4's conclusion
-
-`unconditional_refit.csv`, `scripts/unconditional_refit.py`, 11 gated checks. n = 27,492
-unique variants, 189 datasets, 1-Mb block cluster bootstrap, 2000 draws.
-
-**This is a methods result, not R4.** It runs on the **k-mer** arm, which is the only
-per-variant score table committed to the repository. R4's claim is about SpliceBERT, whose
-scores are GCS-only. What transfers is the procedure and, more importantly, the
-interpretation, because both were wrong.
-
-**The correction is one argument.** `fit_delta_coef` has always accepted `conservation=None`;
-nothing ever passed it. With both fits run on one row set built once, so the comparison cannot
-absorb a change in n:
-
-| standardisation | truly unconditional | conditional on phyloP | attenuation |
-|---|---|---|---|
-| pooled | +0.2673 [+0.218, +0.319] | +0.2609 [+0.199, +0.321] | **+2.4%** |
-| within-dataset | +0.2915 [+0.258, +0.326] | +0.3067 [+0.265, +0.351] | **−5.2%** |
-
-The raw attenuation is near zero, and it **flips sign** depending on a preprocessing choice
-that has nothing to do with the hypothesis. That instability alone disqualifies it as a
-headline.
-
-**Near-zero attenuation is not independence. It is the signature of real sharing.** Logistic
-regression is not collapsible: adding a strong predictor of the outcome inflates the other
-coefficients even when the two predictors are exactly independent, because the latent residual
-scale is fixed. phyloP's coefficient here is **+2.12**, which is very strong. So the null for
-"conservation carries no information about the model's signal" is not 0% attenuation, it is a
-large *amplification*:
-
-| quantity | pooled | within-dataset |
-|---|---|---|
-| **null attenuation at ρ = 0**, forward simulation | **−68.4%** | **−68.5%** |
-| same, analytic cross-check 1 − √(1 + 0.346·c²) | −59.9% | −60.1% |
-| **excess attenuation over the null** | **+70.8%** | **+63.3%** |
-| ρ implied by the observed attenuation | +0.085 | +0.084 |
-| **ρ between \|δ\| and phyloP, measured directly** | **+0.066** | **+0.064** |
-
-The last two rows are the check that makes this trustworthy. The correlation needed to cancel
-a −68% amplification and land at ~0% is ρ ≈ 0.085; the correlation actually present is ρ ≈
-0.065. They agree to within 0.02, so the whole picture is internally consistent and the
-original reading was simply inverted. Both standardisations give the same large positive
-excess even though their raw attenuations have opposite signs, which is the robustness the raw
-number lacks.
-
-**Honest statement of what this licenses.** On the k-mer arm, the model's variant signal is
-*partly* shared with conservation, by an amount that a modest correlation fully accounts for.
-It is not orthogonal to conservation, and it is not explained away by conservation either. The
-same analysis on SpliceBERT is the outstanding work.
-
-**A first version of this null was wrong and is recorded rather than deleted.** It generated
-the synthetic covariate from the label, C = μ·y + noise, reasoning that this makes it
-independent of the score. It does not make it a valid null: C is then a descendant of the
-outcome, conditioning on it is conditioning on a collider, and the amplification mostly
-disappears. It reported a null of −1.5%, which would have reproduced exactly the retracted
-conclusion by a new route. The analytic cross-check is in the table and gated for this reason:
-two independent routes to the null must agree or neither is usable.
-
-**Prior art on the estimator itself.** Pepe, Janes, Longton, Leisenring & Newcomb 2004, *Am J
-Epidemiol*, "Limitations of the odds ratio in gauging the performance of a marker": a large,
-tightly bounded coefficient implies very little about added discrimination. A coefficient was
-the wrong summary for "does the model add anything" regardless of what it was conditioned on,
-which is why R1's nested AUROC framing is the one the paper leads with.
-
-## R5: the wrong-protein control, and the detection threshold (conditional)
-
-`multidonor_specificity.csv`, 95 targets × 5 quality-spanning donors, 474/475 tasks, jaccard
-≤ 0.02 screen. Figure **f7**.
-
-| estimator | powered (44) | all usable (82) |
-|---|---|---|
-| mean gap | **+0.0880**, 39/44, p=4.6e-08 | +0.0124, 56/82, p=0.10 |
-| intercept at zero donor advantage | **+0.0784** [+0.0514, +0.1038] | **+0.0068** [−0.0278, +0.0399] |
-| ↳ donor-clustered instead of target-clustered | +0.0784 [+0.0442, +0.1021] | n/a |
-| ↳ adding power as a covariate | +0.0236 [−0.0120, +0.0593] | +0.0103 |
-| donors *stronger* than the target | +0.0920, 39/44, p=1.3e-07 | +0.0090, p=0.20 |
-
-**Report both panels. The specificity gap does not go in the abstract.**
-
-**The transferable finding is the detection threshold.** The wrong-protein floor is flat in
-statistical power (rho **+0.091**, p=0.066) while the model's own arm is steep (rho **+0.631**,
-p=7.6e-47). Below ~20 pathogenic variants the target's own head sits at **0.559**, near
-chance, so the gap is negative (−0.075, 17/38, p=0.025). **Specificity claims below roughly 20
-positives are unmeasurable by construction.** No prior art was found for this calibration.
-Figure f7b shows the gap is monotone in power, which is what a real effect does and a threshold
-artefact does not.
-
-**Two corrections from peer review, both conceded.** First, the plateau is at **≥45** pathogenic
-variants (mean gap 0.108, n=31), not at 20, where the curve is still mid-slope (0.0645). So the
-reported +0.0784 is neither a null nor the plateau value; it is an average over whatever power
-distribution the 44 happen to have, and the paper's own row (intercept +0.0236 [−0.0120,
-+0.0593] once power enters as a covariate) says so. The continuous gap-versus-power curve with
-a confidence band, not a stratum mean, should be the primary estimator. Second, f7's x-axis
-**filters datasets**, so low-power points are also weaker eCLIP experiments and the 21 points
-are nested subsets with dependent p-values; "crosses p<0.05 at 15" is therefore not a test. The
-correct experiment holds the 44 powered datasets fixed and **downsamples** pathogenic variants
-to n = 5, 10, 20, 40. It needs no GPU and is the third revision we owe. Finally, "the floor is
-flat" overstates: the floor rises from 0.634 (<20 positives) to 0.667 (≥20), roughly 6× less
-steeply than the matched arm's 0.559 → 0.755, and rho = +0.091, p = 0.066 with CI [−0.01, +0.19]
-is a precise near-zero rather than a demonstration of flatness.
-
-**Second methodological finding:** a wrong-protein control must screen its donors on **model
-capacity**, not only on protein identity. The v1 design used one donor at a fixed manifest
-offset; donors came out systematically weaker (binding AUROC 0.802 vs 0.850, p=0.018) and the
-measured gap tracked donor training volume at rho **−0.533**. A placebo split on donor *size*
-reproduced the published co-binding stratification **better** (+0.1362 vs +0.1210, both 16/17).
-Adebayo et al. 2018 and Hooker et al. 2019 own the general control logic; the RBP-specific
-requirement and its failure mode are ours.
-
-## R6: the substitution-spectrum baseline
-
-`substitution_baseline.csv`. Recomputed here; **weaker than an advisor first reported, and the
-conservative reading is the one that ships.**
-
-- 27,492 unique SNVs. Transition fraction: benign **0.705**, pathogenic **0.517**, the
-  canonical splice-dinucleotide signature.
-- A leave-one-out prior over the 12 substitution types, using no sequence and no model, scores
-  pooled AUROC **0.5824**.
-- Per dataset (84 datasets with ≥20 pathogenic): substitution prior **0.5627** vs the trained
-  k-mer \|δ\| **0.5544**. It beats it on 43/84, mean difference +0.0083, **p = 0.57**.
-
-**Claim it as "neither separable nor equivalent".** p = 0.57 is not evidence of equivalence: the
-95% CI on the +0.0083 difference is **[-0.0113, +0.0284]**, a margin wider than half the k-mer
-model's entire above-chance signal (0.0544). The honest statement is that both scorers sit near
-chance (substitution prior 0.5627 [0.548, 0.578]; k-mer 0.5544 [0.540, 0.568]) and **this panel
-cannot separate them**. Do not attribute the class difference to a canonical GT/AG splice
-signature: 42.6% of pathogenic variants are C>T/G>A transitions, and the actual class
-difference is transversion enrichment (C>A + G>T: 20.3% pathogenic vs 8.3% benign).
-
----
+**One limitation inherited from the cut ClinVar work, stated because it was paid for.** A
+conservation control that compares a coefficient before and after adjustment must be read
+against a calibrated null and not against zero: logistic regression is not collapsible, so a
+strong covariate that is genuinely independent of the exposure *amplifies* the other
+coefficient rather than leaving it alone. An analysis in this repository originally read a
+near-zero attenuation as evidence of independence when it is evidence of the opposite. The
+argument is general and belongs to Schuster et al. 2021; the specifics are in
+`scripts/unconditional_refit.py` and are not claimed here.
 
 ## RETRACTED, on the record
 
@@ -624,9 +405,9 @@ frequency. In this study's own data benign variants have mean phyloP **0.022** (
 1.1% above phyloP 7) against pathogenic mean **5.06** (38.4% above phyloP 7). phyloP is
 therefore not an independent predictor of these labels but a partial proxy for the evidence
 that generated them, and its 0.892 must be read as a **ceiling on this benchmark**, never as a
-biological statement. This is the reason R4 is framed as incremental value rather than as a
-ranking. The 1-Mb positional rule is **not** subject to this: no ACMG criterion is "near other
-pathogenic variants", and the rule holds AUROC 0.768–0.832 within all ten phyloP deciles.
+biological statement. The ClinVar sections that rested on it are cut, and this
+paragraph is retained only to record why: a benchmark whose labels are partly derived from the
+competitor being benchmarked cannot rank the two, however carefully the ranking is computed.
 
 **2. Pretraining exposure.** SpliceBERT is pretrained on human pre-mRNA. Every window in this
 study (positive and negative) lies inside an annotated gene (0.0% intergenic), so held-out
