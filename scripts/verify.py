@@ -725,6 +725,60 @@ def verify_strand_contrast(T, g):
                 spec["max_frac_sense_leverage"])
 
 
+def verify_r1_robustness(T, g):
+    """Replication across cell lines, and the efficiency the protocol buys.
+
+    These are the paper's answer to its own biggest concession, that the sign of the contrast
+    is design-implied. Neither is implied by the design.
+    """
+    print("\nR1d  replication and efficiency")
+    d = T.get("r1_robustness.csv")
+    if d is None:
+        return record(False, "r1_robustness.csv present", "MISSING",
+                      "run scripts/r1_robustness.py")
+    spec = g["r1_robustness"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    for k, gk in (("proteins assayed in both cell lines", "n_proteins_both_lines"),
+                  ("REPLICATION of the contrast across cell lines", "replication_r"),
+                  ("replication of the GC-arm gain alone", "replication_gc_alone"),
+                  ("replication of the dinuc-arm gain alone", "replication_dn_alone"),
+                  ("EFFICIENCY GAIN, z ratio", "efficiency_z_ratio"),
+                  ("relative sample size for the same conclusion", "relative_sample_size"),
+                  ("datasets where composition BEATS the model, GC arm",
+                   "composition_beats_model_gc"),
+                  ("datasets where composition BEATS the model, dinuc arm",
+                   "composition_beats_model_dn")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+
+    lo = must("REPLICATION of the contrast across cell lines", "ci_low")
+    if lo is not None:
+        at_least("replication interval is well clear of zero", lo,
+                 spec["min_replication_ci_low"])
+
+    # THE CLAIM: the contrast is a more stable property of the protein than either component.
+    rc = must("REPLICATION of the contrast across cell lines")
+    rg = must("replication of the GC-arm gain alone")
+    rd = must("replication of the dinuc-arm gain alone")
+    if None not in (rc, rg, rd) and spec["contrast_must_replicate_best"]:
+        record(rc > rg and rc > rd,
+               "the CONTRAST replicates better than either arm alone",
+               f"{rc:.3f} vs {rg:.3f}/{rd:.3f}", "contrast highest")
+
+    z = must("EFFICIENCY GAIN, z ratio")
+    if z is not None:
+        at_least("proper matching is more statistically efficient", z,
+                 spec["min_efficiency_ratio"])
+
+
 def verify_strand_asymmetry(T, g):
     """Which arm carries the strand cue. Its direction bounds the artifact's effect."""
     print("\nR1  strand asymmetry  (which arm carries the cue?)")
@@ -1099,7 +1153,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cross_tables, verify_integrity):
         try:

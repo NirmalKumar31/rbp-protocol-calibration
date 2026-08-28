@@ -256,6 +256,31 @@ r1_strand_asymmetry:
   min_datasets_dinuc_more_sense: 33
   asymmetry_must_be_positive: true
 
+# --- R1d: does the contrast replicate, and does it buy anything? -----------------------
+#
+# THE ANSWER TO "THE SIGN IS DESIGN-IMPLIED". The concession is correct: the composition
+# baseline's 15 df are exactly what the dinucleotide matcher controls, so the direction is
+# implied and only the magnitude is informative. These two keys are what the magnitude is
+# worth. Replication across cell lines is out-of-sample (separate eCLIP experiments, separately
+# drawn negatives) and the design forces nothing about it -- the sign is guaranteed in each
+# line independently, so a high correlation is information about MAGNITUDE. And efficiency is
+# what a benchmark builder acts on; it is immune to the objection entirely, because the sign
+# being predictable says nothing about how well the effect is measured.
+r1_robustness:
+  n_proteins_both_lines: {value: 15.0, tol: 0.0}
+  replication_r:         {value: 0.9094, tol: 0.030}
+  min_replication_ci_low: 0.70
+  # The contrast must replicate BETTER than either arm's gain alone, or it is not a property
+  # of the protein but of one arm's noise.
+  replication_gc_alone:  {value: 0.5179, tol: 0.060}
+  replication_dn_alone:  {value: 0.8134, tol: 0.050}
+  contrast_must_replicate_best: true
+  efficiency_z_ratio:    {value: 1.3150, tol: 0.050}
+  min_efficiency_ratio:  1.10
+  relative_sample_size:  {value: 0.5783, tol: 0.040}
+  composition_beats_model_gc: {value: 29.0, tol: 0.0}
+  composition_beats_model_dn: {value: 14.0, tol: 0.0}
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -475,7 +500,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 181
+  min_domain_checks: 192
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -490,7 +515,7 @@ integrity:
   # NEW unsourced number fails the build.
   #
   # DO NOT RAISE THIS TO MAKE A BUILD PASS. Add the number to the table that owns it.
-  max_manuscript_orphans: 22
+  max_manuscript_orphans: 21
   # Duplicated numbers must agree. cost_of_matching.csv is a join of the two rehearsal arms and
   # verify.py read only the join, so scrambling rehearsal_binding_dinuc.csv passed 166/166
   # while breaking 88/94, 94/94 and the Wilcoxon p. Exact equality: these are copies, not

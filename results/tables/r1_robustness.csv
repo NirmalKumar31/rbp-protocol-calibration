@@ -1,0 +1,12 @@
+check,value,ci_low,ci_high,n,note
+proteins assayed in both cell lines,15.0,,,15,"HepG2 vs K562; separate experiments, separately drawn negatives"
+REPLICATION of the contrast across cell lines,0.9093848617656802,0.8123841545264275,0.9723498706402544,15,"pearson, p=2.63e-06; spearman +0.932"
+mean |difference| between the two lines,0.015108827250958905,,,15,against a between-dataset sd of 0.0318
+replication of the GC-arm gain alone,0.517927806503284,,,15,p=0.048; compare with the contrast above
+replication of the dinuc-arm gain alone,0.813415099878728,,,15,p=0.000226; compare with the contrast above
+"mean z = gain / SE, GC arm",9.973515104275293,,,94,median 7.01
+"mean z = gain / SE, dinuc arm",13.114947433217099,,,94,median 10.13
+"EFFICIENCY GAIN, z ratio",1.3149774473791276,,,94,"higher in 83/94, paired Wilcoxon p=3.13e-14"
+relative sample size for the same conclusion,0.5783135806193418,,,94,"z ~ sqrt(n), so this is the fraction of labelled windows still required"
+"datasets where composition BEATS the model, GC arm",29.0,,,94,
+"datasets where composition BEATS the model, dinuc arm",14.0,,,94,"the harder protocol makes the model look better on this measure, not worse"

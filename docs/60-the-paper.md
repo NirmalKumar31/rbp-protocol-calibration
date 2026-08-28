@@ -196,6 +196,40 @@ regression is being used against a bias present *within* every dataset, and `fra
 exogenous. Restriction moves the sense fraction to 1.0 by construction. Both designs are kept
 because the difference between them is the methodological point.
 
+## R1d: what the magnitude is worth
+
+`r1_robustness.csv`, `scripts/r1_robustness.py`, 11 gated checks.
+
+R1 concedes that the *sign* of the contrast is implied by the design, so only the magnitude is
+informative. This section is what the magnitude is worth. Neither result below is implied by
+the design.
+
+**It replicates out of sample.** Fifteen proteins were assayed in both HepG2 and K562. Those
+are separate eCLIP experiments with separately drawn negatives, so the contrast measured in one
+line is an out-of-sample prediction of the other. Pearson **r = +0.909** [+0.812, +0.972],
+p = 2.6e-06; Spearman +0.932. Mean absolute difference between lines **0.0151**, against a
+between-dataset standard deviation of 0.0318.
+
+Crucially the contrast replicates **better than either arm it is built from** (GC-arm gain
+alone r = +0.518, dinucleotide-arm gain alone r = +0.813). The difference is a more stable
+property of the protein than either measurement, which is the opposite of what noise would do.
+The design guarantees the sign in each cell line independently and guarantees nothing about
+whether the magnitudes agree, so this is information about magnitude alone.
+
+**It buys statistical efficiency, which is what a benchmark builder acts on.** The nested gain
+rises 2.50x under dinucleotide matching, but its standard error rises only 2.18x, so the
+per-dataset signal-to-noise z = gain / SE rises **1.31x** (mean 9.97 to 13.11, median 7.01 to
+10.13), higher in **83/94**, paired Wilcoxon p = 3.1e-14. Because z grows as the square root of
+sample size, the same contribution reaches the same confidence with **58%** of the labelled
+windows. And composition alone beats the sequence model in **29/94** datasets under GC matching
+against **14/94** under dinucleotide matching: the harder protocol makes the model look better
+on that comparison, not worse.
+
+**This is the practical recommendation, and it does not depend on either arm being "the
+truth".** A benchmark built on dinucleotide-matched negatives reports a lower headline AUROC
+and a more precisely measured, more reproducible, and roughly twice as large estimate of what
+the model actually contributes.
+
 ## R2: the model ladder (methods table, not a result)
 
 `matched_four_models.csv`, n = 95, identical chromosome-level folds. Figure **f2**.
