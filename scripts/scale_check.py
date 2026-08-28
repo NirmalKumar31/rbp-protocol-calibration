@@ -122,6 +122,16 @@ def main():
         rows.append({"check": check, "value": float(value), "ci_low": lo, "ci_high": hi,
                      "n": npt, "note": note})
 
+    # WHICH MODEL PRODUCED THESE NUMBERS. The manuscript called it a "5-mer" four times,
+    # including in the one-sentence claim. Both rehearsal tables record k = 4 on all 189 rows,
+    # and `cloud_rehearsal.py:257` defaults --k to KMER_K or 4. The 5 came from
+    # `config/params.yaml` `cv: k: 5`, which is the FOLD COUNT of the cross-validation. 150
+    # gated assertions could not see this, because every one of them checks a value and none
+    # checked what produced it. Emitted here so that it is checkable.
+    ks = sorted(set(m.k_gc.unique()) | set(m.k_dn.unique()))
+    add("k-mer size, both arms", float(ks[0]) if len(ks) == 1 else -1.0,
+        note=f"observed {ks}; -1 means the arms disagree")
+
     # THE R1 TABLE'S OWN CELLS. Printed in the manuscript, computed on the fly, and stored
     # nowhere until now -- the same state the +0.0397 contrast was in. scripts/audit_manuscript.py
     # found six of them still orphaned after that one was fixed.

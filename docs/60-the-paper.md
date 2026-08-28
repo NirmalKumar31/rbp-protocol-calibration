@@ -29,7 +29,7 @@ calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
 
 ## The one-sentence claim
 
-> Under negatives matched only on GC content, the protocol in general use, a 5-mer model's
+> Under negatives matched only on GC content, the protocol in general use, a 4-mer model's
 > measured contribution over a mono+dinucleotide baseline is **+0.0265 AUROC**; matching on
 > full dinucleotide composition raises it to **+0.0662** (difference **+0.0397** [+0.0336,
 > +0.0458], larger in 88/94 datasets) while lowering the model's apparent AUROC by **0.1095**
@@ -48,14 +48,14 @@ calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
 | quantity | GC-matched | dinuc-matched |
 |---|---|---|
 | composition alone (19 features) | 0.7827 | 0.6280 |
-| 5-mer score alone | 0.7981 | 0.6886 |
-| composition + 5-mer score | 0.8092 | 0.6941 |
+| 4-mer score alone | 0.7981 | 0.6886 |
+| composition + 4-mer score | 0.8092 | 0.6941 |
 | **nested contribution of the score** | **+0.0265** [+0.0210, +0.0324] | **+0.0662** [+0.0559, +0.0765] |
 | datasets where the score adds significantly | **80/94** | 82/94 |
 | datasets where composition ≥ the k-mer model | **29/94** | n/a |
 
 An earlier draft of this table put 0.7981 and 0.6886 on the "composition + score" row. Those
-are the *standalone* 5-mer AUROCs. The nested values are 0.8092 and 0.6941, and the reported
+are the *standalone* 4-mer AUROCs. The nested values are 0.8092 and 0.6941, and the reported
 contributions were always the nested ones, so the claim did not change; the row label was
 wrong and is corrected here.
 

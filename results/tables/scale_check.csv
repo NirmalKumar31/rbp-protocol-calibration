@@ -1,4 +1,5 @@
 check,value,ci_low,ci_high,n,note
+"k-mer size, both arms",4.0,,,94,observed [np.int64(4)]; -1 means the arms disagree
 "mean AUROC, composition alone, GC arm",0.7827305894799742,,,94,cell of the R1 table
 "mean AUROC, composition alone, dinuc arm",0.6279577163719093,,,94,cell of the R1 table
 "mean AUROC, score alone, GC arm",0.7981348703252871,,,94,cell of the R1 table

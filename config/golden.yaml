@@ -109,6 +109,10 @@ r1_cost_of_matching:
 # gives the scale-only contrast; what remains is the protocol effect. Measured: 21% scale,
 # 79% protocol.
 r1_scale_check:
+  # WHICH MODEL. The manuscript said "5-mer" four times; both rehearsal tables record k = 4 on
+  # all 189 rows. params.yaml's `cv: k: 5` is the CV FOLD COUNT, not the k-mer size. Gated
+  # because 150 assertions all checked values and none checked what produced them.
+  kmer_k:                {value: 4.0, tol: 0.0}
   # THE SIX CELLS OF R1's HEADLINE TABLE. Printed in the manuscript, computed on the fly and
   # stored in no table until scripts/audit_manuscript.py went looking -- the same state the
   # +0.0397 contrast survived six review rounds in.
@@ -400,7 +404,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 149
+  min_domain_checks: 150
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

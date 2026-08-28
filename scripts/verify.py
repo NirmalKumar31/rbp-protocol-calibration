@@ -541,6 +541,7 @@ def verify_scale_check(T, g):
         return float(q.loc[k, col])
 
     for k, gk in (
+            ("k-mer size, both arms", "kmer_k"),
             ("mean AUROC, composition alone, GC arm", "mean_composition_gc"),
             ("mean AUROC, composition alone, dinuc arm", "mean_composition_dn"),
             ("mean AUROC, score alone, GC arm", "mean_score_gc"),
