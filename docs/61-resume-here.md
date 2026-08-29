@@ -1,66 +1,99 @@
 # Resume here
 
-Updated 2026-08-28. **210/210 verifier checks, 594 tests, 9 figures, 2 manuscript orphans.**
-Branch `r1-scale-check-and-corrected-refit`, **not merged to `master`**. Total spend ~$38.03.
+Updated 2026-08-28. **241/241 verifier checks, 594 tests, 9 figures, 42 tables, 2 manuscript
+orphans.** Branch `r1-scale-check-and-corrected-refit` at `438f3a7`, **22 commits, not merged to
+`master`**. Total spend ~$38.03. Working tree clean.
 
-## THE DECISION (council rounds 8 and 9): PAPER A
+Verify offline with:
+`/Users/nirmalkumar/Deep\ Learning\ Project/rna-binding-proteins/.venv/bin/python scripts/verify.py --local results/tables`
 
-"Negative-set matching changes what an RBP benchmark measures." R1 plus five controls, at
-*NAR Genomics & Bioinformatics* (Methods).
+## THE ANSWER, IF YOU READ NOTHING ELSE
 
-**Paper B is dead and must not be attempted.** Each of its three "traps" has a published owner
-and two of the remedies are better than mine: Pencina, D'Agostino, Pencina, Janssens &
-Greenland 2012 *Am J Epidemiol* 176(6):473-481 (AUROC-scale compression); Karlson, Holm & Breen
-2012 *Sociological Methodology* 42:286-313 (cross-fit coefficient comparison, with the
-significance test mine lacks); Schuster, Twisk, ter Riet, Heymans & Rijnhart 2021 *BMC Med Res
-Methodol* 21:136 (the calibrated attenuation null; verified in Europe PMC). Whalen, Schreiber,
-Noble & Pollard 2022 *Nat Rev Genet* 23:169-181 owns the "bundle of genomics ML pitfalls" slot.
-Cite them; do not compete with them.
+**The science is finished and it survives scrutiny.** Eleven council rounds; the last one was
+unanimous **Minor revision, BLOCKER: NONE** from three independent reviewers who ran code.
 
-## WHAT THE PAPER IS
+**What is left is drafting, and only drafting.** `docs/60-the-paper.md` has all the content
+(5,473 words, every number gated) but none of the scaffolding: no Abstract, Introduction,
+Results-as-such, Discussion, References, or Data availability. `docs/63` fixes what the abstract
+must say so the drafting does not have to re-derive anything. Roughly a day of writing, zero
+analysis, zero compute.
+
+Also deferred by the author: README rewrite, billing-ID scrub, git remote and push.
+
+## THE PAPER
+
+**Title (working):** *What a benchmark AUROC measures depends on how its negatives were built: a
+nested decomposition across 94 ENCODE eCLIP datasets*
+**Venue:** *NAR Genomics & Bioinformatics*, Methods. Realistic outcome: Minor to Major revision.
 
 | section | claim | figure |
 |---|---|---|
-| **R1** | nested contribution +0.0265 GC-matched vs +0.0662 dinuc-matched; contrast **+0.0397** [+0.0336, +0.0458], 88/94; apparent AUROC falls 0.1095 in 94/94 | f0, f1 |
-| **R1b** | 21% of the contrast is AUROC-scale compression; **+0.0313** survives, 87/94; d' scale +0.1290. Log-odds reversal reported and diagnosed | f8 |
-| **R1c** | strand artifact bounded at **−0.0036** [−0.0071, +0.0001] against a region-matched placebo; **90.6%** survives | f3 |
-| **R1d** | contrast replicates across cell lines at **r = +0.909**, better than either arm alone; efficiency **×1.31**, same conclusion on 58% of the data | f4 |
-| **R1e** | rebuilt from raw sequence at k=4, difference **1.2e-06**; positive at every k=3..6 | f6 |
-| **R1f** | **+0.0635** CDS-dominant vs **+0.0316** intron-dominant, p=1.5e-05; mechanism confirmed (intronic sites more compositional, p=2.7e-08) | f7 |
+| **R1** | nested contribution **+0.0265** GC-matched vs **+0.0662** dinuc-matched; contrast **+0.0397** [+0.0336, +0.0458], 88/94; apparent AUROC falls **0.1095** in 94/94 | f0, f1 |
+| **R1b** | compression factor 1.51x; protocol effect is a RANGE **+0.0188 to +0.0313** across two transplant directions and two links, positive under all four; d' contrast +0.1290; log-odds reversal -0.3771, diagnosed by the fingerprint (total signal +0.520 vs incremental value +0.065) | f8 |
+| **R1c** | strand artifact **-0.0055** [-0.0089, -0.0022], **85.4%** survives; pre-registered before it ran; arm asymmetry shows the cue is stronger in the smaller-gain arm, so the contrast is conservative | f3 |
+| **R1d** | replicates across cell lines **r = +0.909**; efficiency **1.31x**. LIMITATION GATED: partial r = **+0.332** [-0.116, +0.690] once total gain is removed | f4 |
+| **R1e** | rebuilt from raw sequence, difference **1.2e-06**; positive at every k=3..6; k5 - k4 = **+0.0001**, p=0.84 | f6 |
+| **R1f** | CDS **+0.0635** vs intron **+0.0316**, p=1.5e-05; mechanism confirmed. LIMITATION GATED: partial rho +0.082, p=0.435 | f7 |
 | R2 | methods table only, citing Horlacher 2023 as replication | f2 |
 
-CUT: R3, R4/R4b/R4c, R4d, R5, R6, the composition-share framing. Replaced by one table saying
-what was rejected and why.
+**CUT and not to be resurrected:** R3, R4/R4b/R4c, R4d, R5, R6, the composition-share framing.
+Each has a recorded reason in `docs/62`.
 
-## WHAT IS LEFT, IN ORDER
+## WHAT CAPS IT, SAID PLAINLY
 
-1. **Convert the audit document into a manuscript.** `docs/60-the-paper.md` is an internal
-   source of truth organised as "R1, R1b, R1c...", not a preprint. It needs Title, Abstract,
-   Introduction, Methods, Results, Discussion, References. Every number is settled and gated;
-   none of it is written in the register a reader expects. **A day of writing, no analysis.**
-   Referee #1's suggested abstract sentence is in the round-9 record.
-2. **README rewrite.** What an interviewer actually opens.
-3. **Publish.** Billing-ID scrub, git remote, push. Outward-facing and irreversible; needs
-   explicit approval. Merge this branch to `master` first.
+1. **One model class.** Every number is an L2-penalised logistic on 4-mer counts. R1e varies k,
+   not architecture. Stated as a limitation and in the abstract.
+2. **The sign is design-implied** (composition spans the 15-df simplex the matcher controls).
+   Only the magnitude is informative; R1d is the answer to that.
+3. **Horlacher et al. 2023** owns the phenomenon; this paper owns the decomposition and controls.
+4. **The biology is weak.** R1f does not survive partialling out total signal, and says so.
+
+This is a solid specialist methods paper. It is **not** a *Genome Biology* or *NAR* paper: a
+referee there asks what we now know about RNA-protein recognition, and the honest answer is very
+little. The single thing that would change that is showing the contrast holds for a CNN or
+SpliceBERT, which needs GPU the author does not have.
+
+## THE DOCUMENT MAP
+
+| file | what it is |
+|---|---|
+| `docs/59` | council rounds 1-10 as narrative, including Act X |
+| `docs/60` | the manuscript's content: every claim, number and limitation |
+| `docs/61` | this file: state and what is left |
+| `docs/62` | the engineering record: every bug, fix and decision, teaching style |
+| `docs/63` | the abstract, the title, and section-by-section requirements |
 
 ## STANDING CONSTRAINTS
 
 Ask before Modal or GCS, every time. GCP GPU quota is 0. No em-dashes in the paper or slides.
-Keep the Mac awake and cool during long runs (`caffeinate -is`, `OMP_NUM_THREADS=1`, `nice`).
+Keep the Mac awake and cool for long runs (`caffeinate -is`, `OMP_NUM_THREADS=1`, `nice`).
+Long runs must be resumable: `strand_placebo.py --resume` keys on an explicit `design` field.
 
-## HARD-WON LESSONS THAT SHOULD NOT BE RELEARNED
+## LESSONS THAT COST REAL WORK. DO NOT RELEARN THEM.
 
-- **A duplicated number is only as good as the assertion that the copies match.** `verify.py`
-  read `cost_of_matching.csv` and never the two rehearsal tables it is a join of; a permuted
-  dinuc table passed 166/166 while breaking 88/94, 94/94 and the Wilcoxon p.
-- **Never compare a subset rebuild against a full-panel published mean.** That panel-mixing
-  error appeared three separate times.
-- **A restriction is not a random drop.** Any "restrict and recompute" control needs a matched
-  placebo, and the placebo needs stratifying on whatever the restriction is correlated with.
-- **Do not build a non-collapsibility null by drawing the covariate from the label** (collider),
-  **or from a normal when the real covariate is skewed** (anti-conservative by ~10 points).
-- **Gates written `if value is not None` disappear instead of failing.** `min_domain_checks`
-  catches the whole class; it has caught me three times.
-- **Golden keys built with an f-string are invisible** to `test_golden_keys_are_read`.
-- Every one of the 210 assertions checks a *value*; none checked *which model produced it*,
-  which is how the paper called a 4-mer a "5-mer" in four places and passed 150/150.
+1. **A control is not evidence until something has tried to break the control.** Every serious
+   finding in the last three rounds was in work already reported as complete, and every one was
+   found by someone running code rather than re-reading.
+2. **Restriction is not a random drop.** Any "restrict and recompute" control needs a matched
+   placebo, and the placebo needs stratifying on whatever the restriction correlates with, which
+   must be MEASURED. Region was not enough; gene density mattered because retention requires
+   exactly one overlapping gene strand.
+3. **Monte Carlo noise inside a bootstrap inflates the interval.** Five placebo seeds left ~16%
+   of the between-dataset variance as seed noise and caused a true finding to be withdrawn. At
+   20 seeds it came back. Check the seed count before retracting on an interval.
+4. **A duplicated number is worth exactly the assertion that the copies match.** Without it a
+   permuted source table passed 166/166.
+5. **Never compare a subset rebuild against a full-panel published mean.** This panel-mixing
+   error appeared three separate times.
+6. **Gates written `if value is not None` disappear rather than fail.** `min_domain_checks`
+   fixes the category; it has caught its own author three times.
+7. **Check that corroboration is independent before calling it corroboration.** Two derivations
+   sharing inputs and algebra are one derivation.
+8. **When an estimate needs a modelling choice, report the family, not the member you computed
+   first.**
+9. **Every one of the 241 assertions checks a VALUE; none checks what produced it.** That is how
+   a 4-mer was called a "5-mer" in four places and passed 150/150.
+10. **A checker must print its own false-negative rate.** `audit_manuscript.py` is 6.3%
+    saturated at four decimals, ~44% at three, and blind to percentages entirely.
+11. **Resume logic must key on the design**, not on a column two designs share. The first guard
+    silently mixed 38 region-only rows with 2 region-by-density rows.
