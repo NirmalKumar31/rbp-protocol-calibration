@@ -180,21 +180,30 @@ is stratified on region and not on GC (`strand_asymmetry.csv`).
 |---|---|
 | full data | **+0.0378** [+0.0288, +0.0478] |
 | sense-only pairs (43% retained) | +0.0287 [+0.0201, +0.0383] |
-| placebo, same n dropped at random | +0.0346 [+0.0258, +0.0444] |
-| placebo, matched on the retained region marginals | +0.0322 [+0.0234, +0.0418] |
+| placebo, same n dropped at random | +0.0338 [+0.0250, +0.0436] |
+| placebo, matched on region x gene-density | +0.0342 [+0.0256, +0.0436] |
 
-Decomposing the −0.0091 that restriction alone reports: **−0.0032** is the cost of discarding
-pairs at all, **−0.0024** [−0.0048, −0.0003] is locus mix, and the remainder,
-**−0.0036** [−0.0071, +0.0001], is strand. The strand-corrected contrast is
-**+0.0342** [+0.0253, +0.0442] and **90.6%** of the effect survives.
+Decomposing the −0.0091 that restriction alone reports: **−0.0040** [−0.0070, −0.0019] is the
+cost of discarding pairs at all, and the remainder, **−0.0055** [−0.0089, −0.0022], is strand.
+The strand-corrected contrast is **+0.0322** [+0.0237, +0.0421] and **85.4%** of the effect
+survives. The artifact is **real** and small: its interval excludes zero.
 
-**Correction, and it goes the paper's way.** An earlier version of this section used the
-unstratified placebo, reported the excess as −0.0059 with an interval clear of zero, and said
-"the artifact is real". Once the placebo is matched on region the interval is [−0.0071,
-+0.0001] and that statement is withdrawn: the strand artifact is **small and not
-distinguishable from zero**, and only a bound is claimed. The component that *is*
-distinguishable from zero is the locus mix, which is why the plain placebo was not a valid
-counterfactual in the first place.
+**Two corrections, and the order they happened in matters.** An earlier version of this section
+matched the placebo on region alone with five seeds per dataset per arm. It reported an excess
+of −0.0036 with an interval of [−0.0071, +0.0001] that touched zero, and withdrew the claim that
+the artifact is real. Two things were wrong with that. First, region alone was not the right
+stratum: retention *requires exactly one overlapping gene strand*, so it selects against
+multi-gene loci by construction: a sense-kept negative overlaps **1.10** annotated genes on
+average against **1.37** for a dropped one. Second, and larger, five placebo seeds
+left roughly a sixth of the between-dataset variance as Monte Carlo noise, which inflated the
+interval. At twenty seeds and region-by-gene-density strata the excess is −0.0055 with an
+interval clear of zero, and the claim is restored.
+
+A third thing follows and is worth stating because it cuts against the earlier reasoning: with
+adequate seeds, **the stratification barely matters**. The stratified and unstratified placebos
+now differ by **+0.0004** [−0.0010, +0.0019]. The −0.0024 "locus mix" reported earlier was
+largely seed noise, not locus mix. The placebo design was less load-bearing than one noisy run
+made it look, and the paper gates that gap as a bound rather than as a finding.
 
 **The artifact cannot manufacture the contrast, only shrink it, and this does not depend on the
 placebo.** On the 40 datasets whose window tables are canonical in both arms, GC-matched
@@ -241,6 +250,16 @@ itself is not established: a paired protein bootstrap gives r_contrast − max(r
 does not destroy the signal, not that it improves on them.
 The design guarantees the sign in each cell line independently and guarantees nothing about
 whether the magnitudes agree, so this is information about magnitude alone.
+
+**The limitation, and it is gated.** A protein's contrast is strongly related to how much
+total non-compositional signal that protein has: the two correlate at **+0.952** (p = 5.0e-08).
+So two cell lines agreeing on the contrast may be two cell lines agreeing on the protein's
+signal strength rather than on a protocol-specific quantity. Partialling out the per-protein
+mean total gain, the replication falls from +0.909 to **+0.332** [−0.116, +0.690], p = 0.227.
+What is established at n = 15 is that the magnitude is a reproducible property of the protein;
+what is *not* established is that it is reproducible **beyond** the protein's overall signal
+strength. This is the same control R1f carries, and R1d needed it more, having been offered as
+the answer to the design-implied-sign objection.
 
 **It buys statistical efficiency, which is what a benchmark builder acts on.** The nested gain
 rises 2.50x under dinucleotide matching, but its standard error rises only 2.18x, so the
@@ -351,7 +370,7 @@ know they were considered and rejected rather than overlooked.
 | **R4/R4b/R4c**, the ClinVar ladder | Retracted. Every fit passed conservation into the model, so the row labelled "controls = none" was already adjusted and the published "0.21% attenuation" measured the removal of 168 rows. The AUROC framing it replaced is separately circular: ClinVar pathogenic assertions lean on PP3 evidence from conservation-derived tools, so ranking a model against phyloP partly ranks it against the answer key. |
 | **R4d**, the corrected attenuation analysis | See the limitation below. The remedy is Schuster et al. 2021, *BMC Med Res Methodol* 21:136, and with R4 cut there is nothing left in this paper for it to correct. |
 | **R5**, the wrong-protein specificity control | Conditional and underpowered. The detection plateau moved from 20 to at least 45 pathogenic variants under scrutiny, and the downsampling experiment that would settle it was never run. |
-| **R6**, the substitution-spectrum baseline | Its interval, [−0.0113, +0.0284], is wider than half the effect. |
+| **R6**, the substitution-spectrum baseline | Its confidence interval is wider than half the effect it reports, and it spans zero. |
 | the composition-**share** framing | An algebraic identity: share_m = C/gain_m with C constant across models, so the model contrast excluded zero with probability 1. |
 
 **One limitation inherited from the cut ClinVar work, stated because it was paid for.** A
@@ -410,6 +429,25 @@ defence is withdrawn and R1c replaces it. A further sentence claiming this stran
 shared with the matched-negative samplers this work benchmarks against is also deleted: we have
 no citation for it and it is probably false, since samplers such as GraphProt draw unbound
 windows from annotated transcripts in transcript space rather than genome space.*
+
+**1a. The sign of the contrast is implied by the design; only its magnitude is a result.**
+Stated in R1 and repeated here because a referee reading the limitations alone must find it.
+The composition baseline's 19 features span the 16-cell dinucleotide simplex, 15 degrees of
+freedom, and those are exactly what the dinucleotide matcher controls: the GC arm controls 1 of
+15, the dinucleotide arm 15 of 15. Had the model carried no information outside that simplex
+both gains would collapse toward zero and the contrast would vanish, so the direction is
+implied conditionally rather than guaranteed by algebra, which is what distinguishes it from
+the composition-share quantity retracted below. But nobody should be persuaded by the sign. The
+magnitude, its replication across cell lines, and the efficiency it buys are the claims.
+
+**1e. One model class, and the title should not outrun it.** Every number in R1 through R1f
+comes from a single model: an L2-penalised logistic regression on 4-mer counts. R1e varies the
+k-mer size, not the architecture, and R2's ladder reports standalone AUROCs only, so whether
+the contrast holds for a CNN or a pretrained transformer **is not measured here**. The
+mechanism argued in R1f, that the protocol matters more where recognition is less
+compositional, predicts the contrast should be at least as large for a more expressive model,
+but that is a prediction and not a result. Read every claim as being about what a compositional
+benchmark measures, not about deep models in general.
 
 **1b. Negatives are not filtered for expression.** Region pools are built from all GENCODE v45
 transcripts with no `gene_type` and no cell-line expression filter, and negatives are drawn

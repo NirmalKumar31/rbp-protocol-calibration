@@ -78,7 +78,9 @@ def main():
     add("REPLICATION of the contrast across cell lines", r.statistic, lo, hi, n_rep,
         note=f"pearson, p={r.pvalue:.3g}; spearman {rs.statistic:+.3f}")
     add("mean |difference| between the two lines", float(np.abs(a - b).mean()), n=n_rep,
-        note=f"against a between-dataset sd of {cm.contrast.std():.4f}")
+        note="compare with the between-dataset sd below")
+    add("between-dataset sd of the contrast", float(cm.contrast.std()), n=len(cm),
+        note="the scale the replication difference should be read against")
 
     # The components, for comparison. The contrast replicates AT LEAST AS WELL as either, and
     # the paper says only that: a paired protein bootstrap gives r_contrast - max(r_arm) =
@@ -109,6 +111,39 @@ def main():
     dlo, dhi = np.percentile(dif, [2.5, 97.5])
     add("contrast r minus the better arm's r", float(dif.mean()), dlo, dhi, len(common),
         note=f"P(<=0) = {float((dif <= 0).mean()):.2f}; the ordering is NOT established")
+
+    # THE SAME CONTROL R1f GETS, BECAUSE R1d NEEDS IT MORE. R1f reports that its region
+    # association vanishes once total nested gain is partialled out, and gates that limitation.
+    # R1d was billed as the answer to the design-implied-sign objection and had no such
+    # control. It needs one: a protein's contrast is strongly related to how much total
+    # non-compositional signal it has, so two cell lines agreeing on the contrast may be two
+    # cell lines agreeing on the protein's signal strength. Partial correlation, controlling
+    # for the per-protein mean total gain.
+    tg = cm.assign(total=cm.delta_auroc_dn + cm.delta_auroc_gc) \
+           .pivot_table(index="protein", columns="cell", values="total").dropna()
+    idx = w.index.intersection(tg.index)
+    mt = tg.loc[idx].mean(axis=1).to_numpy()
+    X = np.column_stack([np.ones(len(idx)), mt])
+    rsd = lambda v: v - X @ np.linalg.lstsq(X, v, rcond=None)[0]          # noqa: E731
+    ra = rsd(w.loc[idx].iloc[:, 0].to_numpy())
+    rb = rsd(w.loc[idx].iloc[:, 1].to_numpy())
+    pr = pearsonr(ra, rb)
+    rng3 = np.random.default_rng(SEED)
+    pb = []
+    for _ in range(N_BOOT):
+        j = rng3.integers(0, len(idx), len(idx))
+        try:
+            pb.append(pearsonr(ra[j], rb[j]).statistic)
+        except Exception:
+            continue
+    plo, phi = np.percentile(pb, [2.5, 97.5])
+    add("replication, PARTIALLING OUT total nested gain", pr.statistic, plo, phi, len(idx),
+        note="THE LIMITATION: most of r = 0.909 is protein signal strength")
+    add("p for the partialled replication", float(pr.pvalue), n=len(idx),
+        note="not significant at n = 15, which is the point")
+    ctg = pearsonr(w.loc[idx].mean(axis=1).to_numpy(), mt)
+    add("correlation of the contrast with total gain", ctg.statistic, n=len(idx),
+        note=f"p={ctg.pvalue:.3g}; why the partial is so much smaller")
 
     # --- statistical efficiency ----------------------------------------------------------
     gc = pd.read_csv(TABLES / "rehearsal_binding_gc.csv")

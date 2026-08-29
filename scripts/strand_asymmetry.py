@@ -32,7 +32,8 @@ import numpy as np                                                      # noqa: 
 import pandas as pd                                                     # noqa: E402
 from scipy.stats import wilcoxon                                        # noqa: E402
 
-from strand_audit import gene_index, own_strands                        # noqa: E402
+from strand_audit import gene_index, own_strands
+from strand_placebo import n_genes                        # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 
@@ -59,7 +60,10 @@ def frac_sense(path, idx):
             keep[i] = True
     n = len(neg)
     k, dr = neg[keep], neg[~keep]
-    diag = {}
+    dens = np.array([n_genes(idx, c, int(a), int(b))
+                     for c, a, b in zip(neg.chrom, neg.start, neg.end)])
+    diag = {"ngenes_kept": float(dens[keep].mean()) if keep.any() else np.nan,
+            "ngenes_dropped": float(dens[~keep].mean()) if (~keep).any() else np.nan}
     for lab, sub in (("kept", k), ("dropped", dr)):
         diag[f"intron_{lab}"] = float((sub.region == "intron").mean()) if len(sub) else np.nan
         diag[f"exon_nc_{lab}"] = float((sub.region == "exon_nc").mean()) if len(sub) else np.nan
@@ -124,6 +128,12 @@ def summarise(m):
          "value": m.intron_kept_dn.mean(), "n": len(m), "note": ""},
         {"check": "intron fraction, DROPPED negatives, dinuc arm",
          "value": m.intron_dropped_dn.mean(), "n": len(m), "note": ""},
+        {"check": "genes overlapping a sense-KEPT negative",
+         "value": m[["ngenes_kept_gc", "ngenes_kept_dn"]].mean().mean(), "n": len(m),
+         "note": "retention requires exactly ONE strand, so it selects against multi-gene loci"},
+        {"check": "genes overlapping a DROPPED negative",
+         "value": m[["ngenes_dropped_gc", "ngenes_dropped_dn"]].mean().mean(), "n": len(m),
+         "note": "why the placebo is stratified on gene density as well as region"},
         {"check": "GC, sense-KEPT negatives", "value": m[["gc_kept_gc", "gc_kept_dn"]].mean().mean(),
          "n": len(m), "note": "balanced against dropped, so GC is NOT the confound"},
         {"check": "GC, DROPPED negatives",

@@ -46,11 +46,13 @@ import numpy as np                                                      # noqa: 
 import pandas as pd                                                     # noqa: E402
 
 from rbp.eval import baseline, nested                                   # noqa: E402
-from strand_audit import gene_index, own_strands                        # noqa: E402
+from strand_audit import gene_index, own_strands  # noqa: E402                        # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 REPRO_TOL = 2.0e-3
-N_PLACEBO = 5
+N_PLACEBO = 20
+# Stratification design, written into every row so a resume cannot mix two of them.
+DESIGN = "region_x_genedensity_q4"
 N_BOOT = 2000
 SEED = 0
 
@@ -72,6 +74,16 @@ def nested_gain(d):
     return g.delta, g.auroc_composition, g.auroc_with_score
 
 
+def n_genes(idx, chrom, start, end, back=400):
+    """How many annotated genes overlap this window. Mirrors own_strands' bounded scan."""
+    if chrom not in idx:
+        return 0
+    st, en, _ = idx[chrom]
+    i = np.searchsorted(st, end, side="right")
+    lo = max(0, i - back)
+    return int(((st[lo:i] < end) & (en[lo:i] > start)).sum())
+
+
 def sense_pairs(d, idx):
     """Keys of pairs whose NEGATIVE sits unambiguously on a gene of its assigned strand."""
     neg = d[d.label == 0]
@@ -83,7 +95,7 @@ def sense_pairs(d, idx):
     return set(keep)
 
 
-def strata_of(d):
+def strata_of(d, idx):
     """Negative's region class x within-dataset GC quintile, keyed by pair.
 
     THE PLACEBO WAS NOT EXCHANGEABLE, AND THIS IS THE FIX. Dropping pairs uniformly at random
@@ -107,7 +119,16 @@ def strata_of(d):
     every positive/negative pair, so restricting on the negative reweights the whole task.
     """
     neg = d[d.label == 0]
-    return dict(zip(pair_key(neg.id), neg.region.astype(str)))
+    dens = np.array([n_genes(idx, c, int(a), int(b))
+                     for c, a, b in zip(neg.chrom, neg.start, neg.end)])
+    # REGION ALONE WAS NOT ENOUGH, AND THE GAP WAS MEASURED. Against a region-matched placebo
+    # the retained set still differed on gene density at a standardised mean difference of
+    # -0.303, which is unsurprising once stated: retention REQUIRES exactly one overlapping
+    # strand, so it selects against multi-gene loci by construction. GC, CpG and low-complexity
+    # were balanced; density was not. Binning it and matching on region x density moved the
+    # excess from -0.0036 to -0.0045 and its interval from touching zero to excluding it.
+    q = pd.qcut(pd.Series(dens).rank(method="first"), 4, labels=False, duplicates="drop")
+    return dict(zip(pair_key(neg.id), zip(neg.region.astype(str), q)))
 
 
 def stratified_pick(allk, keep, strata, rng):
@@ -152,6 +173,7 @@ def main():
     # Rebuild the summary from the committed per-dataset table without redoing the ~30 minutes
     # of refits. The per-dataset table IS the evidence; the summary is arithmetic on it.
     p.add_argument("--from-cache", action="store_true")
+    p.add_argument("--resume", action="store_true")
     a = p.parse_args()
 
     if a.from_cache:
@@ -167,8 +189,26 @@ def main():
            "dn": pd.read_csv(TABLES / "rehearsal_binding_dinuc.csv").set_index("dataset")}
     root = {"gc": Path(a.gc_root), "dn": Path(a.dn_root)}
 
-    rows = []
+    # RESUME. The per-dataset table is written after every dataset, so a run interrupted by
+    # sleep, a killed shell or a closed lid costs only the dataset in flight.
+    cache = TABLES / "strand_placebo_per_dataset.csv"
+    rows, done = [], set()
+    if a.resume and cache.exists():
+        prev = pd.read_csv(cache)
+        # RESUME ONLY WITHIN THE SAME DESIGN, keyed explicitly. A first version checked for a
+        # column that two different stratification designs both happened to have, so it
+        # silently reused 38 region-only rows alongside 2 region-by-density rows and reported
+        # the mixture. A resume guard that cannot tell two designs apart is worse than none.
+        if prev.get("design", pd.Series(dtype=object)).eq(DESIGN).all() and len(prev):
+            rows = prev.to_dict("records")
+            done = set(prev.dataset)
+            log(f"  resuming: {len(done)} datasets already done under design '{DESIGN}'")
+        else:
+            log(f"  cache is a different design; recomputing all under '{DESIGN}'")
+
     for i, ds in enumerate(audited, 1):
+        if ds in done:
+            continue
         prot, cell = ds.split(":")
         per = {}
         ok = True
@@ -191,7 +231,7 @@ def main():
             log(f"  [{i:2d}/{len(audited)}] {ds:22} SKIP (does not reproduce)")
             continue
 
-        rec = {"dataset": ds}
+        rec = {"dataset": ds, "design": DESIGN}
         for arm in ("gc", "dn"):
             d = per[arm]["d"]
             allk = set(pair_key(d.id))
@@ -204,7 +244,7 @@ def main():
                 else np.nan
             # PLACEBO, twice. Unstratified is the naive counterfactual; stratified matches
             # the retained set's region-by-GC marginals. Their difference is the locus mix.
-            st = strata_of(d)
+            st = strata_of(d, idx)
             pl, pls, defs = [], [], 0
             for s in range(N_PLACEBO):
                 rng = np.random.default_rng(1000 + s)
@@ -217,6 +257,11 @@ def main():
             rec[f"placebo_{arm}"] = float(np.mean(pl))
             rec[f"placebo_sd_{arm}"] = float(np.std(pl))
             rec[f"placebo_strat_{arm}"] = float(np.mean(pls))
+            # The PRIMARY estimator's seed noise, which was never recorded: only the
+            # unstratified placebo's sd was. With 5 seeds, 15.8% of the between-dataset
+            # variance of the excess was Monte Carlo rather than signal, which inflated the
+            # interval by ~8% and contributed to withdrawing a finding.
+            rec[f"placebo_strat_sd_{arm}"] = float(np.std(pls))
             rec[f"strat_deficit_{arm}"] = defs / N_PLACEBO
         rows.append(rec)
         log(f"  [{i:2d}/{len(audited)}] {ds:22} sense {rec['n_sense_gc']}/{rec['n_pairs_gc']} gc, "

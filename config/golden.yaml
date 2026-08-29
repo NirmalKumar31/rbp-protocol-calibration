@@ -233,30 +233,30 @@ r1_strand_placebo:
   n_datasets:            {value: 40.0, tol: 0.0}
   contrast_full:         {value: 0.0378, tol: 0.007}
   contrast_sense_only:   {value: 0.0287, tol: 0.007}
-  contrast_placebo:      {value: 0.0346, tol: 0.007}
-  contrast_placebo_strat: {value: 0.0322, tol: 0.007}
+  contrast_placebo:      {value: 0.0338, tol: 0.007}
+  contrast_placebo_strat: {value: 0.0342, tol: 0.007}
   change_from_restriction: {value: -0.0091, tol: 0.003}
-  change_from_placebo:   {value: -0.0032, tol: 0.0015}
-  # THE THREE-WAY DECOMPOSITION. Restriction alone shows -0.0091 and a naive reading calls all
-  # of it strand. A random-drop placebo reproduces -0.0032 of it with no strand involved. A
-  # placebo matched to the retained set's REGION marginals accounts for a further -0.0024,
-  # because sense-kept pairs are more intronic (0.434 vs 0.402) and less exon_nc (0.100 vs
-  # 0.120) while GC is balanced to the third decimal (0.5318 vs 0.5329). What is left is
-  # strand.
-  strand_excess_unstratified: {value: -0.0059, tol: 0.003}
-  locus_mix:             {value: -0.0024, tol: 0.0015}
-  strand_excess:         {value: -0.0036, tol: 0.003}
-  # NO LONGER ASSERTED TO EXCLUDE ZERO, AND THAT IS A RETRACTION. The unstratified excess had
-  # an interval clear of zero and the manuscript said "the artifact is REAL". Once the placebo
-  # is matched on region the interval is [-0.0071, +0.0001] and it is not. The artifact is
-  # small and not distinguishable from zero; only its BOUND is claimed now.
-  max_abs_strand_excess: 0.008
-  # The locus-mix component IS distinguishable from zero, which is why the unstratified
-  # placebo was not a valid counterfactual. If this ever straddles zero the stratification is
-  # unnecessary and the simpler placebo can come back.
-  locus_mix_ci_must_exclude_zero: true
-  # PRE-REGISTERED, fixed before the run: sign kept, interval clear of zero, >=60% surviving.
-  corrected_contrast:    {value: 0.0342, tol: 0.006}
+  change_from_placebo:   {value: -0.0040, tol: 0.002}
+  # THE DECOMPOSITION. Restriction alone reports -0.0091 and a naive reading calls all of it
+  # strand. A random-drop placebo reproduces -0.0040 of it with no strand involved. What is
+  # left is strand: -0.0055, interval clear of zero.
+  strand_excess_unstratified: {value: -0.0051, tol: 0.003}
+  locus_mix:             {value: 0.0004, tol: 0.0015}
+  strand_excess:         {value: -0.0055, tol: 0.003}
+  max_abs_strand_excess: 0.010
+  # THE ARTIFACT IS REAL, AND THIS ASSERTION HAS BEEN ON AND OFF ONCE ALREADY. With 5 placebo
+  # seeds and region-only strata the excess was -0.0036 [-0.0071, +0.0001], the interval
+  # touched zero, and the manuscript withdrew the claim. That interval was inflated by Monte
+  # Carlo noise: ~16% of its variance was placebo seed variance rather than signal. At 20 seeds
+  # and region x gene-density strata the excess is -0.0055 [-0.0089, -0.0022] and the claim is
+  # restored. Do not toggle this again without raising the seed count first.
+  excess_ci_must_exclude_zero: true
+  # THE STRATIFICATION BARELY MATTERS ONCE THE SEEDS ARE ADEQUATE, which is itself worth
+  # recording: at 5 seeds the stratified and unstratified placebos differed by -0.0024 with an
+  # interval clear of zero, and that gap is now +0.0004 and not distinguishable from zero. The
+  # earlier "locus mix" was largely seed noise. Asserted as SMALL, not as nonzero.
+  max_abs_locus_mix:     0.0020
+  corrected_contrast:    {value: 0.0322, tol: 0.006}
   corrected_ci_must_exclude_zero: true
   min_fraction_surviving: 0.60
 
@@ -273,6 +273,12 @@ r1_strand_asymmetry:
   # THE CLAIM: the dinucleotide arm must be MORE sense, in most datasets.
   min_datasets_dinuc_more_sense: 33
   asymmetry_must_be_positive: true
+  # WHY THE PLACEBO IS STRATIFIED ON GENE DENSITY. Retention requires exactly one overlapping
+  # gene strand, so it selects against multi-gene loci by construction. Gated so the stratum
+  # choice has a measured justification rather than an asserted one.
+  ngenes_kept:     {value: 1.0964, tol: 0.060}
+  ngenes_dropped:  {value: 1.3677, tol: 0.060}
+  kept_must_be_less_dense: true
 
 # --- R1d: does the contrast replicate, and does it buy anything? -----------------------
 #
@@ -299,6 +305,18 @@ r1_robustness:
   # The ordering must NOT be assertable: its interval has to straddle zero, or the earlier
   # claim was right after all and the text should be changed back deliberately.
   ordering_ci_must_include_zero: true
+  # THE LIMITATION R1d LACKED. R1f gates the fact that its region association vanishes once
+  # total nested gain is partialled out. R1d was billed as the answer to the design-implied-sign
+  # objection and had no equivalent control, yet the contrast correlates with total gain at
+  # +0.95, so two cell lines agreeing on the contrast may be agreeing on the protein's signal
+  # strength. Partialled, r falls from 0.909 to 0.332 and its interval straddles zero. Gated so
+  # the limitation cannot be dropped, and so that if it ever becomes assertable that is a
+  # deliberate change.
+  replication_partial:   {value: 0.3321, tol: 0.060}
+  contrast_total_gain_corr: {value: 0.9516, tol: 0.030}
+  between_dataset_sd:    {value: 0.0318, tol: 0.004}
+  partial_p:             {value: 0.2270, tol: 0.060}
+  partial_ci_must_include_zero: true
   efficiency_z_ratio:    {value: 1.3150, tol: 0.050}
   min_efficiency_ratio:  1.10
   # THE RATIO OF MEANS FLATTERS IT. The mean of the per-dataset ratios is 0.957, close to 1,
@@ -579,7 +597,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 220
+  min_domain_checks: 240
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -611,6 +629,13 @@ integrity:
   # while breaking 88/94, 94/94 and the Wilcoxon p. Exact equality: these are copies, not
   # recomputations, so any difference at all is corruption.
   max_cross_table_diff: 0.0
+  # THE --from-cache TABLES ARE EVIDENCE AND WERE UNGATED. Zeroing every per-arm gain in
+  # k_sweep_per_dataset.csv and every AUROC in strand_placebo_per_dataset.csv reproduced both
+  # summaries bit-for-bit and passed, so R1e's "rebuilt from raw sequence" reproduced from a
+  # table of zeros. These two keys assert the arithmetic linking evidence columns to summary
+  # columns, and the rebuild against the published rehearsal values.
+  max_cache_arithmetic_diff: 1.0e-12
+  max_rebuild_vs_published_diff: 2.0e-3
 
 # --- the wrong-protein control's donor must actually be a WRONG protein -----------------
 #

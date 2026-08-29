@@ -847,6 +847,10 @@ def verify_r1_robustness(T, g):
                   ("replication of the GC-arm gain alone", "replication_gc_alone"),
                   ("replication of the dinuc-arm gain alone", "replication_dn_alone"),
                   ("contrast r minus the better arm's r", "replication_ordering_gap"),
+                  ("replication, PARTIALLING OUT total nested gain", "replication_partial"),
+                  ("correlation of the contrast with total gain", "contrast_total_gain_corr"),
+                  ("between-dataset sd of the contrast", "between_dataset_sd"),
+                  ("p for the partialled replication", "partial_p"),
                   ("EFFICIENCY GAIN, z ratio", "efficiency_z_ratio"),
                   ("relative sample size, ratio of means", "relative_sample_size"),
                   ("relative sample size, median dataset", "relative_sample_median"),
@@ -872,6 +876,15 @@ def verify_r1_robustness(T, g):
     if olo is not None and ohi is not None and spec["ordering_ci_must_include_zero"]:
         record(olo <= 0 <= ohi, "replication ordering is NOT established (interval straddles 0)",
                f"[{olo:+.3f}, {ohi:+.3f}]", "includes 0")
+
+    # THE LIMITATION, ASSERTED. The partial correlation must NOT be establishable, or R1d is
+    # claiming more than the data support and the text has to change deliberately.
+    plo = must("replication, PARTIALLING OUT total nested gain", "ci_low")
+    phi = must("replication, PARTIALLING OUT total nested gain", "ci_high")
+    if plo is not None and phi is not None and spec["partial_ci_must_include_zero"]:
+        record(plo <= 0 <= phi,
+               "replication net of total signal is NOT established (straddles 0)",
+               f"[{plo:+.3f}, {phi:+.3f}]", "includes 0")
 
     z = must("EFFICIENCY GAIN, z ratio")
     if z is not None:
@@ -901,6 +914,17 @@ def verify_strand_asymmetry(T, g):
         v = must(k)
         if v is not None:
             near(k, v, spec[gk])
+
+    for k, gk in (("genes overlapping a sense-KEPT negative", "ngenes_kept"),
+                  ("genes overlapping a DROPPED negative", "ngenes_dropped")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+    nk, nd = (must("genes overlapping a sense-KEPT negative"),
+              must("genes overlapping a DROPPED negative"))
+    if nk is not None and nd is not None and spec["kept_must_be_less_dense"]:
+        record(nk < nd, "retention selects against multi-gene loci (justifies the stratum)",
+               f"{nk:.3f} vs {nd:.3f}", "kept lower")
 
     asym = must("asymmetry, dinuc minus GC")
     if asym is not None and spec["asymmetry_must_be_positive"]:
@@ -958,12 +982,21 @@ def verify_strand_placebo(T, g):
         at_most("strand artifact is bounded and small", abs(ex),
                 spec["max_abs_strand_excess"])
 
-    # The locus mix must be real, or matching on region was unnecessary.
-    llo = must("locus-mix component", "ci_low")
-    lhi = must("locus-mix component", "ci_high")
-    if llo is not None and lhi is not None and spec["locus_mix_ci_must_exclude_zero"]:
-        record(not (llo <= 0 <= lhi), "locus mix is real, so the plain placebo was invalid",
-               f"[{llo:+.4f}, {lhi:+.4f}]", "excludes 0")
+    # The locus mix must be SMALL. At 5 seeds it looked real (-0.0024, interval clear of zero)
+    # and this gate demanded that it be. At 20 seeds it is +0.0004 and indistinguishable from
+    # zero, so the earlier gap was largely seed noise and the assertion is now a bound.
+    lm = must("locus-mix component")
+    if lm is not None:
+        at_most("locus mix is small once the placebo has enough seeds", abs(lm),
+                spec["max_abs_locus_mix"])
+
+    # THE ARTIFACT IS REAL. Withdrawn once on a 5-seed interval that touched zero; restored at
+    # 20 seeds. Asserted so it cannot be withdrawn again without the numbers moving.
+    elo = must("STRAND-SPECIFIC EXCESS (stratified)", "ci_low")
+    ehi = must("STRAND-SPECIFIC EXCESS (stratified)", "ci_high")
+    if elo is not None and ehi is not None and spec["excess_ci_must_exclude_zero"]:
+        record(not (elo <= 0 <= ehi), "strand artifact is REAL (interval excludes zero)",
+               f"[{elo:+.4f}, {ehi:+.4f}]", "excludes 0")
 
     # THE PRE-REGISTERED CRITERIA.
     clo = must("strand-CORRECTED contrast", "ci_low")
@@ -1123,6 +1156,74 @@ def verify_recompute(T, g):
         at_most(f"{model}: max |recomputed - published|", max(diffs), spec["max_abs_diff"])
 
 
+def verify_cache_evidence(T, g):
+    """The per-dataset tables the --from-cache paths read are EVIDENCE, and were ungated.
+
+    THIS EXISTS BECAUSE AN ATTACK GOT THROUGH, AGAIN. run.sh regenerates five summaries with
+    --from-cache, which reads a committed *_per_dataset.csv rather than redoing the refits.
+    `grep per_dataset scripts/verify.py` returned nothing, so those tables were load-bearing and
+    unasserted. Zeroing every per-arm gain column in k_sweep_per_dataset.csv and every AUROC
+    column in strand_placebo_per_dataset.csv, then rebuilding, reproduced both summaries
+    BIT-FOR-BIT and passed. R1e's claim to have rebuilt the headline from raw sequence therefore
+    reproduced from a table in which all 188 per-arm gains were zero.
+
+    The fix is to assert the arithmetic that links the evidence columns to the summary columns.
+    A derived column that is never checked against what derives it is not evidence.
+    """
+    print("\ncache evidence  (the per-dataset tables --from-cache reads)")
+    tol = g["integrity"]["max_cache_arithmetic_diff"]
+
+    k = T.get("k_sweep_per_dataset.csv")
+    if k is None:
+        record(False, "k_sweep_per_dataset.csv present", "MISSING", "the table")
+    else:
+        for kk in (3, 4, 5, 6):
+            c, gc, dn = f"contrast_k{kk}", f"gain_gc_k{kk}", f"gain_dn_k{kk}"
+            if not {c, gc, dn} <= set(k.columns):
+                record(False, f"k_sweep columns for k={kk}", "MISSING", "present")
+                continue
+            at_most(f"k={kk}: contrast equals dinuc gain minus GC gain",
+                    float((k[c] - (k[dn] - k[gc])).abs().max()), tol)
+        # ...and the k=4 gains must be the published ones, or the "rebuilt from sequence"
+        # claim is a column read.
+        gcp, dnp = T.get("rehearsal_binding_gc.csv"), T.get("rehearsal_binding_dinuc.csv")
+        if gcp is not None and dnp is not None and "gain_gc_k4" in k.columns:
+            for arm, pub in (("gc", gcp), ("dn", dnp)):
+                j = k.merge(pub, on="dataset", how="inner")
+                at_most(f"k=4 {arm} gain matches the published delta_auroc",
+                        float((j[f"gain_{arm}_k4"] - j["delta_auroc"]).abs().max()),
+                        g["integrity"]["max_rebuild_vs_published_diff"])
+
+    # STRAND PLACEBO: derive the summary FROM the evidence columns and check it against what
+    # the summary table reports. Checking a derived column against its own components would
+    # pass on a table where both are zero; recomputing the reported means from the per-arm
+    # AUROCs is what makes zeroing the evidence fail.
+    sp = T.get("strand_placebo_per_dataset.csv")
+    summ = T.get("strand_placebo.csv")
+    if sp is None or summ is None:
+        record(False, "strand_placebo per-dataset and summary present", "MISSING", "both")
+    else:
+        q = summ.set_index("check")
+        pairs = (("contrast, full data", "full_dn", "full_gc"),
+                 ("contrast, sense-only pairs", "sense_dn", "sense_gc"),
+                 ("contrast, PLACEBO (same n, random)", "placebo_dn", "placebo_gc"),
+                 ("contrast, PLACEBO stratified on region x GC",
+                  "placebo_strat_dn", "placebo_strat_gc"))
+        for row, dn, gc in pairs:
+            if not {dn, gc} <= set(sp.columns) or row not in q.index:
+                record(False, f"evidence for '{row}'", "MISSING", f"{dn}, {gc}")
+                continue
+            derived = float((sp[dn] - sp[gc]).mean())
+            at_most(f"summary '{row[:34]}' derives from its per-arm evidence",
+                    abs(derived - float(q.loc[row, "value"])), tol)
+        # ...and that evidence must itself be the published numbers, not zeros.
+        if "full_gc" in sp.columns and gcp is not None:
+            j = sp.merge(gcp, on="dataset", how="inner")
+            at_most("strand placebo's full GC gain matches the published delta_auroc",
+                    float((j["full_gc"] - j["delta_auroc"]).abs().max()),
+                    g["integrity"]["max_rebuild_vs_published_diff"])
+
+
 def verify_cross_tables(T, g):
     """The two tables holding the SAME numbers must agree.
 
@@ -1252,7 +1353,7 @@ def main():
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
                verify_strand_contrast, verify_region, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
-               verify_cross_tables, verify_integrity):
+               verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
         except Exception as e:                  # a broken check is a failure, not a crash

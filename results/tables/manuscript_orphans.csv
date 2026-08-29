@@ -1,3 +1,3 @@
 line,value,context
-370,0.127853,`share_m = C / gain_m` where `C = mean(composition_auroc) − 0.5 = 0.127853` is identical across
-371,1.648166,"models, so `share_kmer / share_SB == gain_SB / gain_kmer` exactly, **1.648166 both ways to 6"
+389,0.127853,`share_m = C / gain_m` where `C = mean(composition_auroc) − 0.5 = 0.127853` is identical across
+390,1.648166,"models, so `share_kmer / share_SB == gain_SB / gain_kmer` exactly, **1.648166 both ways to 6"
