@@ -38,12 +38,15 @@ from scipy.stats import norm
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 EVIDENCE = ROOT / "data" / "evidence" / "scores"
-MODELS = ["cnn", "splicebert"]
+# The ladder, cheapest first. kmer is refitted in-script on the same rows; the other two are
+# read from the per-window scores their sweeps wrote.
+MODELS = ["kmer", "cnn", "splicebert"]
 # A dataset whose scored rows fall below this share of its windows is dropped rather than
 # analysed on a silent subset. 0.99 keeps every real case (worst observed 0.9986) and would
 # still catch a fold that failed to upload, which costs 20%.
@@ -106,6 +109,18 @@ def arm_roots(store):
 
 
 def per_dataset(store, datasets):
+    """One row per dataset: every model's nested contribution in both arms, same rows.
+
+    THE COMMON ROW SET IS TAKEN FIRST, BEFORE ANYTHING IS FITTED. Within one arm the three
+    models do not all cover the same windows: the k-mer is refitted here so it covers every
+    row, while the CNN and SpliceBERT scores were written against the window set as it stood
+    when their sweep ran, and 18 of the 94 datasets have since drifted by a handful of rows.
+
+    Fitting each model on whatever it happens to cover would make the composition baseline
+    move between models -- observed at AQR:HepG2, 0.59675077 against 0.59675949 -- and a
+    ladder whose rungs are measured on different rows is not a ladder. Intersecting first
+    costs 0.06% of the rows and makes "same rows, same folds, same estimator" literally true.
+    """
     roots = arm_roots(store)
     out = []
     for i, ds in enumerate(datasets, 1):
@@ -118,46 +133,52 @@ def per_dataset(store, datasets):
                 ok = False
                 break
             d = pd.read_csv(f, sep="\t")
-            base = None
+
+            # 1. every model's ids, before any fitting
+            ids = set(d.id)
+            got = {}
             for model in MODELS:
+                if model == "kmer":
+                    continue            # refitted below, on the common set
                 s = oof(scoreroot, cell, protein, model)
                 if s is None:
                     ok = False
                     break
-                m = d.merge(s, on="id", how="inner")
-                # COVERAGE IS MEASURED, NOT ASSUMED, and it is not always 1.
-                #
-                # The dinucleotide arm was scored on Modal and its per-window scores are
-                # committed here, but the windows themselves were regenerated afterwards.
-                # Negative matching is a stochastic search, so 18 of the 94 datasets differ
-                # from the scored set by a handful of rows in each direction -- 172 rows in
-                # 307,430, or 0.06%. The GC arm cannot have this problem: it is scored from
-                # the very dataset.tsv in this store.
-                #
-                # An inner join is the right handling, because composition features need the
-                # sequence and a score with no window is unusable either way. What is not
-                # right is doing it silently, so the fraction is recorded per dataset and
-                # gated in the summary.
-                cov = len(m) / len(d)
-                if cov < MIN_COVERAGE:
-                    log(f"  SKIP {ds} {model} {arm}: only {len(m)} of {len(d)} rows scored")
-                    ok = False
-                    break
-                row[f"coverage_{arm}"] = min(row.get(f"coverage_{arm}", 1.0), cov)
+                got[model] = s
+                ids &= set(s.id)
+            if not ok:
+                break
+
+            cov = len(ids) / len(d)
+            if cov < MIN_COVERAGE:
+                log(f"  SKIP {ds} {arm}: only {len(ids)} of {len(d)} rows common to all models")
+                ok = False
+                break
+            row[f"coverage_{arm}"] = cov
+            dd = d[d.id.isin(ids)].reset_index(drop=True)
+
+            # 2. the k-mer, refitted on exactly those rows and folds
+            if "kmer" in MODELS:
+                sc, _, _ = kmer_oof(dd.seq_rna.values, dd.label.values, dd.fold.values, k=4)
+                got["kmer"] = pd.DataFrame({"id": dd.id.values, "score": sc})
+
+            # 3. the nested decomposition, one shared reduced model
+            base = None
+            for model in MODELS:
+                m = dd.merge(got[model], on="id", how="inner")
+                if len(m) != len(dd):
+                    raise ValueError(f"{ds} {model} {arm}: {len(m)} of {len(dd)} common rows")
                 g = gain_over_composition(m.seq_rna.values, m.score.values,
                                           m.label.values, m.fold.values)
-                # The reduced model is the same fit whichever score is being added to it.
                 if base is None:
                     base = g.auroc_composition
-                elif abs(base - g.auroc_composition) > 1e-12:
+                elif abs(base - g.auroc_composition) > 1e-9:
                     raise ValueError(f"{ds} {arm}: composition baseline moved between "
                                      f"models ({base} vs {g.auroc_composition})")
                 row[f"comp_{arm}"] = g.auroc_composition
                 row[f"{model}_full_{arm}"] = g.auroc_with_score
                 row[f"{model}_gain_{arm}"] = g.delta
                 row[f"{model}_se_{arm}"] = (g.delta_ci_high - g.delta_ci_low) / (2 * 1.959964)
-            if not ok:
-                break
             row[f"n_{arm}"] = g.n
         if not ok:
             continue

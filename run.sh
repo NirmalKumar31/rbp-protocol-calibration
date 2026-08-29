@@ -289,6 +289,11 @@ s13b_local_analysis() {
   $PY scripts/r1_robustness.py     || die "replication and efficiency"
   $PY scripts/k_sweep.py --from-cache || die "k sweep"
   $PY scripts/region_heterogeneity.py --from-cache || die "region heterogeneity"
+  # R1g needs both arms' per-window model scores. The dinucleotide arm's are committed under
+  # data/evidence/scores; the GC arm's are produced by cloud/modal/modal_gc_sweep.py into the
+  # local store, which is not in the repo. --from-cache is therefore the default path here,
+  # rebuilding the summary from the committed per-dataset table, exactly as the four above do.
+  $PY scripts/deep_model_contrast.py --from-cache || die "deep model contrast"
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
   $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"

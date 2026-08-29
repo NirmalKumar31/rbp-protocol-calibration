@@ -509,8 +509,77 @@ def f8():
     save(fig, "f8_scale_check")
 
 
+# --- f9: R1g, the contrast is not an artefact of the model class -------------------------
+#
+# The paper's sharpest limitation was that every number came from one model class. This
+# figure is the answer, and it has to make three separate points or it does not close the
+# objection. (a) the arm gap is present for all three models, so it is not a property of
+# bags of k-mers. (b) it GROWS with model capacity, and the protocol effect survives the
+# compression correction for each. (c) it holds dataset by dataset rather than only on
+# average, which is what makes the paired comparison meaningful.
+
+def f9():
+    t = need("deep_contrast_per_dataset.csv", "deep_contrast.csv")
+    if t is None:
+        return
+    d, s = t
+    models = [m for m in ("kmer", "cnn", "splicebert") if f"{m}_gain_gc" in d.columns]
+    q = s.set_index(["model", "quantity"]).value
+    fig, ax = plt.subplots(1, 3, figsize=(10.4, 3.3))
+
+    # a. nested contribution, both arms, every model
+    w = 0.34
+    for i, m in enumerate(models):
+        for j, (arm, key) in enumerate((("gc", "gc"), ("dinuc", "dn"))):
+            v = d[f"{m}_gain_{key}"]
+            ax[0].bar(i + (j - 0.5) * w, v.mean(), w * 0.9, color=COLOR[arm],
+                      zorder=3, label=f"{arm}-matched" if i == 0 else None)
+            ax[0].errorbar(i + (j - 0.5) * w, v.mean(), yerr=v.sem(), color="black",
+                           lw=1, capsize=2, zorder=4)
+    ax[0].set_xticks(range(len(models)), [LABEL[m] for m in models], fontsize=8)
+    ax[0].set_ylabel("nested contribution over composition")
+    ax[0].set_title("a  every model shows the arm gap", loc="left")
+    ax[0].legend(fontsize=7, frameon=False)
+
+    # b. the contrast, with the part that survives the compression correction
+    for i, m in enumerate(models):
+        c = q[(m, "contrast_auroc")]
+        lo = s[(s.model == m) & (s.quantity == "contrast_auroc")].ci_low.iloc[0]
+        hi = s[(s.model == m) & (s.quantity == "contrast_auroc")].ci_high.iloc[0]
+        ax[1].bar(i, c, 0.55, color=COLOR[m], zorder=3)
+        ax[1].errorbar(i, c, yerr=[[c - lo], [hi - c]], color="black", lw=1, capsize=3,
+                       zorder=4)
+        pmin, pmax = q[(m, "protocol_effect_min")], q[(m, "protocol_effect_max")]
+        ax[1].add_patch(plt.Rectangle((i - 0.28, pmin), 0.56, pmax - pmin,
+                                      facecolor="white", edgecolor="black", lw=0.8,
+                                      hatch="///", alpha=0.85, zorder=5))
+    ax[1].axhline(0, color="#999999", lw=0.8, ls="--")
+    ax[1].set_xticks(range(len(models)), [LABEL[m] for m in models], fontsize=8)
+    ax[1].set_ylabel("contrast (dinuc - GC)")
+    ax[1].set_title("b  hatched: survives compression", loc="left")
+
+    # c. dataset by dataset, deepest model against the k-mer
+    if "kmer" in models and "splicebert" in models:
+        x = d.kmer_gain_dn - d.kmer_gain_gc
+        y = d.splicebert_gain_dn - d.splicebert_gain_gc
+        lim = [min(x.min(), y.min()) - 0.01, max(x.max(), y.max()) + 0.01]
+        ax[2].plot(lim, lim, color="#999999", lw=0.8, ls="--", zorder=2)
+        ax[2].axhline(0, color="#cccccc", lw=0.6, zorder=1)
+        ax[2].axvline(0, color="#cccccc", lw=0.6, zorder=1)
+        ax[2].scatter(x, y, s=14, color=COLOR["splicebert"], alpha=0.75,
+                      edgecolor="white", linewidth=0.3, zorder=3)
+        ax[2].set_xlim(lim)
+        ax[2].set_ylim(lim)
+        ax[2].set_xlabel("contrast, k-mer LR")
+        ax[2].set_ylabel("contrast, SpliceBERT")
+        above = int((y > x).sum())
+        ax[2].set_title(f"c  larger for SpliceBERT in {above}/{len(d)}", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f9_deep_contrast")
+
 FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5,
-           "f6": f6, "f7": f7, "f8": f8}
+           "f6": f6, "f7": f7, "f8": f8, "f9": f9}
 
 
 def main():
