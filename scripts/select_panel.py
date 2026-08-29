@@ -39,6 +39,7 @@ sys.path.insert(0, str(ROOT / "src"))
 import pandas as pd  # noqa: E402
 
 from rbp.utils import cloud as cloudcfg  # noqa: E402
+from rbp.utils.localstore import uri  # noqa: E402
 
 PANEL_KEY = "manifest/study_panel.tsv"
 CELLS = ("K562", "HepG2")
@@ -55,7 +56,7 @@ def read_arm_panels(bucket, arm):
         blob = bucket.blob(f"panel/{arm}/panel_final_{cell}_{arm}.tsv")
         if not blob.exists():
             raise SystemExit(
-                f"missing gs://{bucket.name}/panel/{arm}/panel_final_{cell}_{arm}.tsv -- "
+                f"missing {uri(bucket, f'panel/{arm}/panel_final_{cell}_{arm}.tsv')} -- "
                 f"stage 4 (build panel) has not run for arm={arm}")
         d = pd.read_csv(io.StringIO(blob.download_as_text()), sep="\t")
         rows.append(d)
@@ -124,14 +125,20 @@ def main():
     p.add_argument("--primary", default="dinuc", choices=["dinuc", "gc"])
     p.add_argument("--show", action="store_true", help="print the existing panel and exit")
     p.add_argument("--force", action="store_true", help="overwrite an existing panel")
+    p.add_argument("--store", default=None,
+                   help="a local store directory instead of GCS. See rbp.utils.localstore.")
     a = p.parse_args()
 
-    bucket = cloudcfg.bucket()
+    if a.store:
+        from rbp.utils.localstore import LocalBucket
+        bucket = LocalBucket(a.store)
+    else:
+        bucket = cloudcfg.bucket()
     blob = bucket.blob(PANEL_KEY)
 
     if a.show:
         if not blob.exists():
-            raise SystemExit(f"no panel at gs://{bucket.name}/{PANEL_KEY}")
+            raise SystemExit(f"no panel at {uri(bucket, PANEL_KEY)}")
         d = pd.read_csv(io.StringIO(blob.download_as_text()), sep="\t")
         log(f"{len(d)} datasets, {d.protein.nunique()} proteins, "
             f"pairs {d.pairs.min():,}-{d.pairs.max():,}")
@@ -149,7 +156,7 @@ def main():
     picked = select(bucket, a.every, a.primary)
     blob.upload_from_string(picked.to_csv(sep="\t", index=False),
                             content_type="text/tab-separated-values")
-    log(f"\nwrote gs://{bucket.name}/{PANEL_KEY}  ({len(picked)} datasets)")
+    log(f"\nwrote {uri(bucket, PANEL_KEY)}  ({len(picked)} datasets)")
     log("Every downstream stage reads this file. Nothing else decides the panel.")
 
 

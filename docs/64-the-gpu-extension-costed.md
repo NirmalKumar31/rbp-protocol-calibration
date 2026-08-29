@@ -1,0 +1,176 @@
+# 64. Lifting the paper past one model class: what it costs, measured
+
+Written 2026-08-29, before anything was spent. Budget available: a fresh Modal account with
+$30 credit plus $10 out of pocket, so **$40**.
+
+The limitation in `docs/61` is "one model class. Every number is an L2-penalised logistic on
+4-mer counts." This file prices removing it. Every figure below is calibrated against work
+this project already paid for, not against a spec sheet.
+
+---
+
+## 1. The position is better than `docs/61` says
+
+Three things were already on disk and had not been noticed.
+
+**The dinuc arm of the deep-model experiment is already done and committed.**
+`data/evidence/scores/{cell}/{protein}/{cnn,splicebert}/fold{0..4}/scores.tsv.gz` holds
+per-window out-of-fold scores for 95 datasets, both models. Verified: pooling AATF:K562's
+five folds reproduces `matched_four_models.csv` at 0.7553366918800132, exact to the last
+digit. 475 runs, ~$31 of GPU time, already bought.
+
+**The GC-arm windows are on local disk.** `rna-binding-proteins/data/processed/{cell}/{protein}/dataset.tsv`
+is the GC arm for all 94 paired datasets, with `fold` already assigned and `seq_rna` ready.
+AATF:K562 is 2086 rows, matching `panel_final_K562_gc.tsv` (1043 pairs) and
+`rehearsal_binding_gc.csv` (n=2086). Nothing needs preparing or re-downloading. 244 MB.
+
+**So the only missing piece is GC-arm training.** `cloud/modal/modal_sweep.py` hardcodes
+`"ARM": "dinuc"` in `_env()`. That one line is the whole gap.
+
+### The one thing that got worse
+
+**GCP billing is disabled.** `gcloud storage ls gs://rbp-repro-2026-derived/` returns
+`HTTPError 403: The billing account for the owning project is disabled in state absent`.
+The buckets still enumerate, so the objects are probably intact, but they cannot be read.
+The Modal sweep reads datasets from GCS and writes scores back to it, so **that path is dead
+until either billing is restored or the data path is replaced**. See item H.
+
+---
+
+## 2. Half the experiment, computed for $0
+
+Ran `gain_over_composition` over the committed dinuc scores, all 94 paired datasets.
+
+| model | nested contribution, dinuc arm | positive in |
+|---|---|---|
+| composition baseline | AUROC 0.6274 | |
+| k-mer (the paper's model) | **+0.0662** | 93/94 |
+| CNN | **+0.0860** | 89/94 |
+| SpliceBERT | **+0.1754** | **94/94** |
+
+The k-mer row reproduces the published +0.0662 exactly, which validates the pipeline.
+SpliceBERT's nested contribution is **2.65x the k-mer's** and positive on every dataset.
+
+**Why this matters for the decision.** It is the dinuc half of the contrast. Only the GC
+half needs buying, and the quantity being measured is large and clean rather than marginal.
+
+### What the GC arm would have to beat
+
+Running R1b's own d' transplant onto these numbers, compression alone predicts:
+
+| model | dinuc gain | contrast predicted by compression alone |
+|---|---|---|
+| k-mer | +0.0662 | +0.0182 (**observed +0.0397**, so protocol effect +0.0215) |
+| CNN | +0.0860 | +0.0284 |
+| SpliceBERT | +0.1754 | +0.0552 |
+
+The k-mer row is the check: the transplant reproduces `contrast_protocol_reverse = +0.0215`
+from `scale_check.csv`. So the machinery is right, and the SpliceBERT row is a real
+prediction. Anything the GC arm measures above +0.0552 is protocol effect.
+
+---
+
+## 3. Everything that needs a GPU, priced
+
+Calibration anchor: the dinuc SpliceBERT sweep was 475 runs over 916,672 windows, measured
+at **2.33 h wall on 10 concurrent A10G** and recorded at **~$31** (`docs/57`, stage 9).
+The GC arm is 913,468 windows, **99.7% of the same work**.
+
+Measured throughput, this project's own batch size and fp32 (no autocast in `trainer.py`):
+
+| | SpliceBERT | CNN |
+|---|---|---|
+| A10G, from the sweep log | 268 train window-visits/s | |
+| **Apple M4 MPS, benchmarked today** | **106 window-visits/s** | **3428 window-visits/s** |
+
+The Mac is only **2.5x slower than an A10G** on SpliceBERT. That makes local a genuine
+fallback rather than a joke.
+
+| # | item | needs GPU | Modal cost | local (M4) | verdict |
+|---|---|---|---|---|---|
+| **A** | **GC-arm SpliceBERT, 94 datasets x 5 folds = 470 runs** | yes | **~$31**, 2.5 h wall | ~55 h compute, realistically 70-90 h | **the whole point** |
+| A' | same, size-stratified 40 datasets | yes | ~$14 | ~32 h | cheaper fallback |
+| A'' | same, size-stratified 30 datasets | yes | ~$11 | ~20 h | floor |
+| **B** | **GC-arm CNN, 470 runs** | optional | ~$3 | **~2-4 h, free** | run it locally |
+| **C** | nested contribution, both arms, both models | **no** | $0 | minutes | already proven today |
+| **D** | model-ranking inversion across arms | **no** | $0 | free | falls out of A+B |
+| **E** | R1d replication across cell lines, for SpliceBERT | **no** | $0 | free | falls out of A |
+| F | frozen SpliceBERT probe, both arms | yes | ~$1 | ~2 h | optional, neat |
+| G | RNABERT (0.48M), both arms | yes | ~$2 | ~3 h | optional, marginal |
+| H | **replace the dead GCS data path with a Modal Volume** | no | $0 | 1-2 h work | **required** |
+| X | RNA-FM / RNA-MSM (100M, LoRA) | yes | **~$150 each** | days | **out of budget** |
+| X | R3 locality / ISM on the GC arm | yes | ~$0.30 | | R3 is cut, skip |
+
+LoRA does not help X: it backpropagates through the frozen stack, so the FLOPs scale with
+parameters regardless. 5x the parameters is 5x the bill.
+
+### The panel-size lever
+
+Cost scales with total windows, and the panel is very skewed (median 6,104, max 32,384).
+
+| subset | share of GC-arm work | Modal cost | expected t on the protocol effect |
+|---|---|---|---|
+| size-stratified 20 | 25.4% | ~$8 | 5.4 |
+| size-stratified 30 | 35.4% | ~$11 | 6.6 |
+| size-stratified 40 | 46.4% | ~$14 | 7.7 |
+| size-stratified 60 | 67.3% | ~$21 | 9.4 |
+| all 94 | 100% | ~$31 | 11.7 |
+
+The t column comes from the k-mer's own per-dataset protocol effect (mean +0.0215, SD
+0.0177), which is well determined because the transplant is paired per dataset. Even n=20
+clears t=5. **Statistically a subset is fine; the reason to prefer all 94 is that the
+headline is n=94 and a referee should not have to ask why the deep models used a different
+panel.**
+
+Do **not** subset by taking the smallest datasets, even though it is 5x cheaper. R1's own
+size modification (rho +0.307, p=0.0026) says the contrast is larger in bigger datasets, so
+smallest-first is the one subset guaranteed to be biased.
+
+Do **not** subsample windows within datasets. The dinuc arm was trained on full datasets;
+capping the GC arm would confound arm with training-set size, and re-training the dinuc arm
+to match costs more than it saves.
+
+Do **not** change batch size, epochs or precision to go faster. The two arms must be trained
+identically or the contrast confounds protocol with hyperparameters.
+
+---
+
+## 4. Recommended plan, $33 of $40
+
+| stage | what | cost | why |
+|---|---|---|---|
+| 0 | dinuc-arm nested contribution for CNN + SpliceBERT | **$0, done** | already computed above |
+| 1 | **H**: Modal Volume data path, no GCS | **$0**, 1-2 h | GCP billing is dead; also makes the repo runnable without GCP, which is better for the MLOps story |
+| 2 | **pilot**: GC SpliceBERT on 12 stratified datasets | **~$2** | proves the path end to end, and measures the GC arm's epochs-per-run so stage 3 can be re-priced before committing |
+| 3 | **A**: GC SpliceBERT, all 94 | **~$31** | the result |
+| 4 | **B**: GC CNN, locally overnight | **$0** | third model class |
+| 5 | **C/D/E**: analysis, figures, golden block, verifier assertions | **$0** | |
+
+**Total ~$33**, leaving ~$7 for retries. If the pilot re-prices stage 3 above ~$35, fall back
+to the size-stratified 60 (~$21) and say so in the methods.
+
+Do not skip stage 2. Every extrapolation in this project has been wrong: the CNN cloud
+penalty was 1.65x, RNABERT's was 4.9x, the GPU speedup was guessed at 100-200x and measured
+at 29.6x, and a cost estimate built from three published prices came out 44% high.
+
+---
+
+## 5. What could go wrong
+
+1. **The result could be a null**, i.e. SpliceBERT's contrast lands at or below the +0.0552
+   that compression alone predicts. That is not a wasted $31: it is the finding that the
+   protocol effect is specific to composition-adjacent models and vanishes for a pretrained
+   transformer. It changes the paper's claim from "general" to "specific" and both are
+   publishable. **This experiment cannot fail to produce a reportable answer**, which is the
+   main reason it is worth buying.
+2. **The GC arm's epoch count is unknown.** The GC task is easier (composition baseline
+   0.7827 vs 0.6274), so early stopping could fire sooner or later. Budget +/- 20%. Stage 2
+   measures it.
+3. **Concurrency is the only real cost guard.** `MAX_CONTAINERS = 10` at A10G is $11/h. There
+   is no Modal equivalent of the billing killswitch. Leave it at 10.
+4. **The GCS objects may not be recoverable at all.** Does not block anything: every input
+   needed is on local disk. It only means the 475 dinuc checkpoints are gone, and we do not
+   need them, because the scores are committed.
+5. **New numbers mean new gates.** Anything added here needs a `golden.yaml` block and
+   assertions, and `min_domain_checks` has to rise. Untested gates are assumed broken until
+   an attack against them fails (see `docs/62`).

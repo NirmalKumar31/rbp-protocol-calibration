@@ -589,7 +589,10 @@ integrity:
   duplicate_datasets_allowed: 0
   # Checked against the actual suite, not a number typed once and left to drift. It read 480
   # while the suite had grown to 575.
-  min_tests_passing: 570
+  # 607 collect locally after the local-store shim added 10. Raised with the suite, because
+  # a floor left behind is the bug this key exists to prevent: it once read 480 while the
+  # suite had grown to 576.
+  min_tests_passing: 600
   # HOW MANY CHECKS RAN, asserted, because almost every gate in verify.py is written
   # `if value is not None:` and therefore DISAPPEARS when a row is missing instead of failing.
   # Deleting five rows from one table once produced "106/106 passed". Asserting the count
