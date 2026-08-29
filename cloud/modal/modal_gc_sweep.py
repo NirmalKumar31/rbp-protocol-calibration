@@ -39,8 +39,16 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(REPO / "src"))
+# WHERE "the repo" IS depends on which side of the wire this module is imported on. Locally
+# it is three levels up from cloud/modal/. On Modal the file is mounted at
+# /root/modal_gc_sweep.py, which has no third parent at all, and the image puts config, src
+# and scripts under /app. modal_sweep.py hid this behind three nested dirname() calls, which
+# quietly return "/" instead of raising; that is not better, it just fails later.
+_here = Path(__file__).resolve()
+_local = _here.parents[2] if len(_here.parents) > 2 else None
+REPO = _local if (_local and (_local / "scripts").is_dir()) else Path("/app")
+if (REPO / "src").is_dir():
+    sys.path.insert(0, str(REPO / "src"))
 import modal  # noqa: E402
 
 APP = "rbp-gc-sweep"
