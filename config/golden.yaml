@@ -378,6 +378,80 @@ r1_region:
   # revisited deliberately rather than silently.
   max_partial_rho:   0.25
 
+# --- R1g: the contrast is not a property of the model class ---------------------------
+#
+# The paper's sharpest limitation used to be that every number in it came from an
+# L2-penalised logistic on 4-mer counts. R1g runs R1's own nested decomposition on a
+# 7,089-parameter CNN and a 19.7M-parameter fine-tuned SpliceBERT, in both arms, on the same
+# folds and the same rows, and the 4-mer is REFITTED alongside them rather than read from
+# rehearsal_binding_* so that all three rungs are measured identically.
+#
+# THE CLAIM IS THE MONOTONE LADDER, not merely survival. The contrast grows with model
+# capacity -- 0.0398, 0.0530, 0.0864 -- so the published 4-mer figure is the CONSERVATIVE
+# end of the range, and a referee asking "would this vanish for a real model?" has the
+# answer in the opposite direction from the one the question expects.
+r1g_deep_contrast:
+  n_datasets: 94
+  kmer:
+    nested_gc:      {value: 0.0265, tol: 0.0020}
+    nested_dn:      {value: 0.0663, tol: 0.0030}
+    contrast_auroc: {value: 0.0398, tol: 0.0025}
+    protocol_min:   {value: 0.0188, tol: 0.0020}
+    protocol_max:   {value: 0.0314, tol: 0.0020}
+    positive_datasets: 88
+  cnn:
+    nested_gc:      {value: 0.0330, tol: 0.0025}
+    nested_dn:      {value: 0.0860, tol: 0.0040}
+    contrast_auroc: {value: 0.0530, tol: 0.0035}
+    protocol_min:   {value: 0.0213, tol: 0.0025}
+    protocol_max:   {value: 0.0412, tol: 0.0030}
+    positive_datasets: 89
+  splicebert:
+    nested_gc:      {value: 0.0890, tol: 0.0045}
+    nested_dn:      {value: 0.1754, tol: 0.0060}
+    contrast_auroc: {value: 0.0864, tol: 0.0040}
+    protocol_min:   {value: 0.0253, tol: 0.0025}
+    protocol_max:   {value: 0.0543, tol: 0.0035}
+    positive_datasets: 94
+  # Every model's contrast must be positive with its interval clear of zero, and its
+  # protocol effect must survive EVERY member of the transplant family, not the flattering
+  # one. Same standard R1b is held to.
+  contrast_ci_must_exclude_zero: true
+  protocol_must_survive_every_transplant: true
+  # THE LADDER, AS PAIRED DIFFERENCES ON THE SAME 94 DATASETS. Point estimates alone would
+  # not carry this: the k-mer's interval [0.0337, 0.0459] and the CNN's [0.0446, 0.0614]
+  # overlap. The paired difference is the right statistic and it is what is gated.
+  #
+  # The CNN step is the weak rung and the numbers say so -- larger in 58 of 94 datasets
+  # against 94 of 94 for SpliceBERT over the k-mer. That is stated, not smoothed over.
+  ladder:
+    step_cnn_minus_kmer:        {value: 0.0132, tol: 0.0030}
+    step_splicebert_minus_cnn:  {value: 0.0334, tol: 0.0035}
+    step_splicebert_minus_kmer: {value: 0.0466, tol: 0.0040}
+  ladder_steps_ci_must_exclude_zero: true
+  min_step_datasets_cnn_minus_kmer: 55
+  # THE ORDERING ITSELF. If this ever fails, R1g's claim is "it survives", not "it grows",
+  # and the paper must be reworded rather than the gate relaxed.
+  ladder_must_be_monotone_in_capacity: true
+  # The strong form of "not a model-class artefact": the deep model's interval must clear
+  # the k-mer's point estimate entirely, not merely overlap it on the right side.
+  splicebert_ci_must_exceed_kmer_point: true
+  # ROWS. The GC arm is scored from the very dataset.tsv it was trained on, so anything
+  # below 1.0 there means a fold went missing. The dinucleotide arm's windows drifted by
+  # 0.06% after its sweep ran, which is tolerated and measured, not assumed away.
+  min_row_coverage_gc: 1.0
+  min_row_coverage_dn: 0.99
+  # THE CROSS-CHECK THAT TIES R1g TO R1. The refitted 4-mer must reproduce the published
+  # contrast from scale_check.csv. If these ever diverge, one of the two is wrong and the
+  # comparison against the deep models is meaningless.
+  max_kmer_refit_drift: 0.002
+  # THE ATTACK THIS CLOSES. deep_contrast.csv is a summary of
+  # deep_contrast_per_dataset.csv, and until this key existed nothing compared them -- so
+  # editing the summary alone would have passed every check above. That is precisely how a
+  # permuted cost_of_matching.csv once passed 166/166. The summary's means are recomputed
+  # from the per-dataset rows and must agree exactly.
+  max_summary_arithmetic_diff: 1.0e-9
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -592,7 +666,7 @@ integrity:
   # 607 collect locally after the local-store shim added 10. Raised with the suite, because
   # a floor left behind is the bug this key exists to prevent: it once read 480 while the
   # suite had grown to 576.
-  min_tests_passing: 600
+  min_tests_passing: 610
   # HOW MANY CHECKS RAN, asserted, because almost every gate in verify.py is written
   # `if value is not None:` and therefore DISAPPEARS when a row is missing instead of failing.
   # Deleting five rows from one table once produced "106/106 passed". Asserting the count
@@ -600,7 +674,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 240
+  min_domain_checks: 283
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

@@ -777,6 +777,149 @@ def verify_region(T, g):
                 spec["max_partial_rho"])
 
 
+def verify_deep_contrast(T, g):
+    """R1g: the contrast is not a property of the model class -- it GROWS with capacity.
+
+    R1's limitation used to be that every number came from an L2-penalised logistic on 4-mer
+    counts. This gate holds a 7,089-parameter CNN and a 19.7M-parameter fine-tuned SpliceBERT
+    to exactly the standard R1b is held to: the contrast positive with its interval clear of
+    zero, and the protocol effect surviving EVERY member of the transplant family rather than
+    the flattering one.
+
+    Missing rows are FAILURES, per verify_scale_check. A gate a corrupted table can switch
+    off is not a gate.
+    """
+    print("\nR1g deep-model contrast  (is R1 a property of bags of k-mers?)")
+    d = T.get("deep_contrast.csv")
+    if d is None:
+        return record(False, "deep_contrast.csv present", "MISSING",
+                      "run scripts/deep_model_contrast.py")
+    spec = g["r1g_deep_contrast"]
+    q = d.set_index(["model", "quantity"])
+
+    def must(model, quantity, col="value"):
+        if (model, quantity) not in q.index:
+            record(False, f"row present: {model}/{quantity}", "MISSING", "the row")
+            return None
+        return float(q.loc[(model, quantity), col])
+
+    contrasts = {}
+    for model in ("kmer", "cnn", "splicebert"):
+        sm = spec[model]
+        for quantity, gk in (("nested_gc", "nested_gc"), ("nested_dn", "nested_dn"),
+                             ("contrast_auroc", "contrast_auroc"),
+                             ("protocol_effect_min", "protocol_min"),
+                             ("protocol_effect_max", "protocol_max")):
+            val = must(model, quantity)
+            if val is not None:
+                near(f"{model}: {quantity}", val, sm[gk])
+
+        # The panel must be the whole panel, not whatever happened to finish.
+        n = must(model, "contrast_auroc", "n")
+        if n is not None:
+            record(int(n) == spec["n_datasets"], f"{model}: datasets analysed",
+                   int(n), spec["n_datasets"])
+
+        pos = must(model, "contrast_positive_datasets")
+        if pos is not None:
+            at_least(f"{model}: datasets with a positive contrast", int(pos),
+                     sm["positive_datasets"])
+
+        lo = must(model, "contrast_auroc", "ci_low")
+        contrasts[model] = must(model, "contrast_auroc")
+        if lo is not None and spec["contrast_ci_must_exclude_zero"]:
+            record(lo > 0, f"{model}: contrast interval excludes zero", f"{lo:+.4f}", "> 0")
+
+        pmin = must(model, "protocol_effect_min")
+        if pmin is not None and spec["protocol_must_survive_every_transplant"]:
+            record(pmin > 0, f"{model}: protocol effect survives EVERY transplant choice",
+                   f"{pmin:+.4f}", "> 0")
+
+    # THE LADDER. The claim is that the contrast grows with model capacity, so the published
+    # 4-mer number is the conservative end. If this fails the paper says "survives", not
+    # "grows", and the wording must change rather than the gate.
+    if spec["ladder_must_be_monotone_in_capacity"] and None not in contrasts.values():
+        order = [contrasts["kmer"], contrasts["cnn"], contrasts["splicebert"]]
+        record(order[0] < order[1] < order[2],
+               "contrast grows monotonically with model capacity",
+               " < ".join(f"{v:+.4f}" for v in order), "kmer < cnn < splicebert")
+
+    # The strong form: the deep model's interval must clear the k-mer's point estimate.
+    sb_lo = must("splicebert", "contrast_auroc", "ci_low")
+    if (sb_lo is not None and contrasts.get("kmer") is not None
+            and spec["splicebert_ci_must_exceed_kmer_point"]):
+        record(sb_lo > contrasts["kmer"],
+               "SpliceBERT contrast interval clears the k-mer point estimate",
+               f"{sb_lo:+.4f}", f"> {contrasts['kmer']:+.4f}")
+
+    # ROWS. 1.0 in the GC arm is exact: it is scored from the file it trained on, so anything
+    # less means a fold vanished.
+    cg = must("-", "min_row_coverage_gc")
+    if cg is not None:
+        at_least("GC arm: every window scored", cg, spec["min_row_coverage_gc"])
+    cd = must("-", "min_row_coverage_dn")
+    if cd is not None:
+        at_least("dinuc arm: window coverage after post-sweep drift", cd,
+                 spec["min_row_coverage_dn"])
+
+    # THE LADDER STEPS, PAIRED. Marginal intervals overlap between the k-mer and the CNN, so
+    # the ordering is only a claim as a paired difference on the same 94 datasets.
+    for a, b, gk in (("cnn", "kmer", "step_cnn_minus_kmer"),
+                     ("splicebert", "cnn", "step_splicebert_minus_cnn"),
+                     ("splicebert", "kmer", "step_splicebert_minus_kmer")):
+        val = must("ladder", gk)
+        if val is not None:
+            near(f"ladder step: {a} - {b}", val, spec["ladder"][gk])
+        lo = must("ladder", gk, "ci_low")
+        if lo is not None and spec["ladder_steps_ci_must_exclude_zero"]:
+            record(lo > 0, f"ladder step {a} - {b}: interval excludes zero",
+                   f"{lo:+.4f}", "> 0")
+    # The weakest rung is asserted at its own floor so it cannot quietly erode.
+    weak = must("ladder", "step_cnn_minus_kmer_datasets")
+    if weak is not None:
+        at_least("CNN beats the k-mer contrast on this many datasets", int(weak),
+                 spec["min_step_datasets_cnn_minus_kmer"])
+
+    # THE SUMMARY MUST BE ARITHMETIC ON THE PER-DATASET TABLE, not an independent assertion.
+    # Everything above reads deep_contrast.csv alone, so editing that one file would pass
+    # every check. Recompute the means from the evidence.
+    per = T.get("deep_contrast_per_dataset.csv")
+    if per is None:
+        record(False, "deep_contrast_per_dataset.csv present", "MISSING", "the evidence table")
+    else:
+        worst = 0.0
+        for model in ("kmer", "cnn", "splicebert"):
+            gain_gc = per[f"{model}_gain_gc"]
+            gain_dn = per[f"{model}_gain_dn"]
+            for quantity, series in (("nested_gc", gain_gc), ("nested_dn", gain_dn),
+                                     ("contrast_auroc", gain_dn - gain_gc)):
+                got = must(model, quantity)
+                if got is not None:
+                    worst = max(worst, abs(got - float(series.mean())))
+            pos = must(model, "contrast_positive_datasets")
+            if pos is not None:
+                record(int(pos) == int((gain_dn - gain_gc > 0).sum()),
+                       f"{model}: positive-dataset count matches the evidence",
+                       int(pos), int((gain_dn - gain_gc > 0).sum()))
+        at_most("summary means are arithmetic on the per-dataset table", worst,
+                spec["max_summary_arithmetic_diff"])
+
+    # THE TIE TO R1. The 4-mer refitted here must reproduce the published contrast, or the
+    # comparison against the deep models is measuring two different things.
+    sc = T.get("scale_check.csv")
+    if sc is None:
+        record(False, "scale_check.csv present for the R1g cross-check", "MISSING", "the table")
+    elif contrasts.get("kmer") is not None:
+        pub = sc.set_index("check")
+        key = "CONTRAST, AUROC scale (published headline)"
+        if key not in pub.index:
+            record(False, "published contrast row present", "MISSING", "the row")
+        else:
+            drift = abs(contrasts["kmer"] - float(pub.loc[key, "value"]))
+            at_most("refitted 4-mer reproduces the published R1 contrast", drift,
+                    spec["max_kmer_refit_drift"])
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -1351,7 +1494,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

@@ -347,6 +347,62 @@ of effect size. The intronic fraction correlates with the contrast at Spearman �
 signal there is to expose**, not that region is a separate mechanism. Stated the second way it
 is supported; stated the first way it would be wrong.
 
+## R1g: the contrast is not a property of the model class, and it GROWS with capacity
+
+`deep_contrast.csv`, `deep_contrast_per_dataset.csv`, n = 94 paired datasets. Figure **f9**.
+
+The GC arm was swept for two further architectures, 470 runs each: the 7,089-parameter CNN and
+the 19.7M-parameter fully fine-tuned SpliceBERT. The dinucleotide arm's per-window scores were
+already committed. Both arms use the same chromosome folds, the same seed, the same
+hyperparameters, the same code path and full datasets; the only difference is how the negative
+windows were chosen. The 4-mer is **refitted alongside them on the same rows** rather than read
+from `rehearsal_binding_*`, so all three rungs are measured identically.
+
+| model | size | nested, GC | nested, dinuc | contrast | positive | protocol effect |
+|---|---|---|---|---|---|---|
+| k-mer LR | 256 features | +0.0265 | +0.0663 | **+0.0398** [+0.0337, +0.0459] | 88/94 | +0.0188 to +0.0314 |
+| CNN | 7,089 param | +0.0330 | +0.0860 | **+0.0530** [+0.0446, +0.0614] | 89/94 | +0.0213 to +0.0412 |
+| SpliceBERT | 19.7M param | +0.0890 | +0.1754 | **+0.0864** [+0.0788, +0.0943] | 94/94 | +0.0253 to +0.0543 |
+
+**The ladder is the claim, not mere survival.** The contrast grows monotonically with model
+capacity, and because the three rungs are measured on the same 94 datasets the right statistic
+is the paired difference:
+
+| step | difference | larger in |
+|---|---|---|
+| CNN − k-mer | **+0.0132** [+0.0068, +0.0197] | 58/94 |
+| SpliceBERT − CNN | **+0.0334** [+0.0289, +0.0380] | 90/94 |
+| SpliceBERT − k-mer | **+0.0466** [+0.0416, +0.0517] | 94/94 |
+
+Every step's interval excludes zero. **The CNN step is the weak rung** and is reported as such:
+its mean difference is clear but it holds on only 58 of 94 datasets, against 94 of 94 for
+SpliceBERT over the k-mer. Marginal intervals for the k-mer and the CNN overlap, which is
+exactly why the paired form is the one reported.
+
+**The compression correction is applied identically.** Each model's protocol effect is the same
+four-member transplant family used in R1b, both directions and both links, and every member is
+positive for every model. The correction bites harder for the stronger model, as it must:
+SpliceBERT's compression-only component is +0.0320 of its +0.0864, against +0.0083 of the
+k-mer's +0.0398. **The protocol effect still rises**, +0.0188 to +0.0314 for the k-mer against
++0.0253 to +0.0543 for SpliceBERT.
+
+**What this does to the paper.** The published 4-mer figure is the **conservative** end of the
+range, not a special case. A referee asking "would this vanish for a real model?" gets the
+answer in the opposite direction from the one the question expects: the more capable the model,
+the more the negative-set protocol decides what its benchmark AUROC measures. This is also what
+R1f's mechanism predicts, so R1f's prediction is now a measurement.
+
+**Cross-check.** The refitted 4-mer reproduces R1's published contrast to **7.05e-05**, which is
+what licenses comparing it against the deep models at all.
+
+**Provenance, stated.** The two arms ran on different hardware generations (the dinucleotide
+sweep on one A10G generation, the GC sweep on NVIDIA A10) and the CNN's GC arm ran on Apple
+MPS. Training is fp32 with identical seed, batch size, epoch cap and early-stopping rule, so
+hardware changes speed and not the model; the `accelerator` field records which row came from
+where. The dinucleotide arm's windows drifted by **0.06%** (172 rows in 307,430) after its
+sweep was scored, because negative matching is a stochastic search that was re-run; every model
+is intersected to a common row set before anything is fitted, and the minimum coverage is gated.
+
 ## R2: the model ladder (methods table, not a result)
 
 `matched_four_models.csv`, n = 95, identical chromosome-level folds. Figure **f2**.
@@ -440,14 +496,17 @@ implied conditionally rather than guaranteed by algebra, which is what distingui
 the composition-share quantity retracted below. But nobody should be persuaded by the sign. The
 magnitude, its replication across cell lines, and the efficiency it buys are the claims.
 
-**1e. One model class, and the title should not outrun it.** Every number in R1 through R1f
-comes from a single model: an L2-penalised logistic regression on 4-mer counts. R1e varies the
-k-mer size, not the architecture, and R2's ladder reports standalone AUROCs only, so whether
-the contrast holds for a CNN or a pretrained transformer **is not measured here**. The
-mechanism argued in R1f, that the protocol matters more where recognition is less
-compositional, predicts the contrast should be at least as large for a more expressive model,
-but that is a prediction and not a result. Read every claim as being about what a compositional
-benchmark measures, not about deep models in general.
+**1e. Three architectures, not a survey.** This limitation used to read "one model class, and
+the title should not outrun it", and R1g retired it: the contrast is measured for an
+L2-penalised logistic on 4-mer counts, a 7,089-parameter CNN and a 19.7M-parameter fine-tuned
+SpliceBERT, and it grows across all three. What remains is narrower and should be stated
+plainly. Three architectures are not the space of sequence models. Nothing above 20M parameters
+was tested, so the 100M-parameter LoRA-adapted models in the same family (RNA-FM, RNA-MSM) are
+untested, and a model pretrained on multiple-sequence alignments could behave differently
+because evolutionary context is not a property of the window's own composition. The ladder is
+monotone over the range measured; whether it keeps rising, saturates or turns over beyond 20M
+parameters **is not measured here**. The CNN step is also the weak rung, holding on 58 of 94
+datasets, so the monotonicity claim rests mainly on the SpliceBERT end.
 
 **1b. Negatives are not filtered for expression.** Region pools are built from all GENCODE v45
 transcripts with no `gene_type` and no cell-line expression filter, and negatives are drawn

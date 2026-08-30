@@ -174,3 +174,54 @@ at 29.6x, and a cost estimate built from three published prices came out 44% hig
 5. **New numbers mean new gates.** Anything added here needs a `golden.yaml` block and
    assertions, and `min_domain_checks` has to rise. Untested gates are assumed broken until
    an attack against them fails (see `docs/62`).
+
+---
+
+## 6. What actually happened, 2026-08-29 to 30
+
+Every estimate in this file was made before anything ran. Here is the outturn, so the next
+estimate can be calibrated against a real one rather than another guess.
+
+| | predicted | actual |
+|---|---|---|
+| GC-arm SpliceBERT, 94 datasets | ~$31, 2.5 h | **~$16.02**, 470/470 runs, 0 failures |
+| training GPU-h for that arm | 11.8 (from the pilot) | **11.99** |
+| GC-arm CNN | $0 local, 2-4 h | **$0 local, 2.27 h**, 470/470, 0 failures |
+| total spend | ~$33 | **~$16.10** of a $40 cap |
+
+**The pilot paid for itself twice over.** It re-priced the full run from $31 to $16 -- the GC
+arm turned out to run about 2x faster per pair than the dinucleotide arm did, on the same
+epochs (7.56 against 7.68), so the difference is hardware and not science -- and its 59 runs
+were kept and skipped by the full sweep, so the checkpoint cost nothing. The linear fit of
+seconds against pairs across the 12 pilot datasets had r = 0.9867, which is why extrapolating
+from 10% of the work was safe.
+
+**The estimate that was wrong was the pessimistic one**, which is the direction to be wrong in.
+The $31 anchor came from the dinucleotide arm's own bill and was honest; the hardware moved
+underneath it.
+
+### The result, against the risk stated in section 5
+
+Section 5 said the experiment could come back null and that this would still be publishable.
+It came back the other way: the contrast is **+0.0398 (k-mer), +0.0530 (CNN), +0.0864
+(SpliceBERT)**, growing monotonically with capacity, positive in 94/94 for SpliceBERT, and the
+protocol effect rises with it. The compression-only prediction in section 2 was +0.0552 for
+SpliceBERT against an observed contrast of +0.0864, so the transplant's forecast was in the
+right place and the excess is protocol.
+
+### What was not foreseen
+
+1. **The GCP billing account was closed, not merely unfunded.** Item H was written as "replace
+   the data path" and turned out to be the whole prerequisite. `rbp.utils.localstore` plus
+   `scripts/build_store.py` now make the sweep runnable with no cloud storage at all, which is
+   a better outcome than restoring billing would have been.
+2. **The study panel had to be regenerated**, because the 94 is pinned by
+   `manifest/study_panel.tsv`, which lived in the dead bucket. `select_panel.py --every 2`
+   reproduced it exactly: 95 datasets matching `rehearsal_binding_dinuc.csv`, of which 94 clear
+   the GC floor and match `rehearsal_binding_gc.csv`.
+3. **Three bugs, none in the new science.** A false `accelerator` field on non-CUDA devices; a
+   test suite importing the sibling project's `rbp`; and a k-mer/SpliceBERT row-set mismatch
+   caught by a composition-baseline equality check in the 7th decimal.
+4. **The gate needed an arithmetic cross-check.** Every value assertion read
+   `deep_contrast.csv` alone, so editing that one file passed all of them. Caught by attacking
+   it, not by reading it.

@@ -240,6 +240,25 @@ def summarise(d, n_boot=2000, seed=0):
                      "ci_low": np.nan, "ci_high": np.nan, "n": len(d)})
         rows.append({"model": model, "quantity": "protocol_effect_max", "value": max(fam),
                      "ci_low": np.nan, "ci_high": np.nan, "n": len(d)})
+    # THE LADDER, AS PAIRED DIFFERENCES. The marginal intervals for the k-mer and the CNN
+    # overlap slightly, so "0.0398 < 0.0530" on point estimates is not on its own a claim.
+    # The datasets are the same 94 in every rung, so the paired difference is the right
+    # statistic and it is what the paper reports.
+    # Its own resample, rather than whatever `idx` the last model's loop left behind. The
+    # draws are exchangeable so the numbers would not move, but a statistic that silently
+    # depends on loop order is the kind of thing that is true until someone reorders MODELS.
+    lidx = np.random.default_rng(seed + 1).integers(0, len(d), size=(n_boot, len(d)))
+    for a, b in (("cnn", "kmer"), ("splicebert", "cnn"), ("splicebert", "kmer")):
+        diff = ((d[f"{a}_gain_dn"] - d[f"{a}_gain_gc"])
+                - (d[f"{b}_gain_dn"] - d[f"{b}_gain_gc"]))
+        bs = np.array([diff.values[i].mean() for i in lidx])
+        lo, hi = np.percentile(bs, [2.5, 97.5])
+        rows.append({"model": "ladder", "quantity": f"step_{a}_minus_{b}",
+                     "value": diff.mean(), "ci_low": lo, "ci_high": hi, "n": len(d)})
+        rows.append({"model": "ladder", "quantity": f"step_{a}_minus_{b}_datasets",
+                     "value": int((diff > 0).sum()), "ci_low": np.nan, "ci_high": np.nan,
+                     "n": len(d)})
+
     for arm in ("gc", "dn"):
         col = f"coverage_{arm}"
         rows.append({"model": "-", "quantity": f"min_row_coverage_{arm}",
