@@ -32,6 +32,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import norm, spearmanr
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -102,6 +103,27 @@ def summarise(d, n_boot=2000, seed=0):
         rows.append({"check": f"datasets with a positive contrast, {a} minus {b}",
                      "value": pos, "ci_low": np.nan, "ci_high": np.nan, "n": len(d),
                      "note": ""})
+    # THE TRANSPLANT MATRIX. Is the whole three-arm pattern just compression? Carry each
+    # arm's d' increment onto each other arm's baseline; the residual is the protocol effect
+    # for that pair. Compression alone would make every residual zero.
+    R2 = np.sqrt(2.0)
+    dp = lambda a: R2 * norm.ppf(np.clip(a, 1e-6, 1 - 1e-6))   # noqa: E731
+    au = lambda z: norm.cdf(z / R2)                            # noqa: E731
+    for src in ARMS:
+        inc = dp(d[f"full_{src}"]) - dp(d[f"comp_{src}"])
+        for tgt in ARMS:
+            if src == tgt:
+                continue
+            pred = au(dp(d[f"comp_{tgt}"]) + inc) - d[f"comp_{tgt}"]
+            add(f"protocol effect, {src} increment on {tgt} baseline",
+                d[f"gain_{tgt}"] - pred,
+                "observed minus what compression alone predicts")
+    rho, pv = spearmanr(np.r_[tuple(d[f"comp_{a}"] for a in ARMS)],
+                        np.r_[tuple(d[f"gain_{a}"] for a in ARMS)])
+    rows.append({"check": "spearman(composition baseline, nested gain), all arms pooled",
+                 "value": float(rho), "ci_low": np.nan, "ci_high": np.nan,
+                 "n": 3 * len(d), "note": f"p={pv:.2e}"})
+
     # The multiplier, on datasets where both arms have a positive gain.
     for a, b in (("dn", "gc"), ("neg2", "gc")):
         m = (d[f"gain_{a}"] > 0) & (d[f"gain_{b}"] > 0)

@@ -1247,6 +1247,87 @@ def verify_cluster_intervals(T, g):
                bool(flag), True)
 
 
+def verify_three_arm(T, g):
+    """R1k: three protocols, a 5.4-fold range, and a falsified prediction kept on the record."""
+    print("\nR1k three negative-set protocols  (is there a protocol-independent contribution?)")
+    d = T.get("three_arm_contrast.csv")
+    if d is None:
+        return record(False, "three_arm_contrast.csv present", "MISSING",
+                      "run scripts/three_arm_contrast.py")
+    spec = g["r1k_three_arm"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    comp, gain = {}, {}
+    for arm, cg, gg in (("gc", "composition_gc", "gain_gc"),
+                        ("dn", "composition_dn", "gain_dn"),
+                        ("neg2", "composition_neg2", "gain_neg2")):
+        c = must(f"composition alone, {arm} arm")
+        v = must(f"nested contribution, {arm} arm")
+        comp[arm], gain[arm] = c, v
+        if c is not None:
+            near(f"composition alone, {arm} arm", c, spec[cg])
+        if v is not None:
+            near(f"nested contribution, {arm} arm", v, spec[gg])
+
+    for a, b, gk in (("dn", "gc", "contrast_dn_minus_gc"),
+                     ("neg2", "gc", "contrast_neg2_minus_gc"),
+                     ("neg2", "dn", "contrast_neg2_minus_dn")):
+        v = must(f"CONTRAST, {a} minus {b}")
+        if v is not None:
+            near(f"contrast, {a} minus {b}", v, spec[gk])
+    for a, b, gk in (("dn", "gc", "multiplier_dn_over_gc"),
+                     ("neg2", "gc", "multiplier_neg2_over_gc")):
+        v = must(f"protocol multiplier, {a} over {b}")
+        if v is not None:
+            near(f"protocol multiplier, {a} over {b}", v, spec[gk])
+
+    # THE FALSIFIED PREDICTION, asserted in the direction the data actually went.
+    if None not in comp.values() and spec["neg2_must_have_highest_composition"]:
+        record(comp["neg2"] == max(comp.values()),
+               "neg2 has the HIGHEST composition baseline (the pre-registered prediction "
+               "said it would be the lowest)", f"{comp['neg2']:.4f}",
+               f"> {max(comp['gc'], comp['dn']):.4f}")
+    if None not in gain.values() and spec["neg2_must_have_lowest_gain"]:
+        record(gain["neg2"] == min(gain.values()),
+               "neg2 gives the LOWEST nested contribution of the three protocols",
+               f"{gain['neg2']:+.4f}", f"< {min(gain['gc'], gain['dn']):+.4f}")
+    if None not in gain.values():
+        rng = max(gain.values()) / max(min(gain.values()), 1e-9)
+        at_least("fold range in measured contribution across the three protocols", rng,
+                 spec["min_fold_range_across_protocols"])
+    cn = must("CONTRAST, neg2 minus gc")
+    if cn is not None and spec["contrast_neg2_minus_gc_must_be_negative"]:
+        record(cn < 0, "the field's own bias-aware protocol reveals LESS than GC matching, "
+                       "so 'prefer harder negatives' is not supportable",
+               f"{cn:+.4f}", "< 0")
+
+    resid = []
+    for src, tgt, gk in (("gc", "dn", "protocol_effect_gc_on_dn"),
+                         ("gc", "neg2", "protocol_effect_gc_on_neg2"),
+                         ("dn", "neg2", "protocol_effect_dn_on_neg2"),
+                         ("neg2", "dn", "protocol_effect_neg2_on_dn")):
+        v = must(f"protocol effect, {src} increment on {tgt} baseline")
+        if v is not None:
+            near(f"protocol effect, {src} -> {tgt}", v, spec[gk])
+            resid.append(v)
+    if resid and spec["transplant_residuals_must_change_sign"]:
+        record(min(resid) < 0 < max(resid),
+               "transplant residuals CHANGE SIGN with direction, so the decomposition does "
+               "not identify a protocol effect",
+               f"{min(resid):+.4f} to {max(resid):+.4f}", "spans zero")
+
+    rho = must("spearman(composition baseline, nested gain), all arms pooled")
+    if rho is not None:
+        near("spearman(composition baseline, nested gain), pooled over arms", rho,
+             spec["spearman_composition_gain"])
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -1821,7 +1902,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

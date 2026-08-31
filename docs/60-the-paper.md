@@ -29,18 +29,17 @@ calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
 
 ## The one-sentence claim
 
-> Across 94 paired ENCODE eCLIP datasets, the negative-set protocol rather than the model
-> determines most of what a benchmark AUROC means. A 4-mer model's nested contribution over a
-> 19-feature mono+dinucleotide composition baseline is **+0.0265 AUROC** under GC-matched
-> negatives and **+0.0662** under dinucleotide-matched negatives (difference **+0.0398**
-> [+0.0325, +0.0477] with protein clustering respected, larger in 88/94), while apparent AUROC
-> falls by **0.1095** in **94/94**. The protocol multiplies the measured contribution by
-> **2.4x to 3.5x**, and that multiplier holds across three model classes spanning 256 features
-> to a 19.7M-parameter fine-tuned transformer. The two protocols do not estimate a common
-> quantity, so neither figure is the true one. What the comparison establishes is that a
-> headline AUROC is uninterpretable without the composition baseline measured under the same
-> protocol, and that the measured contribution of a sequence model is a property of the
-> benchmark's construction as much as of the model.
+> **There is no protocol-independent contribution of a sequence model.** Across 94 ENCODE eCLIP
+> datasets, holding the model, the positives, the folds and the estimator fixed and changing
+> only how the negative windows were built, the *nested contribution* of a 4-mer model over a
+> 19-feature composition baseline measures **+0.0122**, **+0.0265** or **+0.0663 AUROC** -- a
+> **5.4-fold range** -- under three defensible protocols. Apparent AUROC moves the opposite way
+> from the contribution: dinucleotide matching *lowers* it by **0.1095** in 94/94 while raising
+> the contribution 2.9x. And the ordering is not "harder negatives reveal more": the field's own
+> bias-aware protocol, sampling negatives from other RBPs' binding sites, reveals the **least**
+> of the three, at **0.53x** the GC-matched arm. A benchmark AUROC, and even a baseline-relative
+> contribution, is a joint property of the model and the negative-set construction, and no
+> ranking of protocols by how much they "reveal" survives contact with a third one.
 
 **Deliberately NOT in the one-sentence claim, after two rounds of statistical review.** The
 decomposition into "compression" and "protocol effect" is a supporting sensitivity analysis,
@@ -581,6 +580,62 @@ otherwise land, and the gate `all_headlines_exclude_zero_clustered` means that i
 does push a headline across zero under clustering, the claim must be restated rather than the
 narrower interval quietly retained. **The manuscript should print the protein-clustered
 intervals throughout.**
+
+## R1k: a third protocol, and the prediction it falsified
+
+`three_arm_contrast.csv`, `three_arm_per_dataset.csv`, n = 94, 4-mer model only.
+
+Two protocols invite the reply that both are variants of one flawed design: composition-matched
+unbound genomic windows, carrying everything R1c and R1j say about them. So a third was built
+from data already on disk, implementing Horlacher et al. 2023's bias-aware **negative-2**:
+negatives are **other RBPs' binding sites in the same cell line**, 1:1, excluding any near the
+target's own sites. Those negatives are transcribed, CLIP-accessible and strand-correct by
+construction, and no composition matcher touches them, so R1c, R1j and the sampler-hyperparameter
+objection cannot apply to this arm at all.
+
+| protocol | composition alone | apparent AUROC | **nested contribution** |
+|---|---|---|---|
+| dinucleotide-matched | 0.6274 | 0.6937 | **+0.0663** |
+| GC-matched | 0.7827 | 0.8092 | **+0.0265** |
+| **neg2** (other RBPs' sites) | **0.8248** | 0.8370 | **+0.0122** |
+
+| contrast | value | positive in |
+|---|---|---|
+| dinuc − GC | **+0.0398** [+0.0337, +0.0459] | 88/94 |
+| neg2 − GC | **−0.0143** [−0.0191, −0.0097] | 30/94 |
+| neg2 − dinuc | **−0.0540** [−0.0634, −0.0447] | 6/94 |
+
+**The prediction was written down before the run and it was wrong.** `three_arm_contrast.py`
+predicted composition would fall toward 0.5 under neg2, because both classes are real crosslink
+sites, and that the contribution would rise. Neither happened: composition is the **highest** of
+the three arms under neg2, and the contribution the **lowest**. The reason is obvious in
+hindsight and is a real finding: different RBPs bind compositionally different sites, so telling
+one protein's sites from another's is largely a composition task.
+
+**What this does to the paper.** It strengthens the thesis and kills the recommendation.
+
+*Strengthens:* the same model, the same positives, the same folds and the same estimator give a
+5.4-fold range in measured contribution. That is a much harder result to explain away than a
+two-point contrast between two variants of one design.
+
+*Kills:* "prefer dinucleotide matching, it reveals more of the model's contribution" is
+**withdrawn**. The field's own bias-aware protocol reveals the least. There is no ordering of
+protocols by how much they reveal, and any recommendation of that shape would have been an
+artifact of testing exactly two.
+
+**And it shows the decomposition cannot be rescued.** With three arms there are six transplant
+residuals rather than four, and **their sign follows the direction of transplant**: carrying an
+increment from a high-baseline arm to a low-baseline one gives a positive protocol effect
+(neg2 → dinuc, **+0.0452**), the reverse gives a negative one (dinuc → neg2, **−0.0259**). That
+is R1h's non-identification made visible across three protocols instead of two.
+
+**The circularity critique, measured rather than argued.** Pooling all 282 arm-datasets, the
+nested contribution tracks the composition baseline at **Spearman −0.600** (p = 6e-29). Most of
+what the protocol does is decide how much room the baseline leaves. The paper should say this
+outright rather than defend against it: it is the mechanism, not an objection to be deflected.
+
+**Scope.** The 4-mer only. The deep models were never trained on the third arm, and comparing a
+k-mer on one protocol against SpliceBERT on another would be worse than not running it.
 
 ## R2: the model ladder (methods table, not a result)
 

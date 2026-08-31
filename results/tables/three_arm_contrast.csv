@@ -1,0 +1,25 @@
+check,value,ci_low,ci_high,n,note
+"composition alone, gc arm",0.7827305897323874,0.7637020257897746,0.8015592632544095,94,
+"apparent AUROC (composition + score), gc arm",0.8092436880730147,0.7929586955705632,0.8250080318924066,94,
+"nested contribution, gc arm",0.026513098340627504,0.02100491022418688,0.03243348789858112,94,the quantity the paper claims
+"composition alone, dn arm",0.6274272695414447,0.6138295561803658,0.6411718904261313,94,
+"apparent AUROC (composition + score), dn arm",0.6936913062925952,0.6805107420174625,0.7073719374199515,94,
+"nested contribution, dn arm",0.06626403675115053,0.05600842187641236,0.07677230797329652,94,the quantity the paper claims
+"composition alone, neg2 arm",0.8247778749636611,0.8087654856859205,0.8402497334960962,94,
+"apparent AUROC (composition + score), neg2 arm",0.8370098191268587,0.821182085042106,0.8523873258926479,94,
+"nested contribution, neg2 arm",0.012231944163197651,0.009737894483797815,0.014859715107565338,94,the quantity the paper claims
+"CONTRAST, dn minus gc",0.03975093841052303,0.033682713372011855,0.04586157366297743,94,
+"datasets with a positive contrast, dn minus gc",88.0,,,94,
+"CONTRAST, neg2 minus gc",-0.014281154177429851,-0.019138101955563782,-0.009667950107096965,94,
+"datasets with a positive contrast, neg2 minus gc",30.0,,,94,
+"CONTRAST, neg2 minus dn",-0.05403209258795288,-0.06336239127911443,-0.04472301932613688,94,
+"datasets with a positive contrast, neg2 minus dn",6.0,,,94,
+"protocol effect, gc increment on dn baseline",0.03140189898740726,0.026670150415047226,0.03627526141522103,94,observed minus what compression alone predicts
+"protocol effect, gc increment on neg2 baseline",-0.008583711415319672,-0.012108081496730353,-0.005268196357544466,94,observed minus what compression alone predicts
+"protocol effect, dn increment on gc baseline",-0.021458077352525067,-0.025105562983330616,-0.017969799223616488,94,observed minus what compression alone predicts
+"protocol effect, dn increment on neg2 baseline",-0.025901979406390243,-0.031372511141360804,-0.02073372982397493,94,observed minus what compression alone predicts
+"protocol effect, neg2 increment on gc baseline",0.0116882942250827,0.007673795012966852,0.01597785676023435,94,observed minus what compression alone predicts
+"protocol effect, neg2 increment on dn baseline",0.045178567940151085,0.0368490067499306,0.05381678609744106,94,observed minus what compression alone predicts
+"spearman(composition baseline, nested gain), all arms pooled",-0.5998187062701786,,,282,p=6.07e-29
+"protocol multiplier, dn over gc",2.944490072528317,,,88,
+"protocol multiplier, neg2 over gc",0.5306455559743114,,,83,
