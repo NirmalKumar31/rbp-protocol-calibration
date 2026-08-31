@@ -1047,6 +1047,74 @@ def verify_protocol_identification(T, g):
                f"{int(nsb)}/{int(tot or 6)}", "fails > half")
 
 
+def verify_expression_control(T, g):
+    """R1j: the expression confound is huge, balanced across arms, and costs 10% of the contrast.
+
+    The balance assertion is the load-bearing one. A confound present equally in both arms
+    inflates both absolute AUROCs and cannot manufacture a difference between them; a
+    differential one can. If `arm_difference_must_straddle_zero` ever fails, the contrast is
+    contaminated and this control stops being a defence.
+    """
+    print("\nR1j expression control  (are the negatives merely untranscribed?)")
+    d = T.get("expression_control.csv")
+    if d is None:
+        return record(False, "expression_control.csv present", "MISSING",
+                      "run scripts/expression_control.py")
+    spec = g["r1j_expression_control"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets with both arms and RNA-seq",
+               int(n), spec["n_datasets"])
+
+    for k, gk in (
+            ("negatives in an untranscribed locus, GC arm", "untranscribed_fraction_gc"),
+            ("negatives in an untranscribed locus, dinuc arm", "untranscribed_fraction_dn"),
+            ("contrast, full data", "contrast_full"),
+            ("contrast, expressed-negative pairs", "contrast_expressed_only"),
+            ("contrast, PLACEBO stratified on region", "contrast_placebo_stratified"),
+            ("EXPRESSION-SPECIFIC EXCESS (stratified)", "expression_excess"),
+            ("locus-mix component", "locus_mix"),
+            ("expression-CORRECTED contrast", "contrast_corrected"),
+            ("fraction of the contrast surviving", "surviving_fraction")):
+        val = must(k)
+        if val is not None:
+            near(k, val, spec[gk])
+
+    # THE BALANCE ARGUMENT, asserted both ways.
+    lo = must("arm difference, untranscribed fraction", "ci_low")
+    hi = must("arm difference, untranscribed fraction", "ci_high")
+    if lo is not None and hi is not None and spec["arm_difference_must_straddle_zero"]:
+        record(lo <= 0 <= hi, "the untranscribed fraction is BALANCED across arms, so the "
+                              "confound cannot manufacture the contrast",
+               f"[{lo:+.4f}, {hi:+.4f}]", "contains 0")
+    diff = must("arm difference, untranscribed fraction")
+    if diff is not None:
+        at_most("absolute arm difference in untranscribed fraction", abs(diff),
+                spec["max_abs_arm_difference"])
+
+    # The artifact is real and small. Assert BOTH halves.
+    ehi = must("EXPRESSION-SPECIFIC EXCESS (stratified)", "ci_high")
+    if ehi is not None and spec["expression_excess_must_exclude_zero"]:
+        record(ehi < 0, "the expression artifact is REAL (interval excludes zero), not noise",
+               f"{ehi:+.4f}", "< 0")
+    surv = must("fraction of the contrast surviving")
+    if surv is not None:
+        at_least("fraction of the contrast surviving the expression correction", surv,
+                 spec["min_surviving_fraction"])
+    noise = must("mean placebo seed noise (sd), GC arm")
+    if noise is not None:
+        at_most("placebo Monte Carlo noise stays below the effect measured", noise,
+                spec["max_placebo_seed_noise"])
+
+
 def verify_cluster_intervals(T, g):
     """R1i: the panel is 79 proteins, not 94 independent datasets."""
     print("\nR1i clustered intervals  (94 datasets are only 79 proteins)")
@@ -1660,7 +1728,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_cluster_intervals, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

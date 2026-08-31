@@ -1,0 +1,18 @@
+check,value,ci_low,ci_high,n,note
+"negatives in an untranscribed locus, GC arm",0.4009929655005844,,,84,no gene above 1 TPM on EITHER strand: expression per se
+"negatives in an untranscribed locus, dinuc arm",0.4010051642767394,,,84,the confound has to DIFFER between arms to manufacture the contrast
+"arm difference, untranscribed fraction",1.2198776154806732e-05,-0.0032595046368465845,0.0031869011671280148,84,paired Wilcoxon p = 0.64; balance is why the confound cancels
+"negatives not transcribed on the LABELLED strand, GC arm",0.6757371069545156,,,84,the restriction criterion; larger because it also carries the strand artifact
+"negatives not transcribed on the LABELLED strand, dinuc arm",0.6421656888099219,,,84,"smaller than the GC arm, the same conservative direction R1c reports"
+"contrast, full data",0.04141897722180005,0.03441748568295596,0.0486119816917803,84,this panel's own contrast; published on all 94 is +0.0397
+"contrast, expressed-negative pairs",0.031037909694424045,0.024459630391124604,0.038191692773476414,84,mean 31.3% of GC pairs retained
+"contrast, PLACEBO (same n, random)",0.034590657920406116,0.028215165307308283,0.04143626004865285,84,84 rows with seed sd recorded
+"contrast, PLACEBO stratified on region",0.03531780576763597,0.029055278884366882,0.04190429757162482,84,matched to the retained set's region marginals; PRIMARY
+change from restriction,-0.010381067527376015,-0.013478734544910104,-0.007518996869037244,84,what the naive test would have reported as expression
+change from placebo,-0.006101171454164082,-0.007750072664517309,-0.004582837350702087,84,"the same shrinkage, with no expression involved"
+"expression excess, UNSTRATIFIED placebo",-0.0035527482259820713,-0.006087899051313458,-0.0010417124754015447,84,expression PLUS locus mix
+EXPRESSION-SPECIFIC EXCESS (stratified),-0.004279896073211933,-0.006912638508925858,-0.0017639378089809984,84,"THE ANSWER, pre-committed as primary"
+locus-mix component,0.0007271478472298626,-0.00017624000973196375,0.0016215327411539054,84,stratified placebo minus unstratified
+expression-CORRECTED contrast,0.03713908114858812,0.030126709964901625,0.04484439517546175,84,full contrast with only the expression-specific part removed
+fraction of the contrast surviving,0.8966682337351561,,,84,"panel's own contrast is +0.0414, not the n=94 +0.0397"
+"mean placebo seed noise (sd), GC arm",0.004330006003613122,,,84,Monte Carlo component of the primary estimator

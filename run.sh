@@ -296,6 +296,7 @@ s13b_local_analysis() {
   $PY scripts/deep_model_contrast.py --from-cache || die "deep model contrast"
   $PY scripts/protocol_identification.py || die "protocol identification"
   $PY scripts/cluster_intervals.py || die "clustered intervals"
+  $PY scripts/expression_control.py --from-cache || die "expression control"
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
   $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"
