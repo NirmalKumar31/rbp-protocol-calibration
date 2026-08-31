@@ -480,6 +480,46 @@ r1g_deep_contrast:
   # from the per-dataset rows and must agree exactly.
   max_summary_arithmetic_diff: 1.0e-9
 
+# --- R1h: is the protocol effect IDENTIFIED? Two referee attacks, run properly ----------
+#
+# R1b splits the contrast into AUROC compression and a residual it calls the protocol effect,
+# by transplanting one arm's d' increment onto the other's baseline. A statistical referee
+# attacked that twice. Both attacks are reproduced in scripts/protocol_identification.py
+# rather than rebutted in prose, and one of them lands.
+#
+# ATTACK 1, the stated range is an arbitrary truncation: SURVIVED, but the paper must widen
+# what it quotes. Six monotone links x two directions keep the sign for every model.
+#
+# ATTACK 2, the identifying assumption is false: LANDS. The transplant needs the d' increment
+# to be baseline-invariant and it is not. Net of the mechanical regression-to-the-mean slope
+# (computed from Hanley-McNeil SEs, -0.0055 gc / -0.0165 dn), SpliceBERT's slope is -0.336.
+# Adding that slope back leaves the k-mer and the CNN standing and collapses SpliceBERT to
+# an interval containing zero.
+#
+# CONSEQUENCE, GATED SO IT CANNOT BE QUIETLY DROPPED: "the protocol effect grows with model
+# capacity" is WITHDRAWN. The largest model's protocol effect is not identified.
+r1h_protocol_identification:
+  # Net-of-mechanism slopes. The k-mer's is small; SpliceBERT's is not.
+  slope_kmer_gc:       {value: -0.0592, tol: 0.010}
+  slope_splicebert_gc: {value: -0.3362, tol: 0.040}
+  mechanical_slope_gc: {value: -0.0055, tol: 0.002}
+  # ATTACK 1. The honest range is wider than the published "two links, two directions".
+  link_family_min_kmer:       {value: 0.0127, tol: 0.0030}
+  link_family_max_kmer:       {value: 0.0506, tol: 0.0060}
+  link_family_min_splicebert: {value: 0.0159, tol: 0.0030}
+  link_family_max_splicebert: {value: 0.1022, tol: 0.0100}
+  # The sign must hold across the WHOLE family, for every model, or R1b has no claim at all.
+  link_family_must_keep_sign: true
+  # ATTACK 2. What survives baseline adjustment and what does not.
+  adjusted_kmer:       {value: 0.0209, tol: 0.0040}
+  adjusted_cnn:        {value: 0.0321, tol: 0.0050}
+  adjusted_splicebert: {value: 0.0050, tol: 0.0040}
+  kmer_adjusted_must_exclude_zero: true
+  # THE RETRACTION, ASSERTED. SpliceBERT's adjusted interval MUST contain zero. If a future
+  # run makes it exclude zero, that is a change in the science and the withdrawal of the
+  # capacity claim must be revisited deliberately, not silently reversed.
+  splicebert_adjusted_must_contain_zero: true
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -702,7 +742,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 294
+  min_domain_checks: 308
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

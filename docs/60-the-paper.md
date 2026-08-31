@@ -379,12 +379,18 @@ its mean difference is clear but it holds on only 58 of 94 datasets, against 94 
 SpliceBERT over the k-mer. Marginal intervals for the k-mer and the CNN overlap, which is
 exactly why the paired form is the one reported.
 
-**The compression correction is applied identically.** Each model's protocol effect is the same
-four-member transplant family used in R1b, both directions and both links, and every member is
-positive for every model. The correction bites harder for the stronger model, as it must:
-SpliceBERT's compression-only component is +0.0320 of its +0.0864, against +0.0083 of the
-k-mer's +0.0398. **The protocol effect still rises**, +0.0188 to +0.0314 for the k-mer against
-+0.0253 to +0.0543 for SpliceBERT.
+**The compression correction is applied identically**, and it does NOT support a claim about
+capacity. Each model's protocol effect is the same transplant family used in R1b, and every
+member is positive for every model. The correction bites harder for the stronger model, as it
+must: SpliceBERT's compression-only component is +0.0320 of its +0.0864, against +0.0083 of the
+k-mer's +0.0398.
+
+**An earlier version of this section claimed "the protocol effect still rises with capacity".
+That claim is WITHDRAWN.** It was defended by putting two overlapping ranges side by side,
+which is not a test; and when tested properly it depends entirely on an assumption R1h shows
+to be false for the largest model. Under the transplant corrected for baseline invariance, the
+protocol effect is +0.0209 for the k-mer, +0.0321 for the CNN and **+0.0050 [−0.0004, +0.0102]
+for SpliceBERT** -- an interval containing zero, and the ordering inverted. See R1h.
 
 ### The ladder reverses on the ratio scale, and that is the diagnosis
 
@@ -437,6 +443,60 @@ hardware changes speed and not the model; the `accelerator` field records which 
 where. The dinucleotide arm's windows drifted by **0.06%** (172 rows in 307,430) after its
 sweep was scored, because negative matching is a stochastic search that was re-run; every model
 is intersected to a common row set before anything is fitted, and the minimum coverage is gated.
+
+## R1h: is the protocol effect identified? Two referee attacks, one of which lands
+
+`protocol_identification.csv`, `protocol_baseline_slopes.csv`, n = 94.
+
+R1b's transplant is the paper's answer to the compression objection, so it deserves the same
+hostility everything else got. A statistical referee attacked it twice.
+
+**Attack 1: "two directions, two links" is an arbitrary truncation, so the stated range is not
+a range.** Correct, and the paper's numbers were too narrow. Under six standard monotone links
+(probit, logit, arcsine, complementary log-log, −log(1−a), log a), both directions, twelve
+members:
+
+| model | published range | **honest range over 12 members** | sign holds |
+|---|---|---|---|
+| k-mer | +0.0188 to +0.0314 | **+0.0127 to +0.0506** | yes |
+| CNN | +0.0213 to +0.0412 | **+0.0148 to +0.0589** | yes |
+| SpliceBERT | +0.0253 to +0.0543 | **+0.0159 to +0.1022** | yes |
+
+The sign survives every member for every model, so R1b's qualitative claim stands. **The
+quoted range must widen**, and this is what the paper now reports.
+
+**Attack 2: the identifying assumption is false.** This one lands. Transplanting an increment
+across baselines requires the increment to be baseline-invariant. Regressing the within-arm d′
+increment on the within-arm d′ baseline:
+
+| model | slope, GC arm | p | net of mechanism |
+|---|---|---|---|
+| k-mer | −0.0646 | 0.020 | −0.0592 |
+| CNN | −0.0576 | 0.143 | −0.0521 |
+| SpliceBERT | **−0.3417** | **3.4e-07** | **−0.3362** |
+
+Part of any such slope is mechanical: the baseline appears on both sides, so estimation noise
+forces a negative slope of −Var(noise)/Var(baseline). Computed from Hanley–McNeil standard
+errors that is **−0.0055** (GC) and −0.0165 (dinuc), i.e. 1.6% of SpliceBERT's slope. The
+coupling is real.
+
+Adding the estimated slope back into the transplant:
+
+| model | uncorrected | **baseline-adjusted** |
+|---|---|---|
+| k-mer | +0.0314 | **+0.0209** [+0.0160, +0.0259] |
+| CNN | +0.0412 | **+0.0321** [+0.0262, +0.0381] |
+| SpliceBERT | +0.0543 | **+0.0050** [−0.0004, +0.0102] |
+
+**What this costs the paper.** The k-mer's protocol effect and the CNN's survive both attacks
+and every specification tried. **SpliceBERT's does not**, and the claim that the protocol
+effect grows with capacity is withdrawn. The largest model's protocol effect is not identified
+and must not be quoted as a point estimate.
+
+**What it does not cost.** The raw contrast requires no transplant, no link and no
+transportability assumption: it is a difference of two AUROC differences measured on the same
+rows. +0.0398, +0.0530 and +0.0864 stand, as does the ~2.4x–3.5x multiplier in R1g. The
+identification problem is confined to the decomposition, which is a supporting control.
 
 ## R2: the model ladder (methods table, not a result)
 

@@ -947,6 +947,71 @@ def verify_deep_contrast(T, g):
                     spec["max_kmer_refit_drift"])
 
 
+def verify_protocol_identification(T, g):
+    """R1h: the protocol effect's identification, attacked two ways.
+
+    The k-mer's survives both. SpliceBERT's does not, and the failure is asserted rather than
+    omitted -- a retraction that nothing checks is a retraction that comes back.
+    """
+    print("\nR1h protocol identification  (is the protocol effect an estimand?)")
+    d = T.get("protocol_identification.csv")
+    sl = T.get("protocol_baseline_slopes.csv")
+    if d is None or sl is None:
+        return record(False, "protocol_identification.csv + slopes present", "MISSING",
+                      "run scripts/protocol_identification.py")
+    spec = g["r1h_protocol_identification"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    s = sl.set_index(["model", "arm"])
+    for model, arm, gk in (("kmer", "gc", "slope_kmer_gc"),
+                           ("splicebert", "gc", "slope_splicebert_gc")):
+        if (model, arm) in s.index:
+            near(f"baseline-invariance slope, {model} {arm}",
+                 float(s.loc[(model, arm), "slope_net_of_mechanism"]), spec[gk])
+        else:
+            record(False, f"slope row present: {model}/{arm}", "MISSING", "the row")
+    if ("kmer", "gc") in s.index:
+        near("mechanical (regression-to-mean) slope, gc",
+             float(s.loc[("kmer", "gc"), "mechanical_slope"]), spec["mechanical_slope_gc"])
+
+    for model, lo_k, hi_k in (("kmer", "link_family_min_kmer", "link_family_max_kmer"),
+                              ("splicebert", "link_family_min_splicebert",
+                               "link_family_max_splicebert")):
+        lo = must(f"{model}/link_family_min")
+        hi = must(f"{model}/link_family_max")
+        if lo is not None:
+            near(f"link family minimum, {model}", lo, spec[lo_k])
+        if hi is not None:
+            near(f"link family maximum, {model}", hi, spec[hi_k])
+        if lo is not None and spec["link_family_must_keep_sign"]:
+            record(lo > 0, f"{model}: protocol effect keeps its sign across ALL 12 link "
+                           f"family members", f"{lo:+.4f}", "> 0")
+
+    for model, gk in (("kmer", "adjusted_kmer"), ("cnn", "adjusted_cnn"),
+                      ("splicebert", "adjusted_splicebert")):
+        val = must(f"{model}/protocol_baseline_adjusted")
+        if val is not None:
+            near(f"baseline-adjusted protocol effect, {model}", val, spec[gk])
+
+    klo = must("kmer/protocol_baseline_adjusted", "ci_low")
+    if klo is not None and spec["kmer_adjusted_must_exclude_zero"]:
+        record(klo > 0, "k-mer protocol effect SURVIVES baseline adjustment",
+               f"{klo:+.4f}", "> 0")
+    slo = must("splicebert/protocol_baseline_adjusted", "ci_low")
+    shi = must("splicebert/protocol_baseline_adjusted", "ci_high")
+    if slo is not None and shi is not None and spec["splicebert_adjusted_must_contain_zero"]:
+        record(slo <= 0 <= shi,
+               "SpliceBERT protocol effect is NOT identified (interval contains zero, and "
+               "the capacity claim stays withdrawn)",
+               f"[{slo:+.4f}, {shi:+.4f}]", "contains 0")
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -1521,7 +1586,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
