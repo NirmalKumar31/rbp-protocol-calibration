@@ -948,10 +948,10 @@ def verify_deep_contrast(T, g):
 
 
 def verify_protocol_identification(T, g):
-    """R1h: the protocol effect's identification, attacked two ways.
+    """R1h: the protocol effect is not identified for ANY model, and the CNN survives most.
 
-    The k-mer's survives both. SpliceBERT's does not, and the failure is asserted rather than
-    omitted -- a retraction that nothing checks is a retraction that comes back.
+    The honest output is a specification span, not a point estimate. Gated so that a future
+    refactor cannot pick the most favourable slope source and call it survival.
     """
     print("\nR1h protocol identification  (is the protocol effect an estimand?)")
     d = T.get("protocol_identification.csv")
@@ -976,40 +976,75 @@ def verify_protocol_identification(T, g):
                  float(s.loc[(model, arm), "slope_net_of_mechanism"]), spec[gk])
         else:
             record(False, f"slope row present: {model}/{arm}", "MISSING", "the row")
+    for model, arm, gk in (("kmer", "gc", "mechanical_slope_kmer_gc"),
+                           ("splicebert", "dn", "mechanical_slope_splicebert_dn")):
+        if (model, arm) in s.index:
+            near(f"mechanical slope, {model} {arm}",
+                 float(s.loc[(model, arm), "mechanical_slope"]), spec[gk])
     if ("kmer", "gc") in s.index:
-        near("mechanical (regression-to-mean) slope, gc",
-             float(s.loc[("kmer", "gc"), "mechanical_slope"]), spec["mechanical_slope_gc"])
+        near("corr(full, composition) estimate errors, kmer gc",
+             float(s.loc[("kmer", "gc"), "corr_full_comp"]), spec["corr_full_comp_kmer_gc"])
+    # THE TELL. Setting the covariance to zero makes this constant within an arm.
+    if spec["mechanical_slope_must_vary_across_models"]:
+        for arm in ("gc", "dn"):
+            vals = sl[sl.arm == arm].mechanical_slope.round(9).nunique()
+            record(vals > 1, f"mechanical slope varies across models ({arm} arm)", vals,
+                   "> 1 distinct value")
 
     for model, lo_k, hi_k in (("kmer", "link_family_min_kmer", "link_family_max_kmer"),
                               ("splicebert", "link_family_min_splicebert",
                                "link_family_max_splicebert")):
-        lo = must(f"{model}/link_family_min")
-        hi = must(f"{model}/link_family_max")
+        lo, hi = must(f"{model}/link_family_min"), must(f"{model}/link_family_max")
         if lo is not None:
             near(f"link family minimum, {model}", lo, spec[lo_k])
         if hi is not None:
             near(f"link family maximum, {model}", hi, spec[hi_k])
         if lo is not None and spec["link_family_must_keep_sign"]:
-            record(lo > 0, f"{model}: protocol effect keeps its sign across ALL 12 link "
-                           f"family members", f"{lo:+.4f}", "> 0")
+            record(lo > 0, f"{model}: sign holds across every ROC-motivated link",
+                   f"{lo:+.4f}", "> 0")
 
-    for model, gk in (("kmer", "adjusted_kmer"), ("cnn", "adjusted_cnn"),
-                      ("splicebert", "adjusted_splicebert")):
-        val = must(f"{model}/protocol_baseline_adjusted")
-        if val is not None:
-            near(f"baseline-adjusted protocol effect, {model}", val, spec[gk])
+    for model, gk in (("kmer", "odds_forward_kmer"),
+                      ("splicebert", "odds_forward_splicebert")):
+        v = must(f"{model}/odds_forward")
+        if v is not None:
+            near(f"odds link (no ROC rationale), {model}", v, spec[gk])
+            if spec["odds_link_must_reverse"]:
+                record(v < 0, f"{model}: the odds link REVERSES the sign, and is excluded "
+                              f"from the headline range for a stated reason",
+                       f"{v:+.4f}", "< 0")
 
-    klo = must("kmer/protocol_baseline_adjusted", "ci_low")
-    if klo is not None and spec["kmer_adjusted_must_exclude_zero"]:
-        record(klo > 0, "k-mer protocol effect SURVIVES baseline adjustment",
-               f"{klo:+.4f}", "> 0")
-    slo = must("splicebert/protocol_baseline_adjusted", "ci_low")
-    shi = must("splicebert/protocol_baseline_adjusted", "ci_high")
-    if slo is not None and shi is not None and spec["splicebert_adjusted_must_contain_zero"]:
-        record(slo <= 0 <= shi,
-               "SpliceBERT protocol effect is NOT identified (interval contains zero, and "
-               "the capacity claim stays withdrawn)",
-               f"[{slo:+.4f}, {shi:+.4f}]", "contains 0")
+    for model, lo_k, hi_k, n_k in (
+            ("kmer", "spec_span_min_kmer", "spec_span_max_kmer", "spec_excluding_zero_kmer"),
+            ("splicebert", "spec_span_min_splicebert", "spec_span_max_splicebert",
+             "spec_excluding_zero_splicebert")):
+        lo, hi = must(f"{model}/spec_span_min"), must(f"{model}/spec_span_max")
+        if lo is not None:
+            near(f"specification span minimum, {model}", lo, spec[lo_k])
+        if hi is not None:
+            near(f"specification span maximum, {model}", hi, spec[hi_k])
+        n = must(f"{model}/spec_excluding_zero")
+        if n is not None:
+            record(int(n) == spec[n_k], f"{model}: specifications excluding zero",
+                   int(n), spec[n_k])
+    tot = must("kmer/spec_total")
+    if tot is not None:
+        record(int(tot) == spec["spec_total"], "specifications per model", int(tot),
+               spec["spec_total"])
+
+    ncnn = must("cnn/spec_excluding_zero")
+    if ncnn is not None:
+        record(int(ncnn) == spec["spec_excluding_zero_cnn"],
+               "cnn: specifications excluding zero", int(ncnn),
+               spec["spec_excluding_zero_cnn"])
+        if spec["cnn_must_survive_all_specifications"]:
+            record(int(ncnn) == int(tot or 6),
+                   "the CNN (the MIDDLE rung) is the only model surviving every "
+                   "specification, so no capacity ordering holds", int(ncnn), int(tot or 6))
+    nsb = must("splicebert/spec_excluding_zero")
+    if nsb is not None and spec["splicebert_must_fail_majority_of_specifications"]:
+        record(nsb * 2 < (tot or 6),
+               "SpliceBERT's protocol effect fails a majority of specifications",
+               f"{int(nsb)}/{int(tot or 6)}", "fails > half")
 
 
 def verify_cluster_intervals(T, g):

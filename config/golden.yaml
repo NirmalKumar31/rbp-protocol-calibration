@@ -499,26 +499,49 @@ r1g_deep_contrast:
 # CONSEQUENCE, GATED SO IT CANNOT BE QUIETLY DROPPED: "the protocol effect grows with model
 # capacity" is WITHDRAWN. The largest model's protocol effect is not identified.
 r1h_protocol_identification:
-  # Net-of-mechanism slopes. The k-mer's is small; SpliceBERT's is not.
-  slope_kmer_gc:       {value: -0.0592, tol: 0.010}
-  slope_splicebert_gc: {value: -0.3362, tol: 0.040}
-  mechanical_slope_gc: {value: -0.0055, tol: 0.002}
-  # ATTACK 1. The honest range is wider than the published "two links, two directions".
+  # Net-of-mechanism slopes. The mechanical term is now model-specific, as it must be: an
+  # earlier version set cov(e_full, e_comp) = 0 and got the SAME mechanical slope for all
+  # three models within an arm, which over-subtracted by 5x-30x and biased the protocol
+  # effect high. The covariance is 0.38-0.86 and is recovered from the committed DeLong SEs.
+  slope_kmer_gc:       {value: -0.0643, tol: 0.010}
+  slope_splicebert_gc: {value: -0.3407, tol: 0.040}
+  mechanical_slope_kmer_gc:       {value: -0.0003, tol: 0.0010}
+  mechanical_slope_splicebert_dn: {value: -0.0086, tol: 0.0030}
+  # The tell that the old formula was wrong. Assert against its return.
+  mechanical_slope_must_vary_across_models: true
+  corr_full_comp_kmer_gc: {value: 0.8633, tol: 0.05}
+
+  # ATTACK 1. The honest range, over links with an ROC or variance-stabilising rationale.
   link_family_min_kmer:       {value: 0.0127, tol: 0.0030}
   link_family_max_kmer:       {value: 0.0506, tol: 0.0060}
   link_family_min_splicebert: {value: 0.0159, tol: 0.0030}
   link_family_max_splicebert: {value: 0.1022, tol: 0.0100}
-  # The sign must hold across the WHOLE family, for every model, or R1b has no claim at all.
   link_family_must_keep_sign: true
-  # ATTACK 2. What survives baseline adjustment and what does not.
-  adjusted_kmer:       {value: 0.0209, tol: 0.0040}
-  adjusted_cnn:        {value: 0.0321, tol: 0.0050}
-  adjusted_splicebert: {value: 0.0050, tol: 0.0040}
-  kmer_adjusted_must_exclude_zero: true
-  # THE RETRACTION, ASSERTED. SpliceBERT's adjusted interval MUST contain zero. If a future
-  # run makes it exclude zero, that is a change in the science and the withdrawal of the
-  # capacity claim must be revisited deliberately, not silently reversed.
-  splicebert_adjusted_must_contain_zero: true
+  # AND THE ONE THAT DOES NOT, NAMED. The odds scale a/(1-a) is lambda=+1 in the same power
+  # family as -log(1-a); every link above sits at lambda <= 0. It reverses the sign. It is
+  # excluded from the headline range because it has no ROC derivation and its derivative
+  # diverges at the ceiling, and that exclusion is stated rather than silent.
+  odds_forward_kmer:       {value: -0.0036, tol: 0.0030}
+  odds_forward_splicebert: {value: -0.0148, tol: 0.0050}
+  odds_link_must_reverse: true
+
+  # ATTACK 2. THE SPECIFICATION GRID, which is the honest form. The slope can be estimated in
+  # the source arm, the target arm or pooled, and the two arms disagree by 2x-3x -- so the
+  # linear-in-baseline model is misspecified by its own diagnostic and NO member is
+  # identified. What is reported is the span and how many specifications keep the sign.
+  spec_span_min_kmer:       {value: -0.0044, tol: 0.0040}
+  spec_span_max_kmer:       {value: 0.0200, tol: 0.0040}
+  spec_span_min_splicebert: {value: -0.0103, tol: 0.0040}
+  spec_span_max_splicebert: {value: 0.0044, tol: 0.0040}
+  spec_excluding_zero_kmer:       4
+  spec_excluding_zero_cnn:        6
+  spec_excluding_zero_splicebert: 1
+  spec_total: 6
+  # THE CLAIM, AND IT IS NOT A CAPACITY CLAIM. The CNN -- the MIDDLE rung -- is the only
+  # model whose protocol effect survives every specification. Any ordering by parameter count
+  # is therefore refuted, not merely unsupported.
+  cnn_must_survive_all_specifications: true
+  splicebert_must_fail_majority_of_specifications: true
 
 # --- R1i: intervals recomputed with the clustering the panel actually has ---------------
 #

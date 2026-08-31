@@ -4,7 +4,7 @@
 If a number in the manuscript disagrees with this file, this file is wrong and must be fixed,
 not the manuscript quietly edited.
 
-**What the harness does and does not establish.** `scripts/verify.py` runs **210 numeric
+**What the harness does and does not establish.** `scripts/verify.py` runs **326 numeric
 assertions** against `config/golden.yaml`, and the number of assertions that ran is itself
 asserted, so a gate cannot silently skip. Most of those are **regression gates**: they detect
 that a number changed, not that it was correctly derived. Two are stronger.
@@ -32,13 +32,21 @@ calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
 > Across 94 paired ENCODE eCLIP datasets, the negative-set protocol rather than the model
 > determines most of what a benchmark AUROC means. A 4-mer model's nested contribution over a
 > 19-feature mono+dinucleotide composition baseline is **+0.0265 AUROC** under GC-matched
-> negatives and **+0.0662** under dinucleotide-matched negatives (difference **+0.0397**
-> [+0.0336, +0.0458], larger in 88/94; **+0.0313** [+0.0267, +0.0363] once the 21% attributable
-> to AUROC-scale compression is removed), while apparent AUROC falls by **0.1095** in **94/94**.
-> The two protocols do not estimate a common quantity, so neither figure is the true one. What
-> the comparison establishes is that a headline AUROC is uninterpretable without the composition
-> baseline measured under the same protocol, and that the measured contribution of a sequence
-> model is a property of the benchmark's construction as much as of the model.
+> negatives and **+0.0662** under dinucleotide-matched negatives (difference **+0.0398**
+> [+0.0325, +0.0477] with protein clustering respected, larger in 88/94), while apparent AUROC
+> falls by **0.1095** in **94/94**. The protocol multiplies the measured contribution by
+> **2.4x to 3.5x**, and that multiplier holds across three model classes spanning 256 features
+> to a 19.7M-parameter fine-tuned transformer. The two protocols do not estimate a common
+> quantity, so neither figure is the true one. What the comparison establishes is that a
+> headline AUROC is uninterpretable without the composition baseline measured under the same
+> protocol, and that the measured contribution of a sequence model is a property of the
+> benchmark's construction as much as of the model.
+
+**Deliberately NOT in the one-sentence claim, after two rounds of statistical review.** The
+decomposition into "compression" and "protocol effect" is a supporting sensitivity analysis,
+not a headline quantity: R1h shows it is not identified for any model. The raw contrast and the
+multiplier need no transplant, no link and no transportability assumption, and they are what
+survived every attack.
 
 ---
 
@@ -108,10 +116,18 @@ predicts what that arm would show if the protocol moved the baseline and changed
 increment, and under either link, and the four disagree: compression accounts for 21% of the
 contrast in the most favourable member and 46% in the least. That choice moves the estimate
 further than any single interval is wide, so quoting **+0.0313** alone would be question-begging.
-What is robust is that **every member of the family keeps the sign and excludes zero**. The
-protocol effect is therefore **+0.0188 to +0.0313**, and compression is a minority of the
-contrast under all four. Each row's interval is a legitimate bootstrap interval *conditional on
-that transport choice*; none of them has coverage for "the protocol effect" as such.
+Each row's interval is a legitimate bootstrap interval *conditional on that transport choice*;
+none of them has coverage for "the protocol effect" as such.
+
+> **SUPERSEDED BY R1h, AND THE CORRECTION IS LARGE.** This section previously concluded "the
+> protocol effect is therefore **+0.0188 to +0.0313**, and every member of the family keeps the
+> sign". Both halves were too strong. Four members is an arbitrary truncation of the link
+> family: over six ROC-motivated links x two directions the honest range is **+0.0127 to
+> +0.0506**, and the odds scale -- a member of the same power family, excluded only because it
+> has no ROC derivation -- gives **−0.0036**. More seriously, the transplant's identifying
+> assumption is false: the d′ increment is not baseline-invariant, and once that is corrected
+> **no model's protocol effect is identified**. Read this table as a description of what the
+> four originally-chosen members give, not as a bound. R1h is the current claim.
 
 The protocol effect is positive in **87/94** datasets and its interval excludes zero. The same
 comparison computed directly on the unbounded d′ scale gives **+0.1290** [+0.1091, +0.1499],
@@ -387,10 +403,11 @@ k-mer's +0.0398.
 
 **An earlier version of this section claimed "the protocol effect still rises with capacity".
 That claim is WITHDRAWN.** It was defended by putting two overlapping ranges side by side,
-which is not a test; and when tested properly it depends entirely on an assumption R1h shows
-to be false for the largest model. Under the transplant corrected for baseline invariance, the
-protocol effect is +0.0209 for the k-mer, +0.0321 for the CNN and **+0.0050 [−0.0004, +0.0102]
-for SpliceBERT** -- an interval containing zero, and the ordering inverted. See R1h.
+which is not a test; and when tested properly it rests entirely on an assumption R1h shows to
+be false. Under the transplant corrected for baseline invariance, no model's protocol effect is
+identified, and the model that survives the most specifications is the **CNN**, the middle
+rung. Nothing about protocol sensitivity is monotone in parameter count on any scale. See R1h
+for the specification grid.
 
 ### The ladder reverses on the ratio scale, and that is the diagnosis
 
@@ -471,32 +488,45 @@ increment on the within-arm d′ baseline:
 
 | model | slope, GC arm | p | net of mechanism |
 |---|---|---|---|
-| k-mer | −0.0646 | 0.020 | −0.0592 |
-| CNN | −0.0576 | 0.143 | −0.0521 |
-| SpliceBERT | **−0.3417** | **3.4e-07** | **−0.3362** |
+| k-mer | −0.0646 | 0.020 | −0.0643 |
+| CNN | −0.0576 | 0.143 | −0.0572 |
+| SpliceBERT | **−0.3417** | **3.4e-07** | **−0.3407** |
 
 Part of any such slope is mechanical: the baseline appears on both sides, so estimation noise
-forces a negative slope of −Var(noise)/Var(baseline). Computed from Hanley–McNeil standard
-errors that is **−0.0055** (GC) and −0.0165 (dinuc), i.e. 1.6% of SpliceBERT's slope. The
-coupling is real.
+forces a negative slope. Computing that term correctly needs the **covariance** between the two
+AUROC estimates, which is 0.38 to 0.86 here because both models are fitted on the same rows.
+A first version of this analysis set it to zero, over-subtracted by 5x to 30x, and biased the
+protocol effect high. The tell was that the mechanical slope came out identical across all
+three models within an arm; it is now gated against exactly that.
 
-Adding the estimated slope back into the transplant:
+**The transplant has three defensible slope estimators and they disagree.** The slope can be
+taken from the source arm, the target arm, or pooled, and the two arms differ by 2x–3x
+(k-mer −0.064 vs −0.207; SpliceBERT −0.341 vs −0.454; the CNN changes sign). A correctly
+specified linear-in-baseline model would give the same slope in both arms. It does not, so the
+adjustment is itself misspecified and what follows is a **sensitivity band, not a correction**:
 
-| model | uncorrected | **baseline-adjusted** |
+| model | span across 6 specifications | keeps its sign in |
 |---|---|---|
-| k-mer | +0.0314 | **+0.0209** [+0.0160, +0.0259] |
-| CNN | +0.0412 | **+0.0321** [+0.0262, +0.0381] |
-| SpliceBERT | +0.0543 | **+0.0050** [−0.0004, +0.0102] |
+| k-mer | −0.0044 to +0.0200 | **4/6** |
+| **CNN** | **+0.0190 to +0.0588** | **6/6** |
+| SpliceBERT | −0.0103 to +0.0044 | **1/6** |
 
-**What this costs the paper.** The k-mer's protocol effect and the CNN's survive both attacks
-and every specification tried. **SpliceBERT's does not**, and the claim that the protocol
-effect grows with capacity is withdrawn. The largest model's protocol effect is not identified
-and must not be quoted as a point estimate.
+**What this costs the paper, stated at full strength.** **No model's protocol effect is
+identified.** An earlier version of this section said "the k-mer's protocol effect survives
+it"; that is true only under the source-arm slope, which is the most favourable of three
+defensible choices, and it is withdrawn. Under the target arm's slope the k-mer gives
+−0.0044 [−0.0104, +0.0015], the same failure conceded for SpliceBERT.
+
+**And the ordering is refuted, not merely unsupported.** The model that survives every
+specification is the **CNN** — the middle rung. Nothing about protocol sensitivity is monotone
+in parameter count, on any scale: not the raw multiplier (R1g), not the apparent-AUROC drop,
+and not the identified protocol effect.
 
 **What it does not cost.** The raw contrast requires no transplant, no link and no
 transportability assumption: it is a difference of two AUROC differences measured on the same
-rows. +0.0398, +0.0530 and +0.0864 stand, as does the ~2.4x–3.5x multiplier in R1g. The
-identification problem is confined to the decomposition, which is a supporting control.
+rows. **+0.0398, +0.0530 and +0.0864 stand**, as does the 2.4x–3.5x multiplier. Every attack in
+two rounds of statistical review left them untouched. The identification problem is confined to
+the decomposition, which is a supporting control and should be reported as a sensitivity band.
 
 ## R1i: every interval, recomputed with the clustering the panel actually has
 

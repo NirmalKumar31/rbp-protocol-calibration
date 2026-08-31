@@ -64,6 +64,21 @@ LINKS = {
     "loga": (lambda a: np.log(_c(a)), lambda z: np.exp(np.clip(z, -50, 0))),
 }
 
+# THE ONE LINK THAT REVERSES THE SIGN, NAMED RATHER THAN OMITTED.
+#
+# The odds scale a/(1-a) is lambda = +1 in the same one-parameter family
+# g_lambda(a) = ((1-a)^-lambda - 1)/lambda that contains `logerr` at lambda -> 0. Every link
+# above sits at lambda <= 0, so the family was being sampled on one side only. Under the odds
+# scale the k-mer's forward protocol effect is -0.0036 and SpliceBERT's is -0.0148.
+#
+# It is reported and NOT folded into the headline range, for a stated reason: probit has a
+# binormal derivation, logit a bi-logistic one, arcsine is variance-stabilising, cloglog and
+# -log(1-a) are hazard-type. The odds scale has no ROC-theoretic motivation and its derivative
+# diverges at the ceiling, which is exactly why it attributes almost everything to
+# compression. The honest claim is therefore conditional: the sign is robust across links with
+# an ROC or variance-stabilising rationale, and fails on one that has neither.
+ODDS = ("odds", (lambda a: _c(a) / (1 - _c(a)), lambda z: z / (1 + z)))
+
 
 def hanley_se(auc, n_pos, n_neg):
     """Hanley-McNeil SE of an AUROC. Used only to size the mechanical regression slope."""
@@ -77,23 +92,47 @@ def hanley_se(auc, n_pos, n_neg):
 def baseline_slopes(d):
     """Is the d' increment baseline-invariant? Observed slope, and the part that is artefact.
 
-    The baseline enters the increment with a minus sign, so noise in the baseline estimate
-    forces a negative slope even under perfect invariance. That attenuation is
-    -Var(noise)/Var(baseline) and is computed here rather than waved at.
+    The baseline enters the increment with a minus sign, so estimation noise forces a negative
+    slope even under perfect invariance. That mechanical part must be removed before anything
+    is concluded, and getting it right needs the COVARIANCE between the two AUROC estimates:
+
+        increment error  =  D_f * e_full  -  D_c * e_comp
+        baseline  error  =  D_c * e_comp
+        mechanical slope =  [cov(e_full,e_comp)*D_c*D_f - Var(e_comp)*D_c^2] / Var(baseline)
+
+    A first version of this function set that covariance to zero. It is not zero -- the two
+    models are fitted on the same rows, which is why DeLong is used for the difference at all
+    -- and the measured correlation runs 0.38 to 0.86. Assuming independence over-subtracted
+    the mechanical term by 5x to 30x and biased the protocol effect HIGH.
+
+    The tell that it was wrong: the mechanical slope came out IDENTICAL across all three
+    models within an arm. It cannot be, because the covariance term is model-specific. That
+    invariance is now asserted against.
+
+    The covariance is recovered from quantities already committed, using
+    Var(diff) = Var(full) + Var(comp) - 2*cov  with Var(diff) the squared DeLong SE.
     """
     f, _ = LINKS["probit"]
     rows = []
     for m in MODELS:
         for arm in ("gc", "dn"):
+            a_comp = d[f"comp_{arm}"].to_numpy()
+            a_full = d[f"{m}_full_{arm}"].to_numpy()
             base = f(d[f"comp_{arm}"])
             inc = f(d[f"{m}_full_{arm}"]) - base
             r = linregress(base, inc)
+
             n = d[f"n_{arm}"].to_numpy()
-            se_auc = hanley_se(d[f"comp_{arm}"].to_numpy(), n / 2, n / 2)
-            # delta method: sd on the probit scale
-            se_base = R2 * se_auc / norm.pdf(norm.ppf(_c(d[f"comp_{arm}"].to_numpy())))
-            mech = -np.mean(se_base ** 2) / np.var(base, ddof=1)
+            v_comp = hanley_se(a_comp, n / 2, n / 2) ** 2
+            v_full = hanley_se(a_full, n / 2, n / 2) ** 2
+            se_diff = d[f"{m}_se_{arm}"].to_numpy()
+            cov = (v_full + v_comp - se_diff ** 2) / 2.0
+            # derivative of the probit link at each point
+            dc = R2 / norm.pdf(norm.ppf(_c(a_comp)))
+            df_ = R2 / norm.pdf(norm.ppf(_c(a_full)))
+            mech = np.mean(cov * dc * df_ - v_comp * dc ** 2) / np.var(base, ddof=1)
             rows.append({"model": m, "arm": arm, "slope": r.slope, "p": r.pvalue,
+                         "corr_full_comp": float(np.mean(cov / np.sqrt(v_full * v_comp))),
                          "mechanical_slope": mech,
                          "slope_net_of_mechanism": r.slope - mech})
     return pd.DataFrame(rows)
@@ -147,18 +186,44 @@ def main():
         print(f"  {m:11s} range over 12 members: {min(vals):+.4f} to {max(vals):+.4f}"
               f"   all positive: {min(vals) > 0}")
 
-    print("\n=== ATTACK 2b: transplant corrected for the baseline slope ===")
-    print(f"  {'model':11s} {'uncorrected (probit fwd)':>26s} {'baseline-ADJUSTED':>26s}")
+    # The odds link, reported separately because it has no ROC rationale.
+    name, (f_o, inv_o) = ODDS
+    LINKS[name] = (f_o, inv_o)
+    print("\n=== ATTACK 1b: the odds link, which REVERSES the sign (no ROC rationale) ===")
     for m in MODELS:
-        b_gc = sl[(sl.model == m) & (sl.arm == "gc")].slope_net_of_mechanism.iloc[0]
-        raw = protocol(d, m, "probit", "forward")
-        adj = protocol(d, m, "probit", "forward", slope=b_gc)
-        lo, hi = ci(adj)
-        rows.append({"check": f"{m}/protocol_baseline_adjusted", "model": m, "link": "probit",
-                     "direction": "forward", "value": adj.mean(),
-                     "ci_low": lo, "ci_high": hi})
-        print(f"  {m:11s} {raw.mean():+26.4f} {adj.mean():+.4f} [{lo:+.4f}, {hi:+.4f}]"
-              f"{'   <-- INCLUDES ZERO' if lo <= 0 <= hi else ''}")
+        v = protocol(d, m, name, "forward").mean()
+        rows.append({"check": f"{m}/odds_forward", "model": m, "link": "odds",
+                     "direction": "forward", "value": v})
+        print(f"  {m:11s} odds forward {v:+.4f}")
+    del LINKS[name]
+
+    print("\n=== ATTACK 2b: the specification grid. Which slope identifies the transplant? ===")
+    print("  The two arms disagree on the slope by 2-3x, so the linear-in-baseline model is")
+    print("  itself misspecified and this is a sensitivity band, not a correction.\n")
+    print(f"  {'model':11s} {'slope from':>11s} {'forward':>24s} {'reverse':>24s}")
+    for m in MODELS:
+        g = float(sl[(sl.model == m) & (sl.arm == "gc")].slope_net_of_mechanism.iloc[0])
+        n_ = float(sl[(sl.model == m) & (sl.arm == "dn")].slope_net_of_mechanism.iloc[0])
+        span, n_excl, n_spec = [], 0, 0
+        for src, b in (("gc", g), ("dinuc", n_), ("pooled", 0.5 * (g + n_))):
+            out_txt = []
+            for direction in ("forward", "reverse"):
+                v = protocol(d, m, "probit", direction, slope=b)
+                lo, hi = ci(v)
+                span.append(v.mean())
+                n_spec += 1
+                n_excl += int(lo > 0)
+                rows.append({"check": f"{m}/adj_{src}_{direction}", "model": m,
+                             "link": "probit", "direction": direction, "slope_source": src,
+                             "value": v.mean(), "ci_low": lo, "ci_high": hi})
+                out_txt.append(f"{v.mean():+.4f} [{lo:+.4f},{hi:+.4f}]")
+            print(f"  {m:11s} {src:>11s} {out_txt[0]:>24s} {out_txt[1]:>24s}")
+        rows.append({"check": f"{m}/spec_span_min", "model": m, "value": min(span)})
+        rows.append({"check": f"{m}/spec_span_max", "model": m, "value": max(span)})
+        rows.append({"check": f"{m}/spec_excluding_zero", "model": m, "value": n_excl})
+        rows.append({"check": f"{m}/spec_total", "model": m, "value": n_spec})
+        print(f"  {'':11s} {'SPAN':>11s} {min(span):+.4f} to {max(span):+.4f}"
+              f"   excludes zero in {n_excl}/{n_spec} specifications\n")
 
     out = pd.DataFrame(rows)
     out.to_csv(TABLES / "protocol_identification.csv", index=False)

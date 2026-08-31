@@ -325,6 +325,21 @@ def do_run(a):
         sys.exit(f"no CUDA device visible (torch sees {device}); refusing to run a GPU "
                  f"task on CPU. Pass --device cpu if that is genuinely what you want.")
     log(f"  device {device}  {torch.cuda.get_device_name(0) if device.type == 'cuda' else ''}")
+    # SEED BEFORE BUILD, and this was wrong for the entire study.
+    #
+    # trainer.train() calls set_seed, but it does so AFTER this function has already
+    # constructed the network -- so every weight was drawn from an unseeded RNG and
+    # torch.manual_seed(7) only ever governed dropout and batch order. Three fresh processes
+    # produced three different first-layer sums. All 945 deep-model fold-runs in this project
+    # were therefore trained from an uncontrolled, unrecorded initialisation, and the paper's
+    # "identical seed" was false.
+    #
+    # Measured consequence, from a referee's replication: per-dataset SD of the nested
+    # contribution across independent training runs is 0.006 (CNN) to 0.010 (SpliceBERT).
+    # That is immaterial for a panel mean over 94 datasets, where it induces ~0.001 against a
+    # reported CI half-width of ~0.008, but it is fatal for exact reproducibility and for any
+    # per-dataset count.
+    trainer.set_seed(cfg.seed)
     handle = registry.build(model, cfg)
     dl = tdata.loaders(local, tcfg["batch_size"], seed=cfg.seed, fold=fold, k=cfg.cv["k"])
     ids = tdata.test_ids(local, fold=fold, k=cfg.cv["k"])
