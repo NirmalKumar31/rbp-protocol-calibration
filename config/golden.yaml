@@ -430,9 +430,37 @@ r1g_deep_contrast:
     step_splicebert_minus_kmer: {value: 0.0466, tol: 0.0040}
   ladder_steps_ci_must_exclude_zero: true
   min_step_datasets_cnn_minus_kmer: 55
-  # THE ORDERING ITSELF. If this ever fails, R1g's claim is "it survives", not "it grows",
-  # and the paper must be reworded rather than the gate relaxed.
+  # THE ORDERING ITSELF, ON THE ADDITIVE SCALE. If this ever fails, R1g's claim is "it
+  # survives", not "it grows", and the paper must be reworded rather than the gate relaxed.
   ladder_must_be_monotone_in_capacity: true
+
+  # THE SCALE REVERSAL, AND WHY IT IS GATED RATHER THAN OMITTED.
+  #
+  # R1b's rule: "a result whose sign depends on the scale is not a result unless the reversal
+  # itself has a diagnosis." That rule was applied ruthlessly to the log-odds reversal and
+  # then NOT applied to this paper's own newest headline, until a referee ran the ratio scale
+  # and found it. The additive ladder above is real; the MULTIPLIER ladder is not.
+  #
+  # Restricted to the 77 datasets where every model has a positive gain in both arms, since a
+  # log-ratio requires it. The protocol multiplier is ~2.4-3.5x for all three model classes
+  # and is SMALLEST for the largest model, because the AUROC ceiling bites harder at
+  # SpliceBERT's higher baseline. So the additive growth is mostly one near-invariant
+  # multiplier applied to more total signal.
+  #
+  # THE DIAGNOSIS IS THE CLAIM. Gated so that a future draft cannot report "grows with
+  # capacity" without also reporting the scale on which it does not.
+  ratio:
+    datasets_positive_both_arms: 77
+    multiplier_kmer:        {value: 3.083, tol: 0.20}
+    multiplier_cnn:         {value: 3.511, tol: 0.30}
+    multiplier_splicebert:  {value: 2.382, tol: 0.20}
+    logstep_splicebert_minus_kmer: {value: -0.2579, tol: 0.045}
+    logstep_splicebert_minus_cnn:  {value: -0.3877, tol: 0.055}
+  # The reversal must be REAL (interval clear of zero on the wrong side), not marginal.
+  ratio_ladder_must_reverse_for_splicebert: true
+  # Every model class must still show a substantial multiplier -- that is what answers
+  # "would this vanish for a real model?" without the additive overclaim.
+  min_multiplier_any_model: 2.0
   # The strong form of "not a model-class artefact": the deep model's interval must clear
   # the k-mer's point estimate entirely, not merely overlap it on the right side.
   splicebert_ci_must_exceed_kmer_point: true
@@ -674,7 +702,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 283
+  min_domain_checks: 294
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

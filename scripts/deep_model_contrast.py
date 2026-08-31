@@ -259,6 +259,50 @@ def summarise(d, n_boot=2000, seed=0):
                      "value": int((diff > 0).sum()), "ci_low": np.nan, "ci_high": np.nan,
                      "n": len(d)})
 
+    # THE RATIO SCALE, WHERE THE LADDER REVERSES. This is not optional and it is not a
+    # sensitivity check: R1b's own rule is that a result whose sign depends on the scale is
+    # not a result unless the reversal has a diagnosis. That rule was applied to the log-odds
+    # reversal and then not applied to this paper's own newest headline until a referee
+    # pointed it out.
+    #
+    # The additive contrast grows with capacity. The MULTIPLIER does not: it is ~2.4-3.5x for
+    # every model class and is significantly SMALLEST for the largest model, because the
+    # AUROC ceiling bites harder at SpliceBERT's higher baseline. Restricted to datasets
+    # where every model has a positive gain in both arms, since a log-ratio needs that.
+    both = np.ones(len(d), bool)
+    for m in MODELS:
+        both &= (d[f"{m}_gain_gc"] > 0) & (d[f"{m}_gain_dn"] > 0)
+    r = d[both].reset_index(drop=True)
+    rows.append({"model": "ratio", "quantity": "datasets_positive_both_arms_all_models",
+                 "value": int(both.sum()), "ci_low": np.nan, "ci_high": np.nan, "n": len(d)})
+    if both.sum() >= 20:
+        ridx = np.random.default_rng(seed + 2).integers(0, len(r), size=(n_boot, len(r)))
+        lr = {m: np.log(r[f"{m}_gain_dn"] / r[f"{m}_gain_gc"]) for m in MODELS}
+        for m in MODELS:
+            bs = np.array([lr[m].values[i].mean() for i in ridx])
+            lo, hi = np.percentile(bs, [2.5, 97.5])
+            rows.append({"model": "ratio", "quantity": f"log_multiplier_{m}",
+                         "value": lr[m].mean(), "ci_low": lo, "ci_high": hi, "n": len(r)})
+            rows.append({"model": "ratio", "quantity": f"multiplier_{m}",
+                         "value": float(np.exp(lr[m].mean())), "ci_low": float(np.exp(lo)),
+                         "ci_high": float(np.exp(hi)), "n": len(r)})
+        for m in MODELS:
+            # The additive contrast ON THE SAME 77 datasets, so the ratio table's two columns
+            # are comparable to each other rather than to the 94-dataset panel above.
+            av = (r[f"{m}_gain_dn"] - r[f"{m}_gain_gc"])
+            rows.append({"model": "ratio", "quantity": f"additive_contrast_{m}",
+                         "value": av.mean(), "ci_low": np.nan, "ci_high": np.nan,
+                         "n": len(r)})
+        for a, b in (("cnn", "kmer"), ("splicebert", "cnn"), ("splicebert", "kmer")):
+            dl = lr[a] - lr[b]
+            bs = np.array([dl.values[i].mean() for i in ridx])
+            lo, hi = np.percentile(bs, [2.5, 97.5])
+            rows.append({"model": "ratio", "quantity": f"logstep_{a}_minus_{b}",
+                         "value": dl.mean(), "ci_low": lo, "ci_high": hi, "n": len(r)})
+            rows.append({"model": "ratio", "quantity": f"logstep_{a}_minus_{b}_datasets",
+                         "value": int((dl > 0).sum()), "ci_low": np.nan, "ci_high": np.nan,
+                         "n": len(r)})
+
     for arm in ("gc", "dn"):
         col = f"coverage_{arm}"
         rows.append({"model": "-", "quantity": f"min_row_coverage_{arm}",
@@ -294,6 +338,10 @@ def main():
 
     log(f"\n=== R1g: deep-model contrast, n = {len(d)} of 94 paired datasets ===")
     s = summarise(d, n_boot=a.n_boot)
+    # `check` makes audit_manuscript.py index every CELL of this table rather than only its
+    # column aggregates: its rule is "a `check` column or at most 50 rows", and this table has
+    # outgrown 50. Without it, interval bounds quoted in the manuscript read as orphans.
+    s.insert(0, "check", s.model + "/" + s.quantity)
     s.to_csv(TABLES / "deep_contrast.csv", index=False)
     for model in MODELS:
         g = s[s.model == model].set_index("quantity")

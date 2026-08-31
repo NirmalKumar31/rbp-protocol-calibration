@@ -386,11 +386,46 @@ SpliceBERT's compression-only component is +0.0320 of its +0.0864, against +0.00
 k-mer's +0.0398. **The protocol effect still rises**, +0.0188 to +0.0314 for the k-mer against
 +0.0253 to +0.0543 for SpliceBERT.
 
-**What this does to the paper.** The published 4-mer figure is the **conservative** end of the
-range, not a special case. A referee asking "would this vanish for a real model?" gets the
-answer in the opposite direction from the one the question expects: the more capable the model,
-the more the negative-set protocol decides what its benchmark AUROC measures. This is also what
-R1f's mechanism predicts, so R1f's prediction is now a measurement.
+### The ladder reverses on the ratio scale, and that is the diagnosis
+
+R1b's rule is that **a result whose sign depends on the scale is not a result unless the
+reversal itself has a diagnosis**. That rule was applied ruthlessly to the log-odds reversal and
+then not applied to this section's own headline until a referee ran the ratio scale. Restricted
+to the 77 datasets where every model has a positive gain in both arms:
+
+| model | additive contrast | **protocol multiplier** |
+|---|---|---|
+| k-mer LR | +0.0457 | **3.08x** [2.62, 3.62] |
+| CNN | +0.0619 | **3.51x** [2.87, 4.43] |
+| SpliceBERT | +0.0935 | **2.38x** [2.12, 2.71] |
+
+| paired step, log-ratio | difference | larger in |
+|---|---|---|
+| CNN − k-mer | +0.130 [−0.047, +0.337] | 42/77, n.s. |
+| SpliceBERT − CNN | **−0.388** [−0.564, −0.246] | 14/77 |
+| SpliceBERT − k-mer | **−0.258** [−0.369, −0.139] | 14/77 |
+
+**The multiplier does not grow. It is smallest for the largest model**, and significantly so.
+The additive ladder is real and the multiplicative one runs the other way, so "the contrast
+grows with capacity" is a statement about the AUROC difference scale and must be said that way.
+
+**The diagnosis.** The protocol multiplier is roughly invariant at **2.4x to 3.5x** across all
+three model classes. Larger models have more total signal, so the same near-constant multiplier
+produces a larger absolute difference; and the AUROC ceiling bites harder at SpliceBERT's higher
+baseline, which is why its multiplier is the smallest of the three. Both facts are consequences
+of one quantity, not two competing results.
+
+**What this does to the paper.** The claim to make is the **invariance**, not the ladder:
+
+> The negative-set protocol multiplies a model's measured contribution over composition by
+> roughly 2.4x to 3.5x, and that multiplier holds across 79 RBPs, two cell lines and three
+> model classes spanning 256 features to 19.7M parameters.
+
+That answers "would this vanish for a real model?" decisively -- it is still 2.4x for a
+fine-tuned transformer -- without the scale-dependent overclaim. The published 4-mer figure is
+representative rather than special. It also unifies R1d and R1f, whose partial correlations both
+die once total signal is removed: those are the same invariant multiplier applied to varying
+amounts of signal, which is why removing the signal removes the association.
 
 **Cross-check.** The refitted 4-mer reproduces R1's published contrast to **7.05e-05**, which is
 what licenses comparing it against the deep models at all.
@@ -473,11 +508,22 @@ absolute AUROCs reported here**, in both arms, and no absolute number in this pa
 compared against a published benchmark that samples negatives differently.
 
 R1c measures what it does to the *contrast*, which is the quantity the paper claims, and bounds
-it at **−0.0036** [−0.0071, +0.0001] with 90.6% surviving. Two things limit that. The placebo
-design is an assumption, not a proof: matching on region removes the locus mix we could measure
-(**−0.0024**, interval clear of zero), and cannot remove a confound we did not think to match
-on. And the estimate rests on 40 of the 94 datasets, those with a strand audit and canonical
-window tables in both arms.
+it at **−0.0055** [−0.0089, −0.0022] with **85.4%** surviving. Two things limit that. The
+placebo design is an assumption, not a proof: matching on region and gene density removes a
+locus mix that turns out to be **+0.0004** [−0.0010, +0.0019], an interval straddling zero, so
+that component is seed noise rather than a measured confound, and the design cannot remove a
+confound we did not think to match on. And the estimate rests on 40 of the 94 datasets, those
+with a strand audit and canonical window tables in both arms.
+
+*Correction, found by a referee and not by the harness.* This paragraph previously read
+**−0.0036** [−0.0071, +0.0001] with **90.6%** surviving, and quoted a locus-mix component of
+**−0.0024** with an "interval clear of zero". All three are the 5-seed estimates that the R1c
+section above explicitly retracts: at 20 placebo seeds the excess is −0.0055 and the locus mix
+collapses to noise. The stale values sat in the section labelled "manuscript-ready" while the
+correct ones sat 280 lines earlier in the same file, and **`verify.py` passed 284/284 and
+`audit_manuscript.py` reported no orphan**, because a retracted number is still traceable to a
+committed table -- the older `strand_placebo.csv` rows it was computed from. Traceability is not
+currency. See the lesson added to `docs/61`.
 
 *An earlier draft defended this with the composition-share contrast, which is retracted below as
 an algebraic identity, and one of the numbers it quoted appeared in no committed table. That

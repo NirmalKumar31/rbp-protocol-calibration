@@ -880,6 +880,33 @@ def verify_deep_contrast(T, g):
         at_least("CNN beats the k-mer contrast on this many datasets", int(weak),
                  spec["min_step_datasets_cnn_minus_kmer"])
 
+    # THE RATIO SCALE, WHERE THE LADDER REVERSES. R1b's rule applied to R1g's own headline:
+    # the additive ladder is real, the multiplier ladder is not, and both must be reported.
+    rspec = spec["ratio"]
+    nboth = must("ratio", "datasets_positive_both_arms_all_models")
+    if nboth is not None:
+        record(int(nboth) == rspec["datasets_positive_both_arms"],
+               "datasets with positive gains in both arms, all models",
+               int(nboth), rspec["datasets_positive_both_arms"])
+    mults = {}
+    for model, gk in (("kmer", "multiplier_kmer"), ("cnn", "multiplier_cnn"),
+                      ("splicebert", "multiplier_splicebert")):
+        val = must("ratio", f"multiplier_{model}")
+        mults[model] = val
+        if val is not None:
+            near(f"protocol multiplier, {model}", val, rspec[gk])
+            at_least(f"{model}: multiplier is substantial on the ratio scale", val,
+                     spec["min_multiplier_any_model"])
+    for a, b, gk in (("splicebert", "kmer", "logstep_splicebert_minus_kmer"),
+                     ("splicebert", "cnn", "logstep_splicebert_minus_cnn")):
+        val = must("ratio", f"logstep_{a}_minus_{b}")
+        if val is not None:
+            near(f"log-ratio step: {a} - {b}", val, rspec[gk])
+        hi = must("ratio", f"logstep_{a}_minus_{b}", "ci_high")
+        if hi is not None and spec["ratio_ladder_must_reverse_for_splicebert"]:
+            record(hi < 0, f"ratio ladder REVERSES for splicebert against {b} "
+                           f"(interval clear of zero, wrong side)", f"{hi:+.4f}", "< 0")
+
     # THE SUMMARY MUST BE ARITHMETIC ON THE PER-DATASET TABLE, not an independent assertion.
     # Everything above reads deep_contrast.csv alone, so editing that one file would pass
     # every check. Recompute the means from the evidence.
