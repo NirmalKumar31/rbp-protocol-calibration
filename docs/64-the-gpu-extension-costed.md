@@ -225,3 +225,56 @@ right place and the excess is protocol.
 4. **The gate needed an arithmetic cross-check.** Every value assertion read
    `deep_contrast.csv` alone, so editing that one file passed all of them. Caught by attacking
    it, not by reading it.
+
+---
+
+## 7. The next experiment, and it is affordable: Horlacher's own negative sets
+
+Checked 2026-08-31, because the genomics referee named this as the single highest-leverage
+thing available and the whole question was whether the data exists.
+
+**It does, and it is downloadable today.** But it is not cited in the paper: the data
+availability statement names no repository, and the artifact is discoverable only through a
+comment on GitHub issue #2.
+
+| | |
+|---|---|
+| Zenodo | `10.5281/zenodo.10600977`, "Benchmark-RBP Samples", CC-BY-4.0 |
+| File | `samples.tar.gz`, **379 MB**, md5 `c93a38b8bd684be2ccb5f6f82c6c4700` |
+| Direct | `https://zenodo.org/api/records/10600977/files/samples.tar.gz/content` |
+| Contents | **302 experiments x 5 CV folds**, each with `positive.bed`, `negative-1.bed`, `negative-2.bed` |
+| Format | BED6 single-nucleotide crosslink sites, NOT sequences |
+| Builds | **mixed**: ENCODE GRCh38, Mukherjee-PAR-CLIP and iONMF GRCh37 |
+| Downloads to date | 33. Essentially undiscovered. |
+
+**Why this is worth more than any further GPU spend.** Their negatives are sampled from
+transcripts that contain a binding site, so they are **expression-controlled by construction**
+-- which is the axis on which our own negative set is weaker than the prior art we cite. Running
+our nested decomposition on their negative-1 and negative-2 sets would at one stroke:
+
+  * remove the expression confound (the referee measured 41.8% of our GC-arm negatives sit in
+    genes with TPM < 1, and a single scalar -- log TPM -- separates our classes at AUROC 0.833);
+  * remove the dependence on our own sampler's undocumented `pool_multiple` / greedy assignment;
+  * convert "we re-derived a known effect on our own windows" into "we show what the known
+    effect does to measured model value, on the field's own published benchmark", at 302
+    experiments rather than 94.
+
+**Cost: $0 and roughly a day.** The paper's primary model class is a 4-mer logistic and the
+composition baseline is 19 features -- both CPU. No GPU is needed to answer the question for
+the model the headline is about. Extending it to the CNN would be free locally; SpliceBERT
+would not fit the remaining budget and is not required.
+
+**What the work actually is.** `bedtools getfasta` against two genome builds (GRCh38 is already
+on this disk at `rna-binding-proteins/data/raw/`; GRCh37 would need downloading, or restrict to
+the ENCODE subset and avoid the issue entirely), choose a window size to match ours (101 nt),
+then run the existing `gain_over_composition` unchanged.
+
+**Do NOT try to regenerate their pipeline.** Their raw ENCODE input is a symlink to a private
+Helmholtz Munich HPC path, no accession list is published, the required GENCODE transcript BED
+is gitignored, the top-level Snakefile references directories that do not exist, and the fold
+split uses `sort --random-sort` with no seed -- so their CV folds are not reproducible from
+scratch. The Zenodo tarball is the only way to match their splits, which is precisely why it is
+the thing to use.
+
+**Caveat to check before trusting it.** The release covers 302 experiments; the paper reports
+313. The 11-dataset shortfall is unexplained and should be resolved or stated.
