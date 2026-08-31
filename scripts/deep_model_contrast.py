@@ -38,12 +38,19 @@ from scipy.stats import norm
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from sklearn.metrics import roc_auc_score  # noqa: E402
+
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
+# BOTH ARMS' PER-WINDOW SCORES ARE COMMITTED, and that is what makes this table checkable.
+# Until they were, deep_contrast_per_dataset.csv was a terminal artifact: hand-committed, not
+# regenerable from anything in the repo, and tied by no assertion to the panel, the hardware
+# or the 940 score files. A referee forged it end to end and passed 314/314. 16 MB closes it.
 EVIDENCE = ROOT / "data" / "evidence" / "scores"
+EVIDENCE_GC = ROOT / "data" / "evidence" / "scores_gc"
 # The ladder, cheapest first. kmer is refitted in-script on the same rows; the other two are
 # read from the per-window scores their sweeps wrote.
 MODELS = ["kmer", "cnn", "splicebert"]
@@ -103,7 +110,8 @@ def arm_roots(store):
     """
     store = Path(store)
     return {
-        "gc": (store / "processed" / "gc", store / "runs" / "gc"),
+        "gc": (store / "processed" / "gc",
+               EVIDENCE_GC if EVIDENCE_GC.exists() else store / "runs" / "gc"),
         "dn": (store / "processed" / "dinuc", EVIDENCE),
     }
 
@@ -161,6 +169,25 @@ def per_dataset(store, datasets):
             if "kmer" in MODELS:
                 sc, _, _ = kmer_oof(dd.seq_rna.values, dd.label.values, dd.fold.values, k=4)
                 got["kmer"] = pd.DataFrame({"id": dd.id.values, "score": sc})
+
+            # 2b. THE ANCHOR COLUMNS. Raw pooled AUROC and row count computed over every
+            # committed score row for this (dataset, model, arm) -- deliberately NOT over the
+            # intersection, so verify.py can recompute them from data/evidence alone with no
+            # window table and no sequences. This is what ties each row of this table to
+            # per-window evidence rather than to itself.
+            for model in MODELS:
+                if model == "kmer":
+                    continue
+                # The score file's OWN label column, over ALL its rows. Deliberately not
+                # joined to the window table and not restricted to the intersection: the
+                # point of this column is that verify.py can reproduce it from
+                # data/evidence alone, with no window table and no sequences.
+                parts = [pd.read_csv(scoreroot / cell / protein / model / f"fold{k}"
+                                     / "scores.tsv.gz", sep="\t") for k in range(5)]
+                allsc = pd.concat(parts, ignore_index=True)
+                row[f"{model}_raw_{arm}"] = float(
+                    roc_auc_score(allsc.label.values, allsc.score.values))
+                row[f"{model}_nrows_{arm}"] = int(len(allsc))
 
             # 3. the nested decomposition, one shared reduced model
             base = None

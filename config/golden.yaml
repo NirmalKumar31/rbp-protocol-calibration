@@ -398,21 +398,21 @@ r1g_deep_contrast:
     contrast_auroc: {value: 0.0398, tol: 0.0025}
     protocol_min:   {value: 0.0188, tol: 0.0020}
     protocol_max:   {value: 0.0314, tol: 0.0020}
-    positive_datasets: 88
+    positive_datasets: {value: 88, tol: 3}
   cnn:
     nested_gc:      {value: 0.0330, tol: 0.0025}
     nested_dn:      {value: 0.0860, tol: 0.0040}
     contrast_auroc: {value: 0.0530, tol: 0.0035}
     protocol_min:   {value: 0.0213, tol: 0.0025}
     protocol_max:   {value: 0.0412, tol: 0.0030}
-    positive_datasets: 89
+    positive_datasets: {value: 89, tol: 3}
   splicebert:
     nested_gc:      {value: 0.0890, tol: 0.0045}
     nested_dn:      {value: 0.1754, tol: 0.0060}
     contrast_auroc: {value: 0.0864, tol: 0.0040}
     protocol_min:   {value: 0.0253, tol: 0.0025}
     protocol_max:   {value: 0.0543, tol: 0.0035}
-    positive_datasets: 94
+    positive_datasets: {value: 94, tol: 3}
   # Every model's contrast must be positive with its interval clear of zero, and its
   # protocol effect must survive EVERY member of the transplant family, not the flattering
   # one. Same standard R1b is held to.
@@ -429,7 +429,11 @@ r1g_deep_contrast:
     step_splicebert_minus_cnn:  {value: 0.0334, tol: 0.0035}
     step_splicebert_minus_kmer: {value: 0.0466, tol: 0.0040}
   ladder_steps_ci_must_exclude_zero: true
-  min_step_datasets_cnn_minus_kmer: 55
+  # TWO-SIDED, because one-sided floors let inflation through. A referee rewrote the evidence
+  # so the CNN beat the k-mer on all 94 datasets instead of the real 58, preserving both
+  # column means, and `>= 55` passed while golden.yaml claimed the weak rung "is stated, not
+  # smoothed over". A count that can only be wrong upwards is not gated.
+  step_datasets_cnn_minus_kmer: {value: 58, tol: 4}
   # THE ORDERING ITSELF, ON THE ADDITIVE SCALE. If this ever fails, R1g's claim is "it
   # survives", not "it grows", and the paper must be reworded rather than the gate relaxed.
   ladder_must_be_monotone_in_capacity: true
@@ -479,6 +483,29 @@ r1g_deep_contrast:
   # permuted cost_of_matching.csv once passed 166/166. The summary's means are recomputed
   # from the per-dataset rows and must agree exactly.
   max_summary_arithmetic_diff: 1.0e-9
+  # --- ANTI-FORGERY, added after a referee forged this table end to end and passed 314/314 --
+  #
+  # The arithmetic gate above is ONE-DIRECTIONAL: it verifies the summary is arithmetic on the
+  # evidence, which is equally satisfied by evidence reverse-engineered from the summary. These
+  # four close that, and the fourth is the one that actually required new data.
+  #
+  # 1. THE INTERNAL IDENTITY. gain is returned by DeLong as full minus comp, so it is exact.
+  #    The forgery kept comp_* and *_full_* real and replaced every gain; this breaks on that.
+  max_gain_identity_diff: 1.0e-12
+  # 2. PANEL IDENTITY. Renaming all 94 datasets to FAKE0:XXXX, or permuting the label column so
+  #    every row attaches to the wrong protein, both passed. The panel must BE the R1 panel.
+  panel_must_match_rehearsal: true
+  # 3. COVERAGE MUST NOT DEFAULT. summarise() read `d[col].min() if col in d else 1.0`, so
+  #    DELETING the columns made the gate assert perfect coverage. A wrong value was caught; an
+  #    absent one was not. Same shape as the 2026-08 failure where deleting a file passed.
+  coverage_columns_must_be_present: true
+  # 4. THE EVIDENCE IS NOW ANCHORED TO PER-WINDOW SCORES IN THE REPO. Both arms' 940
+  #    scores.tsv.gz are committed (16 MB for the GC arm, which was the missing half), so the
+  #    raw pooled AUROC of every (dataset, model, arm) cell is recomputable here from
+  #    data/evidence alone -- no window table, no sequences, no cloud store. A forged row
+  #    cannot survive this unless the forger also rewrites 940 gzipped score files.
+  max_raw_auroc_diff: 1.0e-9
+  min_anchored_cells: 376
 
 # --- R1h: is the protocol effect IDENTIFIED? Two referee attacks, run properly ----------
 #
@@ -826,7 +853,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 328
+  min_domain_checks: 347
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

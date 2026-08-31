@@ -822,8 +822,9 @@ def verify_deep_contrast(T, g):
 
         pos = must(model, "contrast_positive_datasets")
         if pos is not None:
-            at_least(f"{model}: datasets with a positive contrast", int(pos),
-                     sm["positive_datasets"])
+            # TWO-SIDED. Inflation passed everywhere while these were floors.
+            near(f"{model}: datasets with a positive contrast", float(pos),
+                 sm["positive_datasets"])
 
         lo = must(model, "contrast_auroc", "ci_low")
         contrasts[model] = must(model, "contrast_auroc")
@@ -877,8 +878,8 @@ def verify_deep_contrast(T, g):
     # The weakest rung is asserted at its own floor so it cannot quietly erode.
     weak = must("ladder", "step_cnn_minus_kmer_datasets")
     if weak is not None:
-        at_least("CNN beats the k-mer contrast on this many datasets", int(weak),
-                 spec["min_step_datasets_cnn_minus_kmer"])
+        near("CNN beats the k-mer contrast on this many datasets", float(weak),
+             spec["step_datasets_cnn_minus_kmer"])
 
     # THE RATIO SCALE, WHERE THE LADDER REVERSES. R1b's rule applied to R1g's own headline:
     # the additive ladder is real, the multiplier ladder is not, and both must be reported.
@@ -930,6 +931,73 @@ def verify_deep_contrast(T, g):
                        int(pos), int((gain_dn - gain_gc > 0).sum()))
         at_most("summary means are arithmetic on the per-dataset table", worst,
                 spec["max_summary_arithmetic_diff"])
+
+    # --- ANTI-FORGERY -------------------------------------------------------------------
+    if per is not None:
+        # 1. The internal identity DeLong guarantees. Exact.
+        worst_id = 0.0
+        for model in ("kmer", "cnn", "splicebert"):
+            for arm in ("gc", "dn"):
+                worst_id = max(worst_id, float(
+                    (per[f"{model}_gain_{arm}"]
+                     - (per[f"{model}_full_{arm}"] - per[f"comp_{arm}"])).abs().max()))
+        at_most("gain equals full minus composition, exactly, in every cell", worst_id,
+                spec["max_gain_identity_diff"])
+
+        # 2. The panel must be the R1 panel, by name.
+        reh = T.get("rehearsal_binding_gc.csv")
+        if reh is None:
+            record(False, "rehearsal_binding_gc.csv present for the panel cross-check",
+                   "MISSING", "the table")
+        elif spec["panel_must_match_rehearsal"]:
+            got, want = set(per.dataset), set(reh.dataset)
+            record(got == want, "R1g's panel is exactly R1's panel, by dataset name",
+                   f"{len(got & want)} shared, {len(got - want)} extra",
+                   f"all {len(want)}")
+
+        # 3. Coverage columns must EXIST, not default.
+        if spec["coverage_columns_must_be_present"]:
+            for arm in ("gc", "dn"):
+                record(f"coverage_{arm}" in per.columns,
+                       f"coverage_{arm} column is present in the evidence "
+                       f"(absence must not read as perfect coverage)",
+                       f"coverage_{arm}" in per.columns, True)
+
+        # 4. THE ANCHOR. Recompute every cell's raw pooled AUROC from the committed
+        # per-window scores. This is the check that makes the table non-forgeable.
+        import gzip
+        import io as _io
+        from sklearn.metrics import roc_auc_score
+        roots = {"gc": ROOT / "data" / "evidence" / "scores_gc",
+                 "dn": ROOT / "data" / "evidence" / "scores"}
+        worst_raw, n_cells = 0.0, 0
+        for r in per.itertuples():
+            for model in ("cnn", "splicebert"):
+                for arm in ("gc", "dn"):
+                    base = roots[arm] / r.cell / r.protein / model
+                    parts = []
+                    for f in range(5):
+                        fp = base / f"fold{f}" / "scores.tsv.gz"
+                        if not fp.exists():
+                            parts = None
+                            break
+                        parts.append(pd.read_csv(fp, sep="\t"))
+                    if parts is None:
+                        continue
+                    sc = pd.concat(parts, ignore_index=True)
+                    claimed_n = getattr(r, f"{model}_nrows_{arm}", None)
+                    if claimed_n is None or int(claimed_n) != len(sc):
+                        record(False, f"{r.dataset} {model} {arm}: score row count",
+                               len(sc), claimed_n)
+                        continue
+                    got = roc_auc_score(sc.label.values, sc.score.values)
+                    worst_raw = max(worst_raw,
+                                    abs(got - float(getattr(r, f"{model}_raw_{arm}"))))
+                    n_cells += 1
+        at_most("raw pooled AUROC recomputed from committed per-window scores", worst_raw,
+                spec["max_raw_auroc_diff"])
+        at_least("cells anchored to committed per-window evidence", n_cells,
+                 spec["min_anchored_cells"])
 
     # THE TIE TO R1. The 4-mer refitted here must reproduce the published contrast, or the
     # comparison against the deep models is measuring two different things.
