@@ -589,6 +589,29 @@ r1i_cluster_intervals:
   # THE CLAIM THAT MATTERS. If any headline crosses zero once protein clustering is
   # respected, the paper must restate it rather than keep the narrower interval.
   all_headlines_exclude_zero_clustered: true
+  # THE REST OF THE PAPER, not just R1g. R1's own headline and R1f get the same correction.
+  r1_contrast_width_ratio:  {value: 1.22, tol: 0.12}
+  r1f_cds_width_ratio:      {value: 1.09, tol: 0.12}
+  # R1c needs NO correction, and that is checked rather than assumed: its 40 datasets are 40
+  # distinct proteins, so there is nothing to cluster.
+  r1c_duplicated_proteins: 0
+
+  # --- THE PER-DATASET COUNTS, restated at the measured design effect -------------------
+  #
+  # "the score adds significantly in 80/94" uses DeLong's SE, which understates here twice
+  # over: it conditions on two FITTED score vectors as if fixed (measured inflation 1.10 by
+  # permutation null), and it treats spatially clustered windows as independent (1.23 by
+  # 10-kb block bootstrap). nested.py's own test_score docstring identifies the second and
+  # cluster-bootstraps over genes; the headline estimator does not.
+  #
+  # Eight datasets is 8.5% of the panel. Too large for a Methods caveat, so the counts are
+  # restated and BOTH figures are gated -- the published one so the change is visible, and
+  # the corrected one because it is what the paper should print.
+  helps_gc_published:      80
+  helps_gc_design_effect:  72
+  helps_dn_published:      82
+  helps_dn_design_effect:  78
+  design_effect: 1.35
 
 # --- R1j: the expression confound, measured against a matched placebo -------------------
 #
@@ -853,7 +876,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 347
+  min_domain_checks: 356
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

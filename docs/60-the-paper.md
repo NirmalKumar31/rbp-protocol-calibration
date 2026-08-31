@@ -60,7 +60,7 @@ survived every attack.
 | 4-mer score alone | 0.7981 | 0.6886 |
 | composition + 4-mer score | 0.8092 | 0.6941 |
 | **nested contribution of the score** | **+0.0265** [+0.0210, +0.0324] | **+0.0662** [+0.0559, +0.0765] |
-| datasets where the score adds significantly | **80/94** | 82/94 |
+| datasets where the score adds significantly | **80/94** (72/94 at the measured design effect) | 82/95 (78/95) |
 | datasets where composition ≥ the k-mer model | **29/94** | n/a |
 
 An earlier draft of this table put 0.7981 and 0.6886 on the "composition + score" row. Those
@@ -453,13 +453,41 @@ amounts of signal, which is why removing the signal removes the association.
 **Cross-check.** The refitted 4-mer reproduces R1's published contrast to **7.05e-05**, which is
 what licenses comparing it against the deep models at all.
 
-**Provenance, stated.** The two arms ran on different hardware generations (the dinucleotide
-sweep on one A10G generation, the GC sweep on NVIDIA A10) and the CNN's GC arm ran on Apple
-MPS. Training is fp32 with identical seed, batch size, epoch cap and early-stopping rule, so
-hardware changes speed and not the model; the `accelerator` field records which row came from
-where. The dinucleotide arm's windows drifted by **0.06%** (172 rows in 307,430) after its
-sweep was scored, because negative matching is a stochastic search that was re-run; every model
-is intersected to a common row set before anything is fitted, and the minimum coverage is gated.
+**Provenance, stated accurately after a referee checked it.** An earlier version of this
+paragraph was wrong in two ways and both corrections weaken the CNN rung specifically.
+
+*Where each arm ran.* SpliceBERT: dinucleotide on mixed A10G, GC on NVIDIA A10. **The CNN's
+dinucleotide arm ran on x86 GCP Batch CPU, not a GPU** (`cloud/jobs/rendered/`,
+`--device cpu`, `e2-standard-4`), while its GC arm ran on Apple MPS. So the CNN rung is a
+CPU-versus-Metal comparison, which is the weakest provenance in the paper and sits on the
+weakest rung. A referee's same-backend replication on 10 datasets moved that rung's contrast
+UPWARD by roughly a quarter, so this does not overturn the ordering -- but a shift of that
+size is comparable to the entire CNN − k-mer step and cannot be reported from a cross-backend
+measurement without saying so. (Their figures are an external measurement, not reproduced in
+this repository and therefore not gated here; the re-run below is what will settle it.)
+
+*"Identical seed" was false.* `registry.build()` ran before `trainer.set_seed()`, so weights
+were drawn from an unseeded RNG for the whole study and `torch.manual_seed(7)` governed only
+dropout and batch order. All 945 fold-runs used an uncontrolled, unrecorded initialisation.
+Fixed, and `tests/unit/test_seeded_init.py` now pins the ordering as well as the behaviour.
+Measured cost: per-dataset SD of the nested contribution across independent training runs is
+0.006 (CNN) to 0.010 (SpliceBERT), which induces ~0.001 on a panel mean over 94 datasets
+against a reported CI half-width of ~0.008. **The panel means are unaffected; exact
+reproducibility and the per-dataset counts are not.** Everything else claimed identical across
+arms was checked and holds: seed value, epochs, batch size, learning rates, weight decay, fp32,
+fold maps, and the training source files byte-for-byte.
+
+*One further correction.* The dinucleotide arm has **no committed per-run metadata** -- only
+scores -- so its epoch counts cannot be verified from what survives. And the sentence "the only
+difference is how the negative windows were chosen" is false: the positive sets differ too
+(pairwise Jaccard above 0.91 but below 1 on most datasets), because both matchers drop
+positives they cannot match. Restricting
+both arms to shared positives moves the contrast +0.0398 -> +0.0401, so it is immaterial, but
+the sentence should say "almost the only difference".
+
+The dinucleotide arm's windows drifted by **0.06%** (172 rows in 307,430) after its sweep was
+scored, because negative matching is a stochastic search that was re-run; every model is
+intersected to a common row set before anything is fitted, and the minimum coverage is gated.
 
 ## R1h: is the protocol effect identified? Two referee attacks, one of which lands
 

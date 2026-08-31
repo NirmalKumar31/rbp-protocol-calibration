@@ -110,8 +110,15 @@ Long runs must be resumable: `strand_placebo.py --resume` keys on an explicit `d
    the counter-example worth copying: it recorded "cpu" for every non-CUDA device until a run on
    Apple MPS exposed it, so the one column a reader would use to check what hardware produced a
    row was wrong by construction.
-10. **A checker must print its own false-negative rate.** `audit_manuscript.py` is 6.3%
-    saturated at four decimals, ~44% at three, and blind to percentages entirely.
+10. **A checker must print its own false-negative rate -- AND on the range that matters.**
+    `audit_manuscript.py` self-reports ~12.5% saturation at four decimals and ~67% at three,
+    so the figure quoted here as "6.3% / 44%" was stale by roughly 2x. Worse, it computes
+    saturation over **[0.5, 1.0]**, the AUROC range -- but R1g's entire headline lives in
+    **[0, 0.1]**, where the 4-dp grid is ~62% occupied and the 3-dp grid is **100%**. Planting
+    ten lies in a copy of docs/60: seven were missed, including the central +0.0864 claim. The
+    regex also needs a decimal point, so `470/470`, `94/94`, `7,089` and `85.4%` are
+    structurally invisible. A self-reported rate measured on the wrong support is worse than
+    none, because it is believed.
 11. **Resume logic must key on the design**, not on a column two designs share. The first guard
     silently mixed 38 region-only rows with 2 region-by-density rows.
 12. **A shared venv will import the wrong source tree.** Several test modules import `rbp` with

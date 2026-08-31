@@ -30,6 +30,9 @@ sys.path.insert(0, str(ROOT / "src"))
 TABLES = ROOT / "results" / "tables"
 MODELS = ("kmer", "cnn", "splicebert")
 N_BOOT = 4000
+# Measured by a referee on this data: 1.10 for treating fitted score vectors as fixed, 1.23
+# for treating spatially clustered windows as independent. Applied to the DeLong SE.
+DESIGN_EFFECT = 1.35
 
 
 def boot_ci(values, groups, n_boot=N_BOOT, seed=0, cluster=True):
@@ -49,6 +52,15 @@ def boot_ci(values, groups, n_boot=N_BOOT, seed=0, cluster=True):
         rows = np.concatenate([members[i] for i in pick])
         draws[b] = v[rows].mean()
     return np.percentile(draws, [2.5, 97.5])
+
+
+def _resample(df, rng, cluster):
+    """One bootstrap draw of a group: by protein if clustering, else by row."""
+    if not cluster:
+        return df.iloc[rng.integers(0, len(df), size=len(df))]
+    uniq = df.protein.unique()
+    pick = uniq[rng.integers(0, len(uniq), size=len(uniq))]
+    return pd.concat([df[df.protein == p] for p in pick], ignore_index=True)
 
 
 def main():
@@ -96,6 +108,99 @@ def main():
                      "width_ratio": ratio, "excludes_zero_clustered": bool(excludes)})
         print(f"  {name:26s} [{lo_d:+.4f},{hi_d:+.4f}] [{lo_p:+.4f},{hi_p:+.4f}] "
               f"{ratio:6.2f}x{'' if excludes else '   <-- CROSSES ZERO'}")
+
+    # --- THE REST OF THE PAPER, not just R1g -------------------------------------------
+    #
+    # R1g was clustered first because it was newest. The same correction is owed to R1's own
+    # headline, to R1f, and to R1c -- and R1c turns out not to need it, which is a cheap
+    # checkable fact worth recording rather than leaving as an assumption.
+    print()
+    extra = {}
+    reh_gc = pd.read_csv(TABLES / "rehearsal_binding_gc.csv")
+    reh_dn = pd.read_csv(TABLES / "rehearsal_binding_dinuc.csv")
+    m = reh_gc.merge(reh_dn, on="dataset", suffixes=("_gc", "_dn"))
+    extra["R1_contrast"] = (m.delta_auroc_dn - m.delta_auroc_gc, m.protein_gc)
+
+    reg = pd.read_csv(TABLES / "region_heterogeneity_per_dataset.csv")
+    if "dominant" in reg.columns:
+        cds = reg[reg.dominant == "cds"]
+        intr = reg[reg.dominant == "intron"]
+        # CDS minus intron is a between-group contrast, so it is bootstrapped as such below.
+        extra["_region"] = (cds, intr)
+
+    for name, (series, groups) in [(k, v) for k, v in extra.items() if not k.startswith("_")]:
+        lo_d, hi_d = boot_ci(series, groups, cluster=False)
+        lo_p, hi_p = boot_ci(series, groups, cluster=True)
+        ratio = (hi_p - lo_p) / (hi_d - lo_d)
+        worst_ratio = max(worst_ratio, ratio)
+        excludes = lo_p > 0
+        all_exclude &= excludes
+        rows.append({"check": name, "quantity": "mean", "value": float(series.mean()),
+                     "ci_low_dataset": lo_d, "ci_high_dataset": hi_d,
+                     "ci_low_protein": lo_p, "ci_high_protein": hi_p,
+                     "width_ratio": ratio, "excludes_zero_clustered": bool(excludes)})
+        print(f"  {name:26s} [{lo_d:+.4f},{hi_d:+.4f}] [{lo_p:+.4f},{hi_p:+.4f}] "
+              f"{ratio:6.2f}x{'' if excludes else '   <-- CROSSES ZERO'}")
+
+    if "_region" in extra:
+        cds, intr = extra["_region"]
+        rng = np.random.default_rng(1)
+        def _grpboot(cluster):
+            out = np.empty(N_BOOT)
+            for b in range(N_BOOT):
+                a = _resample(cds, rng, cluster)
+                c = _resample(intr, rng, cluster)
+                out[b] = ((a.delta_auroc_dn - a.delta_auroc_gc).mean()
+                          - (c.delta_auroc_dn - c.delta_auroc_gc).mean())
+            return np.percentile(out, [2.5, 97.5])
+        obs = ((cds.delta_auroc_dn - cds.delta_auroc_gc).mean()
+               - (intr.delta_auroc_dn - intr.delta_auroc_gc).mean())
+        lo_d, hi_d = _grpboot(False)
+        lo_p, hi_p = _grpboot(True)
+        ratio = (hi_p - lo_p) / (hi_d - lo_d)
+        worst_ratio = max(worst_ratio, ratio)
+        all_exclude &= lo_p > 0
+        rows.append({"check": "R1f_cds_minus_intron", "quantity": "mean", "value": float(obs),
+                     "ci_low_dataset": lo_d, "ci_high_dataset": hi_d,
+                     "ci_low_protein": lo_p, "ci_high_protein": hi_p,
+                     "width_ratio": ratio, "excludes_zero_clustered": bool(lo_p > 0)})
+        print(f"  {'R1f_cds_minus_intron':26s} [{lo_d:+.4f},{hi_d:+.4f}] "
+              f"[{lo_p:+.4f},{hi_p:+.4f}] {ratio:6.2f}x"
+              f"{'' if lo_p > 0 else '   <-- CROSSES ZERO'}")
+
+    # R1c: no clustering exists there, and that is a fact worth asserting rather than assuming.
+    sp = pd.read_csv(TABLES / "strand_placebo_per_dataset.csv")
+    prots = sp.dataset.str.split(":").str[0]
+    n_dup = int((prots.value_counts() > 1).sum())
+    rows.append({"check": "R1c_duplicated_proteins", "quantity": "count", "value": n_dup,
+                 "n_datasets": len(sp)})
+    print(f"\n  R1c: {len(sp)} datasets over {prots.nunique()} proteins -> "
+          f"{n_dup} duplicated. Clustering is a no-op there.")
+
+    # --- THE PER-DATASET COUNTS, at the measured design effect --------------------------
+    #
+    # "the score adds significantly in 80/94 datasets" uses DeLong's SE, which understates
+    # here for two separate reasons a referee measured: DeLong conditions on the two score
+    # vectors as FIXED, but both are fitted (permutation null / DeLong SE = 1.10); and it
+    # treats windows as independent when they are spatially clustered (10-kb block bootstrap
+    # / DeLong = 1.23). Combined design effect ~1.35 on the SE.
+    #
+    # src/rbp/eval/nested.py's own test_score docstring identifies the second one and
+    # cluster-bootstraps over genes. The headline estimator hands the rows straight to DeLong.
+    # Eight datasets is 8.5% of the panel, too large to park behind a Methods caveat.
+    print()
+    for arm, tbl in (("gc", reh_gc), ("dn", reh_dn)):
+        se = (tbl.delta_ci_high - tbl.delta_ci_low) / (2 * 1.959964)
+        for factor, label in ((1.00, "published"), (1.10, "OOF fitting"),
+                              (1.23, "window clustering"), (DESIGN_EFFECT, "both")):
+            n = int(((tbl.delta_auroc - 1.959964 * se * factor) > 0).sum())
+            if factor == DESIGN_EFFECT:
+                rows.append({"check": f"helps_{arm}_design_effect", "quantity": "count",
+                             "value": n, "n_datasets": len(tbl)})
+            elif factor == 1.00:
+                rows.append({"check": f"helps_{arm}_published", "quantity": "count",
+                             "value": n, "n_datasets": len(tbl)})
+            print(f"  {arm} arm, SE x{factor:.2f} ({label:18s}) -> {n}/{len(tbl)} helps")
 
     rows.append({"check": "max_width_ratio", "quantity": "ratio", "value": worst_ratio})
     rows.append({"check": "all_headlines_exclude_zero_clustered", "quantity": "flag",

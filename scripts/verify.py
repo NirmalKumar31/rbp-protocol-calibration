@@ -1215,6 +1215,31 @@ def verify_cluster_intervals(T, g):
              spec["max_width_ratio"])
         at_least("protein clustering actually widens the intervals", w,
                  spec["min_width_ratio"])
+    for k, gk in (("R1_contrast", "r1_contrast_width_ratio"),
+                  ("R1f_cds_minus_intron", "r1f_cds_width_ratio")):
+        if k in q.index:
+            near(f"{k}: interval inflation under protein clustering",
+                 float(q.loc[k, "width_ratio"]), spec[gk])
+            record(bool(q.loc[k, "excludes_zero_clustered"]),
+                   f"{k} still excludes zero under protein clustering", True, True)
+        else:
+            record(False, f"row present: {k}", "MISSING", "the row")
+    dup = must("R1c_duplicated_proteins")
+    if dup is not None:
+        record(int(dup) == spec["r1c_duplicated_proteins"],
+               "R1c has no clustering to correct (its datasets are distinct proteins)",
+               int(dup), spec["r1c_duplicated_proteins"])
+
+    # The per-dataset counts, published and corrected. Both, so the change stays visible.
+    for k, gk in (("helps_gc_published", "helps_gc_published"),
+                  ("helps_gc_design_effect", "helps_gc_design_effect"),
+                  ("helps_dn_published", "helps_dn_published"),
+                  ("helps_dn_design_effect", "helps_dn_design_effect")):
+        v_ = must(k)
+        if v_ is not None:
+            record(int(v_) == spec[gk], f"datasets where the score helps: {k}",
+                   int(v_), spec[gk])
+
     flag = must("all_headlines_exclude_zero_clustered")
     if flag is not None and spec["all_headlines_exclude_zero_clustered"]:
         record(flag == 1.0,
