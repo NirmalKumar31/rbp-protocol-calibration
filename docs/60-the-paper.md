@@ -498,6 +498,32 @@ transportability assumption: it is a difference of two AUROC differences measure
 rows. +0.0398, +0.0530 and +0.0864 stand, as does the ~2.4x–3.5x multiplier in R1g. The
 identification problem is confined to the decomposition, which is a supporting control.
 
+## R1i: every interval, recomputed with the clustering the panel actually has
+
+`cluster_intervals.csv`, n = 94 datasets over **79 proteins**.
+
+Fifteen proteins are assayed in both K562 and HepG2 and contribute two rows each. Every
+bootstrap in this project resamples *datasets*, which treats those two rows as independent
+evidence. They are not: the within-protein correlation of the contrast is **+0.924** for the
+k-mer, +0.721 for the CNN, +0.761 for SpliceBERT. **Every interval printed above is therefore
+narrower than the data support**, and the correct unit is the protein.
+
+| quantity | by dataset (as published) | **by protein (correct)** | width |
+|---|---|---|---|
+| contrast, k-mer | [+0.0338, +0.0461] | [+0.0325, +0.0477] | 1.23x |
+| contrast, CNN | [+0.0447, +0.0614] | [+0.0440, +0.0627] | 1.12x |
+| contrast, SpliceBERT | [+0.0788, +0.0942] | [+0.0778, +0.0951] | 1.13x |
+| step CNN − k-mer | [+0.0068, +0.0197] | [+0.0061, +0.0205] | 1.12x |
+| step SpliceBERT − CNN | [+0.0289, +0.0380] | [+0.0287, +0.0383] | 1.05x |
+| step SpliceBERT − k-mer | [+0.0416, +0.0517] | [+0.0412, +0.0520] | 1.07x |
+
+**No conclusion changes: every headline still excludes zero.** That is exactly why the
+correction is worth making. It costs nothing and removes an objection a referee would
+otherwise land, and the gate `all_headlines_exclude_zero_clustered` means that if a future run
+does push a headline across zero under clustering, the claim must be restated rather than the
+narrower interval quietly retained. **The manuscript should print the protein-clustered
+intervals throughout.**
+
 ## R2: the model ladder (methods table, not a result)
 
 `matched_four_models.csv`, n = 95, identical chromosome-level folds. Figure **f2**.

@@ -1012,6 +1012,45 @@ def verify_protocol_identification(T, g):
                f"[{slo:+.4f}, {shi:+.4f}]", "contains 0")
 
 
+def verify_cluster_intervals(T, g):
+    """R1i: the panel is 79 proteins, not 94 independent datasets."""
+    print("\nR1i clustered intervals  (94 datasets are only 79 proteins)")
+    d = T.get("cluster_intervals.csv")
+    if d is None:
+        return record(False, "cluster_intervals.csv present", "MISSING",
+                      "run scripts/cluster_intervals.py")
+    spec = g["r1i_cluster_intervals"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    r = must("within_protein_correlation_kmer")
+    if r is not None:
+        near("within-protein correlation of the contrast, k-mer", r,
+             spec["within_protein_correlation_kmer"])
+    npairs = q.loc["within_protein_correlation_kmer", "n_pairs"] \
+        if "within_protein_correlation_kmer" in q.index else None
+    if npairs is not None and not pd.isna(npairs):
+        record(int(npairs) == spec["n_doubled_proteins"],
+               "proteins assayed in both cell lines", int(npairs),
+               spec["n_doubled_proteins"])
+    w = must("max_width_ratio")
+    if w is not None:
+        near("widest interval inflation under protein clustering", w,
+             spec["max_width_ratio"])
+        at_least("protein clustering actually widens the intervals", w,
+                 spec["min_width_ratio"])
+    flag = must("all_headlines_exclude_zero_clustered")
+    if flag is not None and spec["all_headlines_exclude_zero_clustered"]:
+        record(flag == 1.0,
+               "every headline still excludes zero under protein clustering",
+               bool(flag), True)
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -1586,7 +1625,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_cluster_intervals, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

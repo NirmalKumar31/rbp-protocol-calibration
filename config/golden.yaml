@@ -520,6 +520,26 @@ r1h_protocol_identification:
   # capacity claim must be revisited deliberately, not silently reversed.
   splicebert_adjusted_must_contain_zero: true
 
+# --- R1i: intervals recomputed with the clustering the panel actually has ---------------
+#
+# 94 datasets, 79 proteins: 15 proteins appear in both cell lines and contribute two rows
+# each. Every bootstrap in this project resamples DATASETS, which treats those two rows as
+# independent evidence. The within-protein correlation of the contrast is +0.92 for the
+# k-mer, so it plainly is not. Every interval the manuscript printed was too narrow.
+#
+# The correction widens intervals by up to 1.23x and changes NO conclusion. That is why it
+# is worth making: it costs nothing and removes an objection a referee would land.
+r1i_cluster_intervals:
+  n_proteins: 79
+  n_doubled_proteins: 15
+  within_protein_correlation_kmer: {value: 0.924, tol: 0.05}
+  # The correction must actually do something, or it is not being applied.
+  min_width_ratio: 1.02
+  max_width_ratio: {value: 1.23, tol: 0.12}
+  # THE CLAIM THAT MATTERS. If any headline crosses zero once protein clustering is
+  # respected, the paper must restate it rather than keep the narrower interval.
+  all_headlines_exclude_zero_clustered: true
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -742,7 +762,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 308
+  min_domain_checks: 313
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
