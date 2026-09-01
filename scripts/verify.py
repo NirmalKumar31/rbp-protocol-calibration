@@ -839,10 +839,11 @@ def verify_deep_contrast(T, g):
     # THE LADDER. The claim is that the contrast grows with model capacity, so the published
     # 4-mer number is the conservative end. If this fails the paper says "survives", not
     # "grows", and the wording must change rather than the gate.
-    if spec["ladder_must_be_monotone_in_capacity"] and None not in contrasts.values():
+    if spec["additive_ordering_holds"] and None not in contrasts.values():
         order = [contrasts["kmer"], contrasts["cnn"], contrasts["splicebert"]]
         record(order[0] < order[1] < order[2],
-               "contrast grows monotonically with model capacity",
+               "additive contrast is ordered kmer < cnn < splicebert (a fact about the additive "
+               "scale, NOT a capacity claim -- that reading is withdrawn)",
                " < ".join(f"{v:+.4f}" for v in order), "kmer < cnn < splicebert")
 
     # The strong form: the deep model's interval must clear the k-mer's point estimate.
@@ -1492,6 +1493,33 @@ def verify_protocol_or_baseline(T, g):
         record(lo <= 0 <= hi,
                "the published contrast does NOT survive matching on the baseline",
                f"[{lo:+.4f}, {hi:+.4f}]", "contains 0")
+    # THE CORRECTION. R1l's "no common support" was the three-way intersection; pairwise the
+    # gc-vs-neg2 comparison is easy, and there a residual DOES exist.
+    for label, key in (
+            ("pairwise common support width, gc vs dn", spec["pairwise_support_gc_dn"]),
+            ("pairwise common support width, gc vs neg2", spec["pairwise_support_gc_neg2"]),
+            ("incremental R2 of protocol, gc vs dn", spec["incremental_r2_gc_dn"]),
+            ("incremental R2 of protocol, gc vs neg2", spec["incremental_r2_gc_neg2"]),
+            ("neg2 minus gc, matched on baseline", spec["matched_neg2_minus_gc"]),
+            ("neg2 minus gc, within-dataset intercept at zero baseline shift",
+             spec["intercept_neg2_minus_gc"]),
+            ("within-arm spearman(baseline, gain), gc", spec["within_arm_spearman_gc"]),
+            ("within-arm spearman(baseline, gain), neg2", spec["within_arm_spearman_neg2"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+    mhi = must("neg2 minus gc, matched on baseline", "ci_high")
+    ihi = must("neg2 minus gc, within-dataset intercept at zero baseline shift", "ci_high")
+    if mhi is not None and ihi is not None and spec["neg2_residual_must_exclude_zero"]:
+        record(mhi < 0 and ihi < 0,
+               "a protocol-specific residual DOES exist for neg2 at matched baseline, under "
+               "two independent designs", f"{mhi:+.4f}, {ihi:+.4f}", "both < 0")
+    sg = must("within-arm spearman(baseline, gain), neg2")
+    if sg is not None and spec["gradient_must_die_for_neg2"]:
+        record(abs(sg) < 0.3,
+               "THE MECHANISM: the baseline gradient is a property of composition-matched "
+               "negatives and DIES for other-RBPs'-sites negatives", f"{sg:+.3f}", "|rho| < 0.3")
+
     rk = must("datasets where the dinuc baseline is lower than the GC baseline")
     if rk is not None:
         record(int(rk) == spec["n_rank_confounded"],

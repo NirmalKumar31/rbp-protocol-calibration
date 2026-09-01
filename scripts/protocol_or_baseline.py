@@ -97,6 +97,73 @@ def main():
     print("  -> whichever protocol leaves the LOWER baseline gets the higher contribution,")
     print("     regardless of which protocol that is")
 
+    print("\n=== 2b. PAIRWISE common support -- R1l's number was the THREE-WAY intersection ===")
+    # R1l reported a common support 0.0056 AUROC wide holding 3 of 282 cells and concluded no
+    # matched comparison is possible. That is the intersection of ALL THREE arms. Pairwise it
+    # is a different story, and the matched design IS possible for gc vs neg2.
+    qq = {a: long.comp[long.arm == a] for a in ("gc", "dn", "neg2")}
+    for a, b in (("gc", "dn"), ("gc", "neg2"), ("dn", "neg2")):
+        lo_ = max(qq[a].quantile(.10), qq[b].quantile(.10))
+        hi_ = min(qq[a].quantile(.90), qq[b].quantile(.90))
+        w = max(hi_ - lo_, 0.0)
+        n_ = int(((qq[a] >= lo_) & (qq[a] <= hi_)).sum()
+                 + ((qq[b] >= lo_) & (qq[b] <= hi_)).sum())
+        rows += [{"check": f"pairwise common support width, {a} vs {b}", "value": float(w)},
+                 {"check": f"cells in pairwise common support, {a} vs {b}", "value": n_}]
+        print(f"  {a:5s} vs {b:5s}  width {w:.3f} AUROC   {n_}/188 cells")
+
+    # AND THE INCREMENTAL R2 DECOMPOSED BY PAIR. The headline 1.00% averages the pair where
+    # the question is unanswerable with the pair where it is answerable.
+    for pair in (("gc", "dn"), ("gc", "neg2"), ("dn", "neg2")):
+        L = long[long.arm.isin(pair)]
+        cc, yy = L.comp.values, L.gain.values
+        def _ss(X):
+            bb, *_ = np.linalg.lstsq(X, yy, rcond=None)
+            r = yy - X @ bb
+            return float(r @ r)
+        Xb2 = np.column_stack([np.ones(len(cc)), cc, cc ** 2])
+        D2 = pd.get_dummies(L.arm, drop_first=True).values.astype(float)
+        t2 = float((yy - yy.mean()) @ (yy - yy.mean()))
+        inc = (_ss(Xb2) - _ss(np.column_stack([Xb2, D2]))) / t2
+        rows.append({"check": f"incremental R2 of protocol, {pair[0]} vs {pair[1]}",
+                     "value": float(inc)})
+        print(f"  incremental R2 of protocol, {pair[0]:5s} vs {pair[1]:5s}: {100*inc:5.2f}%")
+
+    print("\n=== 2c. neg2 vs gc AT MATCHED BASELINE -- the comparison R1l said was impossible ===")
+    gg2 = d[["comp_gc", "gain_gc"]].values
+    mm = []
+    for cb, gv in d[["comp_neg2", "gain_neg2"]].values:
+        j = int(np.argmin(np.abs(gg2[:, 0] - cb)))
+        if abs(gg2[j, 0] - cb) < 0.01:
+            mm.append(gv - gg2[j, 1])
+    mm = np.array(mm)
+    lo_, hi_ = ci(mm)
+    rows.append({"check": "neg2 minus gc, matched on baseline", "value": float(mm.mean()),
+                 "ci_low": float(lo_), "ci_high": float(hi_), "n": len(mm)})
+    print(f"  nearest-baseline matched  n={len(mm):3d}  {mm.mean():+.4f} [{lo_:+.4f}, {hi_:+.4f}]")
+    dbv = (d.comp_neg2 - d.comp_gc).values
+    dgv = (d.gain_neg2 - d.gain_gc).values
+    X0 = np.column_stack([np.ones(len(dbv)), dbv])
+    b0, *_ = np.linalg.lstsq(X0, dgv, rcond=None)
+    rng2 = np.random.default_rng(0)
+    ii = rng2.integers(0, len(dbv), size=(2000, len(dbv)))
+    bb0 = np.array([np.linalg.lstsq(X0[i], dgv[i], rcond=None)[0][0] for i in ii])
+    lo2, hi2 = np.percentile(bb0, [2.5, 97.5])
+    rows.append({"check": "neg2 minus gc, within-dataset intercept at zero baseline shift",
+                 "value": float(b0[0]), "ci_low": float(lo2), "ci_high": float(hi2),
+                 "n": len(dbv)})
+    print(f"  within-dataset intercept  n={len(dbv):3d}  {b0[0]:+.4f} [{lo2:+.4f}, {hi2:+.4f}]")
+    print("  -> BOTH exclude zero. A protocol-specific residual DOES exist for neg2.")
+
+    print("\n=== 2d. the gradient is a property of composition-matched negatives ===")
+    from scipy.stats import spearmanr as _sp
+    for a in ("gc", "dn", "neg2"):
+        r_, p_ = _sp(d[f"comp_{a}"], d[f"gain_{a}"])
+        rows.append({"check": f"within-arm spearman(baseline, gain), {a}", "value": float(r_),
+                     "note": f"p={p_:.3f}"})
+        print(f"  {a:5s} {r_:+.3f}  p={p_:.3f}")
+    print("  -> it dies for other-RBPs'-sites negatives, which is the mechanism")
+
     print("\n=== 3. dn vs gc, matched on the composition baseline ===")
     rank = int((d.comp_dn < d.comp_gc).sum())
     rows.append({"check": "datasets where the dinuc baseline is lower than the GC baseline",

@@ -386,10 +386,14 @@ r1_region:
 # folds and the same rows, and the 4-mer is REFITTED alongside them rather than read from
 # rehearsal_binding_* so that all three rungs are measured identically.
 #
-# THE CLAIM IS THE MONOTONE LADDER, not merely survival. The contrast grows with model
-# capacity -- 0.0398, 0.0530, 0.0864 -- so the published 4-mer figure is the CONSERVATIVE
-# end of the range, and a referee asking "would this vanish for a real model?" has the
-# answer in the opposite direction from the one the question expects.
+# THE CLAIM IS *NOT* A CAPACITY LADDER. An earlier version of this block said "the contrast
+# grows with model capacity" and that is WITHDRAWN: it reverses on the ratio scale (R1g's
+# multipliers are 3.08 / 3.51 / 2.38x) and R1h's specification grid ranks the CNN, the MIDDLE
+# rung, as the only model whose protocol effect survives every specification. What R1g
+# establishes is narrower and still worth having: the effect is not a property of the model
+# class, holding for a 256-feature logistic, a 7,089-parameter CNN and a 19.7M-parameter
+# fine-tuned transformer. The additive ordering below is retained as a FACT about the additive
+# scale, not as a claim about capacity.
 r1g_deep_contrast:
   n_datasets: 94
   kmer:
@@ -434,9 +438,10 @@ r1g_deep_contrast:
   # column means, and `>= 55` passed while golden.yaml claimed the weak rung "is stated, not
   # smoothed over". A count that can only be wrong upwards is not gated.
   step_datasets_cnn_minus_kmer: {value: 58, tol: 4}
-  # THE ORDERING ITSELF, ON THE ADDITIVE SCALE. If this ever fails, R1g's claim is "it
-  # survives", not "it grows", and the paper must be reworded rather than the gate relaxed.
-  ladder_must_be_monotone_in_capacity: true
+  # THE ORDERING ON THE ADDITIVE SCALE, kept as a fact and NOT as a capacity claim. The
+  # capacity reading is withdrawn (see the block header and R1g/R1h); this gate exists so the
+  # additive numbers cannot drift, not to license "it grows with capacity".
+  additive_ordering_holds: true
 
   # THE SCALE REVERSAL, AND WHY IT IS GATED RATHER THAN OMITTED.
   #
@@ -693,8 +698,13 @@ r1k_three_arm:
   neg2_must_have_lowest_gain: true
   # THE RANGE IS THE CLAIM.
   min_fold_range_across_protocols: 4.0
-  # AND THE ORDERING IS NOT MONOTONE IN NEGATIVE-SET HARDNESS, which is why the "prefer
-  # dinucleotide matching" recommendation is withdrawn.
+  # THE ORDERING IS MONOTONE IN MEASURED DIFFICULTY, and an earlier version of this comment
+  # said the opposite. Ordered by apparent AUROC -- the only operational definition of
+  # "harder" this study measures -- dinuc 0.6937 < gc 0.8092 < neg2 0.8370, and the
+  # contributions run exactly the other way. neg2 is the EASIEST discrimination, not the
+  # hardest. The "prefer dinucleotide matching" recommendation is withdrawn because what
+  # harder negatives buy is HEADROOM, which the protocol sets, not because the ordering is
+  # irregular. This gate asserts the direction that fact implies.
   contrast_neg2_minus_gc_must_be_negative: true
   # THE TRANSPLANT CANNOT SEPARATE COMPRESSION FROM PROTOCOL HERE, and now there are six
   # residuals rather than four to show it: their SIGN follows the direction of transplant,
@@ -821,6 +831,33 @@ r1n_protocol_or_baseline:
   # And the matched comparison must CONTAIN ZERO, i.e. the contrast does not survive matching.
   matched_must_contain_zero: true
   n_rank_confounded: 94
+
+  # --- THE CORRECTION: R1l's "no common support" was the THREE-WAY intersection -----------
+  #
+  # R1l reported a common support 0.0056 AUROC wide holding 3 of 282 cells and concluded no
+  # matched comparison was possible. That is the intersection of ALL THREE arms. Pairwise:
+  #   gc vs dn    0.073 AUROC,  33/188 cells   (and rank-confounded 94/94)
+  #   gc vs neg2  0.212 AUROC, 130/188 cells   <- the comparison IS possible here
+  #   dn vs neg2  0.006 AUROC,   2/188 cells
+  #
+  # I ran the matched design on the one pair where it cannot work and never on the pair where
+  # it can. Run properly, neg2 vs gc at matched baseline is NEGATIVE with the interval clear
+  # of zero under two independent designs. So a protocol-specific residual DOES exist, the
+  # headline 1.00% averages an answerable pair with an unanswerable one, and R1n's strong form
+  # is weakened rather than supported.
+  pairwise_support_gc_dn:   {value: 0.073, tol: 0.03}
+  pairwise_support_gc_neg2: {value: 0.212, tol: 0.05}
+  incremental_r2_gc_dn:   {value: 0.0005, tol: 0.0015}
+  incremental_r2_gc_neg2: {value: 0.0340, tol: 0.010}
+  matched_neg2_minus_gc:  {value: -0.0081, tol: 0.005}
+  intercept_neg2_minus_gc: {value: -0.0043, tol: 0.004}
+  # THE CLAIM: a residual exists for neg2 and must not be reported as absent.
+  neg2_residual_must_exclude_zero: true
+  # THE MECHANISM: the baseline gradient is a property of composition-matched genomic-background
+  # negatives and DIES for other-RBPs'-sites negatives. That replicates on Horlacher's data too.
+  within_arm_spearman_gc:   {value: -0.545, tol: 0.08}
+  within_arm_spearman_neg2: {value: -0.122, tol: 0.10}
+  gradient_must_die_for_neg2: true
 
 # --- R1o: how much of the "contribution" is one order of composition up? -----------------
 #
@@ -1165,7 +1202,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 462
+  min_domain_checks: 472
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
