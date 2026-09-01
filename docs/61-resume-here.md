@@ -1,7 +1,7 @@
 # Resume here
 
-Updated 2026-08-31, after a four-referee council and two rounds of rebuttal. **450/450 verifier
-checks, 629 tests, 11 figures, 60 tables, 2 manuscript orphans.** Branch
+Updated 2026-08-31, after a four-referee council and two rounds of rebuttal. **473/473 verifier
+checks, 636 tests, 11 figures, 63 tables, 2 manuscript orphans.** Branch
 `r1-scale-check-and-corrected-refit`, **not merged to `master`**. Total spend **~$16 of a $40
 budget**, all of it the GC-arm deep sweep; everything since has cost nothing. Working tree clean.
 
@@ -50,9 +50,9 @@ RNA-protein recognition and this paper has none.
 | R1i | 94 datasets are **79 proteins**; within-protein r **+0.924**; intervals x1.05–1.23; no conclusion changes | — |
 | R1j | **40.1%** of negatives untranscribed but BALANCED across arms (p=0.64); excess **−0.0043**, 89.7% survives | — |
 | R1k | three protocols, **5.4-fold range**; neg2 lowest at 0.53x | **f10** |
-| R1l | protocol and baseline confounded by construction: common support **0.0056 AUROC**, 3 of 282 cells | — |
+| R1l | protocol and baseline are largely confounded. **CORRECTED:** the 0.0056 AUROC / 3-of-282 figure was the THREE-WAY intersection; pairwise gc-vs-neg2 overlaps 0.212 and 130/188 | — |
 | **R1m** | **no rescaling reaches protocol independence**; floor **2.00x** [1.67, 2.46], interval excludes 1. THIS EARNS THE TITLE | — |
-| **R1n** | the baseline is the thing: protocol label adds **1.0%**, baseline adds **11.0%**. Natural experiment: where neg2 LOWERS the baseline the sign reverses (−0.0212 → **+0.0028**). Matched on baseline, dn−gc = **−0.0087 [−0.0265, +0.0122]** | — |
+| **R1n** | the baseline carries MOST of it: protocol label adds **1.0%** overall, baseline **11.0%**. But decomposed by pair it is 0.05% (gc/dn) vs **3.40%** (gc/neg2), and at matched baseline neg2−gc = **−0.0081 [−0.0130, −0.0036]**, so a protocol-family residual DOES exist. Mechanism: the gradient is a property of composition-matched negatives (−0.545, −0.462) and dies for other-RBPs'-sites (−0.122 n.s.) | — |
 | R1o | order-3 baseline removes **64%** of the contrast -- but the fold range survives (2.67x → 2.62x) | — |
 | **R1p** | **EXTERNAL VALIDATION.** Horlacher's own negatives, their folds, 45 datasets: range **2.38x** vs our 2.50x, gradient replicates (rho −0.372, p=0.012). **BUT the sign does not reverse there**, so R1n's strong form is ours only | — |
 
@@ -67,8 +67,10 @@ RNA-protein recognition and this paper has none.
 4. **"The ordering is not monotone in negative-set hardness"** -- FALSE. Ordered by measured
    difficulty all three orderings are perfectly monotone; neg2 is the EASIEST discrimination,
    not the hardest. I had ranked protocols by "bias-awareness", which is subjective.
-5. **"The protocol label carries essentially no information"** -- holds on our windows, NOT on
-   Horlacher's (R1p). Weakened to "most of".
+5. **"The protocol label carries essentially no information"** -- WITHDRAWN. At matched
+   baseline neg2 costs −0.0081 [−0.0130, −0.0036] under two designs. The label carries *little*
+   for composition-matched pairs (0.05%) and real information for the other-RBPs'-sites family
+   (3.40%). R1p's "failure to replicate" was the same residual, same protocol family.
 6. **"protocol effect is +0.0188 to +0.0313"** -- superseded; not identified.
 
 ## WHAT IS LEFT
@@ -78,7 +80,18 @@ RNA-protein recognition and this paper has none.
 2. **Cut it.** Twelve result sections is at least five too many. `docs/65` carries the framing
    reviewer's specific main-text / supplementary / delete split, and flags ~1,000 words of
    "an earlier draft said X" passages that belong in a response letter, not the paper.
-3. **Billing-ID scrub, git remote, push.**
+3. **Package for submission.** Billing IDs are now scrubbed and gated by a test, and a LICENSE
+   exists. Still to do: git remote and push; a Zenodo deposit; Supplementary Table S1 joining
+   the 95 datasets to their ENCFF/ENCSR accessions (recoverable from `config/panel_full*.tsv`);
+   a `docs/METHODS.md` lifting the negative matcher's hard-coded parameters (`pool_multiple=8`,
+   `pool_min=1500`, greedy cKDTree k=40, L1 over dinucleotide COUNTS) into prose; an AI-use
+   disclosure sentence (84 of 101 commits carry a Co-Authored-By trailer); `pdf.fonttype = 42`
+   before re-exporting figures, which currently embed Type 3; and f0's ClinVar panel, which
+   still advertises a retracted analysis.
+
+**Also missing and it blocks drafting:** `docs/60` has NO write-up for R1j, R1m, R1n, R1o or
+R1q -- which includes the result that earns the title and the thesis itself. Their numbers live
+only in committed tables and golden.yaml comments.
 
 ## STANDING CONSTRAINTS
 

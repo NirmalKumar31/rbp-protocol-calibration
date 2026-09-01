@@ -174,7 +174,7 @@ internet access to every other worker for no reason.
 ## Step 4. Verify
 
 ```bash
-./run.sh stage 14
+./run.sh stage 15
 ```
 
 Every claim in `config/golden.yaml` is asserted with an explicit tolerance. Tolerances

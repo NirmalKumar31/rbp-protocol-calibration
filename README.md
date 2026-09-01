@@ -23,7 +23,7 @@ headline AUROC, and never compare contributions measured under different protoco
 export GOOGLE_CLOUD_PROJECT=your-new-project
 ./run.sh preflight     # spends nothing, gates everything
 ./run.sh all           # pauses at each paid stage
-./run.sh stage 14      # verify against config/golden.yaml
+./run.sh stage 15      # verify against config/golden.yaml
 ```
 
 Full procedure: **[docs/REPRODUCE.md](docs/REPRODUCE.md)**.

@@ -82,38 +82,58 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--store", default=str(ROOT.parent / "rbp-store"))
     p.add_argument("--n", type=int, default=30, help="size-stratified subsample")
+    p.add_argument("--from-cache", action="store_true",
+                   help="rebuild the summary from the committed per-dataset table. THE DEFAULT "
+                        "PATH IN run.sh, because the window store is not published and running "
+                        "without it on a clean clone silently produced an EMPTY table over the "
+                        "committed evidence and then crashed.")
     a = p.parse_args()
     warnings.filterwarnings("ignore")
     store = Path(a.store)
 
-    panel = pd.read_csv(TABLES / "rehearsal_binding_gc.csv").sort_values("pairs")
-    step = max(len(panel) // a.n, 1)
-    sub = panel.iloc[::step].head(a.n)
+    per = TABLES / "baseline_order_per_dataset.csv"
+    if a.from_cache:
+        t = pd.read_csv(per)
+        if t.empty:
+            sys.exit(f"{per} is empty; regenerate it with --store")
+    else:
+        # FAIL LOUDLY RATHER THAN SILENTLY. The window store is ~3 GB and is not published, and
+        # missing files used to be skipped one by one -- so on a clean clone this wrote an EMPTY
+        # table over the committed evidence and then crashed on a zero-length bootstrap.
+        if not (store / "processed" / "gc").exists():
+            sys.exit(f"no window store at {store}. It is ~3 GB and is not published; use "
+                     f"--from-cache to rebuild the summary from the committed per-dataset "
+                     f"table instead.")
+        panel = pd.read_csv(TABLES / "rehearsal_binding_gc.csv").sort_values("pairs")
+        step = max(len(panel) // a.n, 1)
+        sub = panel.iloc[::step].head(a.n)
 
-    rows = []
-    for i, r in enumerate(sub.itertuples(), 1):
-        rec, ok = {"dataset": r.dataset, "protein": r.protein, "cell": r.cell}, True
-        for arm, sd in ARMS.items():
-            f = store / sd / r.cell / r.protein / "dataset.tsv"
-            if not f.exists():
-                ok = False
-                break
-            d = pd.read_csv(f, sep="\t")
-            sc, _, _ = kmer_oof(d.seq_rna.values, d.label.values, d.fold.values, k=4)
-            m = ~np.isnan(sc)
-            seqs, y, fo = d.seq_rna.values[m], d.label.values[m], d.fold.values[m]
-            z = standardise(sc[m]).reshape(-1, 1)
-            for order in (2, 3):
-                X = composition(seqs, order)
-                rec[f"gain{order}_{arm}"] = (oof_auc(np.hstack([X, z]), y, fo)
-                                             - oof_auc(X, y, fo))
-        if ok:
-            rows.append(rec)
-            log(f"[{i:3d}/{len(sub)}] {r.dataset:18s} "
-                + "  ".join(f"{k} {rec[f'gain2_{k}']:+.4f}->{rec[f'gain3_{k}']:+.4f}"
-                            for k in ARMS))
-    t = pd.DataFrame(rows)
-    t.to_csv(TABLES / "baseline_order_per_dataset.csv", index=False)
+        rows = []
+        for i, r in enumerate(sub.itertuples(), 1):
+            rec, ok = {"dataset": r.dataset, "protein": r.protein, "cell": r.cell}, True
+            for arm, sd in ARMS.items():
+                f = store / sd / r.cell / r.protein / "dataset.tsv"
+                if not f.exists():
+                    ok = False
+                    break
+                d = pd.read_csv(f, sep="\t")
+                sc, _, _ = kmer_oof(d.seq_rna.values, d.label.values, d.fold.values, k=4)
+                m = ~np.isnan(sc)
+                seqs, y, fo = d.seq_rna.values[m], d.label.values[m], d.fold.values[m]
+                z = standardise(sc[m]).reshape(-1, 1)
+                for order in (2, 3):
+                    X = composition(seqs, order)
+                    rec[f"gain{order}_{arm}"] = (oof_auc(np.hstack([X, z]), y, fo)
+                                                 - oof_auc(X, y, fo))
+            if ok:
+                rows.append(rec)
+                log(f"[{i:3d}/{len(sub)}] {r.dataset:18s} "
+                    + "  ".join(f"{k} {rec[f'gain2_{k}']:+.4f}->{rec[f'gain3_{k}']:+.4f}"
+                                for k in ARMS))
+        t = pd.DataFrame(rows)
+        if t.empty:
+            sys.exit("no dataset could be built; refusing to overwrite the committed table")
+        t.to_csv(per, index=False)
 
     out = []
     rng = np.random.default_rng(0)

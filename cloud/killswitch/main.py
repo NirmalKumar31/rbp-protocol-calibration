@@ -18,7 +18,7 @@ re-enable, never lost data.
 RE-ENABLING IS DELIBERATELY MANUAL:
 
     gcloud billing projects link $PROJECT_ID \
-      --billing-account=017994-4FC1D0-8D5176
+      --billing-account=$BILLING_ACCOUNT
 
 If this could re-enable itself the guardrail would be pointless.
 

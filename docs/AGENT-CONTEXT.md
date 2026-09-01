@@ -23,7 +23,7 @@ finishes. **A near-miss deleted it once** -- see §6.
 | | project | notes |
 |---|---|---|
 | original | `rbp-composition-2026` | holds the 485 SpliceBERT checkpoints, ~$31 of GPU time |
-| rebuild | `rbp-repro-2026` | created 2026-08-25, same billing account `017994-4FC1D0-8D5176` |
+| rebuild | `rbp-repro-2026` | created 2026-08-25, same billing account `XXXXXX-XXXXXX-XXXXXX` |
 | Modal (old) | default profile | $30 credit exhausted, ~$6 out of pocket spent |
 | Modal (new) | profile `meghanasai1802` | $30 credit, secret `rbp-gcp` created and verified |
 
