@@ -20,9 +20,15 @@ blind spot:** it only checks values written to three or more decimals, because t
 are too saturated to discriminate, so a percentage written as "55.2%" is invisible to it and has
 to be checked by hand.
 
-**Working title:** *There is no protocol-independent measure of what a sequence model
-contributes: a nested decomposition under three negative-set protocols across 94 ENCODE eCLIP
-datasets*
+**Working title:** *What a sequence model adds over composition is set by the benchmark's
+headroom: a three-protocol calibration across 94 ENCODE eCLIP datasets*
+
+*Framing note.* An earlier title was "There is no protocol-independent measure of what a
+sequence model contributes". Two independent reviewers recommended against it for the same
+reason: a universal negative invites a reader to go find a counterexample, and three protocols
+cannot support a universal quantifier. The calibration framing states the same evidence, keeps
+the negative as the closing line rather than the title, and is the only framing in which the
+mechanism (Spearman −0.60 against the baseline) is an asset rather than a confession.
 
 **Venue:** bioRxiv immediately; then *NAR Genomics & Bioinformatics* (Methods/benchmarking).
 
@@ -30,17 +36,22 @@ datasets*
 
 ## The one-sentence claim
 
-> **There is no protocol-independent contribution of a sequence model.** Across 94 ENCODE eCLIP
-> datasets, holding the model, the positives, the folds and the estimator fixed and changing
-> only how the negative windows were built, the *nested contribution* of a 4-mer model over a
-> 19-feature composition baseline measures **+0.0122**, **+0.0265** or **+0.0663 AUROC** -- a
-> **5.4-fold range** -- under three defensible protocols. Apparent AUROC moves the opposite way
-> from the contribution: dinucleotide matching *lowers* it by **0.1095** in 94/94 while raising
-> the contribution 2.9x. And the ordering is not "harder negatives reveal more": the field's own
-> bias-aware protocol, sampling negatives from other RBPs' binding sites, reveals the **least**
-> of the three, at **0.53x** the GC-matched arm. A benchmark AUROC, and even a baseline-relative
-> contribution, is a joint property of the model and the negative-set construction, and no
-> ranking of protocols by how much they "reveal" survives contact with a third one.
+> **What a sequence model appears to add over composition is set by the benchmark's
+> headroom.** Across 94 ENCODE eCLIP datasets, holding the model, the positives, the folds and
+> the estimator fixed and changing only how the negative windows were built, the *nested
+> contribution* of a 4-mer model over a 19-feature composition baseline measures **+0.0663**,
+> **+0.0265** or **+0.0122 AUROC** under three protocols -- a **5.4-fold range**
+> [4.4, 6.6]. It falls monotonically as the composition baseline rises (0.6274 / 0.7827 /
+> 0.8248; pooled Spearman **−0.60** over 282 protocol-dataset cells), while apparent AUROC
+> moves the *opposite* way: dinucleotide matching lowers it by **0.1095** in **94/94** while
+> raising the contribution. **No rescaling of AUROC recovers a protocol-free quantity** --
+> across eight monotone transforms the range never falls below **2.00x** [1.67, 2.46], and the
+> transform achieving that floor divides by the protocol's own baseline rather than rescaling
+> the model. The practical consequence is a two-number report: state the composition-only
+> AUROC under the same protocol alongside every headline AUROC, and never compare
+> contributions measured under different protocols. A headline AUROC, and even a
+> baseline-relative contribution, is a joint property of a model and a benchmark's
+> negative-set construction.
 
 **Deliberately NOT in the one-sentence claim, after two rounds of statistical review.** The
 decomposition into "compression" and "protocol effect" is a supporting sensitivity analysis,
@@ -620,9 +631,25 @@ one protein's sites from another's is largely a composition task.
 two-point contrast between two variants of one design.
 
 *Kills:* "prefer dinucleotide matching, it reveals more of the model's contribution" is
-**withdrawn**. The field's own bias-aware protocol reveals the least. There is no ordering of
-protocols by how much they reveal, and any recommendation of that shape would have been an
-artifact of testing exactly two.
+**withdrawn**, and the reason is subtler than it first appeared.
+
+**A correction I got wrong and a referee caught.** An earlier version of this section claimed
+the ordering is NOT monotone in negative-set hardness, because the "bias-aware" protocol
+reveals the least. That is false. Ordered by *measured* difficulty rather than by how principled
+the protocol sounds, all three orderings are perfectly monotone:
+
+| | dinuc | GC | neg2 |
+|---|---|---|---|
+| composition alone | 0.6274 | 0.7827 | 0.8248 |
+| apparent AUROC | 0.6937 | 0.8092 | **0.8370** |
+| nested contribution | **0.0663** | 0.0265 | **0.0122** |
+
+**neg2 is the EASIEST of the three discriminations, not the hardest.** Telling one protein's
+sites from another's is an easier task than telling them from matched genomic background, and
+the contribution falls accordingly. So "harder negatives reveal more" is exactly true, and the
+recommendation dies for a different reason: what "harder" buys is headroom, and headroom is set
+by the protocol, so the advice reduces to "choose the protocol that leaves your baseline
+weakest", which is a statement about the benchmark and not about the model.
 
 **And it shows the decomposition cannot be rescued.** With three arms there are six transplant
 residuals rather than four, and **their sign follows the direction of transplant**: carrying an

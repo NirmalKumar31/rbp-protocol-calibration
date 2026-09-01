@@ -83,7 +83,13 @@ def main():
     df1, df2 = D.shape[1], len(y) - Xb.shape[1] - D.shape[1]
     F = ((ssb - ssa) / df1) / (ssa / df2)
     p = float(1 - fdist.cdf(F, df1, df2))
-    rows += [{"check": "R2, cubic in composition baseline alone", "value": 1 - ssb / tss},
+    # dataset fixed effects too, so every number quoted in the manuscript has a source
+    DS = pd.get_dummies(long.ds, drop_first=True).values.astype(float)
+    _, ssf = ols(np.column_stack([Xb, DS]), y)
+    _, ssfa = ols(np.column_stack([Xb, DS, D]), y)
+    rows += [{"check": "R2, baseline plus dataset fixed effects", "value": 1 - ssf / tss},
+             {"check": "R2, baseline plus dataset FE plus protocol", "value": 1 - ssfa / tss},
+             {"check": "R2, cubic in composition baseline alone", "value": 1 - ssb / tss},
              {"check": "R2, plus protocol dummies", "value": 1 - ssa / tss},
              {"check": "F statistic, protocol beyond baseline", "value": float(F)},
              {"check": "p value, protocol beyond baseline", "value": p}]
@@ -97,6 +103,10 @@ def main():
               f"{q[a].quantile(.10):.3f}-{q[a].quantile(.90):.3f}")
         rows.append({"check": f"composition baseline median, {a} arm",
                      "value": float(q[a].median())})
+        rows.append({"check": f"composition baseline 10th percentile, {a} arm",
+                     "value": float(q[a].quantile(.10))})
+        rows.append({"check": f"composition baseline 90th percentile, {a} arm",
+                     "value": float(q[a].quantile(.90))})
     lo = max(q[a].quantile(.10) for a in ARMS)
     hi = min(q[a].quantile(.90) for a in ARMS)
     width = max(hi - lo, 0.0)
@@ -132,6 +142,23 @@ def main():
         rows.append({"check": f"residual after the constant-increment model, {a} arm",
                      "value": resid})
         print(f"    {a:5s} residual {resid:+.4f}")
+
+    # THE SPEARMAN IS PARTLY BETWEEN-ARM, and a statistician will decompose it, so do it here.
+    from scipy.stats import spearmanr
+    rho_all, _ = spearmanr(long.comp, long.gain)
+    cen = long.copy()
+    cen["comp"] = cen.comp - cen.groupby("arm").comp.transform("mean")
+    cen["gain"] = cen.gain - cen.groupby("arm").gain.transform("mean")
+    rho_c, _ = spearmanr(cen.comp, cen.gain)
+    rows += [{"check": "spearman(baseline, gain), pooled", "value": float(rho_all)},
+             {"check": "spearman(baseline, gain), arm-centred", "value": float(rho_c)}]
+    print(f"\n  Spearman pooled {rho_all:+.3f}   arm-centred {rho_c:+.3f}")
+    for a in ARMS:
+        m = long.arm == a
+        r, pv = spearmanr(long.comp[m], long.gain[m])
+        rows.append({"check": f"spearman(baseline, gain), within {a} arm", "value": float(r),
+                     "note": f"p={pv:.3f}"})
+        print(f"    within {a:5s} {r:+.3f}  p={pv:.3f}")
 
     pd.DataFrame(rows).to_csv(TABLES / "baseline_confounding.csv", index=False)
     print("\nwrote baseline_confounding.csv")

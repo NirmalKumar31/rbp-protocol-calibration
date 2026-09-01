@@ -1,8 +1,3 @@
 line,value,context
-652,0.8243,"**0.4065**, F(2,276) = 2.55, **p = 0.080**. With dataset fixed effects, 0.8243 → 0.8301,"
-652,0.8301,"**0.4065**, F(2,276) = 2.55, **p = 0.080**. With dataset fixed effects, 0.8243 → 0.8301,"
-661,0.724,| dinucleotide-matched | 0.610 | 0.564–0.724 |
-662,0.931,| GC-matched | 0.780 | 0.652–0.931 |
-663,0.937,| neg2 | 0.815 | 0.719–0.937 |
-732,0.127853,`share_m = C / gain_m` where `C = mean(composition_auroc) − 0.5 = 0.127853` is identical across
-733,1.648166,"models, so `share_kmer / share_SB == gain_SB / gain_kmer` exactly, **1.648166 both ways to 6"
+759,0.127853,`share_m = C / gain_m` where `C = mean(composition_auroc) − 0.5 = 0.127853` is identical across
+760,1.648166,"models, so `share_kmer / share_SB == gain_SB / gain_kmer` exactly, **1.648166 both ways to 6"

@@ -753,6 +753,39 @@ r1l_baseline_confounding:
   residual_neg2: {value: -0.0143, tol: 0.008}
   residuals_must_be_ordered: true
 
+# --- R1m: no rescaling of AUROC removes the protocol dependence --------------------------
+#
+# THE FIRST OBJECTION A REFEREE RAISES AGAINST THE TITLE. The paper claims the measured
+# contribution is protocol-dependent, using a BOUNDED statistic across three protocols whose
+# baselines differ by 0.20 AUROC. Is the range just the bounded scale?
+#
+# "Some transform would remove it" is an existential claim, so it needs a search, not an
+# argument. Eight monotone transforms, fold range over the three protocol means, intervals
+# bootstrapping the 79 PROTEINS per R1i.
+#
+# THE FLOOR IS 2.00x [1.67, 2.46] AND IT EXCLUDES 1. The transform achieving it divides by the
+# baseline's remaining headroom, which is not a rescaling of the model's output at all -- it is
+# a rescaling by the protocol's own baseline. The only way to shrink protocol dependence is to
+# divide it out by hand using the quantity the protocol sets.
+#
+# THIS IS THE ANALYSIS THAT COULD NOT LOSE. Had a transform collapsed the range, the paper
+# would have become "here is the protocol-independent coordinate, use it" -- better and more
+# citable. It did not, so the title stands with a search behind it.
+r1m_scale_sweep:
+  n_transforms: 8
+  fold_range_raw:        {value: 5.42, tol: 0.40}
+  fold_range_dprime:     {value: 3.18, tol: 0.35}
+  fold_range_logit:      {value: 2.72, tol: 0.35}
+  fold_range_headroom:   {value: 2.00, tol: 0.30}
+  fold_range_excess:     {value: 18.18, tol: 3.0}
+  minimum_fold_range:    {value: 2.00, tol: 0.30}
+  # THE CLAIM. No transform reaches protocol independence, so the floor must stay clear of 1.
+  min_floor_fold_range: 1.30
+  floor_ci_must_exclude_one: true
+  # Somers' D is a linear rescale of AUROC, so its fold range MUST equal the raw one exactly.
+  # If it ever differs, the sweep has a bug.
+  max_somers_raw_difference: 1.0e-9
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -975,7 +1008,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 396
+  min_domain_checks: 406
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

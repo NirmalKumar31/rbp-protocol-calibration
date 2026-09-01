@@ -1,16 +1,21 @@
-# RBP composition confound: reproducible rebuild
+# RBP negative-set calibration: a reproducible rebuild
 
-Negative-set construction, not architecture, determines what an RBP binding benchmark
-measures. Correcting it lowers headline scores while **doubling** the share attributable to
-learning, and that learned signal is positionally localised and partly transfers to disease
-variants.
+**What a sequence model appears to contribute is set by how the benchmark's negatives were
+built.** Holding the model, the positives, the folds and the estimator fixed and changing only
+the negative-set protocol, the same 4-mer's contribution over a composition baseline moves
+**5.4-fold** (95% CI 4.4 to 6.6). No rescaling of AUROC removes it: across eight monotone
+transforms the range never falls below **2.00x** [1.67, 2.46].
+
+**Report the composition-only AUROC under the same negative-set protocol alongside every
+headline AUROC, and never compare contributions measured under different protocols.**
 
 | | result |
 |---|---|
-| **R1** | Dinucleotide-matched negatives cost 0.107 AUROC vs GC-matched, on every dataset. Gain over a composition-only baseline **rises** +0.027 to +0.064 |
-| **R2** | composition 0.628 < k-mer 0.688 < CNN 0.708 < SpliceBERT 0.809, identical splits |
-| **R3** | SpliceBERT's sensitivity is more positionally concentrated; reversed on zero datasets |
-| **R4** | ClinVar ladder: k-mer 0.529 < wrong-protein head 0.656 < right-protein head 0.829 (conservation 0.906) |
+| **R1** | Three protocols, one model: nested contribution **+0.0663** (dinucleotide-matched), **+0.0265** (GC-matched), **+0.0122** (negatives = other RBPs' sites). Apparent AUROC moves the OPPOSITE way, falling 0.1095 in 94/94 while the contribution rises 2.5x |
+| **R1m** | No monotone rescaling reaches protocol independence; floor **2.00x**, achieved by dividing by the baseline's own headroom |
+| **R1l** | Protocol and baseline are confounded by construction: their baseline ranges overlap in a window 0.0056 AUROC wide containing 3 of 282 cells |
+| **R1g** | Holds for three model classes: k-mer **+0.0398**, CNN **+0.0530**, SpliceBERT **+0.0864**. The multiplier is a property of the PROTEIN (68.9% of variance) not the model (1.5%) |
+| **R1c / R1j** | Two artifacts bounded against matched placebos: strand **−0.0055** (85% survives), untranscribed negatives **−0.0043** (90% survives) |
 
 ## Run it
 

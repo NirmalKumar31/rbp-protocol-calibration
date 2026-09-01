@@ -333,7 +333,11 @@ def summarise(d, n_boot=2000, seed=0):
     for arm in ("gc", "dn"):
         col = f"coverage_{arm}"
         rows.append({"model": "-", "quantity": f"min_row_coverage_{arm}",
-                     "value": float(d[col].min()) if col in d else 1.0,
+                     # NOT `else 1.0`. Defaulting an absent column to perfect coverage means
+                     # DELETING the evidence asserts the strongest possible claim about it --
+                     # the same shape as the 2026-08 failure where deleting a file passed.
+                     # NaN propagates into a failing gate instead.
+                     "value": float(d[col].min()) if col in d else float("nan"),
                      "ci_low": np.nan, "ci_high": np.nan, "n": len(d)})
     return pd.DataFrame(rows)
 

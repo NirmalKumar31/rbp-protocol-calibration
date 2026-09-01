@@ -1390,6 +1390,49 @@ def verify_baseline_confounding(T, g):
                "dn > 0 > neg2")
 
 
+def verify_scale_sweep(T, g):
+    """R1m: the search for a protocol-independent rescaling, and its failure."""
+    print("\nR1m scale sweep  (does ANY rescaling remove the protocol dependence?)")
+    d = T.get("scale_sweep.csv")
+    if d is None:
+        return record(False, "scale_sweep.csv present", "MISSING",
+                      "run scripts/scale_sweep.py")
+    spec = g["r1m_scale_sweep"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    n = int(d.check.str.startswith("fold range,").sum())
+    record(n == spec["n_transforms"], "transforms searched", n, spec["n_transforms"])
+    for k, gk in (("fold range, raw AUROC gain", "fold_range_raw"),
+                  ("fold range, d' increment (binormal)", "fold_range_dprime"),
+                  ("fold range, logit increment", "fold_range_logit"),
+                  ("fold range, headroom-normalised, g/(1-comp)", "fold_range_headroom"),
+                  ("fold range, excess-normalised, g/(comp-0.5)", "fold_range_excess"),
+                  ("minimum fold range over all transforms", "minimum_fold_range")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+
+    floor = must("minimum fold range over all transforms")
+    if floor is not None:
+        at_least("NO transform reaches protocol independence: the floor stays clear of 1",
+                 floor, spec["min_floor_fold_range"])
+    lo = must("fold range, headroom-normalised, g/(1-comp)", "ci_low")
+    if lo is not None and spec["floor_ci_must_exclude_one"]:
+        record(lo > 1.0, "the best coordinate's interval EXCLUDES 1, so it is a better "
+                         "coordinate and not an invariant", f"{lo:.2f}", "> 1")
+    raw = must("fold range, raw AUROC gain")
+    som = must("fold range, Somers' D gain")
+    if raw is not None and som is not None:
+        at_most("Somers' D is a linear rescale so its fold range must EQUAL the raw one",
+                abs(raw - som), spec["max_somers_raw_difference"])
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -1964,7 +2007,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
