@@ -4,7 +4,7 @@
 If a number in the manuscript disagrees with this file, this file is wrong and must be fixed,
 not the manuscript quietly edited.
 
-**What the harness does and does not establish.** `scripts/verify.py` runs **326 numeric
+**What the harness does and does not establish.** `scripts/verify.py` runs **378 numeric
 assertions** against `config/golden.yaml`, and the number of assertions that ran is itself
 asserted, so a gate cannot silently skip. Most of those are **regression gates**: they detect
 that a number changed, not that it was correctly derived. Two are stronger.
@@ -20,8 +20,9 @@ blind spot:** it only checks values written to three or more decimals, because t
 are too saturated to discriminate, so a percentage written as "55.2%" is invisible to it and has
 to be checked by hand.
 
-**Working title:** *What GC-matched negatives and ClinVar AUROC actually measure: trivial-baseline
-calibration of RNA-binding-protein models across 94 ENCODE eCLIP datasets*
+**Working title:** *There is no protocol-independent measure of what a sequence model
+contributes: a nested decomposition under three negative-set protocols across 94 ENCODE eCLIP
+datasets*
 
 **Venue:** bioRxiv immediately; then *NAR Genomics & Bioinformatics* (Methods/benchmarking).
 
@@ -583,7 +584,7 @@ intervals throughout.**
 
 ## R1k: a third protocol, and the prediction it falsified
 
-`three_arm_contrast.csv`, `three_arm_per_dataset.csv`, n = 94, 4-mer model only.
+`three_arm_contrast.csv`, `three_arm_per_dataset.csv`, n = 94, 4-mer model only. Figure **f10**, which is now the paper's central figure.
 
 Two protocols invite the reply that both are variants of one flawed design: composition-matched
 unbound genomic windows, carrying everything R1c and R1j say about them. So a third was built

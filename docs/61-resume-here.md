@@ -1,8 +1,9 @@
 # Resume here
 
-Updated 2026-08-30. **284/284 verifier checks, 615 tests, 10 figures, 44 tables, 2 manuscript
-orphans.** Branch `r1-scale-check-and-corrected-refit`, **not merged to `master`**. Total spend
-~$54 (~$38 before R1g, ~$16 of Modal credit for the GC-arm deep sweep). Working tree clean.
+Updated 2026-08-31 after a four-referee council and two rounds of rebuttal. **378/378 verifier
+checks, 624 tests, 11 figures, 50+ tables, 2 manuscript orphans.** Branch
+`r1-scale-check-and-corrected-refit`, **not merged to `master`**. Total spend ~$54 (~$16 of it
+on the GC-arm deep sweep; everything since has cost nothing). Working tree clean.
 
 Verify offline with:
 `/Users/nirmalkumar/Deep\ Learning\ Project/rna-binding-proteins/.venv/bin/python scripts/verify.py --local results/tables`
@@ -22,8 +23,9 @@ Also deferred by the author: README rewrite, billing-ID scrub, git remote and pu
 
 ## THE PAPER
 
-**Title (working):** *What a benchmark AUROC measures depends on how its negatives were built: a
-nested decomposition across 94 ENCODE eCLIP datasets*
+**Title (working):** *There is no protocol-independent measure of what a sequence model
+contributes: a nested decomposition under three negative-set protocols across 94 ENCODE eCLIP
+datasets*
 **Venue:** *NAR Genomics & Bioinformatics*, Methods. Realistic outcome: Minor to Major revision.
 
 | section | claim | figure |
@@ -34,7 +36,11 @@ nested decomposition across 94 ENCODE eCLIP datasets*
 | **R1d** | replicates across cell lines **r = +0.909**; efficiency **1.31x**. LIMITATION GATED: partial r = **+0.332** [-0.116, +0.690] once total gain is removed | f4 |
 | **R1e** | rebuilt from raw sequence, difference **1.2e-06**; positive at every k=3..6; k5 - k4 = **+0.0001**, p=0.84 | f6 |
 | **R1f** | CDS **+0.0635** vs intron **+0.0316**, p=1.5e-05; mechanism confirmed. LIMITATION GATED: partial rho +0.082, p=0.435 | f7 |
-| **R1g** | **the contrast is not a property of the model class and GROWS with capacity**: k-mer **+0.0398**, CNN **+0.0530**, SpliceBERT **+0.0864** [+0.0788, +0.0943] in **94/94**. Paired steps CNN−kmer **+0.0132** [+0.0068, +0.0197], SpliceBERT−CNN **+0.0334**, SpliceBERT−kmer **+0.0466** in 94/94. Protocol effect rises too, +0.0188–0.0314 to +0.0253–0.0543. Refit 4-mer reproduces published R1 to 7.05e-05 | f9 |
+| **R1g** | **not a property of the model class**: k-mer **+0.0398**, CNN **+0.0530**, SpliceBERT **+0.0864** in **94/94**. But the ladder REVERSES on the ratio scale: multipliers 3.08x / 3.51x / **2.38x**, so "grows with capacity" is WITHDRAWN | f9 |
+| **R1h** | the protocol-effect decomposition is **not identified for any model**. Specification grid: k-mer 4/6, CNN 6/6, SpliceBERT 1/6. The odds link reverses the sign and is named | — |
+| **R1i** | 94 datasets are only **79 proteins**; within-protein r = **+0.924**; every interval was too narrow by up to **1.23x**; no conclusion changes | — |
+| **R1j** | **40.1%** of negatives are untranscribed, but BALANCED across arms (+0.000012, p=0.64), so it cannot manufacture the contrast. Excess **−0.0043** [−0.0069, −0.0018], **89.7%** survives | — |
+| **R1k** | **THE NEW THESIS.** Three protocols, **5.4-fold range** (+0.0122 / +0.0265 / +0.0663). The field's own bias-aware protocol reveals the **LEAST**, 0.53x GC. Gain tracks the composition baseline at **rho −0.60** | **f10** |
 | R2 | methods table only, citing Horlacher 2023 as replication | f2 |
 
 **CUT and not to be resurrected:** R3, R4/R4b/R4c, R4d, R5, R6, the composition-share framing.

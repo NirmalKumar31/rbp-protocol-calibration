@@ -578,8 +578,72 @@ def f9():
     fig.tight_layout()
     save(fig, "f9_deep_contrast")
 
+# --- f10: R1k, the paper's central figure ------------------------------------------------
+#
+# Three protocols, one model, one set of positives. The figure has to carry the whole thesis,
+# so it makes exactly three points and no others. (a) the measured contribution spans 5.4x and
+# the ordering is NOT by negative-set hardness -- the field's own bias-aware protocol is the
+# LOWEST. (b) why: the contribution tracks how much room the composition baseline leaves, which
+# is the circularity critique adopted rather than deflected. (c) it is not an averaging
+# artefact -- the reordering happens dataset by dataset.
+
+def f10():
+    t = need("three_arm_per_dataset.csv", "three_arm_contrast.csv")
+    if t is None:
+        return
+    d, s = t
+    q = s.set_index("check")
+    arms = [("dn", "dinucleotide\nmatched"), ("gc", "GC\nmatched"),
+            ("neg2", "other RBPs'\nsites (neg2)")]
+    col = {"dn": COLOR["dinuc"], "gc": COLOR["gc"], "neg2": COLOR["cnn"]}
+    fig, ax = plt.subplots(1, 3, figsize=(10.6, 3.4))
+
+    # a. composition baseline and nested contribution, per protocol
+    x = np.arange(len(arms))
+    for i, (a, _) in enumerate(arms):
+        g = d[f"gain_{a}"]
+        ax[0].bar(i, g.mean(), 0.6, color=col[a], zorder=3)
+        ax[0].errorbar(i, g.mean(), yerr=g.sem(), color="black", lw=1, capsize=3, zorder=4)
+        ax[0].text(i, g.mean() + g.sem() + 0.004, f"{g.mean():+.4f}", ha="center",
+                   fontsize=7.5)
+    ax[0].set_xticks(x, [lbl for _, lbl in arms], fontsize=7.5)
+    ax[0].set_ylabel("nested contribution over composition")
+    ax[0].set_ylim(0, 0.082)
+    ax[0].set_title("a  same model, same positives: 5.4x", loc="left")
+
+    # b. the mechanism: gain falls as the composition baseline rises
+    for a, _ in arms:
+        ax[1].scatter(d[f"comp_{a}"], d[f"gain_{a}"], s=11, color=col[a], alpha=0.65,
+                      edgecolor="white", linewidth=0.25, zorder=3,
+                      label={"dn": "dinuc", "gc": "GC", "neg2": "neg2"}[a])
+    rho = float(q.loc["spearman(composition baseline, nested gain), all arms pooled", "value"])
+    ax[1].axhline(0, color="#cccccc", lw=0.6, zorder=1)
+    ax[1].set_xlabel("composition alone (AUROC)")
+    ax[1].set_ylabel("nested contribution")
+    ax[1].legend(fontsize=7, frameon=False, loc="upper right")
+    ax[1].set_title(f"b  it tracks the headroom, rho = {rho:+.2f}", loc="left")
+
+    # c. per dataset, so it is not an averaging artefact
+    lim = [-0.02, max(d.gain_dn.max(), d.gain_gc.max()) + 0.01]
+    ax[2].plot(lim, lim, color="#999999", lw=0.8, ls="--", zorder=2)
+    ax[2].scatter(d.gain_gc, d.gain_dn, s=12, color=COLOR["dinuc"], alpha=0.7,
+                  edgecolor="white", linewidth=0.25, zorder=3, label="dinuc vs GC")
+    ax[2].scatter(d.gain_gc, d.gain_neg2, s=12, color=COLOR["cnn"], alpha=0.7,
+                  edgecolor="white", linewidth=0.25, zorder=3, label="neg2 vs GC")
+    ax[2].set_xlim(lim)
+    ax[2].set_ylim(lim)
+    ax[2].set_xlabel("nested contribution, GC-matched")
+    ax[2].set_ylabel("nested contribution, other protocol")
+    ax[2].legend(fontsize=7, frameon=False, loc="upper left")
+    up = int((d.gain_dn > d.gain_gc).sum())
+    dn_ = int((d.gain_neg2 < d.gain_gc).sum())
+    ax[2].set_title(f"c  above in {up}/94, below in {dn_}/94", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f10_three_protocols")
+
 FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5,
-           "f6": f6, "f7": f7, "f8": f8, "f9": f9}
+           "f6": f6, "f7": f7, "f8": f8, "f9": f9, "f10": f10}
 
 
 def main():
