@@ -36,22 +36,22 @@ mechanism (Spearman −0.60 against the baseline) is an asset rather than a conf
 
 ## The one-sentence claim
 
-> **What a sequence model appears to add over composition is set by the benchmark's
-> headroom.** Across 94 ENCODE eCLIP datasets, holding the model, the positives, the folds and
-> the estimator fixed and changing only how the negative windows were built, the *nested
-> contribution* of a 4-mer model over a 19-feature composition baseline measures **+0.0663**,
-> **+0.0265** or **+0.0122 AUROC** under three protocols -- a **5.4-fold range**
-> [4.4, 6.6]. It falls monotonically as the composition baseline rises (0.6274 / 0.7827 /
-> 0.8248; pooled Spearman **−0.60** over 282 protocol-dataset cells), while apparent AUROC
-> moves the *opposite* way: dinucleotide matching lowers it by **0.1095** in **94/94** while
-> raising the contribution. **No rescaling of AUROC recovers a protocol-free quantity** --
-> across eight monotone transforms the range never falls below **2.00x** [1.67, 2.46], and the
-> transform achieving that floor divides by the protocol's own baseline rather than rescaling
-> the model. The practical consequence is a two-number report: state the composition-only
-> AUROC under the same protocol alongside every headline AUROC, and never compare
-> contributions measured under different protocols. A headline AUROC, and even a
-> baseline-relative contribution, is a joint property of a model and a benchmark's
-> negative-set construction.
+> **The composition baseline your negative set leaves behind is what determines the
+> measurable contribution of a sequence model. The protocol label carries essentially no
+> information beyond it.** Across 94 ENCODE eCLIP datasets, holding the model, the positives,
+> the folds and the estimator fixed and changing only how the negatives were built, the nested
+> contribution of a 4-mer over a 19-feature composition baseline measures **+0.0663**,
+> **+0.0265** or **+0.0122 AUROC** across three protocols -- a **5.4-fold range** [4.4, 6.6] --
+> and falls monotonically as the baseline rises. **Given the baseline, knowing which protocol
+> produced it adds 1.0% of variance; given the protocol, knowing the baseline adds 11.0%.**
+> Where the two disagree, the baseline wins: in the 27 of 94 datasets where the bias-aware
+> protocol *lowers* the baseline relative to GC matching, its contribution deficit reverses
+> (−0.0212 → **+0.0028**), and matched on baseline the headline dinucleotide-versus-GC contrast
+> falls from +0.0398 to **−0.0087 [−0.0265, +0.0122]**. No rescaling recovers a protocol-free
+> quantity: over eight monotone transforms the range never falls below **2.00x** [1.67, 2.46].
+> The practical consequence is a two-number report -- state the composition-only AUROC under
+> the same protocol alongside every headline AUROC -- and the reason it works is that the
+> baseline is the whole story.
 
 **Deliberately NOT in the one-sentence claim, after two rounds of statistical review.** The
 decomposition into "compression" and "protocol effect" is a supporting sensitivity analysis,

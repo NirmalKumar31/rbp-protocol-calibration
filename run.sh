@@ -300,6 +300,7 @@ s13b_local_analysis() {
   $PY scripts/three_arm_contrast.py --from-cache || die "three-arm contrast"
   $PY scripts/baseline_confounding.py || die "baseline confounding"
   $PY scripts/scale_sweep.py || die "scale sweep"
+  $PY scripts/protocol_or_baseline.py || die "protocol or baseline"
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
   $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"

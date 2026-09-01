@@ -786,6 +786,42 @@ r1m_scale_sweep:
   # If it ever differs, the sweep has a bug.
   max_somers_raw_difference: 1.0e-9
 
+# --- R1n: it is the baseline, not the protocol label -------------------------------------
+#
+# R1l argued protocol and baseline cannot be separated because the arms barely overlap. That
+# was too comfortable. A hostile referee found two places where they DO overlap and asked the
+# question there. The answer is that the protocol label carries essentially no information.
+#
+#   incremental R2 of the protocol label given the baseline:  1.00%
+#   incremental R2 of the baseline given the protocol label: 11.04%
+#
+# THE NATURAL EXPERIMENT. neg2 usually raises the baseline against GC matching, but in 27 of
+# 94 datasets it LOWERS it -- and there the result REVERSES, from -0.0212 to +0.0028. Whichever
+# protocol leaves the lower baseline gets the higher contribution, whichever protocol that is.
+# Within-dataset spearman(delta baseline, delta gain) = -0.664, p = 3e-13.
+#
+# THE MATCHED COMPARISON. Matched on baseline within 0.02 AUROC, dn minus gc is
+# -0.0087 [-0.0265, +0.0122] against a raw +0.0398. The contrast does not survive matching.
+# comp_dn < comp_gc in 94/94, so within a dataset the two arms are rank-confounded by
+# construction and the match has to borrow across datasets; both designs are reported.
+r1n_protocol_or_baseline:
+  incremental_r2_protocol: {value: 0.0100, tol: 0.004}
+  incremental_r2_baseline: {value: 0.1104, tol: 0.020}
+  # The label must stay uninformative relative to the baseline, by a wide margin.
+  max_incremental_r2_protocol: 0.03
+  min_baseline_over_protocol_ratio: 5.0
+  n_discordant_datasets: {value: 27, tol: 3}
+  gain_diff_concordant: {value: -0.0212, tol: 0.006}
+  gain_diff_discordant: {value: 0.0028, tol: 0.005}
+  # THE CLAIM. The sign must FLIP between concordant and discordant datasets, or the natural
+  # experiment shows nothing.
+  discordant_must_reverse_sign: true
+  within_dataset_spearman: {value: -0.664, tol: 0.08}
+  matched_dn_minus_gc: {value: -0.0087, tol: 0.010}
+  # And the matched comparison must CONTAIN ZERO, i.e. the contrast does not survive matching.
+  matched_must_contain_zero: true
+  n_rank_confounded: 94
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -1008,7 +1044,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 406
+  min_domain_checks: 418
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

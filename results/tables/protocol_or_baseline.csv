@@ -1,0 +1,12 @@
+check,value,ci_low,ci_high,n,note
+"incremental R2 of the protocol label, given the baseline",0.00999415781342536,,,,
+"incremental R2 of the baseline, given the protocol label",0.11042740616249412,,,,
+datasets where neg2 raises the composition baseline,67.0,,,,
+"neg2 minus gc gain, concordant datasets",-0.021166846706702807,-0.02693057049360594,-0.015725662293961624,67.0,
+"neg2 higher in, concordant datasets",14.0,,,67.0,
+"neg2 minus gc gain, discordant datasets",0.002805564321136365,-4.249701142831052e-05,0.00628698291424506,27.0,
+"neg2 higher in, discordant datasets",16.0,,,27.0,
+"within-dataset spearman(delta baseline, delta gain)",-0.6639815048947006,,,,p=3.0e-13
+datasets where the dinuc baseline is lower than the GC baseline,94.0,,,,
+"dn minus gc, matched on baseline",-0.008659647363852765,-0.026526543875285382,0.01222479001494242,41.0,
+"dn minus gc, unmatched (the published contrast)",0.03975093841052303,,,,

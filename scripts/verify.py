@@ -1433,6 +1433,72 @@ def verify_scale_sweep(T, g):
                 abs(raw - som), spec["max_somers_raw_difference"])
 
 
+def verify_protocol_or_baseline(T, g):
+    """R1n: the protocol label adds ~1% once the baseline is known. It is the baseline."""
+    print("\nR1n protocol or baseline  (does the protocol label carry information?)")
+    d = T.get("protocol_or_baseline.csv")
+    if d is None:
+        return record(False, "protocol_or_baseline.csv present", "MISSING",
+                      "run scripts/protocol_or_baseline.py")
+    spec = g["r1n_protocol_or_baseline"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    ip = must("incremental R2 of the protocol label, given the baseline")
+    ib = must("incremental R2 of the baseline, given the protocol label")
+    if ip is not None:
+        near("incremental R2 of the protocol label", ip, spec["incremental_r2_protocol"])
+        at_most("the protocol label stays uninformative given the baseline", ip,
+                spec["max_incremental_r2_protocol"])
+    if ib is not None:
+        near("incremental R2 of the baseline", ib, spec["incremental_r2_baseline"])
+    if ip and ib:
+        at_least("the baseline explains far more than the protocol label does", ib / ip,
+                 spec["min_baseline_over_protocol_ratio"])
+
+    n = must("datasets where neg2 raises the composition baseline")
+    if n is not None:
+        record(abs((94 - int(n)) - spec["n_discordant_datasets"]["value"])
+               <= spec["n_discordant_datasets"]["tol"],
+               "datasets where neg2 LOWERS the baseline", 94 - int(n),
+               spec["n_discordant_datasets"]["value"])
+    con = must("neg2 minus gc gain, concordant datasets")
+    dis = must("neg2 minus gc gain, discordant datasets")
+    if con is not None:
+        near("neg2 minus gc, concordant", con, spec["gain_diff_concordant"])
+    if dis is not None:
+        near("neg2 minus gc, discordant", dis, spec["gain_diff_discordant"])
+    if con is not None and dis is not None and spec["discordant_must_reverse_sign"]:
+        record(con < 0 < dis,
+               "THE NATURAL EXPERIMENT: the sign REVERSES where neg2 lowers the baseline, so "
+               "the baseline predicts and the protocol label does not",
+               f"{con:+.4f} -> {dis:+.4f}", "negative -> positive")
+    r = must("within-dataset spearman(delta baseline, delta gain)")
+    if r is not None:
+        near("within-dataset spearman(delta baseline, delta gain)", r,
+             spec["within_dataset_spearman"])
+
+    m = must("dn minus gc, matched on baseline")
+    lo = must("dn minus gc, matched on baseline", "ci_low")
+    hi = must("dn minus gc, matched on baseline", "ci_high")
+    if m is not None:
+        near("dn minus gc matched on baseline", m, spec["matched_dn_minus_gc"])
+    if lo is not None and hi is not None and spec["matched_must_contain_zero"]:
+        record(lo <= 0 <= hi,
+               "the published contrast does NOT survive matching on the baseline",
+               f"[{lo:+.4f}, {hi:+.4f}]", "contains 0")
+    rk = must("datasets where the dinuc baseline is lower than the GC baseline")
+    if rk is not None:
+        record(int(rk) == spec["n_rank_confounded"],
+               "dn vs gc is rank-confounded with the baseline in every dataset", int(rk),
+               spec["n_rank_confounded"])
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -2007,7 +2073,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
