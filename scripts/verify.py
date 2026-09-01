@@ -1499,6 +1499,73 @@ def verify_protocol_or_baseline(T, g):
                spec["n_rank_confounded"])
 
 
+def verify_baseline_order(T, g):
+    """R1o: most of the magnitude is where the baseline stops; the fold range is not."""
+    print("\nR1o baseline order  (is the 'contribution' just one order of composition up?)")
+    d = T.get("baseline_order.csv")
+    if d is None:
+        return record(False, "baseline_order.csv present", "MISSING",
+                      "run scripts/baseline_order.py")
+    spec = g["r1o_baseline_order"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets in the subsample", int(n),
+               spec["n_datasets"])
+    for arm in ("gc", "dn", "neg2"):
+        for order in (2, 3):
+            v = must(f"gain over order-{order} baseline, {arm} arm")
+            if v is not None:
+                near(f"gain over order-{order} baseline, {arm}", v,
+                     spec[f"gain_order{order}_{arm}"])
+    for arm in ("gc", "dn"):
+        v = must(f"fraction removed by order 3, {arm} arm")
+        if v is not None:
+            near(f"fraction removed by order 3, {arm}", v, spec[f"removed_fraction_{arm}"])
+
+    c2 = must("R1 contrast (dn-gc), order-2 baseline")
+    c3 = must("R1 contrast (dn-gc), order-3 baseline")
+    if c2 is not None:
+        near("R1 contrast at order 2 (the subsample's own)", c2, spec["contrast_order2"])
+        # the subsample must reproduce the full panel, or nothing here transfers
+        pub = T.get("scale_check.csv")
+        if pub is not None and "check" in pub.columns:
+            pq = pub.set_index("check")
+            k = "CONTRAST, AUROC scale (published headline)"
+            if k in pq.index:
+                at_most("the subsample reproduces the published R1 contrast",
+                        abs(c2 - float(pq.loc[k, "value"])),
+                        spec["max_subsample_contrast_drift"])
+    if c3 is not None:
+        near("R1 contrast at order 3", c3, spec["contrast_order3"])
+    rf = must("fraction of the R1 contrast removed by order 3")
+    if rf is not None:
+        near("fraction of the R1 contrast removed by order 3", rf,
+             spec["removed_fraction_contrast"])
+        if spec["most_of_the_magnitude_must_be_removable"]:
+            record(rf > 0.4, "MOST of the contrast's magnitude is removable by extending the "
+                             "baseline one order, so 'sequence model' must be qualified",
+                   f"{rf:.0%}", "> 40%")
+
+    f2 = must("fold range across protocols, order-2 baseline")
+    f3 = must("fold range across protocols, order-3 baseline")
+    if f2 is not None:
+        near("fold range at order 2", f2, spec["fold_range_order2"])
+    if f3 is not None:
+        near("fold range at order 3", f3, spec["fold_range_order3"])
+    if f2 is not None and f3 is not None:
+        at_most("THE FOLD RANGE SURVIVES the baseline-order choice, so the paper's claim is "
+                "not an artefact of where the baseline stops", abs(f2 - f3),
+                spec["max_fold_range_shift"])
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -2073,7 +2140,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

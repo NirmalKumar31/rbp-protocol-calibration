@@ -822,6 +822,49 @@ r1n_protocol_or_baseline:
   matched_must_contain_zero: true
   n_rank_confounded: 94
 
+# --- R1o: how much of the "contribution" is one order of composition up? -----------------
+#
+# THE SHARPEST OBJECTION ANYONE MADE ABOUT WHAT THE QUANTITY IS. A bag of 4-mer counts carries
+# no positional information, and the composition baseline stops at order 2. So the headline
+# quantity is definitionally order-3-and-4 composition beyond order-1-and-2 composition, and
+# where the baseline stops is an analyst's choice that nobody had measured the consequences of.
+#
+# MEASURED, on 30 size-stratified datasets whose own R1 contrast is +0.0399 against the
+# published +0.0398, so the subsample is representative:
+#
+#   extending the baseline to order 3 removes 46% (gc), 56% (dn), 55% (neg2) of each arm's
+#   contribution, and 64% of the R1 contrast (+0.0399 -> +0.0143).
+#
+# WHAT IT COSTS: the word "sequence model" must be qualified. What is measured is short-range
+# compositional signal one order above wherever the matcher stopped -- not motif recognition,
+# and nothing positional.
+#
+# WHAT IT DOES NOT COST, AND THIS IS THE POINT: the FOLD RANGE, which is the paper's actual
+# claim, is 2.67x at order 2 and 2.62x at order 3. Everything shrinks proportionally. The
+# magnitude is a function of an analyst's choice; the protocol dependence is not.
+r1o_baseline_order:
+  n_datasets: 30
+  gain_order2_gc:   {value: 0.0351, tol: 0.008}
+  gain_order3_gc:   {value: 0.0188, tol: 0.006}
+  gain_order2_dn:   {value: 0.0750, tol: 0.012}
+  gain_order3_dn:   {value: 0.0331, tol: 0.008}
+  gain_order2_neg2: {value: 0.0280, tol: 0.008}
+  gain_order3_neg2: {value: 0.0126, tol: 0.005}
+  removed_fraction_gc:   {value: 0.46, tol: 0.12}
+  removed_fraction_dn:   {value: 0.56, tol: 0.12}
+  contrast_order2: {value: 0.0399, tol: 0.008}
+  contrast_order3: {value: 0.0143, tol: 0.007}
+  removed_fraction_contrast: {value: 0.64, tol: 0.15}
+  # THE SUBSAMPLE MUST BE REPRESENTATIVE, or none of the above transfers to the full panel.
+  max_subsample_contrast_drift: 0.006
+  # THE CLAIM THAT MUST SURVIVE. A majority of the magnitude is an analyst's choice; the fold
+  # range is not. If the range ever moves materially with baseline order, the paper's central
+  # result is an artefact of where the baseline stops and must be restated.
+  fold_range_order2: {value: 2.67, tol: 0.35}
+  fold_range_order3: {value: 2.62, tol: 0.35}
+  max_fold_range_shift: 0.40
+  most_of_the_magnitude_must_be_removable: true
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -1044,7 +1087,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 418
+  min_domain_checks: 435
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

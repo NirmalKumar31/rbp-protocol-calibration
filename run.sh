@@ -301,6 +301,7 @@ s13b_local_analysis() {
   $PY scripts/baseline_confounding.py || die "baseline confounding"
   $PY scripts/scale_sweep.py || die "scale sweep"
   $PY scripts/protocol_or_baseline.py || die "protocol or baseline"
+  $PY scripts/baseline_order.py --n 30 || die "baseline order"
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
   $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"
