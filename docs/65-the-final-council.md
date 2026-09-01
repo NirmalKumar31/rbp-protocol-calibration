@@ -200,3 +200,102 @@ benchmark that already exists.
 5. Fix the provenance sentences and the stale `audit_manuscript` figures in docs/61.
 6. Re-run the CNN rung both arms on one backend with the seed fix (2/945 banked, resumable).
 7. Build the negative-2 third arm.
+
+---
+
+# Round 3, 2026-08-31: the council that changed the thesis
+
+Three referees: a handling editor, a hostile Referee 2, and a framing/impact adviser. All three
+independently reached the same conclusion, and it was not the one the paper was making.
+
+## What they converged on
+
+**The baseline is the finding; the protocol label is not.** The editor put it as a positive
+reframe, the framing adviser as a calibration paper, Referee 2 as a rejection reason. Same
+statement.
+
+## The three findings that changed the paper
+
+**1. My non-monotonicity claim was false** (editor). `docs/63` called it "the guard against the
+obvious rewrite" and it does not hold. Ordered by MEASURED difficulty:
+
+| | dinuc | GC | neg2 |
+|---|---|---|---|
+| composition alone | 0.6274 | 0.7827 | 0.8248 |
+| apparent AUROC | 0.6937 | 0.8092 | **0.8370** |
+| nested contribution | **0.0663** | 0.0265 | **0.0122** |
+
+Perfectly anti-monotone, 3 for 3. neg2 is the EASIEST discrimination, not the hardest. I had
+ordered protocols by "bias-awareness", which is a subjective ranking, and called the result
+irregular. **"Harder negatives reveal more" is exactly true.**
+
+**2. The protocol label adds 1% once the baseline is known** (Referee 2). R1l had argued
+protocol and baseline cannot be separated because the arms barely overlap. That was too
+comfortable: Referee 2 found two places where they DO overlap.
+
+- incremental R2 of the protocol label given the baseline: **1.00%**; of the baseline given the
+  label: **11.04%**
+- **the natural experiment**: neg2 usually raises the baseline, but in 27 of 94 datasets it
+  lowers it -- and there the result REVERSES, −0.0212 → **+0.0028**
+- matched on baseline within 0.02 AUROC, dn−gc = **−0.0087 [−0.0265, +0.0122]** against a raw
+  +0.0398. The contrast does not survive matching.
+
+This became R1n and then the thesis.
+
+**3. Most of the magnitude is where the baseline stops** (Referee 2). A bag of 4-mers has no
+positional information, so the headline is order-3/4 composition beyond order-1/2. Extending
+the baseline to order 3 removes 46–56% of each arm and **64% of the R1 contrast** -- but the
+**fold range survives** (2.67x → 2.62x). The magnitude is an analyst's choice; the protocol
+dependence is not. This became R1o.
+
+## What earned the title
+
+The editor and framing adviser both flagged the first objection a referee raises: is the
+5.4-fold range just the bounded AUROC scale? R1m answers it with a search rather than an
+argument -- eight monotone transforms, floor **2.00x [1.67, 2.46]**, interval excluding 1, and
+the transform achieving the floor divides by the protocol's own baseline rather than rescaling
+the model. **This analysis could not lose**: had a transform collapsed the range, the paper
+would have become "here is the protocol-independent coordinate", which is better.
+
+## The external validation, and its limit
+
+R1p ran the whole measurement on Horlacher's published negative sets, their folds, 45 datasets.
+**The range replicates (2.38x against our 2.50x) and the baseline gradient replicates in sign
+(rho −0.372, p=0.012).** But the natural experiment does NOT reverse there: −0.0409 where
+negative-2 raises the baseline, −0.0184 where it lowers it, both negative. A protocol-specific
+residual remains that our data does not show, **so R1n's strong form is ours only** and the
+claim was weakened to "most of".
+
+## Three desk-reject risks, all closed
+
+1. The README advertised **three retracted claims** as its headline (composition-share doubling,
+   R3 locality, R4 ClinVar transfer). An editor clicking the data-availability link would have
+   returned the paper. Rewritten.
+2. The coverage gate still read `if col in d else 1.0`, so deleting the evidence asserted
+   perfect coverage. The anti-forgery fix I had reported as closed.
+3. `0.53x` and `2.9x` are geometric means of per-dataset ratios while the panel means printed
+   beside them give `0.46x` and `2.50x` -- two conventions in one document.
+
+## The forgery, and how it was closed
+
+The reproducibility auditor replaced every per-dataset gain with an analytic sequence unrelated
+to any protein or GPU run, regenerated the summary, and passed **314/314**. The arithmetic gate
+is one-directional: verifying a summary is arithmetic on its evidence is equally satisfied by
+evidence reverse-engineered from the summary.
+
+Closed by **committing both arms' 940 per-window score files (16 MB)**, so every cell's raw
+pooled AUROC is recomputable inside `verify.py` from `data/evidence` alone. Plus the exact
+identity `gain == full − comp`, panel-name cross-check, coverage presence, and two-sided count
+gates. **Six attacks run afterwards, all caught**, including a mean-preserving forgery that only
+the identity can see.
+
+## Standing verdicts after round 3
+
+| referee | verdict | note |
+|---|---|---|
+| handling editor | send out; **~64% NAR GB, ~72% Bioinformatics Advances** | "solid but minor methods paper", said as the honest answer |
+| Referee 2 | **major revision**; "I could not find a fatal flaw" | attacked construction directly and failed |
+| framing adviser | reframe to calibration | "the same paper, a two-hour edit" |
+
+**Not Genome Biology (~2%).** It wants a claim about RNA-protein recognition; this paper has
+none and R1f concedes it.
