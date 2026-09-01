@@ -1328,6 +1328,68 @@ def verify_three_arm(T, g):
              spec["spearman_composition_gain"])
 
 
+def verify_baseline_confounding(T, g):
+    """R1l: the protocol/baseline distinction is not identifiable, and the paper says so."""
+    print("\nR1l baseline confounding  (is 'protocol changes the contribution' trivial?)")
+    d = T.get("baseline_confounding.csv")
+    if d is None:
+        return record(False, "baseline_confounding.csv present", "MISSING",
+                      "run scripts/baseline_confounding.py")
+    spec = g["r1l_baseline_confounding"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for k, gk in (("R2, cubic in composition baseline alone", "r2_baseline_alone"),
+                  ("R2, plus protocol dummies", "r2_with_protocol"),
+                  ("F statistic, protocol beyond baseline", "f_protocol_beyond_baseline"),
+                  ("common support width (AUROC)", "common_support_width"),
+                  ("composition baseline median, gc arm", "baseline_median_gc"),
+                  ("composition baseline median, dn arm", "baseline_median_dn"),
+                  ("composition baseline median, neg2 arm", "baseline_median_neg2"),
+                  ("fraction of gc->dn difference explained by compression",
+                   "compression_share_gc_dn"),
+                  ("fraction of gc->neg2 difference explained by compression",
+                   "compression_share_gc_neg2"),
+                  ("fraction of dn->neg2 difference explained by compression",
+                   "compression_share_dn_neg2"),
+                  ("R2, one constant increment on each cell's own baseline",
+                   "r2_one_constant_increment"),
+                  ("residual after the constant-increment model, dn arm", "residual_dn"),
+                  ("residual after the constant-increment model, neg2 arm", "residual_neg2")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+
+    pv = must("p value, protocol beyond baseline")
+    if pv is not None:
+        at_least("the naive 'protocol beyond baseline' test stays UNCONVINCING, which is why "
+                 "the overlap argument is needed", pv,
+                 spec["min_p_protocol_beyond_baseline"])
+    n = must("cells inside the common support")
+    if n is not None:
+        at_most("cells where two protocols share a composition baseline", int(n),
+                spec["max_cells_in_common_support"])
+    for k in ("fraction of gc->dn difference explained by compression",
+              "fraction of gc->neg2 difference explained by compression",
+              "fraction of dn->neg2 difference explained by compression"):
+        v = must(k)
+        if v is not None:
+            at_most(f"compression is a minority of: {k.split(' difference')[0][12:]}", v,
+                    spec["max_compression_share"])
+    rd, rn = must("residual after the constant-increment model, dn arm"), \
+        must("residual after the constant-increment model, neg2 arm")
+    if rd is not None and rn is not None and spec["residuals_must_be_ordered"]:
+        record(rd > 0 > rn,
+               "residuals after the ceiling model are still ORDERED by protocol, so the arms "
+               "differ by more than the arithmetic", f"dn {rd:+.4f}, neg2 {rn:+.4f}",
+               "dn > 0 > neg2")
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -1902,7 +1964,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

@@ -709,6 +709,50 @@ r1k_three_arm:
   # measured rather than argued.
   spearman_composition_gain: {value: -0.600, tol: 0.06}
 
+# --- R1l: protocol and baseline are not separable, and that IS the finding ---------------
+#
+# THE STRONGEST OBJECTION LEFT. R1k concedes the contribution tracks the composition baseline
+# at rho -0.60, so a referee says: "the protocol changes the contribution" is just "the
+# protocol changes the baseline", which is trivial.
+#
+# THE NAIVE TEST APPEARS TO AGREE. Pooled over 282 cells, gain ~ cubic(baseline) gives
+# R2 0.3955; adding protocol dummies gives 0.4065, F(2,276) = 2.55, p = 0.080.
+#
+# THE TEST IS UNINFORMATIVE, AND THAT IS THE POINT. The three protocols' baseline
+# distributions barely overlap: the intersection of their 10th-90th percentile ranges is
+# 0.0056 AUROC wide and contains 3 of 282 cells. There is no region where two protocols can be
+# compared at the same baseline, so nothing can separate them on this data. Protocol and
+# baseline are not correlated variables; the protocol IS the operation that sets the baseline.
+#
+# WHAT NEVERTHELESS SURVIVES. Compression does not explain the differences: transplanting a
+# model's own d' increment across baselines accounts for 21%, 40% and 52% of the three pairwise
+# gaps, and a single constant increment on each cell's own baseline predicts the 282 gains at
+# R2 = 0.18 with residuals ordered by protocol. The arms differ by more than the ceiling -- but
+# how much more is not estimable, and the paper says so.
+r1l_baseline_confounding:
+  r2_baseline_alone:      {value: 0.3955, tol: 0.02}
+  r2_with_protocol:       {value: 0.4065, tol: 0.02}
+  f_protocol_beyond_baseline: {value: 2.55, tol: 0.5}
+  # The naive test must remain UNCONVINCING. If it ever becomes significant, either the data
+  # changed or the overlap did, and the argument below has to be re-made rather than reused.
+  min_p_protocol_beyond_baseline: 0.02
+  # THE STRUCTURAL FACT. Both must hold: the window is tiny AND almost nothing is in it.
+  common_support_width:   {value: 0.0056, tol: 0.004}
+  max_cells_in_common_support: 10
+  baseline_median_gc:     {value: 0.780, tol: 0.015}
+  baseline_median_dn:     {value: 0.610, tol: 0.015}
+  baseline_median_neg2:   {value: 0.815, tol: 0.015}
+  # COMPRESSION IS NOT THE WHOLE STORY. Each fraction must stay well below 1.
+  compression_share_gc_dn:    {value: 0.21, tol: 0.08}
+  compression_share_gc_neg2:  {value: 0.40, tol: 0.10}
+  compression_share_dn_neg2:  {value: 0.52, tol: 0.10}
+  max_compression_share: 0.75
+  r2_one_constant_increment: {value: 0.183, tol: 0.05}
+  # And the leftovers must still be ordered by protocol, or there is nothing beyond the ceiling.
+  residual_dn:   {value: 0.0247, tol: 0.008}
+  residual_neg2: {value: -0.0143, tol: 0.008}
+  residuals_must_be_ordered: true
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -931,7 +975,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 377
+  min_domain_checks: 396
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

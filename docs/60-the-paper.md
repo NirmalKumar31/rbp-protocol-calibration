@@ -638,6 +638,58 @@ outright rather than defend against it: it is the mechanism, not an objection to
 **Scope.** The 4-mer only. The deep models were never trained on the third arm, and comparing a
 k-mer on one protocol against SpliceBERT on another would be worse than not running it.
 
+## R1l: protocol and baseline are not separable, and that is the finding
+
+`baseline_confounding.csv`, 282 protocol-dataset cells.
+
+**The strongest objection left.** R1k concedes the contribution tracks the composition baseline
+at Spearman −0.60. A referee will say: then "the protocol changes the measured contribution" is
+just "the protocol changes the baseline, and the baseline changes the contribution", which is
+trivially true and not worth a paper. This section is the answer, and it concedes half of it.
+
+**Run naively, the test agrees with the referee.** Pooled over all 282 cells,
+`gain ~ cubic(composition baseline)` gives R² = **0.3955**; adding protocol dummies gives
+**0.4065**, F(2,276) = 2.55, **p = 0.080**. With dataset fixed effects, 0.8243 → 0.8301,
+p = 0.045. Knowing which protocol produced a baseline adds almost nothing to knowing the
+baseline.
+
+**But that test cannot answer the question, and why not is the point.** The three protocols
+barely overlap in baseline:
+
+| protocol | median | 10th–90th percentile |
+|---|---|---|
+| dinucleotide-matched | 0.610 | 0.564–0.724 |
+| GC-matched | 0.780 | 0.652–0.931 |
+| neg2 | 0.815 | 0.719–0.937 |
+
+The intersection of those ranges is **0.0056 AUROC wide and contains 3 of 282 cells**. There is
+essentially no region where two protocols can be compared at the same baseline, so no analysis
+on this data can separate them — and none could, because **the protocol IS the operation that
+sets the baseline**. They are not two correlated variables. Asking "is it the protocol or the
+baseline?" is malformed.
+
+**What nevertheless survives, so the answer is not simply "it is all the ceiling".** If
+compression were the whole story, transplanting a model's own d′ increment across baselines
+would reproduce the other arm's gain. It does not:
+
+| pair | observed difference | explained by compression |
+|---|---|---|
+| GC → dinuc | +0.0398 | **21%** |
+| GC → neg2 | −0.0143 | **40%** |
+| dinuc → neg2 | −0.0540 | **52%** |
+
+And a single constant d′ increment applied to each cell's own baseline predicts all 282 gains at
+only **R² = 0.183**, with residuals still ordered by protocol (**dinuc +0.0247**, GC −0.0038,
+**neg2 −0.0143**). The arms differ by more than the arithmetic of the ceiling. **How much more
+is not estimable**, and the paper says so rather than producing a number it cannot defend.
+
+**What the reader should take from it.** Not "the protocol effect is X". The claim is that the
+measured contribution is a joint property of model and protocol which no decomposition on
+observational data can split, and the practical consequence follows directly: report the
+composition baseline measured under the same protocol, because it is the only summary of what
+the protocol did that a reader can act on, and never compare contributions measured under
+different protocols, because there is no common scale on which to do so.
+
 ## R2: the model ladder (methods table, not a result)
 
 `matched_four_models.csv`, n = 95, identical chromosome-level folds. Figure **f2**.

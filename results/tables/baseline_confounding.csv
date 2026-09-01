@@ -1,0 +1,18 @@
+check,value
+"R2, cubic in composition baseline alone",0.3955071638878943
+"R2, plus protocol dummies",0.406477929778031
+"F statistic, protocol beyond baseline",2.550816168087323
+"p value, protocol beyond baseline",0.07985619367366104
+"composition baseline median, gc arm",0.7800663478647333
+"composition baseline median, dn arm",0.609636660655424
+"composition baseline median, neg2 arm",0.8149616608680557
+common support width (AUROC),0.005567220815970719
+cells inside the common support,3.0
+fraction of gc->dn difference explained by compression,0.21003376918783861
+fraction of gc->neg2 difference explained by compression,0.39894834068205076
+fraction of dn->neg2 difference explained by compression,0.5206186144979065
+mean d' increment across all cells,0.16102763871270057
+"R2, one constant increment on each cell's own baseline",0.18340446357583895
+"residual after the constant-increment model, gc arm",-0.003789906494010682
+"residual after the constant-increment model, dn arm",0.02474576542338077
+"residual after the constant-increment model, neg2 arm",-0.014262410126959542
