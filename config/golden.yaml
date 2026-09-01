@@ -879,28 +879,88 @@ r1n_protocol_or_baseline:
 # WHAT IT DOES NOT COST, AND THIS IS THE POINT: the FOLD RANGE, which is the paper's actual
 # claim, is 2.67x at order 2 and 2.62x at order 3. Everything shrinks proportionally. The
 # magnitude is a function of an analyst's choice; the protocol dependence is not.
+# CORRECTED 2026-09-01, and the correction is larger than the original result. The first
+# version of baseline_order.py built its OWN composition block instead of using the paper's:
+# all 4 mono + all 16 dinucleotide frequencies, unstandardised, into sklearn's default
+# LogisticRegression. Singular design matrix, no entropy column, and an L2 penalty on features
+# of scale 0.06 -- which underfits both baselines, overstates both gains (1.22x on GC, 2.31x on
+# neg2) and underfits order 3 worst of all. It reported ~50% removed; the true figure is 80-88%.
+# It reported a fold range of 2.67x that was never the paper's 5.42x.
+#
+# IT PASSED REVIEW because its order-2 R1 CONTRAST landed at +0.0399 against the published
+# +0.0398 -- two offsetting errors. The lesson, now enforced by max_order2_reproduction below:
+# a re-implemented baseline must be asserted equal to the original PER CELL, not agree with it
+# on one aggregate.
 r1o_baseline_order:
   n_datasets: 30
-  gain_order2_gc:   {value: 0.0351, tol: 0.008}
-  gain_order3_gc:   {value: 0.0188, tol: 0.006}
-  gain_order2_dn:   {value: 0.0750, tol: 0.012}
-  gain_order3_dn:   {value: 0.0331, tol: 0.008}
-  gain_order2_neg2: {value: 0.0280, tol: 0.008}
-  gain_order3_neg2: {value: 0.0126, tol: 0.005}
-  removed_fraction_gc:   {value: 0.46, tol: 0.12}
-  removed_fraction_dn:   {value: 0.56, tol: 0.12}
-  contrast_order2: {value: 0.0399, tol: 0.008}
-  contrast_order3: {value: 0.0143, tol: 0.007}
-  removed_fraction_contrast: {value: 0.64, tol: 0.15}
+  # THE ANCHOR. Order 2 IS nested.composition_features, so the gain must be the published gain
+  # cell by cell. Everything else in this block is meaningless if this drifts.
+  max_order2_reproduction: 1.0e-9
+  gain_order2_gc:   {value: 0.0288, tol: 0.006}
+  gain_order3_gc:   {value: 0.0058, tol: 0.003}
+  gain_order2_dn:   {value: 0.0650, tol: 0.010}
+  gain_order3_dn:   {value: 0.0105, tol: 0.005}
+  gain_order2_neg2: {value: 0.0122, tol: 0.005}
+  gain_order3_neg2: {value: 0.0015, tol: 0.0012}
+  removed_fraction_gc:   {value: 0.80, tol: 0.10}
+  removed_fraction_dn:   {value: 0.84, tol: 0.10}
+  contrast_order2: {value: 0.0361, tol: 0.007}
+  contrast_order3: {value: 0.0048, tol: 0.003}
+  removed_fraction_contrast: {value: 0.87, tol: 0.10}
   # THE SUBSAMPLE MUST BE REPRESENTATIVE, or none of the above transfers to the full panel.
   max_subsample_contrast_drift: 0.006
-  # THE CLAIM THAT MUST SURVIVE. A majority of the magnitude is an analyst's choice; the fold
-  # range is not. If the range ever moves materially with baseline order, the paper's central
-  # result is an artefact of where the baseline stops and must be restated.
-  fold_range_order2: {value: 2.67, tol: 0.35}
-  fold_range_order3: {value: 2.62, tol: 0.35}
-  max_fold_range_shift: 0.40
+  # THE CLAIM THAT MUST SURVIVE. Most of the MAGNITUDE is an analyst's choice; the protocol
+  # DEPENDENCE is not. Note the correction changed the shape of this claim: the arms do not
+  # shrink proportionally (neg2 loses 88%, GC 80%), so raising the baseline order WIDENS the
+  # range, 5.34x -> 7.16x. The old gate asserted the range was unchanged (|shift| < 0.40) and
+  # would now fail. The honest gate is that the range never collapses toward 1.
+  fold_range_order2: {value: 5.34, tol: 0.60}
+  fold_range_order3: {value: 7.16, tol: 1.20}
+  min_fold_range_order3: 3.0
   most_of_the_magnitude_must_be_removable: true
+
+# --- R1r: is the order-3 collapse the 4-mer's, or every model's? -------------------------
+#
+# R1o's 80% collapse is near-tautological for a bag of 4-mers, whose only information beyond
+# trinucleotide frequency IS order 4. If it held for every model class the reading would be
+# general and devastating. It does not: on R1g's own committed per-window scores, over 94
+# datasets and both arms, the 4-mer keeps ~20% of its contribution over an order-3 baseline
+# while SpliceBERT keeps ~70-75%, and the three models' intervals do not overlap in either arm.
+#
+# TWO CONSEQUENCES FOR THE PAPER:
+#   * the order-3 baseline SEPARATES model classes far better than the order-2 one
+#     (SpliceBERT/4-mer widens from 3.36x to 11.61x on GC), so it is the better instrument;
+#   * the protocol contrast survives at order 3 for ALL THREE models, intervals clear of zero,
+#     so protocol dependence is not an artefact of the baseline's order for any model class.
+#
+# NO NEW COMPUTE. The CNN and SpliceBERT scores are R1g's, on R1g's intersected row set, via
+# deep_model_contrast's own loader. So the order-2 column IS deep_contrast_per_dataset.csv and
+# that is asserted per cell.
+r1r_baseline_order_models:
+  n_datasets: 94
+  max_order2_reproduction: 1.0e-9
+  surviving_kmer_gc:       {value: 0.217, tol: 0.06}
+  surviving_cnn_gc:        {value: 0.605, tol: 0.06}
+  surviving_splicebert_gc: {value: 0.750, tol: 0.05}
+  surviving_kmer_dn:       {value: 0.188, tol: 0.06}
+  surviving_cnn_dn:        {value: 0.591, tol: 0.06}
+  surviving_splicebert_dn: {value: 0.692, tol: 0.05}
+  # THE RESULT. If the deep models ever collapse like the k-mer, the paper's qualification of
+  # "sequence model" becomes general and R1r must be rewritten rather than quietly kept.
+  min_deep_advantage_over_kmer: 0.15
+  gain_order3_kmer_gc:       {value: 0.0058, tol: 0.003}
+  gain_order3_splicebert_gc: {value: 0.0668, tol: 0.010}
+  gain_order3_kmer_dn:       {value: 0.0124, tol: 0.005}
+  gain_order3_splicebert_dn: {value: 0.1213, tol: 0.015}
+  contrast_order3_kmer:       {value: 0.0067, tol: 0.003}
+  contrast_order3_cnn:        {value: 0.0309, tol: 0.007}
+  contrast_order3_splicebert: {value: 0.0545, tol: 0.008}
+  # AND THE WITHDRAWN CLAIM STAYS WITHDRAWN. SpliceBERT has the LOWEST multiplier at both
+  # orders, so the order-3 table cannot be used to revive "the contrast grows with capacity".
+  multiplier_order3_kmer:       {value: 2.16, tol: 0.30}
+  multiplier_order3_cnn:        {value: 2.55, tol: 0.30}
+  multiplier_order3_splicebert: {value: 1.82, tol: 0.25}
+  splicebert_multiplier_must_be_lowest: true
 
 # --- R1p: external validation on Horlacher's own benchmark, and where it LIMITS us --------
 #
@@ -1202,7 +1262,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 472
+  min_domain_checks: 497
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

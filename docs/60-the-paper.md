@@ -49,8 +49,17 @@ mechanism (Spearman −0.60 against the baseline) is an asset rather than a conf
 > falls from +0.0398 to **−0.0087 [−0.0265, +0.0122]**. No rescaling recovers a protocol-free
 > quantity: over eight monotone transforms the range never falls below **2.00x** [1.67, 2.46].
 > The practical consequence is a two-number report -- state the composition-only AUROC under
-> the same protocol alongside every headline AUROC -- and the reason it works is that the
-> baseline is the whole story.
+> the same protocol alongside every headline AUROC -- and it is the least protocol-sensitive
+> of those eight coordinates.
+
+**The one qualification the claim must carry, and it is not optional.** "Most" is not "all".
+The 1.0% is an average over protocol pairs that behave differently: **0.05%** for GC versus
+dinucleotide, **3.40%** for GC versus neg2, and at matched baseline neg2 still costs
+**−0.0081 [−0.0130, −0.0036]**. The baseline is essentially the whole story *within* the
+composition-matched family and not across families, because the baseline gradient itself is a
+property of composition-matched negatives (−0.545, −0.462) and vanishes for other-RBPs'-sites
+negatives (−0.122, n.s.). An earlier version of this claim said the protocol label carries
+essentially no information; that is **withdrawn**, and R1n carries the corrected form.
 
 **Deliberately NOT in the one-sentence claim, after two rounds of statistical review.** The
 decomposition into "compression" and "protocol effect" is a supporting sensitivity analysis,
@@ -373,7 +382,12 @@ of effect size. The intronic fraction correlates with the contrast at Spearman �
 signal there is to expose**, not that region is a separate mechanism. Stated the second way it
 is supported; stated the first way it would be wrong.
 
-## R1g: the contrast is not a property of the model class, and it GROWS with capacity
+## R1g: the contrast is not a property of the model class, and survives at scale
+
+*(This heading previously read "and it GROWS with capacity". **Withdrawn**: the ordering
+reverses on the ratio scale, where the multiplier runs 3.08 / 3.51 / 2.38 and SpliceBERT is the
+LOWEST, and R1h's specification grid has the CNN surviving most, not the largest model. What
+survives is that all three model classes show the contrast, on all 94 datasets. See RETRACTED.)*
 
 `deep_contrast.csv`, `deep_contrast_per_dataset.csv`, n = 94 paired datasets. Figure **f9**.
 
@@ -592,6 +606,58 @@ does push a headline across zero under clustering, the claim must be restated ra
 narrower interval quietly retained. **The manuscript should print the protein-clustered
 intervals throughout.**
 
+## R1j: the expression confound, and why it cancels rather than explains
+
+`expression_control.csv`, `expression_control_per_dataset.csv`, n = **84** of the 94 datasets
+(the ten dropped have no usable expression track for their cell line).
+
+**The objection.** Unbound genomic windows can be unbound for a boring reason: the gene is not
+expressed in that cell line, so no RNA was there to crosslink. If the two arms' negative pools
+differ in how untranscribed they are, the contrast could be an expression artifact rather than
+a composition-matching one.
+
+**The measurement, and the answer is balance.** **40.1%** of GC-arm negatives sit in a locus
+with no gene above 1 TPM on either strand. The dinucleotide arm is at **40.1%** as well, and
+the paired arm difference is **+0.0000122 [−0.0033, +0.0032]**, Wilcoxon **p = 0.64**. A
+confound that is present in both arms in the same proportion cannot manufacture a difference
+between them. That single fact is most of this section.
+
+**But "cannot manufacture it" is not "does not touch it", so it was measured.** Restrict to
+pairs whose negatives are transcribed and the contrast falls from this panel's **+0.0414** to
+**+0.0310**, a drop of **−0.0104**. Nearly all of that is the restriction itself, not
+expression: a **placebo stratified on region marginals**, dropping the same number of pairs at
+random from the same region mix, loses **−0.0061** with no expression involved. The
+pre-committed primary estimate is the difference,
+
+> **expression-specific excess = −0.0043 [−0.0069, −0.0018]**
+
+leaving an expression-corrected contrast of **+0.0371** and **89.7%** of this panel's contrast
+surviving.
+
+**Why the placebo is stratified, and it matters.** The unstratified placebo gives −0.0036;
+stratifying on region moves it to −0.0043, so **+0.0007** of the naive estimate was locus mix
+rather than expression. The restricted set is not a random subsample of the panel -- transcribed
+negatives are enriched for exactly the regions where the contrast is largest -- and a placebo
+that ignores that would charge expression for a compositional shift.
+
+**One seed would have got this wrong, and did.** With five placebo seeds the interval covered
+zero and the honest reading was "no expression artifact". With twenty it is −0.0043 with the
+interval clear of zero. The per-arm Monte Carlo noise is **sd 0.0043**, the same size as the
+effect, which is precisely why. This is the second time in this project that placebo-seed count
+decided whether an artifact existed (R1c was the first), and it is a methods lesson worth one
+sentence in the paper.
+
+**Scope, and it must be stated.** The 89.7% is against **this panel's own** contrast of
+**+0.0414** on 84 datasets, not against the published +0.0397 on 94. Comparing a subset estimate
+to a full-panel published mean is the error that produced a retracted claim earlier in this
+project, and the gate `r1j_expression_control` pins the panel's own contrast so the comparison
+cannot silently drift.
+
+**A second, larger number that is not the confound.** **67.6%** of GC-arm negatives are not
+transcribed on the *labelled* strand, against 64.2% for the dinucleotide arm. That is the
+strand criterion, not expression, and its effect is already measured and charged in R1c
+(−0.0055, 85.4% surviving). The two controls overlap and must not be added.
+
 ## R1k: a third protocol, and the prediction it falsified
 
 `three_arm_contrast.csv`, `three_arm_per_dataset.csv`, n = 94, 4-mer model only. Figure **f10**, which is now the paper's central figure.
@@ -715,6 +781,285 @@ observational data can split, and the practical consequence follows directly: re
 composition baseline measured under the same protocol, because it is the only summary of what
 the protocol did that a reader can act on, and never compare contributions measured under
 different protocols, because there is no common scale on which to do so.
+
+## R1m: no rescaling recovers a protocol-free quantity. This is the result that earns the title
+
+`scale_sweep.csv`, n = 94, all three arms, 4-mer model. **The single most important section
+after R1k.**
+
+**The objection this closes, and it is the one a methods referee will reach for first.** AUROC
+is compressive near 1, so of course a gain measured against a 0.82 baseline is smaller than the
+same gain against a 0.63 baseline. Rescale to something that is not bounded -- d′, logit,
+arcsine -- and the protocol dependence should evaporate. If it did, this paper would be a note
+about a scale artifact.
+
+It does not evaporate. Eight monotone transforms of the same 282 cells:
+
+| coordinate | dinuc | GC | neg2 | **fold range** |
+|---|---|---|---|---|
+| raw AUROC gain | 0.0663 | 0.0265 | 0.0122 | **5.42** [4.43, 6.58] |
+| Somers' D gain | 0.1325 | 0.0530 | 0.0245 | **5.42** [4.43, 6.58] |
+| excess-normalised, g/(comp − 0.5) | 0.7649 | 0.1274 | 0.0421 | **18.18** [13.73, 23.96] |
+| arcsine increment | 0.1426 | 0.0657 | 0.0357 | **3.99** [3.35, 4.80] |
+| cloglog increment | 0.1851 | 0.0839 | 0.0470 | **3.94** [3.29, 4.80] |
+| d′ increment (binormal) | 0.2645 | 0.1353 | 0.0833 | **3.18** [2.66, 3.89] |
+| logit increment | 0.3089 | 0.1700 | 0.1134 | **2.72** [2.25, 3.39] |
+| **headroom-normalised, g/(1 − comp)** | 0.1736 | 0.1167 | 0.0867 | **2.00** [1.67, 2.46] |
+
+> **The floor is 2.00x [1.67, 2.46], and the interval excludes 1.**
+
+**Read the table three ways.**
+
+*Somers' D is the control.* It is an affine map of AUROC, so its range is identical to 5.42 by
+construction. It is in the table to prove the sweep is measuring the transform and not noise:
+any coordinate reporting something other than 5.42 there would be a bug.
+
+*Rescaling helps, and the paper should say so.* Every unbounded link cuts the range, and the
+ordering (arcsine, cloglog, d′, logit) is the ordering of how aggressively each stretches the
+upper tail. So compression is **real and is part of the story** -- roughly a factor of two of
+the 5.4 is scale. The claim is not that compression is absent; it is that compression is not
+all of it.
+
+*One transform makes it far worse.* Normalising by the *excess over chance*, g/(comp − 0.5),
+inflates the range to **18x**. Dividing by a quantity that itself varies with the protocol and
+can approach zero is not a stabilisation. That column is in the table because it is the
+normalisation a reader is most likely to invent, and it is the worst thing they could do.
+
+**And the winner is the paper's own recommendation.** The minimum over all eight is the
+headroom-normalised coordinate g/(1 − comp) -- which is the two-number report, expressed as one
+number. R1q then shows the same fact from the reader's side. That the recommended coordinate is
+independently the least protocol-sensitive of eight candidates is the strongest form of the
+paper's practical claim, and it was not designed that way: the sweep was run to try to kill the
+result, and it selected the fix.
+
+**The scope limit, stated plainly.** Eight transforms is not "all transforms". A monotone
+reparameterisation that happened to invert this particular baseline-to-gain relation could in
+principle reach 1.0x. What the paper claims is the measured statement: **over the eight
+standard coordinates a benchmarker would actually use, none reaches protocol independence, and
+the best falls only to 2.00x.** The title's "set by the benchmark's headroom" is this row and
+this row only.
+
+## R1n: is it the protocol, or the baseline it leaves? Mostly the baseline, and the exception is named
+
+`protocol_or_baseline.csv`, 282 protocol-dataset cells, 94 datasets. **This is the paper's
+thesis.** R1l argued the question was malformed. A hostile referee found two places to ask it
+anyway, and the answer is more interesting than either "it is all the baseline" or "the
+protocol matters".
+
+**1. Variance accounting.** Regress gain on a cubic in the composition baseline, pooled over
+all 282 cells, then add protocol dummies:
+
+| addition | incremental R² |
+|---|---|
+| protocol label, given the baseline | **1.0%** |
+| baseline, given the protocol label | **11.0%** |
+
+An order of magnitude, in the baseline's favour.
+
+**2. The natural experiment, which is the sharpest design in the paper.** neg2 usually raises
+the composition baseline relative to GC matching, but in **27 of 94** datasets it *lowers* it.
+If the protocol label carried the information, neg2's deficit would persist there. It reverses:
+
+| stratum | n | neg2 − GC gain | neg2 higher in |
+|---|---|---|---|
+| neg2 raises the baseline | 67 | **−0.0212** [−0.0269, −0.0157] | 14/67 |
+| neg2 **lowers** the baseline | 27 | **+0.0028** [−0.0000, +0.0063] | 16/27 |
+
+Within-dataset Spearman(Δbaseline, Δgain) = **−0.664, p = 3e-13**. Whichever protocol leaves
+the lower baseline gets the higher contribution, **regardless of which protocol that is**.
+
+**3. The dinucleotide-versus-GC contrast, matched on baseline.** comp_dn < comp_gc in **94 of
+94** datasets, so within a dataset the arm and the baseline are perfectly rank-confounded by
+construction and the comparison has to borrow across datasets. Matching each dinucleotide-arm
+dataset to the GC-arm dataset with the nearest baseline (within 0.02 AUROC, n = 41), the
+headline **+0.0398 falls to −0.0087 [−0.0265, +0.0122]**. The paper's own primary contrast does
+not survive matching on the baseline. That is a concession, and printing it is what makes the
+rest credible.
+
+### The part that was withdrawn, and the mechanism that replaced it
+
+An earlier version of this section claimed the protocol label carries *essentially no*
+information. **That is withdrawn.** R1l's "common support is 0.0056 AUROC wide, 3 of 282 cells"
+was the **three-way** intersection, and I ran the matched design only on the pair where it is
+impossible. Pairwise:
+
+| pair | common support width | cells | incremental R² of the protocol |
+|---|---|---|---|
+| GC vs dinuc | 0.073 | 33/188 | **0.05%** |
+| **GC vs neg2** | **0.212** | **130/188** | **3.40%** |
+| dinuc vs neg2 | 0.006 | 2/188 | 1.31% |
+
+The GC-versus-neg2 comparison is not merely possible, it is easy. And run there, under two
+independent designs, a protocol-specific residual **does** exist:
+
+| design | neg2 − GC at matched baseline |
+|---|---|
+| nearest-baseline matching | **−0.0081** [−0.0130, −0.0036] |
+| within-dataset intercept at zero baseline shift | **−0.0043** [−0.0077, −0.0012] |
+
+Both exclude zero. The headline 1.0% averages the pair where the question is unanswerable with
+the pair where it is answerable, and reporting only the average would hide the answer.
+
+**The mechanism, and it makes the whole paper cohere.** The baseline gradient is a property of
+**composition-matched** negatives and dies for other-RBPs'-sites negatives:
+
+| arm | within-arm Spearman(baseline, gain) |
+|---|---|
+| GC-matched | **−0.545**, p < 0.001 |
+| dinucleotide-matched | **−0.462**, p < 0.001 |
+| neg2 (other RBPs' sites) | **−0.122**, p = 0.242, n.s. |
+
+So there are two protocol *families*, not three protocols. Inside the composition-matched
+family the baseline is the whole story (0.05%). Across families it is not (3.40%), and the
+residual is a real property of what "other RBPs' sites" means as a control. **This is also why
+R1p did not replicate the strong form**: Horlacher's negative-2 is the same family, so their
+data shows the same residual. R1p is corroboration of the corrected claim, not a limitation
+of it.
+
+**The claim, in the form that survives.** The composition baseline is *most* of what determines
+the measurable contribution -- 11.0% against 1.0%, reversing in 27 of 94 datasets, and
+dissolving the headline contrast under matching. Within a protocol family it is essentially all
+of it. Across families a residual of about **−0.005 to −0.008 AUROC** remains and is named
+rather than absorbed.
+
+## R1o: where the composition baseline stops is an analyst's choice, and it is doing half the work
+
+`baseline_order.csv`, `baseline_order_per_dataset.csv`, n = **30** size-stratified datasets,
+all three arms.
+
+**The sharpest objection anyone made about what the quantity *is*.** A bag of 4-mer counts
+carries no positional information, and the composition baseline stops at order 2. So "the
+nested contribution of a sequence model over composition" is, definitionally, *order-3-and-4
+composition beyond order-1-and-2 composition*, and where the baseline stops is an arbitrary
+choice. `nested.py` defends order 2 as "exactly what a dinucleotide shuffle preserves", which
+is a good reason to choose it and not a reason to believe the choice is immaterial. Nobody had
+measured it.
+
+Refitting the baseline at order 3 (mono + di + tri + entropy, 82 features, standardised, the
+same `_oof_scores` fitter and the same DeLong comparison the paper uses everywhere):
+
+| arm | composition, order 2 → 3 | over order 2 | over order 3 | removed |
+|---|---|---|---|---|
+| GC-matched | 0.7617 → 0.7837 | +0.0288 [+0.0188, +0.0403] | **+0.0058** [+0.0023, +0.0101] | **80%** |
+| dinucleotide-matched | 0.6145 → 0.6666 | +0.0650 [+0.0506, +0.0800] | **+0.0105** [+0.0057, +0.0161] | **84%** |
+| neg2 | 0.8005 → 0.8127 | +0.0122 [+0.0076, +0.0174] | **+0.0015** [+0.0004, +0.0027] | **88%** |
+| **R1 contrast (dn − GC)** | | **+0.0361** [+0.0291, +0.0429] | **+0.0048** [+0.0025, +0.0071] | **87%** |
+
+**The order-2 column is not a re-estimate, it is the published number.** The script's order-2
+baseline *is* `nested.composition_features`, so its gain must equal `three_arm_per_dataset.csv`
+cell by cell, and that is asserted per dataset rather than assumed: **max |difference| =
+9.9e-17**. Without that anchor the order-3 column would be uninterpretable, and the first
+version of this analysis proves the point -- see below.
+
+**What it costs the paper, and it belongs in the Discussion, not a footnote.** **Four fifths of
+the 4-mer's measured contribution, and 87% of the headline contrast, is one order of
+composition.** The phrase "sequence model" has to be qualified hard: what a 4-mer adds over an
+order-2 composition baseline is, almost entirely, order-3 composition -- **not motif
+recognition and not anything positional**. Every gain remains positive with an interval clear
+of zero, so something survives, but the honest magnitude over a trinucleotide baseline is
++0.0058 on the GC arm, not +0.0288.
+
+**What it does not cost.** The protocol dependence, which is the paper's actual claim:
+
+| | order-2 baseline | order-3 baseline |
+|---|---|---|
+| fold range across the three protocols | **5.34x** | **7.16x** |
+
+The arms do **not** shrink proportionally -- neg2 loses the most (88%) and GC the least (80%) --
+so raising the baseline order **widens** the range rather than closing it. **The protocol
+dependence is not an artefact of where the baseline stops, and it is not softened by moving the
+stopping point.** Same division of labour as R1m: a defensible analyst choice changes the
+magnitude by a factor of five and does not touch the protocol dependence.
+
+**Scope.** n = 30, size-stratified, because an order-3 fit is 82 features x 5 folds x 3 arms per
+dataset. The subsample is representative on the quantity that matters: its own order-2
+three-protocol range is **5.34x** against the full panel's **5.42x**, and its order-2 R1
+contrast is +0.0361 against +0.0398 on 94.
+
+**A correction, and it is the reason this section is trustworthy now.** The first version of
+this analysis built its own composition block: all 4 mono + all 16 dinucleotide frequencies,
+unstandardised, into sklearn's default `LogisticRegression`. Three departures from the paper's
+baseline at once -- a singular design matrix, no entropy column, and an L2 penalty applied to
+features on a 0.06 scale, which crushes the fit. It **underfit both baselines and therefore
+overstated both gains**, by 1.22x on the GC arm and **2.31x on neg2**, and it underfit order 3
+worst of all, reporting that only ~50% was removed when the true figure is 80--88%. It reported
+a fold range of 2.67x that was not the paper's 5.42x and was never flagged as a different
+quantity. It passed review because its order-2 R1 *contrast* landed at +0.0399 against the
+published +0.0398 -- a coincidence of two offsetting errors. **A re-implemented baseline must be
+asserted equal to the original, per cell, or it is a different experiment wearing the same
+name.**
+
+## R1r: the order-3 collapse is a property of the 4-mer, not of sequence models
+
+`baseline_order_models.csv`, `baseline_order_models_per_dataset.csv`, n = 94, both arms, the
+three model classes of R1g, on R1g's own committed per-window scores. No GPU: the CNN and
+SpliceBERT scores are the ones R1g already used, so this costs nothing but CPU time.
+
+**Why this had to be run.** R1o's collapse is close to tautological for a bag of 4-mers, whose
+only information beyond trinucleotide frequency *is* order 4. If it held for every model class,
+the reading would be devastating and general: everything this literature measures as "what the
+model adds over composition" is one order of composition. **It does not hold**, and the
+separation is clean.
+
+GC arm, composition **0.7827 → 0.8023**:
+
+| model | over order 2 | over order 3 | **surviving** |
+|---|---|---|---|
+| 4-mer | +0.0265 | +0.0058 | **21.7%** [16.9, 26.2] |
+| CNN | +0.0330 | +0.0200 | **60.5%** [56.2, 64.6] |
+| SpliceBERT | +0.0890 | +0.0668 | **75.0%** [72.6, 77.2] |
+
+Dinucleotide arm, composition **0.6274 → 0.6791**:
+
+| model | over order 2 | over order 3 | **surviving** |
+|---|---|---|---|
+| 4-mer | +0.0663 | +0.0124 | **18.8%** [14.7, 22.8] |
+| CNN | +0.0860 | +0.0508 | **59.1%** [54.7, 63.6] |
+| SpliceBERT | +0.1754 | +0.1213 | **69.2%** [66.6, 71.7] |
+
+**The three intervals do not overlap, in either arm.** Protein-clustered over 79 proteins.
+Raising the baseline one order costs the 4-mer four fifths of its contribution and SpliceBERT
+about a quarter of its own.
+
+**Three things follow, and all three are worth main-text space.**
+
+*1. The R1o collapse is a fact about bag-of-k-mers models, not about sequence models.* A model
+with positional structure keeps most of what it measures. So the paper does not have to concede
+that "what a model adds over composition" is generally an artefact of where the baseline stops
+-- only that it is, for the cheapest model class, which happens to be the one the headline uses.
+
+*2. The order-3 baseline is a sharper instrument than the order-2 one, and this is the useful
+recommendation.* SpliceBERT's advantage over the 4-mer widens from **3.36x to 11.61x** on the GC
+arm and **2.65x to 9.75x** on the dinucleotide arm, and at order 3 the gaps are clean:
+SpliceBERT − 4-mer = **+0.0611 [+0.0509, +0.0720]** (GC) and **+0.1089 [+0.0984, +0.1194]**
+(dinuc), CNN − 4-mer = **+0.0142 [+0.0104, +0.0184]** and **+0.0384 [+0.0311, +0.0468]**. A
+benchmark that wants to distinguish model classes rather than rank them by how much
+short-range composition they absorb should raise the composition baseline, not the model.
+
+*3. The paper's own claim survives at the higher baseline, for every model class.* The
+protocol contrast at an order-3 baseline:
+
+| model | order-2 contrast | order-3 contrast |
+|---|---|---|
+| 4-mer | +0.0398 [+0.0324, +0.0478] | **+0.0067** [+0.0044, +0.0096] |
+| CNN | +0.0530 [+0.0438, +0.0630] | **+0.0309** [+0.0246, +0.0374] |
+| SpliceBERT | +0.0864 [+0.0777, +0.0954] | **+0.0545** [+0.0488, +0.0602] |
+
+All six exclude zero. **Protocol dependence is not an artefact of the baseline's order for any
+model class**, and for the two models that survive the higher baseline it is barely reduced.
+
+**And the withdrawn claim stays withdrawn.** On the ratio scale, dinuc/GC as a ratio of panel
+means over 94 datasets: **2.50x / 2.61x / 1.97x** at order 2 and **2.16x / 2.55x / 1.82x** at
+order 3. SpliceBERT is the **lowest** at both orders. The order-3 table must not be used to
+revive "the contrast grows with capacity". *(These are a ratio of panel means on n = 94 and are
+deliberately a different estimator from R1g's 3.08 / 3.51 / 2.38, which is a geometric mean of
+per-dataset ratios on the 77 datasets positive in both arms for all three models. Both are
+reported because neither is wrong; do not present them as the same quantity.)*
+
+**Scope and cost.** No new training. These are R1g's committed per-window CNN and SpliceBERT
+scores, on R1g's intersected row set, imported from `deep_model_contrast.py` rather than
+reimplemented. The order-2 column is therefore R1g's published column, asserted per cell at
+**max |difference| = 1.0e-16**. Two arms only: the deep models were never trained on neg2.
 
 ## R1p: external validation, and where it limits us
 

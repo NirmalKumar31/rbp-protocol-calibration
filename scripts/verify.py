@@ -1547,6 +1547,14 @@ def verify_baseline_order(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets in the subsample", int(n),
                spec["n_datasets"])
+    # THE ANCHOR, FIRST. Order 2 IS the paper's composition baseline, so it must reproduce the
+    # paper's gain cell by cell. The first version of this script re-implemented the baseline,
+    # overstated neg2's gain 2.31x, and agreed with the published R1 CONTRAST to 1e-4 by two
+    # offsetting errors. An aggregate agreeing is not the baseline being the same baseline.
+    rep = must("max |order-2 gain - published gain|")
+    if rep is not None:
+        at_most("order 2 reproduces the published per-dataset gain",
+                rep, spec["max_order2_reproduction"])
     # KEYS ARE SPELLED OUT LITERALLY. test_golden_keys_are_read.py reads this file as TEXT, so
     # spec[f"gain_order{order}_{arm}"] is invisible to it and the key reads as unread. That is
     # docs/61 lesson 12, and it caught this exact violation of itself.
@@ -1593,10 +1601,101 @@ def verify_baseline_order(T, g):
         near("fold range at order 2", f2, spec["fold_range_order2"])
     if f3 is not None:
         near("fold range at order 3", f3, spec["fold_range_order3"])
-    if f2 is not None and f3 is not None:
-        at_most("THE FOLD RANGE SURVIVES the baseline-order choice, so the paper's claim is "
-                "not an artefact of where the baseline stops", abs(f2 - f3),
-                spec["max_fold_range_shift"])
+    if f3 is not None:
+        # The corrected numbers WIDEN the range (5.34x -> 7.16x) because the arms do not shrink
+        # proportionally. The claim is therefore not "unchanged" but "never collapses": if a
+        # future run drives the order-3 range toward 1, the protocol dependence WOULD be an
+        # artefact of where the baseline stops and the paper must be restated.
+        record(f3 >= spec["min_fold_range_order3"],
+               "the fold range does not collapse when the baseline rises one order, so the "
+               "paper's claim is not an artefact of where the baseline stops",
+               f"{f3:.2f}x", f">= {spec['min_fold_range_order3']}x")
+
+
+def verify_baseline_order_models(T, g):
+    """R1r: the order-3 collapse is the 4-mer's alone; SpliceBERT keeps three quarters."""
+    print("\nR1r baseline order across model classes  (is the collapse general?)")
+    d = T.get("baseline_order_models.csv")
+    if d is None:
+        return record(False, "baseline_order_models.csv present", "MISSING",
+                      "run scripts/baseline_order_models.py")
+    spec = g["r1r_baseline_order_models"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+    rep = must("max |order-2 gain - R1g published gain|")
+    if rep is not None:
+        at_most("order 2 reproduces R1g's per-dataset gain", rep,
+                spec["max_order2_reproduction"])
+
+    surv = {}
+    for label, key in (
+            ("kmer fraction surviving order 3, gc arm", spec["surviving_kmer_gc"]),
+            ("cnn fraction surviving order 3, gc arm", spec["surviving_cnn_gc"]),
+            ("splicebert fraction surviving order 3, gc arm", spec["surviving_splicebert_gc"]),
+            ("kmer fraction surviving order 3, dn arm", spec["surviving_kmer_dn"]),
+            ("cnn fraction surviving order 3, dn arm", spec["surviving_cnn_dn"]),
+            ("splicebert fraction surviving order 3, dn arm", spec["surviving_splicebert_dn"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+            surv[label] = v
+
+    # THE RESULT ITSELF, not just its value: the deep models must survive the higher baseline
+    # by a wide margin over the k-mer, in BOTH arms. If that ever fails, "what a sequence model
+    # adds over composition is one order of composition" becomes a general claim and R1r has to
+    # be rewritten rather than quietly retained.
+    for arm in ("gc", "dn"):
+        k = surv.get(f"kmer fraction surviving order 3, {arm} arm")
+        s = surv.get(f"splicebert fraction surviving order 3, {arm} arm")
+        if k is not None and s is not None:
+            record(s - k >= spec["min_deep_advantage_over_kmer"],
+                   f"SpliceBERT survives the order-3 baseline far better than the 4-mer, "
+                   f"{arm} arm", f"{s - k:+.3f}", f">= {spec['min_deep_advantage_over_kmer']}")
+
+    for label, key in (
+            ("kmer gain over order-3 baseline, gc arm", spec["gain_order3_kmer_gc"]),
+            ("splicebert gain over order-3 baseline, gc arm", spec["gain_order3_splicebert_gc"]),
+            ("kmer gain over order-3 baseline, dn arm", spec["gain_order3_kmer_dn"]),
+            ("splicebert gain over order-3 baseline, dn arm", spec["gain_order3_splicebert_dn"]),
+            ("kmer R1 contrast (dn-gc), order-3 baseline", spec["contrast_order3_kmer"]),
+            ("cnn R1 contrast (dn-gc), order-3 baseline", spec["contrast_order3_cnn"]),
+            ("splicebert R1 contrast (dn-gc), order-3 baseline",
+             spec["contrast_order3_splicebert"]),
+            ("kmer dn/gc multiplier, order-3 baseline", spec["multiplier_order3_kmer"]),
+            ("cnn dn/gc multiplier, order-3 baseline", spec["multiplier_order3_cnn"]),
+            ("splicebert dn/gc multiplier, order-3 baseline",
+             spec["multiplier_order3_splicebert"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE PROTOCOL CONTRAST MUST SURVIVE AT ORDER 3 FOR EVERY MODEL, two-sided. A one-sided
+    # floor is docs/61 lesson 17: ">= x" passes a rewritten value that is far too large.
+    for model in ("kmer", "cnn", "splicebert"):
+        lo = q.loc[f"{model} R1 contrast (dn-gc), order-3 baseline", "ci_low"] \
+            if f"{model} R1 contrast (dn-gc), order-3 baseline" in q.index else None
+        if lo is not None and not pd.isna(lo):
+            record(float(lo) > 0,
+                   f"protocol dependence survives an order-3 baseline for the {model}",
+                   f"CI low {float(lo):+.4f}", "> 0")
+
+    if spec["splicebert_multiplier_must_be_lowest"]:
+        m = {k: must(f"{k} dn/gc multiplier, order-3 baseline")
+             for k in ("kmer", "cnn", "splicebert")}
+        if all(v is not None for v in m.values()):
+            record(m["splicebert"] < min(m["kmer"], m["cnn"]),
+                   "SpliceBERT still has the LOWEST multiplier at order 3, so 'the contrast "
+                   "grows with capacity' stays withdrawn",
+                   f"{m['splicebert']:.2f}x", f"< {min(m['kmer'], m['cnn']):.2f}x")
 
 
 def verify_horlacher(T, g):
@@ -2291,7 +2390,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

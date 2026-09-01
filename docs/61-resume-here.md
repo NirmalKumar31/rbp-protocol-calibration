@@ -1,7 +1,7 @@
 # Resume here
 
-Updated 2026-08-31, after a four-referee council and two rounds of rebuttal. **473/473 verifier
-checks, 636 tests, 11 figures, 63 tables, 2 manuscript orphans.** Branch
+Updated 2026-09-01. **498/498 verifier checks, 639 tests, 11 figures, 65 tables, 2 manuscript
+orphans.** Branch
 `r1-scale-check-and-corrected-refit`, **not merged to `master`**. Total spend **~$16 of a $40
 budget**, all of it the GC-arm deep sweep; everything since has cost nothing. Working tree clean.
 
@@ -53,7 +53,8 @@ RNA-protein recognition and this paper has none.
 | R1l | protocol and baseline are largely confounded. **CORRECTED:** the 0.0056 AUROC / 3-of-282 figure was the THREE-WAY intersection; pairwise gc-vs-neg2 overlaps 0.212 and 130/188 | — |
 | **R1m** | **no rescaling reaches protocol independence**; floor **2.00x** [1.67, 2.46], interval excludes 1. THIS EARNS THE TITLE | — |
 | **R1n** | the baseline carries MOST of it: protocol label adds **1.0%** overall, baseline **11.0%**. But decomposed by pair it is 0.05% (gc/dn) vs **3.40%** (gc/neg2), and at matched baseline neg2−gc = **−0.0081 [−0.0130, −0.0036]**, so a protocol-family residual DOES exist. Mechanism: the gradient is a property of composition-matched negatives (−0.545, −0.462) and dies for other-RBPs'-sites (−0.122 n.s.) | — |
-| R1o | order-3 baseline removes **64%** of the contrast -- but the fold range survives (2.67x → 2.62x) | — |
+| R1o | **CORRECTED 2026-09-01, and the correction is bigger than the result.** An order-3 baseline removes **80/84/88%** of the arms' gains and **87%** of the contrast, not ~50%. The fold range does not collapse; it WIDENS, **5.34x → 7.16x**. Order 2 now reproduces the published gain per cell at 9.9e-17 | — |
+| **R1r** | **the order-3 collapse is the 4-mer's alone.** Surviving over an order-3 baseline: k-mer **21.7%**, CNN **60.5%**, SpliceBERT **75.0%** (GC arm; intervals do not overlap). The protocol contrast survives at order 3 for all three models. Free: R1g's committed scores, no GPU | — |
 | **R1p** | **EXTERNAL VALIDATION.** Horlacher's own negatives, their folds, 45 datasets: range **2.38x** vs our 2.50x, gradient replicates (rho −0.372, p=0.012). **BUT the sign does not reverse there**, so R1n's strong form is ours only | — |
 
 ## WHAT WAS WITHDRAWN THIS SESSION, and must not return
@@ -89,9 +90,9 @@ RNA-protein recognition and this paper has none.
    before re-exporting figures, which currently embed Type 3; and f0's ClinVar panel, which
    still advertises a retracted analysis.
 
-**Also missing and it blocks drafting:** `docs/60` has NO write-up for R1j, R1m, R1n, R1o or
-R1q -- which includes the result that earns the title and the thesis itself. Their numbers live
-only in committed tables and golden.yaml comments.
+**DONE 2026-09-01:** `docs/60` now has full write-ups for R1j, R1m, R1n, R1o and the new R1r,
+plus the R1g heading fix and the withdrawal qualification on the one-sentence claim. Writing
+R1o is what exposed the re-implemented-baseline bug and produced R1r.
 
 ## STANDING CONSTRAINTS
 
@@ -147,3 +148,11 @@ poor value and replaced with a bounded 20-dataset replication that answered the 
 19. **An ordering by how principled something sounds is not an ordering.** "Bias-aware" is not
     "harder"; measure the difficulty. This produced a false claim that survived into the
     abstract and was caught by an editor, not by any gate.
+20. **A RE-IMPLEMENTED BASELINE MUST BE ASSERTED EQUAL TO THE ORIGINAL, PER CELL.** R1o built
+    its own composition block -- unstandardised, singular, no entropy, sklearn defaults -- and
+    so measured a different quantity under the paper's name for a month. It overstated neg2's
+    gain **2.31x** and understated the order-3 collapse by 30 points. **It passed review
+    because one aggregate agreed**: its order-2 R1 contrast came out +0.0399 against the
+    published +0.0398, from two offsetting errors. Both R1o and R1r now assert
+    `max_order2_reproduction < 1e-9` against the published per-dataset table, and the writing
+    of a results section is what found it. Prose is a gate.
