@@ -75,6 +75,13 @@ MAX_DP = 6
 # at 100 it is 35% and the check stops meaning anything.
 SUMMARY_ROWS = 50
 NUM = re.compile(r"(?<![\w.])[-+−]?(\d+\.\d+)(?![\w])")
+# IDENTIFIERS ARE NOT CLAIMS. A DOI, accession or version string contains a decimal point and
+# is matched by NUM, but it asserts nothing about the science and has no table to live in.
+# Flagging one is a false positive that costs the reader's trust in the real orphans, and
+# "10.5281" from a Zenodo DOI is exactly the case that surfaced. Matched on the surrounding
+# text rather than the token, so a genuine 10.5281 elsewhere is still checked.
+IDENTIFIER = re.compile(r"(doi:|zenodo\.|10\.\d{4,}/|ENC[A-Z]{2}\d|GSE\d|v\d+\.\d+)",
+                        re.IGNORECASE)
 
 
 def log(m):
@@ -143,6 +150,10 @@ def main():
         for m in NUM.finditer(line):
             tok = m.group(1)
             if len(tok.split(".")[1]) < MIN_DECIMALS:
+                continue
+            # skip identifiers: a DOI or accession is not a numeric claim
+            ctx = line[max(0, m.start() - 12):m.end() + 12]
+            if IDENTIFIER.search(ctx):
                 continue
             checked += 1
             d = min(len(tok.split(".")[1]), MAX_DP)

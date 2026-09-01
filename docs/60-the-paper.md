@@ -36,9 +36,8 @@ mechanism (Spearman −0.60 against the baseline) is an asset rather than a conf
 
 ## The one-sentence claim
 
-> **The composition baseline your negative set leaves behind is what determines the
-> measurable contribution of a sequence model. The protocol label carries essentially no
-> information beyond it.** Across 94 ENCODE eCLIP datasets, holding the model, the positives,
+> **The composition baseline your negative set leaves behind is most of what determines the
+> measurable contribution of a sequence model.** Across 94 ENCODE eCLIP datasets, holding the model, the positives,
 > the folds and the estimator fixed and changing only how the negatives were built, the nested
 > contribution of a 4-mer over a 19-feature composition baseline measures **+0.0663**,
 > **+0.0265** or **+0.0122 AUROC** across three protocols -- a **5.4-fold range** [4.4, 6.6] --
@@ -716,6 +715,35 @@ observational data can split, and the practical consequence follows directly: re
 composition baseline measured under the same protocol, because it is the only summary of what
 the protocol did that a reader can act on, and never compare contributions measured under
 different protocols, because there is no common scale on which to do so.
+
+## R1p: external validation, and where it limits us
+
+`horlacher_arm.csv`, n = 45 of the 88 datasets shared with Horlacher et al. 2023's release.
+Zenodo `10.5281/zenodo.10600977`, md5 verified. **Their positives, their peak calling, their
+negative sets, their fold assignments.** Only the measurement is ours.
+
+| their negative set | composition | apparent | **contribution** |
+|---|---|---|---|
+| negative-1 (transcript background) | 0.8211 | 0.8606 | **+0.0395** |
+| negative-2 (other RBPs' sites) | 0.7560 | 0.7726 | **+0.0166** |
+
+**What replicates, and it is the strongest external support in the paper.** The fold range on
+their benchmark is **2.38x**, against **2.50x** for our corresponding two-protocol comparison.
+Measured on data this project did not build, with folds it did not choose. And the baseline
+gradient replicates in sign: within-dataset Spearman(Δbaseline, Δgain) = **−0.372, p = 0.012**,
+against our −0.664.
+
+**What does not replicate, and it limits R1n.** On our data the natural experiment reverses:
+where the alternative protocol *lowers* the baseline, the contrast flips (−0.0212 → **+0.0028**).
+On theirs it does not. The deficit shrinks in the predicted direction — **−0.0409** where
+negative-2 raises the baseline, **−0.0184** where it lowers it — but stays negative in both
+strata. Their negative-2 gives less contribution regardless of which way the baseline moved.
+
+**So the honest claim is the weaker one.** "The protocol label carries essentially no
+information beyond the baseline" holds on our windows and **not** on an independent benchmark.
+What survives everywhere is that the baseline explains most of the protocol dependence, and
+that the range itself travels. Both the replication and the failure are gated, so a future run
+cannot quietly restore the strong form.
 
 ## R2: the model ladder (methods table, not a result)
 

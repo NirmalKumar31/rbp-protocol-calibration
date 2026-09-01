@@ -1566,6 +1566,64 @@ def verify_baseline_order(T, g):
                 spec["max_fold_range_shift"])
 
 
+def verify_horlacher(T, g):
+    """R1p: the range replicates on an independent benchmark; R1n's strong form does not."""
+    print("\nR1p Horlacher's benchmark  (does any of this travel off our own windows?)")
+    d = T.get("horlacher_arm.csv")
+    if d is None:
+        return record(False, "horlacher_arm.csv present", "MISSING",
+                      "run scripts/horlacher_arm.py")
+    spec = g["r1p_horlacher"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets from their release", int(n),
+               spec["n_datasets"])
+    for k, gk in (("composition alone, negative-1", "composition_n1"),
+                  ("composition alone, negative-2", "composition_n2"),
+                  ("nested contribution, negative-1", "gain_n1"),
+                  ("nested contribution, negative-2", "gain_n2"),
+                  ("CONTRAST, negative-2 minus negative-1", "contrast_n2_minus_n1"),
+                  ("fold range across their two negative sets", "fold_range_their_data"),
+                  ("within-dataset spearman(delta baseline, delta gain), their data",
+                   "within_dataset_spearman")):
+        v = must(k)
+        if v is not None:
+            near(k, v, spec[gk])
+
+    fr = must("fold range across their two negative sets")
+    if fr is not None:
+        at_least("the RANGE replicates on an independent benchmark, with their positives, "
+                 "their peaks and their folds", fr, spec["min_fold_range_their_data"])
+    r = must("within-dataset spearman(delta baseline, delta gain), their data")
+    if r is not None and spec["gradient_must_replicate_in_sign"]:
+        record(r < 0, "the baseline gradient replicates in SIGN on their data",
+               f"{r:+.3f}", "< 0")
+
+    hi = must("n2 minus n1 gain, negative-2 baseline HIGHER")
+    lo = must("n2 minus n1 gain, negative-2 baseline LOWER")
+    if hi is not None:
+        near("gain difference where negative-2 raises the baseline", hi,
+             spec["gain_diff_n2_baseline_higher"])
+    if lo is not None:
+        near("gain difference where negative-2 lowers the baseline", lo,
+             spec["gain_diff_n2_baseline_lower"])
+    if hi is not None and lo is not None and spec["sign_must_not_reverse_on_their_data"]:
+        record(hi < 0 and lo < 0,
+               "THE LIMITATION: on their benchmark the sign does NOT reverse, so a "
+               "protocol-specific residual remains and R1n's strong form is OURS only",
+               f"{hi:+.4f}, {lo:+.4f}", "both negative")
+        record(lo > hi, "the deficit still shrinks in the direction the baseline predicts",
+               f"{lo:+.4f} > {hi:+.4f}", "gradient present")
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -2140,7 +2198,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_horlacher, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

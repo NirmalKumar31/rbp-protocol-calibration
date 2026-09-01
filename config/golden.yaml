@@ -865,6 +865,51 @@ r1o_baseline_order:
   max_fold_range_shift: 0.40
   most_of_the_magnitude_must_be_removable: true
 
+# --- R1p: external validation on Horlacher's own benchmark, and where it LIMITS us --------
+#
+# Every other result is measured on windows this project built. This one is not: same nested
+# decomposition, Horlacher et al. 2023's published negative sets, THEIR fold assignments, on
+# 45 size-stratified datasets of the 88 our panel shares with their 223.
+# Zenodo 10.5281/zenodo.10600977, md5 c93a38b8bd684be2ccb5f6f82c6c4700, verified.
+#
+# WHAT REPLICATES:
+#   * the RANGE. Their two negative sets give 2.38x, against 2.50x for our dinuc/GC pair.
+#     Measured on their positives, their peaks, their folds. This is the strongest external
+#     support the paper has.
+#   * the BASELINE GRADIENT. Within-dataset spearman(delta baseline, delta gain) = -0.372,
+#     p = 0.012, the same sign as our -0.664.
+#
+# WHAT DOES NOT, AND IT LIMITS R1n:
+#   * the sign does NOT reverse. On our data, where the alternative protocol lowers the
+#     baseline the contrast flips (-0.0212 -> +0.0028). On theirs it does not: -0.0409 where
+#     negative-2 raises the baseline, -0.0184 where it lowers it. The gradient is there (the
+#     deficit halves in the predicted direction) but negative-2 gives less regardless.
+#
+# CONCLUSION THE PAPER MUST DRAW. R1n's strong form -- "the protocol label carries essentially
+# no information beyond the baseline" -- holds on our windows and NOT on theirs. The honest
+# claim is the weaker one: the baseline explains most of the protocol dependence and, on our
+# data, all of it; on an independent benchmark a protocol-specific residual remains.
+r1p_horlacher:
+  n_datasets: 45
+  composition_n1: {value: 0.8211, tol: 0.020}
+  composition_n2: {value: 0.7560, tol: 0.020}
+  gain_n1:        {value: 0.0395, tol: 0.008}
+  gain_n2:        {value: 0.0166, tol: 0.006}
+  contrast_n2_minus_n1: {value: -0.0229, tol: 0.007}
+  # THE EXTERNAL VALIDATION. Their range must be comparable to ours or the claim does not
+  # travel. Ours is 2.50x for the corresponding two-protocol comparison.
+  fold_range_their_data: {value: 2.38, tol: 0.45}
+  min_fold_range_their_data: 1.6
+  # The gradient must replicate in SIGN.
+  within_dataset_spearman: {value: -0.372, tol: 0.12}
+  gradient_must_replicate_in_sign: true
+  # AND THE LIMITATION, ASSERTED so it cannot be dropped: the sign does NOT reverse on their
+  # data, unlike ours. If a future run makes it reverse, R1n's strong form is restored and
+  # that must be a deliberate decision, not a silent one.
+  gain_diff_n2_baseline_higher: {value: -0.0409, tol: 0.012}
+  gain_diff_n2_baseline_lower:  {value: -0.0184, tol: 0.010}
+  sign_must_not_reverse_on_their_data: true
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -1087,7 +1132,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 435
+  min_domain_checks: 449
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

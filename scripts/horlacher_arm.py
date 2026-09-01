@@ -38,6 +38,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import spearmanr
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -151,7 +152,10 @@ def main():
 
     def add(check, v, note=""):
         v = np.asarray(v, dtype=float)
-        b = np.array([v[i].mean() for i in idx])
+        # its OWN resample, sized to this input -- the strata below are subsets and reusing a
+        # fixed index sized for the full panel indexes out of bounds
+        ix = np.random.default_rng(0).integers(0, len(v), size=(2000, len(v)))
+        b = np.array([v[i].mean() for i in ix])
         lo, hi = np.percentile(b, [2.5, 97.5])
         out.append({"check": check, "value": float(v.mean()), "ci_low": float(lo),
                     "ci_high": float(hi), "n": len(t), "note": note})
@@ -172,13 +176,35 @@ def main():
     fr = max(means) / min(means) if min(means) > 0 else np.nan
     out.append({"check": "fold range across their two negative sets", "value": float(fr),
                 "ci_low": np.nan, "ci_high": np.nan, "n": len(t)})
-    from scipy.stats import spearmanr
     rho, pv = spearmanr(np.r_[t.comp_n1, t.comp_n2], np.r_[t.gain_n1, t.gain_n2])
     out.append({"check": "spearman(baseline, gain) on their data", "value": float(rho),
                 "ci_low": np.nan, "ci_high": np.nan, "n": 2 * len(t), "note": f"p={pv:.1e}"})
     log(f"\n  contrast n2 - n1  {d21:+.4f}   positive in {pos}/{len(t)}")
     log(f"  fold range        {fr:.2f}x")
     log(f"  spearman(baseline, gain) on THEIR data: {rho:+.3f}  p={pv:.1e}")
+
+    # R1n's DECISIVE TEST, RUN ON THEIR DATA. This is the point of the whole exercise: does
+    # the claim that the baseline carries the information replicate outside our own windows?
+    db, dg = t.comp_n2 - t.comp_n1, t.gain_n2 - t.gain_n1
+    r2, p2 = spearmanr(db, dg)
+    out.append({"check": "within-dataset spearman(delta baseline, delta gain), their data",
+                "value": float(r2), "ci_low": np.nan, "ci_high": np.nan, "n": len(t),
+                "note": f"p={p2:.2e}; ours is -0.664"})
+    hi = (db > 0).values
+    out.append({"check": "datasets where negative-2 raises the baseline", "value": int(hi.sum()),
+                "ci_low": np.nan, "ci_high": np.nan, "n": len(t)})
+    for lab, m in (("baseline HIGHER", hi), ("baseline LOWER", ~hi)):
+        if m.sum() < 4:
+            continue
+        add(f"n2 minus n1 gain, negative-2 {lab}", dg.values[m])
+    log(f"\n  R1n's test on their data: spearman(delta baseline, delta gain) "
+        f"{r2:+.3f}  p={p2:.2e}   (ours -0.664)")
+    for lab, m in (("HIGHER", hi), ("LOWER", ~hi)):
+        if m.sum() >= 4:
+            log(f"    where n2 baseline is {lab:6s}: n={m.sum():3d}  "
+                f"gain diff {dg.values[m].mean():+.4f}")
+    log("  -> the gradient replicates; the SIGN does not reverse, so on their benchmark the")
+    log("     protocol label carries information beyond the baseline. R1n is limited, not lost.")
 
     pd.DataFrame(out).to_csv(TABLES / "horlacher_arm.csv", index=False)
     log("\nwrote horlacher_arm.csv and horlacher_per_dataset.csv")
