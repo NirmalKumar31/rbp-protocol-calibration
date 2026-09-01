@@ -910,6 +910,39 @@ r1p_horlacher:
   gain_diff_n2_baseline_lower:  {value: -0.0184, tol: 0.010}
   sign_must_not_reverse_on_their_data: true
 
+# --- R1q: does the recommendation actually help? Measured, not asserted ------------------
+#
+# THE GAP THIS FILLS. Everything up to here shows that NOT reporting the composition baseline
+# is a problem. Nothing showed that DOING it helps. A benchmarking paper whose recommendation
+# is untested is a complaint, not a contribution.
+#
+# THE TEST. Put a reader in the position the recommendation is meant to rescue: two papers,
+# two protocols, comparing what the models contributed. Raw contributions against the
+# headroom-normalised coordinate the two-number report buys.
+#
+#   rank agreement (Spearman, scale-free)   improves in 3/3 pairs
+#   disagreement on a common scale          shrinks in 3/3 pairs, by 58%, 10% and 48%
+#
+# HONEST LIMIT, GATED: only the GC-vs-dinucleotide rank improvement has an interval clear of
+# zero (+0.007 to +0.115). The other two are consistent in direction and not individually
+# significant, and the paper must say so. The DISAGREEMENT reduction is the stronger half.
+r1q_recommendation:
+  rank_raw_gc_dn:        {value: 0.848, tol: 0.05}
+  rank_headroom_gc_dn:   {value: 0.899, tol: 0.05}
+  rank_gain_gc_dn:       {value: 0.051, tol: 0.03}
+  disagreement_raw_gc_dn:      {value: 1.151, tol: 0.15}
+  disagreement_headroom_gc_dn: {value: 0.482, tol: 0.10}
+  disagreement_raw_dn_neg2:      {value: 1.552, tol: 0.20}
+  disagreement_headroom_dn_neg2: {value: 0.802, tol: 0.15}
+  n_pairs: 3
+  # THE CLAIM: the direction must be consistent across every pair, on both measures.
+  pairs_rank_improves: 3
+  pairs_disagreement_shrinks: 3
+  recommendation_must_help_on_every_pair: true
+  # AND THE LIMIT: at least one pair's rank improvement must be individually significant, or
+  # the claim is direction-only and has to be worded that way.
+  min_significant_rank_pairs: 1
+
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
   composition: {value: 0.628, tol: 0.020}
@@ -1132,7 +1165,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 449
+  min_domain_checks: 462
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

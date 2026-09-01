@@ -745,6 +745,36 @@ What survives everywhere is that the baseline explains most of the protocol depe
 that the range itself travels. Both the replication and the failure are gated, so a future run
 cannot quietly restore the strong form.
 
+## R1q: the recommendation is tested, not asserted
+
+`recommendation_works.csv`, n = 94, intervals bootstrap the 79 proteins.
+
+Everything above shows that **not** reporting the composition baseline is a problem. Nothing
+showed that **doing** it helps, and a benchmarking paper whose recommendation is untested is a
+complaint rather than a contribution. So: put a reader in the position the recommendation is
+meant to rescue -- two papers, two protocols, comparing what the models contributed -- and
+compare raw contributions against the headroom-normalised coordinate the two-number report buys.
+
+| protocol pair | rank agreement, raw → headroom | disagreement on a common scale |
+|---|---|---|
+| GC vs dinuc | 0.848 → **0.899** [+0.007, +0.115] | 1.151 → **0.482** |
+| GC vs neg2 | 0.674 → **0.724** | 0.504 → **0.451** |
+| dinuc vs neg2 | 0.607 → **0.628** | 1.552 → **0.802** |
+
+**Rank agreement improves in 3/3 pairs and disagreement shrinks in 3/3**, by 58%, 10% and 48%.
+Rank agreement is scale-free, so no normalisation can flatter it; the disagreement column
+divides each coordinate by its own panel mean, because raw and headroom-normalised numbers have
+different units and comparing their absolute differences directly would rig the result.
+
+**The limit, gated so the wording cannot drift.** Only the GC-versus-dinucleotide rank
+improvement has an interval clear of zero. The other two are consistent in direction and not
+individually significant. The claim is therefore **direction-consistent**, not uniformly
+significant, and the disagreement reduction is the stronger half of it.
+
+**What would have falsified it.** Rank agreement falling, or disagreement rising, under
+normalisation -- in which case the honest paper says "we can show the problem and cannot offer
+a fix", which is still publishable and considerably weaker.
+
 ## R2: the model ladder (methods table, not a result)
 
 `matched_four_models.csv`, n = 95, identical chromosome-level folds. Figure **f2**.

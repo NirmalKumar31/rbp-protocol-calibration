@@ -1629,6 +1629,66 @@ def verify_horlacher(T, g):
                f"{lo:+.4f} > {hi:+.4f}", "gradient present")
 
 
+def verify_recommendation(T, g):
+    """R1q: the deliverable is tested. Direction is consistent; significance is one pair."""
+    print("\nR1q recommendation  (does reporting the baseline actually help a reader?)")
+    d = T.get("recommendation_works.csv")
+    if d is None:
+        return record(False, "recommendation_works.csv present", "MISSING",
+                      "run scripts/recommendation_works.py")
+    spec = g["r1q_recommendation"]
+    q = d.set_index("check")
+
+    def must(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, col])
+
+    for label, key in (
+            ("rank agreement, raw, gc vs dn", spec["rank_raw_gc_dn"]),
+            ("rank agreement, headroom, gc vs dn", spec["rank_headroom_gc_dn"]),
+            ("rank agreement gain, gc vs dn", spec["rank_gain_gc_dn"]),
+            ("scale-free disagreement, raw, gc vs dn", spec["disagreement_raw_gc_dn"]),
+            ("scale-free disagreement, headroom, gc vs dn", spec["disagreement_headroom_gc_dn"]),
+            ("scale-free disagreement, raw, dn vs neg2", spec["disagreement_raw_dn_neg2"]),
+            ("scale-free disagreement, headroom, dn vs neg2",
+             spec["disagreement_headroom_dn_neg2"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    npairs = must("number of protocol pairs")
+    if npairs is not None:
+        record(int(npairs) == spec["n_pairs"], "protocol pairs compared", int(npairs),
+               spec["n_pairs"])
+    ri = must("protocol pairs where rank agreement improves")
+    di = must("protocol pairs where disagreement shrinks")
+    if ri is not None:
+        record(int(ri) == spec["pairs_rank_improves"],
+               "pairs where rank agreement improves", int(ri), spec["pairs_rank_improves"])
+    if di is not None:
+        record(int(di) == spec["pairs_disagreement_shrinks"],
+               "pairs where disagreement shrinks", int(di), spec["pairs_disagreement_shrinks"])
+    if ri is not None and di is not None and spec["recommendation_must_help_on_every_pair"]:
+        record(int(ri) == int(npairs or 3) and int(di) == int(npairs or 3),
+               "THE DELIVERABLE IS TESTED: reporting the baseline helps on every protocol "
+               "pair, on both measures", f"rank {int(ri)}/3, disagreement {int(di)}/3",
+               "3/3 and 3/3")
+
+    # THE LIMIT, asserted so the wording cannot drift stronger than the evidence.
+    sig = 0
+    for a, b in (("gc", "dn"), ("gc", "neg2"), ("dn", "neg2")):
+        lo = must(f"rank agreement gain, {a} vs {b}", "ci_low")
+        if lo is not None and lo > 0:
+            sig += 1
+    at_least("protocol pairs whose rank improvement is individually significant", sig,
+             spec["min_significant_rank_pairs"])
+    record(sig < 3, "NOT every pair's rank improvement is individually significant, so the "
+                    "claim is direction-consistent rather than uniformly significant",
+           f"{sig}/3", "< 3")
+
+
 def verify_k_sweep(T, g):
     """R1 rebuilt from sequence, and shown not to depend on the k-mer size."""
     print("\nR1e  k sweep and rebuild-from-sequence")
@@ -2203,7 +2263,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_horlacher, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
