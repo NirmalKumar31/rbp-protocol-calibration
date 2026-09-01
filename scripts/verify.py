@@ -1519,16 +1519,21 @@ def verify_baseline_order(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets in the subsample", int(n),
                spec["n_datasets"])
-    for arm in ("gc", "dn", "neg2"):
-        for order in (2, 3):
-            v = must(f"gain over order-{order} baseline, {arm} arm")
-            if v is not None:
-                near(f"gain over order-{order} baseline, {arm}", v,
-                     spec[f"gain_order{order}_{arm}"])
-    for arm in ("gc", "dn"):
-        v = must(f"fraction removed by order 3, {arm} arm")
+    # KEYS ARE SPELLED OUT LITERALLY. test_golden_keys_are_read.py reads this file as TEXT, so
+    # spec[f"gain_order{order}_{arm}"] is invisible to it and the key reads as unread. That is
+    # docs/61 lesson 12, and it caught this exact violation of itself.
+    for label, key in (
+            ("gain over order-2 baseline, gc arm", spec["gain_order2_gc"]),
+            ("gain over order-3 baseline, gc arm", spec["gain_order3_gc"]),
+            ("gain over order-2 baseline, dn arm", spec["gain_order2_dn"]),
+            ("gain over order-3 baseline, dn arm", spec["gain_order3_dn"]),
+            ("gain over order-2 baseline, neg2 arm", spec["gain_order2_neg2"]),
+            ("gain over order-3 baseline, neg2 arm", spec["gain_order3_neg2"]),
+            ("fraction removed by order 3, gc arm", spec["removed_fraction_gc"]),
+            ("fraction removed by order 3, dn arm", spec["removed_fraction_dn"])):
+        v = must(label)
         if v is not None:
-            near(f"fraction removed by order 3, {arm}", v, spec[f"removed_fraction_{arm}"])
+            near(label, v, key)
 
     c2 = must("R1 contrast (dn-gc), order-2 baseline")
     c3 = must("R1 contrast (dn-gc), order-3 baseline")
