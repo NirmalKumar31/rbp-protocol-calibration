@@ -2,8 +2,8 @@
 
 Predicting where an RNA-binding protein (RBP) binds from sequence alone is a standard supervised
 problem, and the field's progress is measured almost entirely by AUROC on held-out windows.
-Positives come from a crosslinking assay, usually eCLIP [1, 2], and the negatives are
-constructed. Horlacher and colleagues [3] made the consequences of that construction explicit:
+Positives come from a crosslinking assay, usually eCLIP [2, 3], and the negatives are
+constructed. Horlacher and colleagues [4] made the consequences of that construction explicit:
 across eleven RBP prediction methods and hundreds of experiments, the apparent performance of a
 method depends on how its negative set was built, and they proposed a bias-aware alternative in
 which negatives are drawn from other RBPs' binding sites rather than from genomic background.
@@ -18,22 +18,22 @@ and a model that detects "G-rich, C-poor" will score well without having learned
 sequence-specific. The standard mitigation is to match negatives on composition, most often GC
 content. But GC content is one linear functional of the sixteen-cell dinucleotide simplex, so
 matching on it leaves fifteen degrees of freedom free, and the residual compositional difference
-is available to any model. This is the same structure that Grimm and colleagues [4] identified in
+is available to any model. This is the same structure that Grimm and colleagues [6] identified in
 variant-effect benchmarks, where the way negatives and positives are assembled produces
 circularity that inflates apparent method performance and reorders methods, and it is a
-recognised failure mode of genomic machine-learning evaluation more generally [5, 6].
+recognised failure mode of genomic machine-learning evaluation more generally [6, 7].
 
 The natural response is to report not the model's AUROC but what it adds over an explicit
-composition baseline. That quantity, the incremental or nested contribution, has a long history
-in risk prediction [7, 8], and it has an exact meaning: fit the composition features alone and
-then with the model's score, on the same rows and the same folds, and take the difference in
-out-of-fold AUROC. It is the quantity a reader actually wants when asking what a model
-contributes, and it is the quantity we measure here.
+composition baseline. That quantity, which we call the nested contribution, has an exact
+operational meaning: fit the composition features alone and then with the model's score, on the
+same rows and the same folds, and take the difference in out-of-fold AUROC. It is the quantity a
+reader actually wants when asking what a model contributes, and it is the quantity we measure
+here.
 
 Our contribution is a calibration. We take 94 ENCODE eCLIP datasets, hold the model, the
 positives, the chromosome-blocked folds and the estimator fixed, and build negatives three
 ways: matched on GC content, matched on all sixteen dinucleotide frequencies, and drawn from
-other RBPs' binding sites in the same cell line following the bias-aware recipe of [3]. Under
+other RBPs' binding sites in the same cell line following the bias-aware recipe of [4]. Under
 each protocol we refit the composition baseline on that protocol's own windows, so the baseline
 is never imported across designs. Four results follow.
 

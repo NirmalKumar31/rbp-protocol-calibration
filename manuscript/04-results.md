@@ -104,7 +104,7 @@ that equalises our three protocols therefore exists**, and any claim that none d
 false on our own data.
 
 The exponent is a property of the benchmark rather than of the quantity, and that is the result.
-Fitted to the two negative sets released by [3], the equalising exponent is **3.649**, a factor
+Fitted to the two negative sets released by [4], the equalising exponent is **3.649**, a factor
 of 2.4 from ours. Our exponent leaves their benchmark at **2.340** against the **2.381** it
 started from, that is, it buys nothing there. So a normalisation strong enough to equalise one
 benchmark must be refitted on the next, and **the absence of a protocol-free measure is a
@@ -222,7 +222,7 @@ to monotone transforms, so no standalone AUROC is affected.
 ## The calibration replicates on an independent benchmark
 
 Every result above is measured on windows we built. To test whether any of it travels we applied
-the identical decomposition to the negative sets released by [3]: their positives, their peak
+the identical decomposition to the negative sets released by [4]: their positives, their peak
 calling, their negative-set construction and their fold assignments, over the 45 datasets shared
 with our panel. Only the measurement is ours (Figure 5).
 
@@ -263,7 +263,7 @@ GC-versus-dinucleotide rank improvement has an interval clear of zero (+0.051 [+
 the other two pairs are consistent in direction and individually null. That pair is precisely the
 one where the protocol label adds 0.05% of variance, so the fix is best demonstrated where it is
 least needed. Second, and decisively, the test fails to replicate out of sample. On the 45
-datasets of [3], rank agreement **falls** from 0.706 to 0.656 under normalisation and
+datasets of [4], rank agreement **falls** from 0.706 to 0.656 under normalisation and
 disagreement **rises** from 0.860 to 0.908. Those are, verbatim, the two criteria we
 pre-registered as falsifying. The change in rank agreement is **−0.050 [−0.222, +0.140]**, so at
 n = 45 this is a failure to replicate rather than a refutation, but it points the wrong way and

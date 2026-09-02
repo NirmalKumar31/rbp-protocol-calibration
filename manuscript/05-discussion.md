@@ -23,7 +23,7 @@ leaves a sequence model little to add.
 
 **There are two protocol families, not a continuum of stringency.** The relation between the
 composition baseline a protocol leaves and the contribution a model then shows is strong for
-composition-matched negatives, in our data and independently in [3]'s, and absent for negatives
+composition-matched negatives, in our data and independently in [4]'s, and absent for negatives
 drawn from other proteins' sites. A residual difference between the families survives matching
 on the baseline. So the useful taxonomy for a benchmark builder is not "how strict is the
 matching" but "what kind of object is the negative", and results are comparable within a family
@@ -63,7 +63,7 @@ recommendation carries: trinucleotide counts are linear aggregates of 4-mer coun
 order-three baseline is structurally unfavourable to k-mer models, and it separates models by how
 much of their signal lies outside short-range composition rather than by capacity.
 
-**Relation to prior work.** [3] established that negative-set construction changes apparent
+**Relation to prior work.** [4] established that negative-set construction changes apparent
 performance across many RBP methods and proposed the bias-aware alternative. This work does not
 contest that and depends on it: their released negative sets are our only external validation.
 What we add is the calibration. The quantity that moves is not just apparent AUROC but the
@@ -71,10 +71,10 @@ increment over an explicit baseline; it moves in the opposite direction to appar
 it moves by a factor of five, comparable to or larger than the between-method differences these
 benchmarks exist to resolve; the composition baseline rather than the protocol label is what it
 tracks; and no reparameterisation makes it comparable across benchmarks. The same structural
-problem is well documented in variant-effect prediction [4], where benchmark assembly produces
+problem is well documented in variant-effect prediction [6], where benchmark assembly produces
 circularity that both inflates and reorders methods, and the general point that
 genomic machine-learning evaluations are sensitive to how the negative class is defined has been
-made before [5, 6]. Our contribution is to quantify it for one well-defined estimand in one
+made before [6, 7]. Our contribution is to quantify it for one well-defined estimand in one
 well-covered assay, and to show which part of it is arithmetic and which is not.
 
 ## Limitations

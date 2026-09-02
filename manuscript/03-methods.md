@@ -70,10 +70,10 @@ are reported so the quality of the approximation is visible. Used coordinates ar
 all groups, because one interval can be annotated as both a non-coding exon and a 3'UTR and so
 appear in two region pools. No maximum distance is imposed.
 
-**Bias-aware (other RBPs' sites).** Following [3], negatives for a target are the positive
+**Bias-aware (other RBPs' sites).** Following [4], negatives for a target are the positive
 windows of the other panel proteins assayed in the same cell line, sampled 1:1 without
 replacement, excluding any donor window within 500 nt of any of the target's own positive
-windows. Two deviations from [3] should be noted: our donor pool is the study panel (40 to 48
+windows. Two deviations from [4] should be noted: our donor pool is the study panel (40 to 48
 donor proteins per dataset, median 45) rather than a full ENCODE survey, and exclusion is by
 distance from the target's 101 nt windows rather than from its full peak intervals. Sampling is
 performed within fold, so every pair stays inside one cross-validation fold. These negatives are
@@ -141,7 +141,7 @@ The nested contribution of a model is
 both fitted by L2-penalised logistic regression (C = 1, lbfgs, at most 3000 iterations) once per
 fold on that fold's training rows, both evaluated as pooled out-of-fold linear predictors on
 identical rows and identical folds, and compared by DeLong's paired estimator in the O(n log n)
-midrank form of [9, 10]. The paired estimator is required rather than optional: the two score
+midrank form of [8, 9]. The paired estimator is required rather than optional: the two score
 vectors are fitted on overlapping training data and evaluated on the same rows, so they are
 strongly correlated and treating them as independent understates the variance of the difference.
 Confidence intervals on a single dataset's contribution are Wald intervals on the DeLong
@@ -158,14 +158,14 @@ columns) into L2-penalised logistic regression (C = 1). One model per fold, out-
 taken as the linear predictor. The k-mer order is 4; it is unrelated to the 5 in 5-fold
 cross-validation, and the contrast is positive at every order from 3 to 6.
 
-**Convolutional network.** A DeepBind-style architecture [11]: convolution (4 to 16 channels,
+**Convolutional network.** A DeepBind-style architecture [13]: convolution (4 to 16 channels,
 width 12), ReLU, max-pool 4, convolution (16 to 32, width 8), ReLU, global max-pool over
 position, dense 32 to 64, ReLU, dropout 0.5, dense 64 to 1. 7,089 parameters, all trained from
 scratch. Global max-pooling makes the model position-invariant, which is a requirement rather
 than a convenience here: exploratory analysis placed the discriminative signal about 15 nt off
 centre, varying by protein.
 
-**SpliceBERT.** The pretrained nucleotide language model of [12], `multimolecule/splicebert`,
+**SpliceBERT.** The pretrained nucleotide language model of [15], `multimolecule/splicebert`,
 fully fine-tuned; 19.78 M parameters, all trainable. The classification head is a mean pool over
 real nucleotide tokens, masking classification, separator and padding tokens, then dense to 128,
 ReLU, dropout 0.3, dense to 1. Weights are baked into the container image at build time, so

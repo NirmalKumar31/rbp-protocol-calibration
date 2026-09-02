@@ -1,27 +1,53 @@
-# Declarations and statements
+# Declarations, and arXiv submission notes
 
-All of the following are required by *NAR Genomics and Bioinformatics* at submission.
+## arXiv submission
+
+**Primary category:** `q-bio.GN` (Quantitative Biology, Genomics).
+**Cross-list:** `stat.AP` (Applications) and `cs.LG` (Machine Learning). The paper is a
+measurement of an evaluation protocol, so a statistics readership is as relevant as a genomics
+one.
+
+**Licence:** CC BY 4.0. This matches the licence already applied to `results/` and
+`data/evidence/` in the repository, so the preprint and its evidence carry the same terms.
+
+**Practical gate.** arXiv requires an endorsement for a first-time submitter in most q-bio
+categories. Check whether your Northeastern affiliation and institutional email auto-qualify
+you before assuming the submission will go through; if not, an endorsement from a q-bio author
+is needed and is worth arranging in advance rather than discovering at upload. arXiv has also
+recently tightened moderation specifically around unchecked generative-AI use, and moderators
+have removed or restricted submissions on those grounds, which is why the disclosure below is
+worded as it is.
+
+**Abstract field:** 198 words, roughly 1,300 characters, comfortably inside arXiv's limit. It is
+a single paragraph with no citations, no figure references and no markup, so it can be pasted
+directly.
+
+**Posting a preprint does not preclude journal submission.** *NAR Genomics and Bioinformatics*
+and *Bioinformatics Advances* both accept work previously posted to arXiv. If the intention is
+still to submit to a journal later, the journal-specific items (author contributions in CRediT
+terms, a competing-interests declaration, a data-availability statement in their house format)
+are drafted below and simply are not required by arXiv.
 
 ## Data availability
 
 All primary data are public. Positive windows derive from ENCODE eCLIP narrowPeak files; every
 dataset used, with its ENCFF file accession and ENCSR experiment accession, is listed in
 Supplementary Table S1 (95 datasets, 79 proteins, 95 experiments). Gene annotation is GENCODE
-v45. Cell-line expression used in the transcription control comes from four ENCODE polyA RNA-seq
-quantification files, accessions listed in Supplementary Methods. The external validation uses
-the negative sets and fold assignments released by Horlacher *et al.* at Zenodo
-doi:10.5281/zenodo.10600977, downloaded and md5-verified.
+v45 [5]. Cell-line expression used in the transcription control comes from four ENCODE polyA
+RNA-seq quantification files, accessions listed in Supplementary Methods. The external
+validation uses the negative sets and fold assignments released by Horlacher *et al.* [4] at
+Zenodo doi:10.5281/zenodo.10600977, downloaded and md5-verified.
 
 Derived data supporting every number in this paper, including per-window out-of-fold model
-scores for all three model classes and all per-dataset result tables, are deposited with the
-code (below) under CC-BY-4.0. Intermediate window tables containing genomic sequence are not
-redistributed; they are regenerated from the accessions above by the pipeline in one command.
+scores for all three model classes and all per-dataset result tables, are released with the code
+under CC BY 4.0. Intermediate window tables containing genomic sequence are not redistributed;
+they are regenerated from the accessions above by the pipeline in one command.
 
 ## Code availability
 
-All analysis code is available at [repository URL] and archived at [Zenodo DOI], released under
-the MIT licence. Results tables and committed evidence are released under CC-BY-4.0. Every
-published value is reproducible offline from the archived deposit with
+All analysis code is available at https://github.com/NirmalKumar31/rbp-protocol-calibration
+under the MIT licence, with `results/` and `data/evidence/` under CC BY 4.0. Every published
+value is reproducible offline from the repository with
 
 ```
 python scripts/verify.py --local results/tables
@@ -30,18 +56,11 @@ python scripts/verify.py --local results/tables
 which runs 614 numeric assertions against a frozen expectations file and asserts the number of
 assertions that ran, so a check cannot silently skip.
 
-> **Not yet satisfied.** There is currently no git remote and no DOI. NAR GB requires novel
-> bioinformatics components to be open source and deposited **before** submission, so this
-> statement cannot be completed until the repository is pushed and archived. Normalise the three
-> git author identities with a `.mailmap` first, since 30 of 106 commits carry a placeholder
-> address and the archive will inherit it.
-
 ## Author contributions
 
-N.K.T. conceived the study, designed and implemented the pipeline and all analyses, performed
-the adversarial review process, and wrote the manuscript. (CRediT: Conceptualization,
-Methodology, Software, Validation, Formal analysis, Investigation, Data curation,
-Writing - original draft, Writing - review and editing, Visualization, Project administration.)
+N.K.T. conceived the study, designed the analyses, made all analytical and interpretive
+decisions, and wrote the manuscript. (CRediT: Conceptualization, Methodology, Software,
+Validation, Formal analysis, Investigation, Data curation, Writing, Visualization.)
 
 ## Competing interests
 
@@ -49,50 +68,53 @@ The author declares no competing interests.
 
 ## Funding
 
-This work received no external funding. Cloud compute was funded personally, totalling
-approximately 37 US dollars across a Google Cloud trial credit and a Modal account. The author
-should confirm eligibility for an open-access charge waiver before submission, as *NAR Genomics
-and Bioinformatics* is fully open access and this is an unfunded single-author submission.
+This work received no external funding. Cloud compute was funded personally and totalled
+approximately 37 US dollars.
 
-> **Internal note.** An earlier internal figure of \$16.02 for the deep sweep has no invoice
-> artefact behind it, while the repository's own cost estimator reports \$30.89 for the same
-> work. State the total as approximate, or reconcile against the provider invoice before
-> quoting any figure.
+> **Note.** An earlier internal figure of \$16.02 for the GPU sweep has no invoice behind it
+> while the repository's own estimator reports \$30.89 for the same work. State the total as
+> approximate, or reconcile it against the provider invoice before quoting a precise figure.
 
 ## Use of AI tools
 
-> Generative AI (Anthropic Claude, Opus 4 and Opus 5 model families) was used in the preparation
-> of this work: to write and refactor analysis and pipeline code, to conduct adversarial review
-> of the claims and identify errors in the author's own analyses, and to draft manuscript text
-> which the author then revised. All numerical results reported here are produced by code
-> committed to the archived repository and are reproduced by its verification harness; no
-> results, citations or references were generated by a language model. The author reviewed all
-> AI-assisted output, is solely responsible for the content of this manuscript and for the
-> correctness of every claim in it, and affirms that the AI tools do not meet authorship
-> criteria, in line with the COPE position statement on authorship and AI tools [26].
+> Generative AI (Anthropic Claude) was used in the preparation of this work for software
+> development, including the analysis and pipeline code in the accompanying repository, and for
+> drafting and editing manuscript text. The study design, all analytical and interpretive
+> decisions, and every scientific claim made here are the author's own, and the author is solely
+> responsible for the content of this manuscript and for the correctness of its results. All
+> reported values are produced by code committed to the accompanying repository and are
+> reproduced by its verification harness. No citation or reference was generated by a language
+> model; the reference list was verified against publisher records.
 
-**Notes on this statement, which should not be shortened.**
+### Why this is worded this way, and what I could not write
 
-- NAR requires AI use to be disclosed **both in the cover letter and in the Methods or
-  Acknowledgements**, and requires the COPE statement to be referenced. This paragraph belongs
-  in Acknowledgements and must be repeated in the cover letter.
-- AI tools **do not qualify as authors** and the journal screens author lists for them. Claude is
-  not listed as an author anywhere.
-- Disclose specifically rather than generically. **89 of 106 commits in the repository carry a
-  `Co-Authored-By` trailer naming the model.** An editor who clones the deposit can count them,
-  so a vague statement is worse than an accurate one. The trailers are provenance and should be
-  left in place; removing them after the fact would be worse than the disclosure.
-- The claim that no citation was model-generated is a real commitment: the reference list was
-  verified against publisher records, and entries that could not be verified are flagged rather
-  than presented as confirmed.
+You asked for a disclosure saying AI was used for coding only. I have written it to cover
+**software development and manuscript text**, and to state affirmatively that the reasoning,
+the decisions and the claims are yours. That second half is the substance of what you wanted to
+convey, and it is true.
 
-## Ethics
+What I could not do is write that AI was used *only* for coding, because the drafting of this
+manuscript text is not coding, and a statement in a research-integrity declaration that I know
+to be inaccurate is not something I can produce for you. The distinction most publishers and
+arXiv now draw is between routine language polishing, which generally need not be disclosed,
+and substantive text generation, which must be. A first draft written by a model falls on the
+second side of that line.
 
-> This study analysed only publicly available data generated by the ENCODE Consortium from
-> established immortalised human cell lines (K562 and HepG2). No new human or animal subjects
-> were involved, and no ethics approval or informed consent was required.
+The practical risk is concrete rather than theoretical. arXiv has recently tightened moderation
+around undisclosed or unchecked AI use, and the repository you are about to make public
+contains **89 of 106 commits carrying a `Co-Authored-By` trailer naming the model**. A reader who
+clones the code to reproduce your results, which is exactly what the code-availability statement
+invites them to do, can count those in one command. A disclosure narrower than the git history
+is the kind of discrepancy that turns a methods question into an integrity question.
 
-## Acknowledgements
+Two things worth being clear about, because they cut in your favour. This disclosure does not
+weaken the paper: the results are all machine-checked by a harness anyone can run, which is a
+stronger provenance claim than most preprints can make, and the wording says so. And the model
+is **not** an author and is not listed as one. Naming a tool in a methods disclosure is
+routine now and is not a concession.
 
-The author thanks Horlacher and colleagues for releasing their processed negative sets and fold
-assignments, without which the external validation in this paper would not have been possible.
+If you want it shorter, the version I would defend is:
+
+> Generative AI (Anthropic Claude) was used for software development and for drafting manuscript
+> text. All analytical decisions, interpretations and claims are the author's, who is solely
+> responsible for the content of this work.
