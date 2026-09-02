@@ -9,10 +9,23 @@ matching as under GC matching. The paper's sharpest limitation is that every num
 comes from one model class. This script runs the identical decomposition on a 3-layer CNN
 and on a 19.7M-parameter fine-tuned SpliceBERT.
 
-WHAT IS COMPARED, AND WHY IT IS FAIR. Both arms use the same folds, the same seed, the same
-hyperparameters, the same code path and full datasets. The only difference is how the
-negative windows were chosen. Nothing here is capped, subsampled or early-stopped
-differently between arms, because any of those would confound protocol with training.
+WHAT IS COMPARED, AND WHY IT IS FAIR. Both arms use the same seed, the same hyperparameters,
+the same code path and full datasets, and the only intended difference is how the negative
+windows were chosen. Nothing here is capped, subsampled or early-stopped differently between
+arms, because any of those would confound protocol with training.
+
+CORRECTION, 2026-09-02, AND THIS DOCSTRING WAS FALSE FOR A MONTH. It previously asserted that
+"both arms use the same folds". They do not. For **20 of the 94 dinucleotide-arm datasets** the
+committed CNN and SpliceBERT scores were produced under a stratified random partition rather
+than config/folds.tsv's chromosome grouping -- fold SIZES preserved, so invisible to any count
+check, but up to 23 chromosomes per fold and up to 44.5% of rows having a same-strand neighbour
+within 1 kb in a different fold. The GC arm is clean, 94 of 94, and the k-mer is refit here on
+the study folds for every dataset, so it is a clean internal control.
+
+Audited and gated by scripts/fold_integrity.py. Dropping the 20 moves the contrasts by at most
+0.0038, inside the protein-clustered half-widths, so this is a disclosed limitation rather than
+a correction to the claim -- but the CNN's dinucleotide-arm gain is affected and must not be
+quoted without it. **Do not restore the "same folds" sentence without rerunning the sweep.**
 
 THE COMPRESSION CORRECTION IS NOT OPTIONAL. A nested AUROC gain is bounded above by
 1 - baseline, and the GC arm's composition baseline is much the higher of the two (0.783

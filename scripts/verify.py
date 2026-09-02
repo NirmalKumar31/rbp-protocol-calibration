@@ -1602,18 +1602,57 @@ def verify_baseline_order(T, g):
     if f3 is not None:
         near("fold range at order 3", f3, spec["fold_range_order3"])
     if f3 is not None:
-        # The corrected numbers WIDEN the range (5.34x -> 7.16x) because the arms do not shrink
-        # proportionally. The claim is therefore not "unchanged" but "never collapses": if a
-        # future run drives the order-3 range toward 1, the protocol dependence WOULD be an
-        # artefact of where the baseline stops and the paper must be restated.
+        # The claim is "never collapses", NOT "widens". At n = 30 the change in the range is
+        # [-1.89, +16.43] with P(<=0) = 0.18, so its direction is not resolved; an earlier
+        # version of this gate asserted the range was unchanged, and the version after that
+        # asserted it widened. Both overstated what 30 datasets can say.
         record(f3 >= spec["min_fold_range_order3"],
                "the fold range does not collapse when the baseline rises one order, so the "
                "paper's claim is not an artefact of where the baseline stops",
                f"{f3:.2f}x", f">= {spec['min_fold_range_order3']}x")
+    if spec["range_change_direction_unresolved"]:
+        k = "change in fold range, order 3 minus order 2"
+        if k in q.index:
+            lo = q.loc[k, "ci_low"]
+            record(not pd.isna(lo) and float(lo) < 0,
+                   "the change in the fold range straddles zero, so the paper must NOT claim "
+                   "the range widens with baseline order",
+                   f"CI low {float(lo):+.2f}" if not pd.isna(lo) else "NaN", "< 0")
+        else:
+            record(False, "the change in the fold range is reported with an interval",
+                   "MISSING", "the row")
+
+    # THE PER-DATASET SIGN. A ratio of means cannot show that the typical neg2 dataset retains
+    # nothing; the median per-dataset ratio there is NEGATIVE.
+    for label, key in (
+            ("order-3 gain positive in, gc arm", spec["order3_positive_gc"]),
+            ("order-3 gain positive in, dn arm", spec["order3_positive_dn"]),
+            ("order-3 gain positive in, neg2 arm", spec["order3_positive_neg2"]),
+            ("median per-dataset order-3/order-2 ratio, neg2 arm", spec["median_ratio_neg2"]),
+            ("spearman(dataset size, order-3 retained fraction), dn arm",
+             spec["size_dependence_dn"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+    if spec["neg2_median_must_be_reported"]:
+        v = must("median per-dataset order-3/order-2 ratio, neg2 arm")
+        if v is not None:
+            record(v <= 0, "the TYPICAL neg2 dataset retains nothing over a trinucleotide "
+                           "baseline, so the positive panel mean must not be read as "
+                           "'small but positive everywhere'", f"median {v:+.3f}", "<= 0")
+    if spec["size_dependence_must_be_reported"]:
+        record("spearman(dataset size, order-3 retained fraction), gc arm" in q.index,
+               "the order-3 retained fraction's size dependence is reported, so the removal "
+               "fractions cannot be read as unbiased for the full panel",
+               "size dependence", "present")
 
 
 def verify_baseline_order_models(T, g):
-    """R1r: the order-3 collapse is the 4-mer's alone; SpliceBERT keeps three quarters."""
+    """R1r: an order-3 baseline absorbs a near-constant amount from every model class.
+
+    NOT "the collapse is the 4-mer's alone" -- that framing was withdrawn on 2026-09-02, and
+    this docstring asserted it for a day after the prose had retracted it.
+    """
     print("\nR1r baseline order across model classes  (is the collapse general?)")
     d = T.get("baseline_order_models.csv")
     if d is None:
@@ -1649,17 +1688,17 @@ def verify_baseline_order_models(T, g):
             near(label, v, key)
             surv[label] = v
 
-    # THE RESULT ITSELF, not just its value: the deep models must survive the higher baseline
-    # by a wide margin over the k-mer, in BOTH arms. If that ever fails, "what a sequence model
-    # adds over composition is one order of composition" becomes a general claim and R1r has to
-    # be rewritten rather than quietly retained.
+    # THE SHARE GAP, and read the label carefully: it pins the gap in the SHARES, which is a
+    # denominator effect. It is NOT evidence of differential fragility -- the absolute
+    # absorption is near-identical and is gated separately below.
     for arm in ("gc", "dn"):
         k = surv.get(f"kmer fraction surviving order 3, {arm} arm")
         s = surv.get(f"splicebert fraction surviving order 3, {arm} arm")
         if k is not None and s is not None:
             record(s - k >= spec["min_deep_advantage_over_kmer"],
-                   f"SpliceBERT survives the order-3 baseline far better than the 4-mer, "
-                   f"{arm} arm", f"{s - k:+.3f}", f">= {spec['min_deep_advantage_over_kmer']}")
+                   f"SpliceBERT's SHARE surviving the order-3 baseline exceeds the 4-mer's, "
+                   f"{arm} arm (a denominator effect, not fragility -- see the absolute "
+                   f"absorption)", f"{s - k:+.3f}", f">= {spec['min_deep_advantage_over_kmer']}")
 
     for label, key in (
             ("kmer gain over order-3 baseline, gc arm", spec["gain_order3_kmer_gc"]),
@@ -1706,6 +1745,48 @@ def verify_baseline_order_models(T, g):
         at_most("the order-3 baseline absorbs a near-CONSTANT absolute amount across model "
                 "classes, so the differing shares are a denominator effect and not differing "
                 "fragility", max(gcv) - min(gcv), spec["max_absorbed_spread_gc"])
+    # THE DINUCLEOTIDE ARM'S SPREAD, ungated until 2026-09-02 -- the gc-only gate passed with
+    # 8% margin while the dn spread was twice as large and unchecked.
+    dnv = must("absorbed spread across model classes, dn arm")
+    if dnv is not None:
+        at_most("and the same holds on the dinucleotide arm", dnv,
+                spec["max_absorbed_spread_dn"])
+
+    # THE COMPRESSION CORRECTION. The order-3 baseline raises composition, so part of the
+    # "absorbed" amount is the moving ceiling -- and it takes MORE from a model with a bigger
+    # gain, which is what made the raw absorption look constant. Corrected, the k-mer really
+    # does lose more, by about 1.3-1.4x rather than the 3.4x the shares imply. BOTH of this
+    # section's earlier framings were partial and the corrected ratio is the honest one.
+    for label, key in (
+            ("kmer compression-corrected order-3 residual, gc arm", spec["residual_kmer_gc"]),
+            ("cnn compression-corrected order-3 residual, gc arm", spec["residual_cnn_gc"]),
+            ("splicebert compression-corrected order-3 residual, gc arm",
+             spec["residual_splicebert_gc"]),
+            ("kmer compression-corrected order-3 residual, dn arm", spec["residual_kmer_dn"]),
+            ("splicebert compression-corrected order-3 residual, dn arm",
+             spec["residual_splicebert_dn"]),
+            ("kmer/splicebert corrected-residual ratio, gc arm", spec["corrected_ratio_gc"]),
+            ("kmer/splicebert corrected-residual ratio, dn arm", spec["corrected_ratio_dn"]),
+            ("cnn minus kmer, absolute absorbed, gc arm", spec["cnn_minus_kmer_absorbed_gc"]),
+            ("cnn minus kmer, absolute absorbed, dn arm", spec["cnn_minus_kmer_absorbed_dn"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+    if spec["compression_correction_must_be_reported"]:
+        record("kmer/splicebert corrected-residual ratio, gc arm" in q.index,
+               "the compression-corrected comparison is reported, so neither the shares nor "
+               "the raw absorption can be quoted as the whole story",
+               "corrected residual ratio", "present")
+        # AND THE CNN MUST STILL ABSORB THE LEAST, on the corrected scale too. Any capacity
+        # story predicts otherwise, which is why this is the gate that kills capacity readings.
+        rk = must("kmer compression-corrected order-3 residual, gc arm")
+        rc = must("cnn compression-corrected order-3 residual, gc arm")
+        rs = must("splicebert compression-corrected order-3 residual, gc arm")
+        if None not in (rk, rc, rs):
+            record(abs(rc) < min(abs(rk), abs(rs)),
+                   "the CNN loses the LEAST even after the compression correction, which no "
+                   "capacity story predicts",
+                   f"cnn {rc:+.4f} vs kmer {rk:+.4f}, splicebert {rs:+.4f}", "cnn smallest")
 
     # THE PER-DATASET SIGN. A mean of +0.0058 is consistent with "small everywhere" and with
     # "negative in a third of the panel". For the 4-mer over a trinucleotide baseline it is
@@ -1743,6 +1824,82 @@ def verify_baseline_order_models(T, g):
                    "SpliceBERT still has the LOWEST multiplier at order 3, so 'the contrast "
                    "grows with capacity' stays withdrawn",
                    f"{m['splicebert']:.2f}x", f"< {min(m['kmer'], m['cnn']):.2f}x")
+
+
+def verify_fold_integrity(T, g):
+    """Did the committed scores use the study's chromosome folds? For 20 of 188, no."""
+    print("\nfold integrity  (did the committed scores use config/folds.tsv?)")
+    d = T.get("fold_integrity.csv")
+    if d is None:
+        return record(False, "fold_integrity.csv present", "MISSING",
+                      "run scripts/fold_integrity.py")
+    spec = g["fold_integrity"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    total = (must("score sets audited, gc arm") or 0) + (must("score sets audited, dn arm") or 0)
+    record(int(total) == spec["n_score_sets"], "(dataset, arm, model) score sets audited",
+           int(total), spec["n_score_sets"])
+
+    # Keys spelled out literally -- test_golden_keys_are_read.py reads this file as TEXT and
+    # cannot see an f-string. That is lesson 12, and it caught these three on 2026-09-02.
+    for label, key in (
+            ("datasets NOT chromosome-grouped, gc arm",
+             {"value": 94 - spec["grouped_gc"]["value"], "tol": 0}),
+            ("datasets NOT chromosome-grouped, dn arm",
+             {"value": 94 - spec["grouped_dn"]["value"], "tol": 0}),
+            ("datasets aligned to folds.tsv, gc arm", spec["aligned_gc"]),
+            ("max chromosomes in any score fold, gc arm",
+             spec["max_chroms_per_score_fold_gc"]),
+            ("max chromosomes in any score fold, dn arm",
+             spec["max_chroms_per_score_fold_dn"]),
+            ("leaky datasets", spec["leaky_datasets"]),
+            ("kmer R1 contrast, chromosome-grouped only", spec["contrast_kmer_clean"]),
+            ("cnn R1 contrast, chromosome-grouped only", spec["contrast_cnn_clean"]),
+            ("splicebert R1 contrast, chromosome-grouped only",
+             spec["contrast_splicebert_clean"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # 1. THE GC ARM CARRIES THE HEADLINE. It must be perfectly chromosome-grouped, and the
+    # direct leakage metric must be exactly zero -- not small, zero, because under chromosome
+    # grouping a within-1kb neighbour is necessarily in the same fold by construction.
+    if spec["gc_must_be_fully_grouped"]:
+        n_bad = must("datasets NOT chromosome-grouped, gc arm")
+        if n_bad is not None:
+            record(int(n_bad) == 0,
+                   "the GC arm, which carries every headline, is fully chromosome-grouped",
+                   f"{int(n_bad)} leaky", "0")
+        nbr = must("max cross-fold 1kb neighbour fraction, gc arm")
+        if nbr is not None:
+            at_most("and its direct cross-fold neighbour fraction is exactly zero, as "
+                    "chromosome grouping requires by construction",
+                    nbr, spec["max_cross_fold_neighbours_gc"])
+
+    # 2. NO NEW DATASET MAY BECOME LEAKY, and the count is pinned two-sided: a floor would
+    # pass a rerun that leaked more. This is lesson 17.
+    nl = must("leaky datasets")
+    if nl is not None:
+        record(int(nl) == spec["leaky_datasets"]["value"],
+               "exactly the known dinucleotide-arm datasets are affected, no more and no "
+               "fewer", int(nl), spec["leaky_datasets"]["value"])
+
+    # 3. AND THE CONCLUSION MUST SURVIVE DROPPING THEM, or the leaky sets are load-bearing and
+    # the sweep has to be rerun rather than caveated.
+    worst = 0.0
+    for model in ("kmer", "cnn", "splicebert"):
+        v = must(f"{model} R1 contrast shift when leaky sets are dropped")
+        if v is not None:
+            worst = max(worst, abs(v))
+    at_most("every R1g contrast survives dropping the leaky datasets, so the defect is a "
+            "disclosed limitation and not a correction to the claim",
+            worst, spec["max_contrast_shift_from_leakage"])
 
 
 def verify_match_quality(T, g):
@@ -1907,12 +2064,42 @@ def verify_multiplier_variance(T, g):
                    f"the permutation null is reported for {k}, so its share cannot be read "
                    f"as a finding on its own", f"permutation null share, {k}", "present")
 
+    # THE BLOCK-PRESERVING NULL AND THE DIRECT TEST. The wholesale null overstated the excess
+    # five-fold; both corrections are gated so the generous number cannot be quoted alone.
+    for label, key in (
+            ("share of log-multiplier variance, dataset", spec["share_dataset"]),
+            ("block-preserving null share, protein", spec["null_protein_block"]),
+            ("excess over the block-preserving null, protein", spec["excess_protein_block"]),
+            ("cross-cell-line correlation of the log multiplier", spec["cross_cell_r"]),
+            ("cross-cell-line spearman of the log multiplier", spec["cross_cell_rho"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+    k = "cross-cell-line correlation of the log multiplier"
+    if k in q.index and "n" in d.columns:
+        record(int(q.loc[k, "n"]) == spec["cross_cell_n"]["value"],
+               "the cross-cell-line test uses every protein x model pair available from the "
+               "proteins assayed in both lines", int(q.loc[k, "n"]),
+               spec["cross_cell_n"]["value"])
+    if spec["block_null_must_be_reported"]:
+        record("excess over the block-preserving null, protein" in q.index,
+               "the block-preserving excess is reported, so the five-fold-too-generous "
+               "wholesale excess cannot be quoted on its own",
+               "excess over the block-preserving null", "present")
+        pe = must("excess over the permutation null, protein")
+        pb = must("excess over the block-preserving null, protein")
+        if pe is not None and pb is not None:
+            record(pb < pe, "and it is the SMALLER of the two, which is why the wholesale "
+                            "null was the wrong one to lead with",
+                   f"block {pb:.3f} vs wholesale {pe:.3f}", "block < wholesale")
+
     if spec["protein_must_beat_its_own_null"]:
         s = must("share of log-multiplier variance, protein")
-        nl = must("permutation null share, protein")
+        nl = must("block-preserving null share, protein")
         if s is not None and nl is not None:
-            record(s > nl, "protein's share beats the share a 79-level factor gets on "
-                           "relabelled data, so the README's R1g headline stands",
+            record(s > nl, "protein's share beats the share it gets when protein labels are "
+                           "permuted between datasets, so RBP identity carries information "
+                           "beyond the individual experiment",
                    f"{s:.3f}", f"> {nl:.3f}")
 
 
@@ -2608,7 +2795,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_fold_integrity, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

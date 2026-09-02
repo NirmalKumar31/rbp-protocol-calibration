@@ -155,6 +155,9 @@ def main():
     for arm in ("gc", "dn"):
         add(f"composition AUROC, order-2 baseline, {arm} arm", t[f"comp2_{arm}"])
         add(f"composition AUROC, order-3 baseline, {arm} arm", t[f"comp3_{arm}"])
+        # The headroom the order-3 baseline takes away. This is what the compression
+        # correction below is correcting for, so it has to be a committed number.
+        add(f"composition rise from order 3, {arm} arm", t[f"comp3_{arm}"] - t[f"comp2_{arm}"])
         log(f"  {arm} arm, composition {t[f'comp2_{arm}'].mean():.4f} -> "
             f"{t[f'comp3_{arm}'].mean():.4f}")
         log(f"  {'model':12s} {'over order 2':>13s} {'over order 3':>13s} {'surviving':>10s}")
@@ -189,6 +192,56 @@ def main():
         d = ((t[f"splicebert_gain2_{arm}"] - t[f"splicebert_gain3_{arm}"])
              - (t[f"kmer_gain2_{arm}"] - t[f"kmer_gain3_{arm}"]))
         add(f"splicebert minus kmer, absolute absorbed, {arm} arm", d)
+
+    # THE COMPRESSION CORRECTION, WHICH THIS SCRIPT OMITTED. deep_model_contrast.py calls it
+    # "not optional" because a nested gain is bounded above by 1 - baseline, and the order-3
+    # baseline RAISES composition (+0.0196 gc, +0.0517 dn), cutting the headroom every model is
+    # working in. So part of the "absorbed" amount is arithmetic, not absorption -- and it is a
+    # LARGER part for a model with a bigger gain, which is exactly the asymmetry that made the
+    # raw absorption look constant across model classes.
+    #
+    # Transplant each model's order-2 d' increment onto the order-3 baseline, the paper's own
+    # estimator, and the residual is what the moving ceiling does NOT explain.
+    from scipy.stats import norm
+    r2 = np.sqrt(2.0)
+
+    def dprime(a):
+        return r2 * norm.ppf(np.clip(np.asarray(a, dtype=float), 1e-6, 1 - 1e-6))
+
+    log("  compression-corrected: residual after transplanting the order-2 d' increment")
+    for arm in ("gc", "dn"):
+        res = {}
+        for model in MODELS:
+            c2, c3 = t[f"comp2_{arm}"], t[f"comp3_{arm}"]
+            inc = dprime(c2 + t[f"{model}_gain2_{arm}"]) - dprime(c2)
+            pred3 = norm.cdf((dprime(c3) + inc) / r2) - c3
+            r = t[f"{model}_gain3_{arm}"] - pred3
+            add(f"{model} compression-predicted order-3 gain, {arm} arm", pred3)
+            v = add(f"{model} compression-corrected order-3 residual, {arm} arm", r)
+            res[model] = r
+            log(f"    {arm} {model:11s} predicted {pred3.mean():+.4f}  observed "
+                f"{t[f'{model}_gain3_{arm}'].mean():+.4f}  residual {v:+.4f}")
+        # THE COMPARISON THAT REVERSES THE RAW FINDING. Corrected for the moving ceiling, the
+        # k-mer loses MORE than SpliceBERT -- so "absorption is a constant" is itself partly an
+        # artefact of omitting the correction, just as the shares were an artefact of their
+        # denominators. The truth is between the two framings.
+        d = res["kmer"] - res["splicebert"]
+        add(f"kmer minus splicebert, compression-corrected residual, {arm} arm", d)
+        ratio = float(res["kmer"].mean() / res["splicebert"].mean())
+        out.append({"check": f"kmer/splicebert corrected-residual ratio, {arm} arm",
+                    "value": ratio, "n": len(t)})
+        log(f"    {arm} -> k-mer loses {ratio:.2f}x what SpliceBERT does once the moving "
+            f"ceiling is removed")
+
+    # AND THE ABSORBED SPREAD ON THE DINUCLEOTIDE ARM, which the first gate left ungated.
+    for arm in ("gc", "dn"):
+        vals = [float((t[f"{m}_gain2_{arm}"] - t[f"{m}_gain3_{arm}"]).mean()) for m in MODELS]
+        out.append({"check": f"absorbed spread across model classes, {arm} arm",
+                    "value": float(max(vals) - min(vals)), "n": len(t)})
+    for arm in ("gc", "dn"):
+        d = ((t[f"cnn_gain2_{arm}"] - t[f"cnn_gain3_{arm}"])
+             - (t[f"kmer_gain2_{arm}"] - t[f"kmer_gain3_{arm}"]))
+        add(f"cnn minus kmer, absolute absorbed, {arm} arm", d)
 
     # AND THE PER-DATASET SIGN, which is what the share cannot show. A mean of +0.0058 is
     # consistent with "small everywhere" and with "positive in two thirds, negative in a

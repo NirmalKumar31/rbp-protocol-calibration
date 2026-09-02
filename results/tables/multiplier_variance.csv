@@ -11,3 +11,8 @@ check,value,n,note,ci_low,ci_high
 residual share,0.32751341826576696,262,,,
 "panel multiplier, exp(mean log)",2.989638018697589,262,,,
 protein excess minus model-class excess,0.33052541507357724,262,,,
+"share of log-multiplier variance, dataset",0.6795615448727664,262,94 levels; protein's 79 is nearly this factor,,
+"block-preserving null share, protein",0.57566708073981,262,p = 0.0030; permutes protein labels between datasets,0.4978671512707587,0.6357361258653129
+"excess over the block-preserving null, protein",0.072429359720516,262,p = 0.0030,,
+cross-cell-line correlation of the log multiplier,0.5859289215271075,40,"15 proteins in both lines, x 3 models",,
+cross-cell-line spearman of the log multiplier,0.5943714821763603,40,p = 0.0001,,

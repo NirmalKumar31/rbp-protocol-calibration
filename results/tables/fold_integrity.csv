@@ -1,0 +1,26 @@
+check,value,n,note
+"score sets audited, gc arm",188.0,94,
+"datasets NOT chromosome-grouped, gc arm",0.0,94,
+"datasets aligned to folds.tsv, gc arm",94.0,94,
+"max chromosomes in any score fold, gc arm",5.0,94,
+"max cross-fold 1kb neighbour fraction, gc arm",0.0,94,
+"max cross-fold 1kb neighbour fraction under folds.tsv, gc arm",0.0,94,
+"score sets audited, dn arm",188.0,94,
+"datasets NOT chromosome-grouped, dn arm",20.0,94,
+"datasets aligned to folds.tsv, dn arm",74.0,94,
+"max chromosomes in any score fold, dn arm",23.0,94,
+"max cross-fold 1kb neighbour fraction, dn arm",0.445186598812553,94,
+"max cross-fold 1kb neighbour fraction under folds.tsv, dn arm",0.0,94,
+leaky datasets,20.0,20,AQR:HepG2;CSTF2T:HepG2;DROSHA:K562;EFTUD2:HepG2;ELAC2:K562;ELAVL1:K562;FKBP4:HepG2;GTF2F1:HepG2;HNRNPM:HepG2;KHSRP:K562;MATR3:K562;NKRF:HepG2;NONO:K562;PCBP2:HepG2;PRPF4:HepG2;PTBP1:HepG2;PTBP1:K562;SLTM:K562;SMNDC1:K562;XPO5:HepG2
+clean datasets for the R1g sensitivity,74.0,94,
+"kmer R1 contrast, all datasets",0.03975015582564081,94,
+"kmer R1 contrast, chromosome-grouped only",0.04359003754234221,74,
+kmer R1 contrast shift when leaky sets are dropped,0.003839881716701403,94,
+"cnn R1 contrast, all datasets",0.05299860249725525,94,
+"cnn R1 contrast, chromosome-grouped only",0.05058010426213157,74,
+cnn R1 contrast shift when leaky sets are dropped,-0.0024184982351236825,94,
+"splicebert R1 contrast, all datasets",0.08635270141631521,94,
+"splicebert R1 contrast, chromosome-grouped only",0.08784858943896355,74,
+splicebert R1 contrast shift when leaky sets are dropped,0.0014958880226483423,94,
+"cnn difference-in-differences, leaky minus clean",0.0294143857735779,94,leaky datasets are also the largest; size-confounded
+"splicebert difference-in-differences, leaky minus clean",0.011016770362049337,94,leaky datasets are also the largest; size-confounded

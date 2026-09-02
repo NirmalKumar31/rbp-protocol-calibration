@@ -208,12 +208,77 @@ def main():
         f"{100 * (1 - c3 / c2):.0f}% removed")
 
     # THE POINT: the range is what the paper claims, and it must survive.
+    #
+    # WITH INTERVALS, because the first version wrote NaN here and the prose then printed
+    # "5.34x -> 7.16x, the range WIDENS" as though it were point-identified. It is not: the
+    # order-3 range's denominator is the neg2 order-3 mean of 0.0015, whose own interval spans
+    # a factor of six, so the ratio is barely identified and a few bootstrap draws put the
+    # denominator at or below zero. Report the interval and drop the word "widens".
+    fr_boot = {}
     for order in (2, 3):
         means = [t[f"gain{order}_{arm}"].mean() for arm in ARMS]
         fr = max(means) / min(means) if min(means) > 0 else np.nan
+        b = []
+        for ii in idx:
+            m = [t[f"gain{order}_{arm}"].to_numpy()[ii].mean() for arm in ARMS]
+            b.append(max(m) / min(m) if min(m) > 0 else np.inf)
+        b = np.array(b)
+        fr_boot[order] = b
+        finite = b[np.isfinite(b)]
+        lo, hi = np.percentile(finite, [2.5, 97.5])
         out.append({"check": f"fold range across protocols, order-{order} baseline",
-                    "value": float(fr), "ci_low": np.nan, "ci_high": np.nan, "n": len(t)})
-        log(f"  fold range across protocols, order-{order} baseline: {fr:.2f}x")
+                    "value": float(fr), "ci_low": float(lo), "ci_high": float(hi),
+                    "n": len(t),
+                    "note": f"{100 * (~np.isfinite(b)).mean():.1f}% of draws non-finite"})
+        log(f"  fold range across protocols, order-{order} baseline: {fr:.2f}x "
+            f"[{lo:.2f}, {hi:.2f}]")
+
+    # IS THE CHANGE IN THE RANGE RESOLVED AT n = 30? No. Say so rather than asserting a
+    # direction the data cannot support.
+    diff = fr_boot[3] - fr_boot[2]
+    fin = diff[np.isfinite(diff)]
+    lo, hi = np.percentile(fin, [2.5, 97.5])
+    out.append({"check": "change in fold range, order 3 minus order 2",
+                "value": float(np.nanmean(fr_boot[3][np.isfinite(fr_boot[3])])
+                               - np.nanmean(fr_boot[2][np.isfinite(fr_boot[2])])),
+                "ci_low": float(lo), "ci_high": float(hi), "n": len(t),
+                "note": f"P(<=0) = {float((fin <= 0).mean()):.2f}"})
+    log(f"  change in fold range: [{lo:+.2f}, {hi:+.2f}]  P(<=0) = {(fin <= 0).mean():.2f}"
+        f"  -> the DIRECTION is not resolved at n = {len(t)}")
+
+    # AND THE PER-DATASET SIGN, which a ratio of means cannot show. On neg2 the typical
+    # dataset retains NOTHING over a trinucleotide baseline, and the positive panel mean is
+    # carried by a handful of datasets.
+    log("")
+    for arm in ARMS:
+        g3 = t[f"gain3_{arm}"].to_numpy()
+        n_pos = int((g3 > 0).sum())
+        med_ratio = float(np.median(g3 / t[f"gain2_{arm}"].to_numpy()))
+        s = np.sort(g3[g3 > 0])[::-1]
+        top3 = float(s[:3].sum() / g3[g3 > 0].sum()) if len(s) else np.nan
+        out += [{"check": f"order-3 gain positive in, {arm} arm", "value": n_pos, "n": len(t)},
+                {"check": f"median per-dataset order-3/order-2 ratio, {arm} arm",
+                 "value": med_ratio, "n": len(t)},
+                {"check": f"share of the positive order-3 mass in its top 3 datasets, {arm} arm",
+                 "value": top3, "n": len(t)}]
+        log(f"  {arm:6s} order-3 gain positive in {n_pos:2d}/{len(t)}   "
+            f"median per-dataset ratio {med_ratio:+.3f}   top-3 carry {100 * top3:.0f}% of the "
+            f"positive mass")
+
+    # AND THE SUBSAMPLE'S BLIND SPOT. Representativeness was argued from order-2 quantities
+    # only. The order-3 RETAINED FRACTION is size-dependent, and `head(30)` after `iloc[::3]`
+    # deterministically discards the two largest datasets, so the removal is biased upward.
+    from scipy.stats import spearmanr as _sp2
+    pan = pd.read_csv(TABLES / "rehearsal_binding_gc.csv")[["dataset", "pairs"]]
+    j = t.merge(pan, on="dataset", how="left")
+    for arm in ARMS:
+        r_, p_ = _sp2(j.pairs, j[f"gain3_{arm}"] / j[f"gain2_{arm}"])
+        out.append({"check": f"spearman(dataset size, order-3 retained fraction), {arm} arm",
+                    "value": float(r_), "n": len(t), "note": f"p = {p_:.3f}"})
+        log(f"  {arm:6s} spearman(size, retained fraction) {r_:+.3f}  p={p_:.3f}")
+    log("  -> bigger datasets retain MORE, and the subsample drops the two largest, so the")
+    log("     removal fractions above are biased UPWARD. R1r bounds this on n=94 for gc/dn;")
+    log("     neg2 has no n=94 counterpart and it is the fold range's denominator.")
 
     pd.DataFrame(out).to_csv(TABLES / "baseline_order.csv", index=False)
     log("\nwrote baseline_order.csv and baseline_order_per_dataset.csv")

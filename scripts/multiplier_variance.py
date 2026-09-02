@@ -19,6 +19,22 @@ comparable numbers as stated -- most of the gap is degrees of freedom. Each fact
 therefore reported next to the share the SAME factor gets on relabelled data, and the honest
 statistic is the excess over that null. This is the project's own lesson: a control is not
 evidence until something has tried to break it.
+
+AND WHY ONE NULL IS NOT ENOUGH, which an adversarial statistician caught in the first version
+of this script. Permuting y wholesale destroys the protein effect AND the within-dataset
+correlation among the two or three model cells that share the same windows, labels and folds.
+Because 79 proteins sit on 94 datasets, the protein factor is very nearly the DATASET factor
+(using dataset as the factor gives 68.0%, slightly MORE than protein's 64.8%), so the wholesale
+null is far too permissive and the "excess" it reports is inflated about five-fold.
+
+The right null for the question "is this about the PROTEIN or about the individual experiment?"
+permutes protein labels BETWEEN datasets while keeping each (dataset x model) block intact. On
+that null the excess falls from +35.1 to +7.3 points, still significant. Both are reported,
+because they answer different questions and quoting only the first was the error.
+
+The strongest available evidence is neither: it is that the SAME protein's log multiplier
+agrees across the two cell lines (r ~ 0.59 over the 15 proteins assayed in both), which is a
+direct test and is what the section should lead with.
 """
 
 import sys
@@ -26,6 +42,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import spearmanr
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -67,7 +84,8 @@ def main():
         for m in MODELS:
             g, h = r[f"{m}_gain_gc"], r[f"{m}_gain_dn"]
             if g > 0 and h > 0:
-                rows.append({"protein": r.protein, "cell": r.cell, "model": m,
+                rows.append({"dataset": r.dataset, "protein": r.protein, "cell": r.cell,
+                             "model": m,
                              "log_mult": float(np.log(h / g))})
     t = pd.DataFrame(rows)
     y = t.log_mult.to_numpy()
@@ -86,6 +104,33 @@ def main():
         null_shares = shares(y[p], factors)
         for k in factors:
             null[k].append(null_shares[k])
+
+    # THE SECOND NULL, and it is the one that answers the question actually being asked.
+    # Wholesale permutation of y breaks the protein effect AND the within-dataset correlation
+    # among the model cells that share windows, labels and folds. Since 79 proteins sit on 94
+    # datasets, protein is very nearly the DATASET factor -- so that null is far too permissive.
+    # This one permutes which PROTEIN each dataset belongs to, preserving the group-size
+    # pattern and leaving every (dataset x model) block intact, so it isolates protein identity
+    # from experiment identity.
+    ds_of = t.dataset.to_numpy()
+    uniq_ds = list(pd.unique(ds_of))
+    prot_of_ds = t.drop_duplicates("dataset").set_index("dataset").protein.to_dict()
+    sizes = pd.Series(prot_of_ds).value_counts().to_numpy()  # e.g. fifteen 2s, then 1s
+    null_block = []
+    for _ in range(N_PERM):
+        order = list(rng.permutation(len(uniq_ds)))
+        lab, at = {}, 0
+        for j, sz in enumerate(sizes):
+            for _ in range(sz):
+                lab[uniq_ds[order[at]]] = f"P{j}"
+                at += 1
+        permuted = pd.Series([lab[x] for x in ds_of], index=t.index)
+        null_block.append(shares(y, {"protein": permuted, "cell": t.cell,
+                                     "model": t.model})["protein"])
+    null_block = np.array(null_block)
+
+    # And the DATASET factor itself, to show how little separates it from protein.
+    ds_share = shares(y, {"dataset": t.dataset, "model": t.model})["dataset"]
 
     out = []
     print(f"  {'factor':10s} {'levels':>7s} {'share':>8s} {'null (relabelled)':>20s} "
@@ -120,6 +165,43 @@ def main():
     print(f"\n  protein excess {100 * pe:+.1f}%  vs model-class excess {100 * me:+.1f}%")
     print("  -> the comparable statistic is the excess over each factor's OWN null,")
     print("     because 79 levels absorb variance that 3 levels cannot")
+
+    # PROTEIN IS NEARLY THE DATASET FACTOR, and the excess over the wholesale null was
+    # therefore about five-fold too generous. Both numbers are reported.
+    pb = obs["protein"] - null_block.mean()
+    p_block = float((null_block >= obs["protein"]).mean())
+    out += [{"check": "share of log-multiplier variance, dataset", "value": float(ds_share),
+             "n": len(t), "note": "94 levels; protein's 79 is nearly this factor"},
+            {"check": "block-preserving null share, protein", "value": float(null_block.mean()),
+             "ci_low": float(np.percentile(null_block, 2.5)),
+             "ci_high": float(np.percentile(null_block, 97.5)), "n": len(t),
+             "note": f"p = {p_block:.4f}; permutes protein labels between datasets"},
+            {"check": "excess over the block-preserving null, protein", "value": float(pb),
+             "n": len(t), "note": f"p = {p_block:.4f}"}]
+    print(f"\n  dataset as the factor: {100 * ds_share:.1f}%  vs protein's {100 * obs['protein']:.1f}%")
+    print(f"  -> protein (79 levels) is nearly the dataset factor (94 levels), so the")
+    print(f"     wholesale null is too permissive. Against a null that permutes protein")
+    print(f"     labels BETWEEN datasets and keeps each (dataset x model) block intact:")
+    print(f"     null {100 * null_block.mean():.1f}% [{100 * np.percentile(null_block, 2.5):.1f}, "
+          f"{100 * np.percentile(null_block, 97.5):.1f}]   excess {100 * pb:+.1f}%  p={p_block:.4f}")
+
+    # THE DIRECT TEST, which is stronger than any share: does the SAME protein get the same
+    # multiplier in the other cell line? Fifteen proteins are assayed in both.
+    both = t.pivot_table(index=["protein", "model"], columns="cell", values="log_mult")
+    both = both.dropna()
+    if len(both) >= 6:
+        cells = list(both.columns)
+        r = float(np.corrcoef(both[cells[0]], both[cells[1]])[0, 1])
+        rho, pv = spearmanr(both[cells[0]], both[cells[1]])
+        out += [{"check": "cross-cell-line correlation of the log multiplier", "value": r,
+                 "n": len(both), "note": f"{both.index.get_level_values(0).nunique()} proteins "
+                                         f"in both lines, x {both.index.get_level_values(1).nunique()} models"},
+                {"check": "cross-cell-line spearman of the log multiplier", "value": float(rho),
+                 "n": len(both), "note": f"p = {pv:.4f}"}]
+        print(f"\n  THE DIRECT TEST: the same protein's log multiplier across cell lines")
+        print(f"    r = {r:+.3f}  spearman {rho:+.3f} (p={pv:.4f})  over {len(both)} "
+              f"protein x model pairs")
+        print("    This is what the section should lead with; a variance share is weaker.")
 
     pd.DataFrame(out).to_csv(TABLES / "multiplier_variance.csv", index=False)
     print("\nwrote multiplier_variance.csv")

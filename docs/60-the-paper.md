@@ -963,18 +963,48 @@ of zero, so something survives, but the honest magnitude over a trinucleotide ba
 
 | | order-2 baseline | order-3 baseline |
 |---|---|---|
-| fold range across the three protocols | **5.34x** | **7.16x** |
+| fold range across the three protocols | **5.34x** [3.95, 7.71] | **7.16x** [3.65, 22.65] |
 
-The arms do **not** shrink proportionally -- neg2 loses the most (88%) and GC the least (80%) --
-so raising the baseline order **widens** the range rather than closing it. **The protocol
-dependence is not an artefact of where the baseline stops, and it is not softened by moving the
-stopping point.** Same division of labour as R1m: a defensible analyst choice changes the
-magnitude by a factor of five and does not touch the protocol dependence.
+**The range does not collapse. Whether it widens is not resolved, and the paper must not say it
+does.** The change is **[−1.89, +16.43] with P(≤0) = 0.18**. The order-3 range's denominator is
+the neg2 order-3 mean of +0.0015, whose own interval spans a factor of six, so the ratio is
+barely identified. The claim that survives is the weaker one: **raising the baseline order does
+not drive the protocol dependence toward 1**, which is the same division of labour as R1m -- a
+defensible analyst choice changes the magnitude by a factor of five and does not remove the
+protocol dependence.
 
-**Scope.** n = 30, size-stratified, because an order-3 fit is 82 features x 5 folds x 3 arms per
-dataset. The subsample is representative on the quantity that matters: its own order-2
-three-protocol range is **5.34x** against the full panel's **5.42x**, and its order-2 R1
-contrast is +0.0361 against +0.0398 on 94.
+*(An earlier version of this section said the range "widens", and the version before that said
+it was "unchanged". Both overstated what 30 datasets can say, and both were printed from
+NaN intervals as though point-identified. The removed fractions 80/84/88% likewise have
+overlapping intervals, so **their ordering is not resolved either** -- the "neg2 loses the most,
+GC the least" mechanism is withdrawn.)*
+
+**The per-dataset sign, which a ratio of means cannot show.** This is the sharpest caveat in the
+section:
+
+| arm | order-3 gain positive in | median per-dataset ratio | top 3 datasets carry |
+|---|---|---|---|
+| GC-matched | 18/30 | +0.146 | 51% of the positive mass |
+| dinucleotide | 23/30 | +0.119 | 38% |
+| **neg2** | **17/30** | **−0.020** | **51%** |
+
+**On the neg2 arm the typical dataset retains nothing** -- the median per-dataset ratio is
+*negative* -- and its positive panel mean of +0.0015 is carried by three datasets. That mean is
+the fold range's denominator. So "every gain remains positive with an interval clear of zero" is
+true of the **arm means** and must not be read as a per-dataset statement.
+
+**Scope, and the subsample has a blind spot the representativeness check does not cover.** n = 30,
+size-stratified, because an order-3 fit is 82 features x 5 folds x 3 arms per dataset. On
+order-2 quantities it is representative: its own three-protocol range is **5.34x** against the
+full panel's **5.42x**, and its order-2 R1 contrast is +0.0361 against +0.0398 on 94.
+
+**But the order-3 retained fraction is size-dependent** -- Spearman(pairs, retained) =
+**+0.354** (GC, p = 0.055), **+0.627** (dinuc, p < 0.001), **+0.432** (neg2, p = 0.017), so
+bigger datasets keep more -- and `head(30)` after `iloc[::3]` deterministically discards the
+**two largest datasets** in the panel (32,384 and 19,533 pairs against the subsample's maximum
+of 13,395). **The removal fractions are therefore biased upward.** R1r bounds that bias on the
+full 94 for the GC and dinucleotide arms (78.3% against 79.9%, and 81.2% against 83.8%), but
+**neg2 has no n = 94 counterpart and it is the fold range's denominator.**
 
 **A correction, and it is the reason this section is trustworthy now.** The first version of
 this analysis built its own composition block: all 4 mono + all 16 dinucleotide frequencies,
@@ -1029,12 +1059,38 @@ identical across model classes:
 difference is real but two orders of magnitude smaller than the shares imply. The CNN actually
 loses the **least** in absolute terms, which no capacity story predicts.
 
-**So the correct statement is about a constant, not about fragility.** Adding trinucleotide
-frequencies to the baseline absorbs roughly a fixed quantity of discriminative signal --
-**about +0.021 AUROC on the GC arm and +0.054 on the dinucleotide arm** -- from whatever model
-is being measured. That constant happens to be **nearly all** of a 4-mer's contribution and
-**about a quarter** of SpliceBERT's. The shares are a consequence of the denominators, and
-printing them without the absolute column invites exactly the wrong inference.
+**But "a constant" was also wrong, and a statistician caught the second version too.** Two
+things break it.
+
+*The CNN absorbs materially less than either, on both arms.* cnn − kmer = **−0.0077** [−0.0098,
+−0.0057] (GC) and **−0.0186** [−0.0226, −0.0148] (dinuc), intervals clear of zero. A "fixed
+quantity from whatever model is being measured" does not survive its own middle row, and no
+capacity story predicts the middle rung losing the least.
+
+*And the paper's own compression correction was never applied to the order step.* An order-3
+baseline **raises** composition (+0.0196 GC, +0.0517 dinuc), cutting the headroom every model is
+working in -- and it cuts **more** from a model with a bigger gain, which is exactly what made
+the raw absorption look flat. `deep_model_contrast.py` calls this correction "not optional"
+elsewhere in the paper. Transplanting each model's order-2 d′ increment onto the order-3
+baseline:
+
+| GC arm | predicted by compression alone | observed | **residual** |
+|---|---|---|---|
+| 4-mer | +0.0239 | +0.0058 | **−0.0182** |
+| CNN | +0.0298 | +0.0200 | **−0.0099** |
+| SpliceBERT | +0.0809 | +0.0668 | **−0.0141** |
+
+**Corrected for the moving ceiling, the 4-mer does lose more -- by 1.29x (GC) and 1.41x
+(dinuc), not by the 3.4x the shares imply.** So both of this section's earlier framings were
+partial: the shares overstate the difference, the raw absorption understates it, and the honest
+figure is about **1.3 to 1.4x**. The CNN still loses the least on the corrected scale, which is
+gated.
+
+**The statement that survives.** Raising the baseline one order absorbs **roughly +0.021 AUROC
+on the GC arm and +0.054 on the dinucleotide arm**, only weakly dependent on model class; after
+correcting for the headroom it removes, a bag of 4-mers loses about **1.4x** what a fine-tuned
+transformer does. That is nearly all of the 4-mer's contribution and about a quarter of
+SpliceBERT's -- but because the totals differ, not because the 4-mer is three times as fragile.
 
 ### What the result actually is, and it is still strong
 
@@ -1058,6 +1114,18 @@ SpliceBERT − 4-mer = **+0.0611 [+0.0509, +0.0720]** (GC) and **+0.1089 [+0.098
 (dinuc), CNN − 4-mer = **+0.0142 [+0.0104, +0.0184]** and **+0.0384 [+0.0311, +0.0468]**. A
 benchmark that wants to distinguish model classes rather than rank them by how much
 short-range composition they absorb should raise the composition baseline, not the model.
+
+**And the recommendation must be stated with the circularity it contains, or it is rigged.**
+Trinucleotide counts are **linear aggregates of 4-mer counts**, so an order-3 block absorbs a
+4-mer's score partly *by algebra*. Measured as the R² of each model's standardised
+out-of-fold score on the composition design, the increment from adding the trinucleotide block
+is **+0.152** for the 4-mer against **+0.051** (CNN) and **+0.068** (SpliceBERT) on the GC arm.
+**The order-3 ranking is close to the ranking of how orthogonal each model's score is to the
+baseline's span** -- which is not the same thing as capacity. So the honest form of this
+recommendation is: *raising the baseline's order separates models by how much of their signal
+lies outside short-range composition, and it is structurally unfavourable to bag-of-k-mers
+models because their features are nested inside the baseline's.* Stated that way it is useful.
+Stated as a capacity instrument it is a circularity in method's clothing.
 
 Both are corollaries of the constant: a fixed absolute absorption leaves a model with a large
 contribution looking far better than one with a small contribution, and that IS what a
@@ -1112,23 +1180,57 @@ Panel multiplier **2.99x**, as exp of the mean log. *(A ratio of panel means is 
 number and R1g reports a third, a geometric mean over the 77 datasets positive in both arms
 for all three models. Name the estimator every time.)*
 
-**The correction, and it is a fairness correction rather than a numerical one.** "68.9% against
-1.5%" is not a comparison between factors. **A factor with 79 levels absorbs 29.7% of the
-variance of *relabelled* data**, while a 3-level factor absorbs 0.8%, so most of the apparent
-gap is degrees of freedom. Once each factor is measured against its own permutation null the
-conclusion survives -- protein is 35 points clear, p < 0.0005 -- but two things change:
+**The first correction, and it is a fairness correction.** "68.9% against 1.5%" is not a
+comparison between factors. **A factor with 79 levels absorbs 29.7% of the variance of
+*relabelled* data**, while a 3-level factor absorbs 0.8%, so most of the apparent gap is
+degrees of freedom. The comparable statistic is each factor's excess over its own null.
 
-1. **Cell line is not "0.1%", it is indistinguishable from noise** (p = 0.49). Say noise.
-2. **Model class is not null** (p = 0.023). This agrees with R1g's own record that SpliceBERT's
-   multiplier is significantly lower (−0.258 [−0.369, −0.139]), which the "invariant across
-   model classes" phrasing had been quietly overriding.
+**The second correction, found by an adversarial statistician, and it cost four fifths of the
+headline.** That wholesale-permutation null is **the wrong null**. Permuting *y* destroys the
+protein effect *and* the within-dataset correlation among the two or three model cells that
+share the same windows, labels and folds. And because **79 proteins sit on 94 datasets, protein
+is very nearly the *dataset* factor** -- entered on its own, dataset explains **68.0%**, *more*
+than protein's 64.8%. So the wholesale null is far too permissive:
 
-**The claim to print.** The protocol multiplier is mostly a property of the protein; cell line
-is noise; model class is small but real. **Do not write "invariant across model classes."**
+| null | null share | observed | **excess** | p |
+|---|---|---|---|---|
+| wholesale *y* (as first published) | 29.7% | 64.8% | **+35.1** | < 1/2001 |
+| **protein labels permuted between datasets, blocks intact** | **57.6%** [49.8, 63.6] | 64.8% | **+7.2** | **0.0030** |
 
-**The gate.** `null_must_be_reported` fails the build if the decomposition is ever published
-without its permutation null, because a share without a null is exactly the artefact this
-section retracted.
+**The claim survives and its magnitude does not.** The honest reading: 64.8% is a
+*dataset*-level share, and the part attributable to **protein identity rather than to the
+individual experiment is +7.2 points**, p = 0.0030.
+
+**And the section now leads with a direct test instead of a share**, because it is stronger and
+was sitting unused: does the *same protein* get the same multiplier in the *other cell line*?
+
+> **r = +0.586, Spearman +0.594 (p = 0.0001), over 40 protein x model pairs** from the 15
+> proteins assayed in both K562 and HepG2. An ICC of about 0.59.
+
+That is the evidence for "a property of the protein". The variance share is a weaker restatement
+of it.
+
+**Two further corrections to the wording.**
+
+1. **Cell line is not "noise", it is *not detectable*.** Only 15 of 79 proteins appear in both
+   lines, so the conditional cell effect is identified off 15 proteins. p = 0.49 is a valid test
+   of a hypothesis this design has almost no power to reject. Say "not detectable, with 15
+   informative proteins".
+2. **Model class is not null** (p = 0.023), and this was checked against the censoring visible
+   in its own input: "both arms positive" drops 14 CNN cells, 6 k-mer and **0 SpliceBERT**, so
+   the model comparison is censored *by model*. On the balanced 77-dataset panel the model share
+   *rises* to 4.1% (p = 0.008) and the ordering is unchanged. The claim is robust; say that it
+   was checked.
+
+**A caveat on the estimand itself.** The log multiplier is mechanically dominated by its
+denominator: Spearman(gain_gc, log multiplier) = **−0.720**, and five quintiles of the GC-arm
+gain alone absorb 38.4% of the variance given model and cell. So part of what looks like a
+"protein property" is the protein's effect-size *scale* plus small-denominator inflation, not
+protocol biology. State it.
+
+**The gates.** `null_must_be_reported` fails the build if the decomposition is published without
+a null; `block_null_must_be_reported` additionally requires the **smaller** excess to be present,
+so the five-fold-too-generous figure cannot be quoted on its own again.
 
 ## R1p: external validation, and where it limits us
 
@@ -1188,6 +1290,63 @@ significant, and the disagreement reduction is the stronger half of it.
 **What would have falsified it.** Rank agreement falling, or disagreement rising, under
 normalisation -- in which case the honest paper says "we can show the problem and cannot offer
 a fix", which is still publishable and considerably weaker.
+
+## FOLD INTEGRITY: 20 of the 94 dinucleotide-arm deep score sets did not use the study's folds
+
+`fold_integrity.csv`, `fold_integrity_per_dataset.csv`, 376 (dataset, arm, model) score sets.
+**The most serious defect found in review, and the harness could not see it.**
+
+**What happened.** `config/folds.tsv` is a frozen chromosome-to-fold map, and chromosome
+grouping is the entire design: a model must never be tested on a chromosome it trained on. For
+**20 of the 94 dinucleotide-arm datasets**, the committed CNN and SpliceBERT per-window scores
+were produced under a *different* partition -- a stratified random split that **preserved fold
+sizes**, so no count or balance check could detect it, while putting up to **23 chromosomes in
+every fold**.
+
+**Confirmed three independent ways.** The score file's own `fold` column disagrees with
+`dataset.tsv`'s (agreement 0.48 to 0.99); every affected score fold spans all 23 chromosomes
+where every table fold spans 4 or 5; and the direct metric -- the fraction of rows having a
+same-strand genomic neighbour within 1 kb assigned to a **different** fold -- reaches **44.5%**
+(CSTF2T:HepG2), against **exactly 0** under `folds.tsv` and **0 everywhere in the GC arm**,
+because under chromosome grouping a near neighbour is necessarily in the same fold.
+
+| arm | chromosome-grouped | aligned to folds.tsv | max chromosomes in a fold | max cross-fold 1 kb neighbours |
+|---|---|---|---|---|
+| **GC-matched** | **94/94** | **94/94** | 5 | **0** |
+| dinucleotide-matched | **74/94** | 74/94 | **23** | **44.5%** |
+
+**How it survived 549 assertions.** `deep_model_contrast.py` asserted *in its own docstring*
+that "both arms use the same folds, the same seed... the only difference is how the negative
+windows were chosen." That sentence was false for those 20 datasets and nothing tested it. The
+harness gated the **values** the scores produced and never **what produced them** -- which is
+this project's oldest and most expensive lesson, now recurring at the level of the evidence
+files rather than the summary tables.
+
+**What moves, and it is less than the defect suggests.** The k-mer is refit in-script on the
+study folds for every dataset, so it is a clean internal control. Dropping the 20:
+
+| R1 contrast (dn − GC) | all 94 | **74 chromosome-grouped** | shift |
+|---|---|---|---|
+| 4-mer | +0.0398 | **+0.0436** | +0.0038 |
+| CNN | +0.0530 | **+0.0506** | −0.0024 |
+| SpliceBERT | +0.0864 | **+0.0878** | +0.0015 |
+
+**Every shift is inside the protein-clustered half-widths of about 0.009**, so this is a
+disclosed limitation and not a correction to any claim. The quantity that *is* affected is the
+**CNN's dinucleotide-arm deep gain**: a difference-in-differences against the k-mer gives
+**+0.0294** on the leaky datasets, though they are also the panel's largest (median 15,596
+against 4,373 pairs) so that figure is an upper bound confounded with size.
+
+**And the scope of what is untouched is the important part. The GC arm is clean, 94 of 94, and
+every k-mer number in this paper is refit on the study folds.** So R1's headline, R1m, R1n,
+R1q, and the GC arm of R1o and R1r are unaffected. What must carry the caveat: R1g's
+dinucleotide-arm deep gains, R1r's dinucleotide arm, and R1s, whose panel multiplier moves from
+2.99x to about 2.83x when the affected datasets are dropped.
+
+**The gates now enforce three things**: the GC arm must stay perfectly grouped with a
+cross-fold neighbour fraction of exactly zero; the leaky count is pinned two-sided at 20, so a
+rerun that leaked *more* cannot pass; and every contrast must survive dropping them, or the
+dinucleotide deep sweep has to be rerun rather than caveated.
 
 ## R1t: the ladder's rungs were not measured on the same scale. Measured, and the claim survives
 
