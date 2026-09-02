@@ -1,0 +1,35 @@
+check,value,n
+"pairs, gc arm",456734.0,94
+"gc_gap_median, gc arm",0.029700000000000004,94
+"gc_gap_p90, gc arm",0.04949999999999999,94
+"gc_gap_p99, gc arm",0.1089,94
+"gc_gap_max, gc arm",0.14859999999999995,94
+"dinuc_l1_median, gc arm",0.5,94
+"dinuc_l1_p90, gc arm",0.78,94
+"dinuc_l1_max, gc arm",1.9800000000000002,94
+"fraction of pairs within |dGC| 0.05, gc arm",0.9477069804306226,94
+"fraction of pairs within |dGC| 0.10, gc arm",0.9872923846265004,94
+"fraction of pairs within |dGC| 0.15, gc arm",1.0,94
+"pairs, dn arm",457998.0,94
+"gc_gap_median, dn arm",0.01980000000000004,94
+"gc_gap_p90, dn arm",0.06929999999999992,94
+"gc_gap_p99, dn arm",0.14849999999999997,94
+"gc_gap_max, dn arm",0.4159,94
+"dinuc_l1_median, dn arm",0.21999999999999997,94
+"dinuc_l1_p90, dn arm",0.34,94
+"dinuc_l1_max, dn arm",1.42,94
+"fraction of pairs within |dGC| 0.05, dn arm",0.8500124454691942,94
+"fraction of pairs within |dGC| 0.10, dn arm",0.9720784806920554,94
+"fraction of pairs within |dGC| 0.15, dn arm",0.9922663417744182,94
+"pairs, neg2 arm",456734.0,94
+"gc_gap_median, neg2 arm",0.13870000000000005,94
+"gc_gap_p90, neg2 arm",0.31690000000000007,94
+"gc_gap_p99, neg2 arm",0.4555,94
+"gc_gap_max, neg2 arm",0.6733,94
+"dinuc_l1_median, neg2 arm",0.7,94
+"dinuc_l1_p90, neg2 arm",1.06,94
+"dinuc_l1_max, neg2 arm",1.98,94
+"fraction of pairs within |dGC| 0.05, neg2 arm",0.20412099821778104,94
+"fraction of pairs within |dGC| 0.10, neg2 arm",0.3771188481698319,94
+"fraction of pairs within |dGC| 0.15, neg2 arm",0.5350269522304011,94
+"dinucleotide L1 improvement factor, dn vs gc arm",2.272727272727273,94

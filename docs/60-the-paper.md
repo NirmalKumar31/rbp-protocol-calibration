@@ -1189,6 +1189,101 @@ significant, and the disagreement reduction is the stronger half of it.
 normalisation -- in which case the honest paper says "we can show the problem and cannot offer
 a fix", which is still publishable and considerably weaker.
 
+## R1t: the ladder's rungs were not measured on the same scale. Measured, and the claim survives
+
+`score_scale_check.csv`, `score_scale_per_dataset.csv`, n = 94, both arms.
+
+**The defect, found by a methods referee and confirmed in full.** The nested contribution adds
+the model's score as a covariate to a logistic regression. The 4-mer entered as a **log-odds**
+(`baseline.oof_scores` returns `decision_function`); the CNN and SpliceBERT entered as
+**probabilities**, because that is what their GPU sweeps wrote to `data/evidence`. A logistic
+regression is **not** invariant to a monotone *nonlinear* transform of a covariate, so the deep
+models' gains were measured with a range-compressed version of their own score while the
+k-mer's were not. AUROC itself *is* invariant to monotone transforms, so no standalone AUROC in
+this paper is affected -- but the nested fit can move, and this is an asymmetry inside the one
+section whose entire point is that the three rungs share rows, folds and estimator.
+
+**Measured on both scales, all 94 datasets.** The probability-scale refit reproduces the
+published deep gains at **9.97e-17**, so what follows is the scale and not a different pipeline.
+
+| | as published | on logit(p) | **difference** |
+|---|---|---|---|
+| CNN, GC | +0.0330 | +0.0338 | **+0.0008** [+0.0006, +0.0011] |
+| SpliceBERT, GC | +0.0890 | +0.0920 | **+0.0030** [+0.0023, +0.0037] |
+| CNN, dinuc | +0.0860 | +0.0866 | **+0.0006** [+0.0004, +0.0009] |
+| SpliceBERT, dinuc | +0.1754 | +0.1787 | **+0.0033** [+0.0024, +0.0042] |
+
+**The bias is real, one-directional and small.** All four intervals exclude zero, so this is a
+systematic effect and not noise. Its direction is that **the probability scale understates the
+deep models**, which makes every published deep number in this paper *conservative*. The
+largest correction is +0.0033, about 2% of SpliceBERT's dinucleotide-arm gain.
+
+**And the paper's claim is invariant to it, which is what makes this a disclosed sensitivity
+rather than a correction:**
+
+| R1 contrast (dn − GC) | as published | all-logit |
+|---|---|---|
+| 4-mer | +0.0398 | +0.0398 (unchanged, it was always the logit) |
+| CNN | +0.0530 | **+0.0528** |
+| SpliceBERT | +0.0864 | **+0.0867** |
+
+Shifts of **0.0002 and 0.0004**, against protein-clustered half-widths of ~0.009. The ladder's
+order, the contrast and the multiplier all stand.
+
+**What the manuscript does.** Report the published values, state the asymmetry, and give the
+measured correction, gated by `max_contrast_shift` so no future run can quietly let it grow.
+The alternative -- silently refitting the deep arms on the logit and restating gated numbers
+that appear throughout this document -- is precisely the move this project has caught itself
+making before. **Measure first, then decide; and say which one was published.**
+
+**Two related asymmetries I have NOT closed, and they belong in Limitations.** First, the
+composition features and the score are standardised over **all** rows including the held-out
+fold before the out-of-fold fits: unsupervised and small, but it is a use of test-fold
+statistics in a paper whose discipline is "out-of-fold on both sides". Second, the nested full
+model is an out-of-fold **stack**: the score added for a training row in fold *g* came from a
+model trained on folds excluding *g*, which includes the test fold *f*. The composition-only
+arm has no fitted feature and so no such leak, making the asymmetry point in the direction
+that **inflates** the nested contribution. R1i's design effect of 1.35 addresses the *variance*
+consequence of fitted scores; nothing here addresses the *bias*. Both are stated rather than
+bounded.
+
+## Match quality: what the matchers achieved, not what they were asked for
+
+`match_quality.csv`, `match_quality_per_dataset.csv`, all **456,734** pairs per arm.
+
+**Why this section exists.** Every arm is specified by its tolerance or its objective, and this
+paper argues *from* the specification: the GC arm controls **1 of 15** degrees of freedom of the
+composition baseline and the dinucleotide arm controls **15 of 15**, which is why the sign of the
+headline contrast is design-implied. That is exactly true of the *design*. The *realisation* was
+measured nowhere -- no committed table, no golden key, and none of the previous 522 assertions
+touched it. `prepare.py` did compute the L1, into `prep_report.txt` files that no longer exist.
+
+| arm | median \|ΔGC\| | p90 | p99 | max | median dinuc L1 | p90 |
+|---|---|---|---|---|---|---|
+| GC-matched | **0.0297** | 0.0495 | 0.1089 | **0.1486** | 0.500 | 0.780 |
+| dinucleotide-matched | 0.0198 | 0.0693 | 0.1485 | 0.4159 | **0.220** | 0.340 |
+| neg2 | **0.1387** | 0.3169 | 0.4555 | 0.6733 | 0.700 | 1.060 |
+
+**Two facts the Methods must state, and neither was being stated.**
+
+*1. The GC tolerance is not 0.05.* The matcher relaxes: 40 draws, tolerance **doubled to 0.10**
+after 25 misses, then a best-seen candidate accepted up to **3x = 0.15**. **94.8%** of pairs are
+inside the nominal 0.05, 98.7% inside 0.10, 100% inside 0.15 -- and the observed maximum,
+**0.1486**, sits exactly at the fallback cap. Quoting `gc_tolerance: 0.05` overstates the match
+for one pair in twenty. Report the ladder.
+
+*2. "Dinucleotide-matched" means L1 ≈ 0.22, not ≈ 0.* The matcher improves median composition
+distance from **0.500 to 0.220**, a factor of **2.27**, in frequency units on a 0-2 scale. So
+"15 of 15 degrees of freedom controlled" is exactly true of the design and **approximately**
+true of the data. This is also the number R1f needed: that section is described as "confounded
+with achieved match quality" and until now no figure for it existed anywhere.
+
+**And neg2 is not composition-matched at all** -- median \|ΔGC\| **0.1387**, 4.7x the GC arm,
+with only 20.4% of pairs inside 0.05. That is by construction, and it is precisely why its
+composition baseline is the highest of the three arms (0.8248). The three protocols are not
+three tolerances of one matcher; they are three different operations, and this table is the
+evidence for that framing.
+
 ## Supplementary Table S1: the panel, joined to ENCODE
 
 `supplementary_table_s1.csv`, built by `scripts/table_s1.py`, wired into run.sh stage 13b.

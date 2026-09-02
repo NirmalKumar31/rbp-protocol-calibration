@@ -1745,6 +1745,129 @@ def verify_baseline_order_models(T, g):
                    f"{m['splicebert']:.2f}x", f"< {min(m['kmer'], m['cnn']):.2f}x")
 
 
+def verify_match_quality(T, g):
+    """What the matchers achieved. The paper argued from the specification for months."""
+    print("\nmatch quality  (what the matchers DID, not what they were asked for)")
+    d = T.get("match_quality.csv")
+    if d is None:
+        return record(False, "match_quality.csv present", "MISSING",
+                      "run scripts/match_quality.py")
+    spec = g["match_quality"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+    for label, key in (
+            ("gc_gap_median, gc arm", spec["gc_gap_median_gc"]),
+            ("gc_gap_max, gc arm", spec["gc_gap_max_gc"]),
+            ("gc_gap_median, dn arm", spec["gc_gap_median_dn"]),
+            ("gc_gap_median, neg2 arm", spec["gc_gap_median_neg2"]),
+            ("dinuc_l1_median, gc arm", spec["dinuc_l1_median_gc"]),
+            ("dinuc_l1_median, dn arm", spec["dinuc_l1_median_dn"]),
+            ("dinuc_l1_median, neg2 arm", spec["dinuc_l1_median_neg2"]),
+            ("fraction of pairs within |dGC| 0.05, gc arm", spec["within_nominal_gc"]),
+            ("dinucleotide L1 improvement factor, dn vs gc arm",
+             spec["l1_improvement_factor"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE FALLBACK CAP. The GC matcher accepts a best-seen candidate up to 3x its nominal
+    # tolerance. If a pair ever exceeds that, the matcher is not the one described in Methods.
+    mx = must("gc_gap_max, gc arm")
+    if mx is not None:
+        at_most("every GC pair is inside the matcher's real acceptance bound, which is the 3x "
+                "fallback cap and NOT the nominal 0.05", mx, spec["gc_fallback_cap"])
+
+    # THE RELAXATION LADDER MUST BE PRESENT, not merely correct. Reporting the nominal
+    # tolerance alone overstates the match for 5.2% of pairs.
+    if spec["ladder_must_be_reported"]:
+        for rung in ("0.05", "0.10", "0.15"):
+            record(f"fraction of pairs within |dGC| {rung}, gc arm" in q.index,
+                   f"the GC relaxation ladder is reported at {rung}, so the nominal tolerance "
+                   f"cannot be quoted alone", f"rung {rung}", "present")
+
+    # AND THE DESIGN ARGUMENT MUST HOLD ON THE DATA. "1 of 15 vs 15 of 15 degrees of freedom"
+    # is the reason the headline contrast's SIGN is design-implied; if the dinucleotide arm
+    # were not materially better matched in fact, that argument would rest on nothing.
+    imp = must("dinucleotide L1 improvement factor, dn vs gc arm")
+    if imp is not None:
+        record(imp >= spec["min_l1_improvement"],
+               "the dinucleotide arm really is materially better composition-matched, so the "
+               "1-of-15 vs 15-of-15 argument holds on the realisation and not only the design",
+               f"{imp:.2f}x", f">= {spec['min_l1_improvement']}x")
+
+
+def verify_score_scale(T, g):
+    """R1t: the deep rungs entered on the probability scale, the k-mer on the logit scale."""
+    print("\nR1t the score scale  (were the ladder's rungs measured the same way?)")
+    d = T.get("score_scale_check.csv")
+    if d is None:
+        return record(False, "score_scale_check.csv present", "MISSING",
+                      "run scripts/score_scale_check.py")
+    spec = g["r1t_score_scale"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+    rep = must("max |probability-scale gain - published gain|")
+    if rep is not None:
+        at_most("the probability-scale refit reproduces the PUBLISHED deep gain, so the "
+                "deltas below are the scale and not a different pipeline",
+                rep, spec["max_published_reproduction"])
+
+    deltas = {}
+    for label, key in (
+            ("cnn logit minus probability scale, gc arm", spec["delta_cnn_gc"]),
+            ("splicebert logit minus probability scale, gc arm", spec["delta_splicebert_gc"]),
+            ("cnn logit minus probability scale, dn arm", spec["delta_cnn_dn"]),
+            ("splicebert logit minus probability scale, dn arm", spec["delta_splicebert_dn"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+            deltas[label] = v
+
+    # THE BIAS IS REAL AND ONE-DIRECTIONAL, so the published deep gains are CONSERVATIVE.
+    # Worth asserting rather than describing: if it ever changed sign, the published numbers
+    # would be overstating the deep models and the section would have to be rewritten.
+    if spec["scale_bias_must_be_one_directional"] and len(deltas) == 4:
+        record(all(v > 0 for v in deltas.values()),
+               "the probability scale UNDERSTATES every deep gain, so the published numbers "
+               "are conservative for the deep models",
+               f"min {min(deltas.values()):+.4f}", "all > 0")
+        at_most("and the bias is small enough that the ladder's absolute values are not "
+                "misstated", max(deltas.values()), spec["max_scale_bias"])
+
+    # AND THE CLAIM IS INVARIANT. This is what makes it a disclosed sensitivity rather than a
+    # correction: the contrast is the paper's quantity and it does not move.
+    for label, key, pubkey in (
+            ("cnn R1 contrast, logit scale", spec["contrast_cnn_logit"], "cnn"),
+            ("splicebert R1 contrast, logit scale", spec["contrast_splicebert_logit"],
+             "splicebert")):
+        v = must(label)
+        pv = must(f"{pubkey} R1 contrast, probability scale")
+        if v is not None:
+            near(label, v, key)
+        if v is not None and pv is not None:
+            at_most(f"the R1 contrast for the {pubkey} is INVARIANT to the score scale, so "
+                    f"the paper's claim does not depend on the defect", abs(v - pv),
+                    spec["max_contrast_shift"])
+
+
 def verify_multiplier_variance(T, g):
     """R1s: the multiplier is mostly the protein's, but only against each factor's own null."""
     print("\nR1s whose property is the multiplier?  (and is 79 levels doing the work?)")
@@ -2485,7 +2608,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

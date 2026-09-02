@@ -1284,7 +1284,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 521
+  min_domain_checks: 548
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1545,3 +1545,81 @@ r1s_multiplier_variance:
   # was retracted here.
   protein_must_beat_its_own_null: true
   null_must_be_reported: true
+
+# --- R1t: the rungs of the R1g ladder were not measured on the same scale -----------------
+#
+# THE DEFECT, found by a methods referee in review and confirmed. The nested contribution adds
+# the model's score as a covariate to a logistic regression. The 4-mer entered as a LOG-ODDS
+# (baseline.oof_scores returns decision_function); the CNN and SpliceBERT entered as
+# PROBABILITIES, because that is what their GPU sweeps wrote to data/evidence. A logistic
+# regression is NOT invariant to a monotone nonlinear transform of a covariate, so the deep
+# models' gains were measured with a range-compressed version of their own score and the
+# k-mer's were not. That is an asymmetry in the one section whose point is that the three rungs
+# share rows, folds and estimator.
+#
+# MEASURED ON ALL 94 DATASETS, BOTH ARMS. The bias is real, one-directional and small: the
+# probability scale UNDERSTATES the deep gains by +0.0008 (CNN) and +0.0030 (SpliceBERT) on the
+# GC arm, every interval clear of zero. So the published deep numbers are CONSERVATIVE.
+#
+# AND THE PAPER'S CLAIM IS INVARIANT TO IT. The R1 contrast moves by 0.0002-0.0003:
+#   CNN        +0.0530 -> +0.0528
+#   SpliceBERT +0.0864 -> +0.0867
+#   k-mer      +0.0398 unchanged, it was always the logit
+# far inside the protein-clustered intervals. The ladder's ORDER and the contrast both stand.
+r1t_score_scale:
+  n_datasets: 94
+  # The published deep gains must be exactly reproducible on the probability scale, or this
+  # script is not modelling the published pipeline and none of the deltas mean anything.
+  max_published_reproduction: 1.0e-9
+  delta_cnn_gc:        {value: 0.0008, tol: 0.0006}
+  delta_splicebert_gc: {value: 0.0030, tol: 0.0010}
+  delta_cnn_dn:        {value: 0.0006, tol: 0.0006}
+  delta_splicebert_dn: {value: 0.0033, tol: 0.0012}
+  contrast_cnn_logit:        {value: 0.0528, tol: 0.006}
+  contrast_splicebert_logit: {value: 0.0867, tol: 0.008}
+  # THE TWO GATES THAT CARRY THE CONCLUSION. The bias must stay small enough that the ladder's
+  # absolute values are not misstated, and the CONTRAST must be invariant to the scale -- which
+  # is what makes the defect a disclosed sensitivity rather than a correction to the claim.
+  max_scale_bias: 0.006
+  max_contrast_shift: 0.004
+  scale_bias_must_be_one_directional: true
+
+# --- Achieved match quality: what the matchers DID, not what they were asked for ----------
+#
+# THE GAP, found by a methods referee. Every arm was specified by its tolerance or objective,
+# and the paper argues FROM the specification: the GC arm controls 1 of the baseline's 15
+# degrees of freedom, the dinucleotide arm 15 of 15. That is exactly true of the DESIGN. The
+# REALISATION was measured nowhere -- no table, no key, and none of the 522 assertions touched
+# it. prepare.py computed the L1 into prep_report.txt files that no longer exist.
+#
+# TWO FACTS THE METHODS MUST STATE, now that they are measured over all 456,734 pairs:
+#   1. THE GC TOLERANCE IS NOT 0.05. The matcher relaxes -- 40 draws, tolerance doubled to 0.10
+#      after 25 misses, best-seen accepted up to 3x = 0.15. 94.8% of pairs are inside 0.05 and
+#      the observed maximum is 0.1486, sitting exactly at the fallback cap. Reporting "matched
+#      within 5 percentage points" overstates what happened for 5.2% of pairs.
+#   2. "DINUCLEOTIDE-MATCHED" MEANS L1 ~ 0.22, NOT ~ 0. The matcher improves median composition
+#      distance 0.500 -> 0.220, a factor of 2.27. So "15 of 15 controlled" is a statement about
+#      the design and only approximately about the data. This is also the number R1f needed:
+#      it is described as "confounded with achieved match quality" with no figure anywhere.
+#
+# And neg2 is not composition-matched at all (median |dGC| 0.139 against the GC arm's 0.030),
+# by construction -- which is exactly why its composition baseline is the highest of the three.
+match_quality:
+  n_datasets: 94
+  gc_gap_median_gc: {value: 0.0297, tol: 0.004}
+  gc_gap_max_gc:    {value: 0.1486, tol: 0.004}
+  gc_gap_median_dn: {value: 0.0198, tol: 0.004}
+  gc_gap_median_neg2: {value: 0.1387, tol: 0.020}
+  dinuc_l1_median_gc:   {value: 0.500, tol: 0.04}
+  dinuc_l1_median_dn:   {value: 0.220, tol: 0.03}
+  dinuc_l1_median_neg2: {value: 0.700, tol: 0.06}
+  within_nominal_gc: {value: 0.948, tol: 0.03}
+  l1_improvement_factor: {value: 2.27, tol: 0.25}
+  # THE GATES. The relaxation ladder must be reported and the observed max must stay inside the
+  # 3x fallback cap the matcher actually enforces -- if a pair ever exceeds 0.15 the matcher did
+  # something other than what this section describes. And the dinucleotide arm must remain
+  # materially better matched than the GC arm, or the 1-of-15 vs 15-of-15 argument fails on the
+  # realisation and not merely on the design.
+  gc_fallback_cap: 0.15
+  min_l1_improvement: 1.8
+  ladder_must_be_reported: true
