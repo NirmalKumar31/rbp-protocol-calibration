@@ -46,11 +46,15 @@ mechanism (Spearman −0.60 against the baseline) is an asset rather than a conf
 > Where the two disagree, the baseline wins: in the 27 of 94 datasets where the bias-aware
 > protocol *lowers* the baseline relative to GC matching, its contribution deficit reverses
 > (−0.0212 → **+0.0028**), and matched on baseline the headline dinucleotide-versus-GC contrast
-> falls from +0.0398 to **−0.0087 [−0.0265, +0.0122]**. No rescaling recovers a protocol-free
-> quantity: over eight monotone transforms the range never falls below **2.00x** [1.67, 2.46].
-> The practical consequence is a two-number report -- state the composition-only AUROC under
-> the same protocol alongside every headline AUROC -- and it is the least protocol-sensitive
-> of those eight coordinates.
+> falls from +0.0398 to **−0.0087 [−0.0265, +0.0122]**. **No rescaling recovers a
+> *transportable* protocol-free quantity.** Over eight standard monotone transforms the range
+> floors at **2.00x** [1.67, 2.46], far outside the equal-means null (95th percentile 1.18);
+> an exponent that equalises our three protocols does exist (p = 1.544, range 1.00x) but it is
+> a property of the benchmark, not of the quantity -- **the exponent fitted on an independent
+> benchmark is 3.65, and ours leaves that benchmark at 2.34x against the 2.38x it started
+> from.** The practical consequence is to report the composition-only AUROC under the same
+> protocol alongside every headline AUROC, and never to compare contributions across
+> protocols.
 
 **The one qualification the claim must carry, and it is not optional.** "Most" is not "all".
 The 1.0% is an average over protocol pairs that behave differently: **0.05%** for GC versus
@@ -832,12 +836,42 @@ independently the least protocol-sensitive of eight candidates is the strongest 
 paper's practical claim, and it was not designed that way: the sweep was run to try to kill the
 result, and it selected the fix.
 
-**The scope limit, stated plainly.** Eight transforms is not "all transforms". A monotone
-reparameterisation that happened to invert this particular baseline-to-gain relation could in
-principle reach 1.0x. What the paper claims is the measured statement: **over the eight
-standard coordinates a benchmarker would actually use, none reaches protocol independence, and
-the best falls only to 2.00x.** The title's "set by the benchmark's headroom" is this row and
-this row only.
+**THE SCOPE LIMIT WAS NOT A SCOPE LIMIT, IT WAS A HOLE. Retracted and replaced by R1u.** The
+paragraph here used to say "eight transforms is not all transforms; a reparameterisation could
+in principle reach 1.0x". It does not take a hypothetical. **g/(1 − comp) is not a coordinate:
+it is the p = 1 member of the one-parameter family g/(1 − comp)^p, and this sweep stopped
+exactly at the member that is the paper's own recommendation.** Extend the family and the range
+collapses:
+
+| p | 0 | 0.5 | **1.0** | 1.25 | **1.544** | 1.75 | 2.0 |
+|---|---|---|---|---|---|---|---|
+| fold range | 5.42 | 3.43 | **2.00** | 1.48 | **1.005** | 1.34 | 1.95 |
+
+At **p = 1.544 the three protocols agree on the panel mean to 0.5%**. So "no monotone rescaling
+recovers a protocol-free quantity" is **false as literally worded**, and the "eight standard
+coordinates a benchmarker would use" hatch does not save it, because g/(1 − comp)^1.544 has
+exactly as much derivation as g/(1 − comp) -- namely none. Both are argmins of the same sweep.
+**A claim cannot present its argmin as a discovery and then dismiss a slightly larger family's
+argmin as unprincipled.**
+
+**What replaces it is a stronger claim, and R1u is where it lives:** the equalising exponent is
+a property of the **benchmark**. Ours is 1.544; Horlacher's is **3.649**; and our exponent
+leaves their benchmark at **2.340x** against the **2.381x** it started from, i.e. it buys
+nothing there. **There is no *transportable* rescaling** -- any normalisation strong enough to
+equalise one benchmark must be refitted on the next, which defeats the purpose. That is a
+testable statement about transportability rather than an untestable one about a floor, and the
+test uses data this project did not build.
+
+**And the 2.00x inference itself survives against a corrected null.** The floor was being
+compared against 1.0, which is too generous: max/min over three noisy means is bounded below by
+1 and biased upward. With **equal true arm means and the real between-arm dataset pairing
+preserved**, the null has median **1.064** and 95th percentile **1.175**. The observed 2.002 is
+well outside it. Report the null, not the bare 1.0.
+
+**So the honest reading of this section.** For the fixed coordinates a benchmarker would
+actually reach for, the range floors at 2.00x and that is far outside chance. But protocol
+independence is reachable by a *fitted* transform, and the fit does not transport -- which is
+the real content of "there is no protocol-free measure".
 
 ## R1n: is it the protocol, or the baseline it leaves? Mostly the baseline, and the exception is named
 
@@ -1261,6 +1295,33 @@ What survives everywhere is that the baseline explains most of the protocol depe
 that the range itself travels. Both the replication and the failure are gated, so a future run
 cannot quietly restore the strong form.
 
+### The stronger result that was sitting in this table unreported
+
+This section described the external data as a partial *failure* that limits R1n. **That
+understated it.** R1n's real content is the **two-family mechanism**: the baseline gradient is a
+property of composition-matched negatives and absent for other-RBPs'-sites negatives. Tested
+per arm on their data (R1u):
+
+| their arm | family | within-arm Spearman(baseline, gain) |
+|---|---|---|
+| negative-1 (transcript background) | composition-matched | **−0.645, p = 1.8e-06** |
+| negative-2 (other RBPs' sites) | other-RBPs'-sites | **−0.187, p = 0.22, n.s.** |
+
+Against ours: **−0.545 / −0.462** for the two composition-matched arms and **−0.122 n.s.** for
+neg2. **The mechanism replicates, arm for arm and family for family, on an independent lab's
+negatives and fold assignments, at p = 2e-06.** This is the strongest external result in the
+paper and it takes five lines against a table that was already committed.
+
+It also **explains** the arm-level inversion this section previously reported without comment.
+Their negative-2 has the lower baseline *and* the lower gain, which is anti-monotone to our
+three-arm ordering -- and that is exactly what a cross-family residual predicts. So R1p is
+**corroboration of the corrected R1n, not a limitation of it.**
+
+**And the range comparison should be family-matched.** Their negative-2 *is* our neg2, so the
+corresponding pair in our data is **GC vs neg2 = 2.17x**, not the dinuc-vs-GC **2.50x**
+previously quoted against their 2.38x. The family-matched comparison is both more defensible
+and closer.
+
 ## R1q: the recommendation is tested, not asserted
 
 `recommendation_works.csv`, n = 94, intervals bootstrap the 79 proteins.
@@ -1290,6 +1351,36 @@ significant, and the disagreement reduction is the stronger half of it.
 **What would have falsified it.** Rank agreement falling, or disagreement rising, under
 normalisation -- in which case the honest paper says "we can show the problem and cannot offer
 a fix", which is still publishable and considerably weaker.
+
+### It falsifies out of sample. Both criteria fire, and the paper must say so
+
+Run the identical test on Horlacher's 45 datasets -- their positives, negatives and folds
+(R1u, `transport_check.csv`):
+
+| | rank agreement | scale-free disagreement |
+|---|---|---|
+| raw | **+0.706** | **0.860** |
+| headroom-normalised | **+0.656** | **0.908** |
+
+**Rank agreement falls and disagreement rises.** Those are, verbatim, the two criteria
+`recommendation_works.py` names as falsifying. The change in rank agreement is **−0.050
+[−0.222, +0.140], P(≤0) = 0.70**, so at n = 45 this is a **failure to replicate rather than a
+refutation** -- but it is the paper's own pre-registered test applied to the only data the
+project did not build, and it points the wrong way.
+
+**And the in-sample result is weaker than it looked, for a structural reason.** The only pair
+whose rank improvement clears zero is **GC versus dinucleotide** -- which is exactly the pair
+R1n shows is **0.05% protocol and essentially all baseline**. The fix is validated where it
+cannot fail and is null in the two pairs that cross protocol families. The mechanism is visible
+in R1p's own table: their negative-2 has the **lower** baseline (0.7560 vs 0.8211) *and* the
+lower gain (0.0166 vs 0.0395), so at the arm level the headroom relation **inverts** there.
+
+**The honest claim, and it is a downgrade.** *We can demonstrate the problem; we cannot offer a
+normalisation that is shown to transport.* Reporting the composition-only AUROC under the same
+protocol remains the right practice -- it is what makes the problem visible and it is what the
+two-number report is for -- but the paper must **not** claim that normalising makes
+cross-protocol contributions comparable. R1l already says they are not comparable; the strong
+form of R1q contradicted R1l, and R1l wins.
 
 ## FOLD INTEGRITY: 20 of the 94 dinucleotide-arm deep score sets did not use the study's folds
 

@@ -1329,7 +1329,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 590
+  min_domain_checks: 613
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1739,3 +1739,65 @@ fold_integrity:
   gc_must_be_fully_grouped: true
   max_cross_fold_neighbours_gc: 0.0
   max_contrast_shift_from_leakage: 0.006
+
+# --- R1u: a protocol-free coordinate EXISTS in sample. It does not TRANSPORT. --------------
+#
+# THIS RETRACTS AND REPLACES THE PAPER'S TITLE CLAIM. R1m said "no monotone rescaling recovers
+# a protocol-free quantity: over eight transforms the range never falls below 2.00x". But
+# g/(1-comp) is not a coordinate, it is the p = 1 member of a one-parameter family, and the
+# sweep stopped exactly at the member that is the paper's own recommendation. Extend the family:
+#
+#   p       0     0.5    1.0    1.25   1.544   1.75   2.0
+#   range  5.42   3.43   2.00   1.48   1.005   1.34   1.95
+#
+# At p = 1.544 the three protocols agree on the panel mean to 0.5%. The claim is FALSE as
+# literally worded, and the "eight standard coordinates" hatch does not save it: g/(1-comp)^1.544
+# has exactly as much derivation as g/(1-comp), namely none -- both are argmins of one sweep.
+#
+# WHAT REPLACES IT IS STRONGER. The equalising exponent is a property of the BENCHMARK. Fitted
+# on our three protocols it is 1.544; fitted on Horlacher's two it is 3.649, and OUR exponent
+# leaves their benchmark at 2.340x against the 2.381x it started from -- i.e. it buys nothing
+# there. So no normalisation transports: any transform strong enough to equalise one benchmark
+# must be refitted on the next, which is what "there is no protocol-free measure" should have
+# meant all along. This is a claim about transportability, not about a floor, and it is testable
+# on exactly the external data the project did not build.
+#
+# AND THE 2.00x INFERENCE ITSELF SURVIVES, against a corrected null. max/min over three noisy
+# means is bounded below by 1 and biased up, so 1.0 was too generous a bar. With equal true arm
+# means and the real between-arm dataset pairing preserved, the null has median 1.064 and a 95th
+# percentile of 1.175. The observed 2.002 is well outside it.
+r1u_transport:
+  n_datasets_external: 45
+  range_at_p1: {value: 2.002, tol: 0.05}
+  exponent_ours:   {value: 1.544, tol: 0.10}
+  range_at_argmin: {value: 1.005, tol: 0.05}
+  exponent_theirs: {value: 3.649, tol: 0.40}
+  their_range_raw:          {value: 2.381, tol: 0.10}
+  their_range_at_our_p:     {value: 2.340, tol: 0.15}
+  their_range_at_their_p:   {value: 1.000, tol: 0.05}
+  null_median: {value: 1.064, tol: 0.05}
+  null_p95:    {value: 1.175, tol: 0.06}
+  # THE EXTERNAL FALSIFICATION, which fires. recommendation_works.py names its own criterion:
+  # "rank agreement falling, or disagreement rising, under normalisation". Both happen on their
+  # 45 datasets. Not significant (P(<=0) = 0.70), so a failure to replicate and not a
+  # refutation -- but it is the paper's own pre-registered test on independent data and the
+  # paper must report it rather than wait for a referee to run it.
+  external_rank_raw:      {value: 0.706, tol: 0.05}
+  external_rank_headroom: {value: 0.656, tol: 0.05}
+  external_disagreement_raw:      {value: 0.860, tol: 0.06}
+  external_disagreement_headroom: {value: 0.908, tol: 0.06}
+  # AND THE MECHANISM DOES REPLICATE, per arm, which R1p currently reports as a partial
+  # FAILURE. Their composition-matched arm shows the gradient at p = 2e-06; their
+  # other-RBPs'-sites arm does not. That is R1n's two-family mechanism on an independent lab's
+  # negatives and folds, and it is the strongest external result in the paper.
+  external_gradient_n1: {value: -0.645, tol: 0.10}
+  external_gradient_n2: {value: -0.187, tol: 0.12}
+  # THE GATES.
+  #  1. An in-sample equalising exponent MUST be reported. Suppressing it would restore a claim
+  #     that is false, and a referee holding the Zenodo deposit finds it in an afternoon.
+  #  2. The exponent must NOT transport -- that is now the paper's claim, so if a future run
+  #     ever finds the two benchmarks agreeing on an exponent, the claim must be restated.
+  #  3. The external falsification must be reported whichever way it points.
+  in_sample_exponent_must_be_reported: true
+  min_exponent_ratio: 1.8
+  external_falsification_must_be_reported: true

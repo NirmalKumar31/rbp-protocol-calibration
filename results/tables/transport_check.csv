@@ -1,0 +1,19 @@
+check,value,n,ci_low,ci_high,note
+"fold range at the headroom coordinate, p = 1",2.002068676366967,,,,
+equalising exponent on our protocols,1.5441279927857714,,,,
+fold range at our equalising exponent,1.0045177055109882,,,,
+"equal-means null fold range, median",1.0639319800631601,,,,
+"equal-means null fold range, 95th percentile",1.1749308671742225,,,,
+observed headroom fold range exceeds the null 95th percentile,1.0,,,,
+equalising exponent on Horlacher's protocols,3.6492295909079724,,,,
+their fold range at their own exponent,1.0000004301777274,,,,
+their fold range at OUR exponent,2.340026743812969,,,,
+"their fold range, raw",2.3808214090440103,,,,
+"exponent ratio, theirs over ours",2.363294757919888,,,,
+"external rank agreement, raw",0.7061923583662714,45.0,,,
+"external scale-free disagreement, raw",0.8598933317762254,45.0,,,
+"external rank agreement, headroom",0.6557312252964427,45.0,,,
+"external scale-free disagreement, headroom",0.9078972720952785,45.0,,,
+external rank agreement change under normalisation,-0.05046113306982869,45.0,-0.22216592971504026,0.1398576607511791,P(<=0) = 0.70
+"external within-arm spearman(baseline, gain), n1",-0.6445322793148879,45.0,,,p = 1.77e-06
+"external within-arm spearman(baseline, gain), n2",-0.1869565217391304,45.0,,,p = 2.19e-01

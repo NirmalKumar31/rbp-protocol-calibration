@@ -1826,6 +1826,100 @@ def verify_baseline_order_models(T, g):
                    f"{m['splicebert']:.2f}x", f"< {min(m['kmer'], m['cnn']):.2f}x")
 
 
+def verify_transport(T, g):
+    """R1u: an equalising exponent exists in sample and does not transport. Both halves gated."""
+    print("\nR1u transportability  (does any rescaling carry to another benchmark?)")
+    d = T.get("transport_check.csv")
+    if d is None:
+        return record(False, "transport_check.csv present", "MISSING",
+                      "run scripts/transport_check.py")
+    spec = g["r1u_transport"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    k = "external rank agreement, raw"
+    if k in q.index and "n" in d.columns:
+        record(int(q.loc[k, "n"]) == spec["n_datasets_external"],
+               "the external tests run on Horlacher's full shared panel",
+               int(q.loc[k, "n"]), spec["n_datasets_external"])
+    for label, key in (
+            ("fold range at the headroom coordinate, p = 1", spec["range_at_p1"]),
+            ("equalising exponent on our protocols", spec["exponent_ours"]),
+            ("fold range at our equalising exponent", spec["range_at_argmin"]),
+            ("equalising exponent on Horlacher's protocols", spec["exponent_theirs"]),
+            ("their fold range, raw", spec["their_range_raw"]),
+            ("their fold range at OUR exponent", spec["their_range_at_our_p"]),
+            ("their fold range at their own exponent", spec["their_range_at_their_p"]),
+            ("equal-means null fold range, median", spec["null_median"]),
+            ("equal-means null fold range, 95th percentile", spec["null_p95"]),
+            ("external rank agreement, raw", spec["external_rank_raw"]),
+            ("external rank agreement, headroom", spec["external_rank_headroom"]),
+            ("external scale-free disagreement, raw", spec["external_disagreement_raw"]),
+            ("external scale-free disagreement, headroom",
+             spec["external_disagreement_headroom"]),
+            ("external within-arm spearman(baseline, gain), n1",
+             spec["external_gradient_n1"]),
+            ("external within-arm spearman(baseline, gain), n2",
+             spec["external_gradient_n2"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # 1. THE IN-SAMPLE EQUALISING EXPONENT MUST BE REPORTED. Suppressing it restores a claim
+    # that is false in the paper's own data, which is the worst kind of claim to hold.
+    if spec["in_sample_exponent_must_be_reported"]:
+        v = must("fold range at our equalising exponent")
+        if v is not None:
+            record(v < 1.1, "an in-sample equalising exponent EXISTS and is reported, so the "
+                            "paper cannot claim that no rescaling reaches a protocol-free "
+                            "quantity", f"{v:.3f}x at p = 1.544", "< 1.1x")
+
+    # 2. AND IT MUST NOT TRANSPORT. This is now the paper's claim, so it is the thing that has
+    # to be checked -- not a floor.
+    pa, pt = must("equalising exponent on our protocols"), \
+        must("equalising exponent on Horlacher's protocols")
+    if pa and pt:
+        record(pt / pa >= spec["min_exponent_ratio"],
+               "the equalising exponent does NOT transport between benchmarks, which is the "
+               "claim that replaces the retracted floor", f"{pt / pa:.2f}x apart",
+               f">= {spec['min_exponent_ratio']}x")
+    ours_there = must("their fold range at OUR exponent")
+    raw_there = must("their fold range, raw")
+    if ours_there and raw_there:
+        record(ours_there > 0.9 * raw_there,
+               "and our exponent buys essentially nothing on their benchmark, so the "
+               "normalisation is fitted rather than universal",
+               f"{ours_there:.2f}x vs raw {raw_there:.2f}x", "no material gain")
+
+    # 3. THE 2.00x INFERENCE, against the CORRECT null. max/min over three noisy means is
+    # bounded below by 1, so comparing against 1.0 was too generous.
+    obs, p95 = must("fold range at the headroom coordinate, p = 1"), \
+        must("equal-means null fold range, 95th percentile")
+    if obs and p95:
+        record(obs > p95, "the headroom coordinate's range exceeds the EQUAL-MEANS null's 95th "
+                          "percentile, not merely 1.0, so the range is not an artefact of "
+                          "taking a ratio of three noisy means",
+               f"{obs:.3f}x vs null p95 {p95:.3f}x", "outside the null")
+
+    # 4. THE EXTERNAL FALSIFICATION MUST BE REPORTED whichever way it points. It points against
+    # the recommendation, and the paper says so.
+    if spec["external_falsification_must_be_reported"]:
+        for k in ("external rank agreement, headroom",
+                  "external scale-free disagreement, headroom"):
+            record(k in q.index, f"the external test of the recommendation is reported ({k})",
+                   k, "present")
+        rr, rh = must("external rank agreement, raw"), must("external rank agreement, headroom")
+        if rr is not None and rh is not None:
+            record(rh < rr, "and it FAILS to replicate out of sample -- rank agreement falls "
+                            "under normalisation, which is this script's own pre-registered "
+                            "falsification criterion", f"{rr:+.3f} -> {rh:+.3f}", "falls")
+
+
 def verify_fold_integrity(T, g):
     """Did the committed scores use the study's chromosome folds? For 20 of 188, no."""
     print("\nfold integrity  (did the committed scores use config/folds.tsv?)")
@@ -2795,7 +2889,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_fold_integrity, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_transport, verify_fold_integrity, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
