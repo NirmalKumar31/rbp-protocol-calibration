@@ -33,15 +33,35 @@ tar czf "$OUT" \
 # --- the verification, which is the entire point of the file -----------------------------
 fail=0
 
+# LIST THE ARCHIVE ONCE, then match with pure bash and NO PIPE.
+#
+# `tar tzf "$OUT" | grep -q PATTERN` looks equivalent and is not, under `set -o pipefail`.
+# grep -q exits the instant it matches, the writer's next write gets EPIPE and dies, and
+# pipefail then makes the whole pipeline non-zero -- so a file that IS present is reported
+# MISSING. GNU tar on Linux reports "tar: stdout: write error"; BSD tar on macOS does not fail
+# that way, which is why this passed on the author's laptop and failed on the first CI run
+# against ubuntu-latest, reporting all seven packages and all seven driver files missing while
+# the very next check confirmed all 9 modules imported from that same archive.
+#
+# Replacing tar with `printf '%s\n' "$LISTING" | grep -q` does NOT fix it: printf is a bash
+# builtin and takes the same EPIPE. Verified before committing, because the obvious fix here is
+# wrong in exactly the same way as the bug.
+#
+# So: no pipe. Bash `case` against the listing, with newline sentinels for the exact-line
+# checks. No subprocess, nothing to kill early, and one tar pass instead of fourteen.
+LISTING=$(tar tzf "$OUT") || { echo "cannot list $OUT" >&2; exit 1; }
+NL=$'\n'
+
 # Every package directory under src/rbp/ must appear in the archive. Compared against the
 # working tree rather than a hardcoded list, so a new package is covered the day it is added.
 for d in src/rbp/*/; do
   name=$(basename "$d")
   [ "$name" = "__pycache__" ] && continue
-  if ! tar tzf "$OUT" | grep -q "^src/rbp/${name}/"; then
-    echo "MISSING PACKAGE: src/rbp/${name}/ is in the working tree but not in $OUT" >&2
-    fail=1
-  fi
+  case "$LISTING" in
+    *"src/rbp/${name}/"*) ;;
+    *) echo "MISSING PACKAGE: src/rbp/${name}/ is in the working tree but not in $OUT" >&2
+       fail=1 ;;
+  esac
 done
 
 # The files the driver actually invokes. A tarball that unpacks but cannot run is no better
@@ -49,7 +69,10 @@ done
 for f in cloud/submit.sh cloud/driver_startup.sh scripts/cloud_variants.py \
          scripts/cloud_analysis.py scripts/variant_splicebert.py \
          cloud/modal/modal_variants.py cloud/modal/modal_sweep.py; do
-  tar tzf "$OUT" | grep -qx "$f" || { echo "MISSING FILE: $f" >&2; fail=1; }
+  case "${NL}${LISTING}${NL}" in
+    *"${NL}${f}${NL}"*) ;;
+    *) echo "MISSING FILE: $f" >&2; fail=1 ;;
+  esac
 done
 
 # Importability is the property that actually matters, so test it rather than infer it.
@@ -78,4 +101,4 @@ print(f"  all {len(mods)} modules import from the packaged tree")
 EOF
 
 [ "$fail" -eq 0 ] || { echo "package verification FAILED; not uploading" >&2; exit 1; }
-echo "packaged $OUT ($(du -h "$OUT" | cut -f1)), $(tar tzf "$OUT" | wc -l | tr -d ' ') entries, verified"
+echo "packaged $OUT ($(du -h "$OUT" | cut -f1)), $(grep -c '' <<< "$LISTING" | tr -d ' ') entries, verified"
