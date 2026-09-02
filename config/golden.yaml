@@ -955,6 +955,28 @@ r1r_baseline_order_models:
   contrast_order3_kmer:       {value: 0.0067, tol: 0.003}
   contrast_order3_cnn:        {value: 0.0309, tol: 0.007}
   contrast_order3_splicebert: {value: 0.0545, tol: 0.008}
+  # THE SHARE IS A RATIO AND ITS DENOMINATOR DID THE WORK. The first version of R1r led with
+  # "the k-mer keeps 22%, SpliceBERT keeps 75%" and concluded the k-mer is uniquely FRAGILE.
+  # Withdrawn: the order-3 baseline absorbs almost the SAME ABSOLUTE amount from every model
+  # (+0.021 gc, +0.054 dn), and on the dinuc arm SpliceBERT minus k-mer is indistinguishable
+  # from zero. The shares follow from the totals. These keys force the absolute column to be
+  # present and to stay close, so the fragility reading cannot be restored.
+  absorbed_kmer_gc:       {value: 0.0208, tol: 0.004}
+  absorbed_cnn_gc:        {value: 0.0130, tol: 0.004}
+  absorbed_splicebert_gc: {value: 0.0222, tol: 0.004}
+  absorbed_kmer_dn:       {value: 0.0538, tol: 0.008}
+  absorbed_splicebert_dn: {value: 0.0540, tol: 0.008}
+  # The absorption is a CONSTANT across model classes, not a capacity effect. If this ever
+  # exceeds the bound, R1r's mechanism changes and the section must be rewritten.
+  max_absorbed_spread_gc: 0.010
+  # THE RESULT THAT REPLACED THE SHARES: over a trinucleotide baseline the 4-mer is not
+  # reliably positive and SpliceBERT is positive everywhere. A mean of +0.0058 hid this.
+  kmer_order3_positive_gc:       {value: 65, tol: 4}
+  cnn_order3_positive_gc:        {value: 80, tol: 4}
+  splicebert_order3_positive_gc: {value: 94, tol: 0}
+  splicebert_order3_positive_dn: {value: 94, tol: 0}
+  splicebert_must_be_positive_everywhere: true
+
   # AND THE WITHDRAWN CLAIM STAYS WITHDRAWN. SpliceBERT has the LOWEST multiplier at both
   # orders, so the order-3 table cannot be used to revive "the contrast grows with capacity".
   multiplier_order3_kmer:       {value: 2.16, tol: 0.30}
@@ -1262,7 +1284,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 497
+  min_domain_checks: 521
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1495,3 +1517,31 @@ r4_unconditional_refit:
   implied_rho:               {value: 0.0978, tol: 0.020}
   measured_rho:              {value: 0.0640, tol: 0.015}
   max_implied_measured_gap:  0.045
+
+# --- R1s: whose property is the protocol multiplier? -------------------------------------
+#
+# README.md and docs/65 asserted "a property of the PROTEIN (68.9% of variance) not the model
+# (1.5%)" from a referee agent's decomposition that lived in no script and no table. Recomputed
+# over the 262 (dataset x model) cells where both arms are positive, on the LOG multiplier, it
+# approximately reproduces -- and a permutation null changes the reading.
+#
+# PROTEIN HAS 79 LEVELS. A 79-level factor absorbs 29.7% of the variance of RELABELLED data, so
+# "68.9% against 1.5%" is mostly degrees of freedom rather than a finding. The comparable
+# statistic is each factor's excess over its OWN null. On that scale protein is far ahead
+# (+35.1, p < 0.0005), cell line is noise (p = 0.49) and MODEL CLASS IS NOT NULL (p = 0.023) --
+# consistent with R1g's own record that SpliceBERT's multiplier is significantly lower.
+r1s_multiplier_variance:
+  n_cells: 262
+  n_proteins: 79
+  share_protein: {value: 0.648, tol: 0.05}
+  share_model:   {value: 0.028, tol: 0.02}
+  share_cell:    {value: 0.002, tol: 0.01}
+  null_protein:  {value: 0.297, tol: 0.05}
+  excess_protein: {value: 0.351, tol: 0.06}
+  panel_multiplier: {value: 2.99, tol: 0.20}
+  # THE GATE THAT MATTERS. If a future run ever shows protein's share failing to beat its own
+  # permutation null, the README's headline about R1g is false and must come out rather than
+  # be softened. And the null must be PRESENT: a decomposition without it is the claim that
+  # was retracted here.
+  protein_must_beat_its_own_null: true
+  null_must_be_reported: true

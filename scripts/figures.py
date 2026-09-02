@@ -39,13 +39,20 @@ LABEL = {"composition": "composition (19 feat)", "kmer": "k-mer LR", "cnn": "CNN
 
 plt.rcParams.update({"figure.dpi": 150, "font.size": 9, "axes.grid": True,
                      "grid.alpha": 0.25, "grid.linewidth": 0.5, "axes.spines.top": False,
-                     "axes.spines.right": False, "axes.axisbelow": True})
+                     "axes.spines.right": False, "axes.axisbelow": True,
+                     # TYPE 42 (TrueType), NOT matplotlib's default Type 3. Type 3 embeds
+                     # glyphs as PostScript drawing programs: the text is not selectable, not
+                     # searchable and not reliably extractable, and NAR, Bioinformatics and
+                     # every IEEE venue reject it outright at submission. It is a one-line fix
+                     # that otherwise surfaces as a desk rejection weeks later.
+                     "pdf.fonttype": 42, "ps.fonttype": 42})
+SAVE_DPI = 400          # >= 300 for print; the panel figures are dense
 
 
 def save(fig, name):
     FIGS.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
-        fig.savefig(FIGS / f"{name}.{ext}", bbox_inches="tight")
+        fig.savefig(FIGS / f"{name}.{ext}", bbox_inches="tight", dpi=SAVE_DPI)
     plt.close(fig)
     print(f"  wrote results/figures/{name}.png / .pdf", flush=True)
 
@@ -113,19 +120,25 @@ def f0():
     ax[1].set_title(f"b  {d.protein.nunique()} proteins, {n_both} in both lines",
                     loc="left", fontsize=9)
 
-    # (c) ClinVar coverage per dataset, which is what R4's power actually rests on. Reported
-    # rather than assumed: the ladder pools ~19k variants, but they are distributed very
-    # unevenly across datasets and the median dataset contributes far fewer than the mean.
-    if "n_variants" in d.columns and d.n_variants.notna().any():
-        v = d.n_variants.dropna()
-        ax[2].hist(np.log10(v.clip(lower=1)), bins=22, color="#7a5195",
-                   edgecolor="white", linewidth=0.4)
-        ax[2].axvline(np.log10(v.median()), color="#404040", linestyle="--", linewidth=1.1)
-        ax[2].text(np.log10(v.median()), ax[2].get_ylim()[1] * 0.92,
-                   f" median {int(v.median())}", fontsize=7.5, va="top")
-        ax[2].set_xlabel("ClinVar variants per dataset, log$_{10}$")
+    # (c) THE THING THE PAPER IS ABOUT: what each protocol leaves the model to do. This panel
+    # used to plot ClinVar coverage per dataset, for an analysis that has since been RETRACTED
+    # -- so the overview figure was advertising a result the paper no longer makes. The three
+    # composition-baseline distributions belong here instead: they are the paper's independent
+    # variable, and their near-disjointness is R1l in one picture.
+    arms = need("three_arm_per_dataset.csv")
+    if arms is not None:
+        a3 = arms[0]
+        for key, col, lab in (("dn", COLOR["dinuc"], "dinucleotide-matched"),
+                              ("gc", COLOR["gc"], "GC-matched"),
+                              ("neg2", "#7a5195", "neg2 (other RBPs' sites)")):
+            v = a3[f"comp_{key}"]
+            ax[2].hist(v, bins=np.linspace(0.5, 1.0, 26), histtype="step", linewidth=1.5,
+                       color=col, label=f"{lab}  {v.mean():.3f}")
+        ax[2].legend(frameon=False, fontsize=6.8, loc="upper left")
+        ax[2].set_ylim(0, ax[2].get_ylim()[1] * 1.35)   # room for the legend over the peak
+        ax[2].set_xlabel("composition-only AUROC (the baseline the protocol leaves)")
         ax[2].set_ylabel("datasets")
-        ax[2].set_title(f"c  {int(v.sum()):,} variant-dataset pairs", loc="left", fontsize=9)
+        ax[2].set_title("c  same positives, three protocols", loc="left", fontsize=9)
     else:
         ax[2].axis("off")
     save(fig, "f0_panel_overview")
@@ -642,8 +655,148 @@ def f10():
     fig.tight_layout()
     save(fig, "f10_three_protocols")
 
+# --- f11: no rescaling reaches protocol independence (R1m) -------------------------------
+
+def f11():
+    """The result that earns the title. Eight monotone transforms, none reaching 1.0x.
+
+    A dot chart rather than bars: the quantity is a ratio with an interval, the coordinates are
+    not commensurable with each other, and a bar from zero would invite reading the areas.
+    """
+    t = need("scale_sweep.csv")
+    if t is None:
+        return
+    d = t[0].set_index("check")
+    rows = [("raw AUROC gain", "fold range, raw AUROC gain"),
+            ("Somers' D  (affine control)", "fold range, Somers' D gain"),
+            ("arcsine increment", "fold range, arcsine increment"),
+            ("cloglog increment", "fold range, cloglog increment"),
+            ("d' increment (binormal)", "fold range, d' increment (binormal)"),
+            ("logit increment", "fold range, logit increment"),
+            ("headroom-normalised, g/(1-comp)", "fold range, headroom-normalised, g/(1-comp)")]
+    rows = [(lab, k) for lab, k in rows if k in d.index]
+    rows.sort(key=lambda r: -float(d.loc[r[1], "value"]))
+
+    fig, ax = plt.subplots(figsize=(6.6, 3.4))
+    for i, (lab, k) in enumerate(rows):
+        v = float(d.loc[k, "value"])
+        lo, hi = float(d.loc[k, "ci_low"]), float(d.loc[k, "ci_high"])
+        best = "headroom" in k
+        col = COLOR["splicebert"] if best else COLOR["kmer"]
+        ax.plot([lo, hi], [i, i], color=col, linewidth=2.0, solid_capstyle="round", zorder=2)
+        ax.scatter([v], [i], s=34, color=col, zorder=3, edgecolor="white", linewidth=0.6)
+        ax.text(hi + 0.15, i, f"{v:.2f}x", va="center", fontsize=7.5, color=col)
+    ax.axvline(1.0, color="#404040", linestyle="--", linewidth=1.1)
+    # Rotated onto the rule itself: horizontally it collided with the title, and nudging it
+    # down would have run it through the shortest interval, which is the one that matters.
+    ax.text(1.0, (len(rows) - 1) / 2, "  protocol independence", rotation=90, va="center",
+            ha="left", fontsize=7, color="#404040")
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([lab for lab, _ in rows], fontsize=8)
+    ax.set_xlabel("fold range in measured contribution across the three protocols")
+    ax.set_xlim(0.6, None)
+    ax.grid(axis="y", visible=False)
+    ax.set_title("no monotone rescaling reaches a protocol-free quantity", loc="left",
+                 fontsize=9)
+    fig.tight_layout()
+    save(fig, "f11_scale_sweep")
+
+
+# --- f12: it is the baseline, not the protocol label (R1n) --------------------------------
+
+def f12():
+    """The thesis in two panels: the gradient, and the natural experiment that isolates it."""
+    t = need("three_arm_per_dataset.csv", "protocol_or_baseline.csv")
+    if t is None:
+        return
+    d, s = t[0], t[1].set_index("check")
+    fig, ax = plt.subplots(1, 2, figsize=(9.0, 3.4))
+
+    # (a) every arm-dataset cell: the gain falls as the baseline the protocol leaves rises.
+    for key, col, lab in (("dn", COLOR["dinuc"], "dinucleotide-matched"),
+                          ("gc", COLOR["gc"], "GC-matched"),
+                          ("neg2", "#7a5195", "neg2")):
+        ax[0].scatter(d[f"comp_{key}"], d[f"gain_{key}"], s=13, color=col, alpha=0.7,
+                      edgecolor="white", linewidth=0.25, label=lab, zorder=3)
+    ax[0].axhline(0, color="#404040", linewidth=0.8)
+    ax[0].set_xlabel("composition-only AUROC")
+    ax[0].set_ylabel("nested contribution")
+    ax[0].legend(frameon=False, fontsize=7)
+    ax[0].set_title("a  282 cells, one gradient", loc="left", fontsize=9)
+
+    # (b) THE NATURAL EXPERIMENT. Where neg2 lowers the baseline, its deficit reverses. This is
+    # the panel that separates "the baseline does it" from "the protocol label does it".
+    hi = (d.comp_neg2 > d.comp_gc).values
+    labels, vals, los, his = [], [], [], []
+    for lab, key in (("neg2 raises\nthe baseline", "concordant"),
+                     ("neg2 LOWERS\nthe baseline", "discordant")):
+        k = f"neg2 minus gc gain, {key} datasets"
+        if k not in s.index:
+            ax[1].axis("off")
+            break
+        labels.append(f"{lab}\nn={int(hi.sum() if key == 'concordant' else (~hi).sum())}")
+        vals.append(float(s.loc[k, "value"]))
+        los.append(float(s.loc[k, "ci_low"]))
+        his.append(float(s.loc[k, "ci_high"]))
+    if vals:
+        x = np.arange(len(vals))
+        cols = [COLOR["gc"], COLOR["splicebert"]]
+        for i, v in enumerate(vals):
+            ax[1].plot([x[i], x[i]], [los[i], his[i]], color=cols[i], linewidth=2.2,
+                       solid_capstyle="round", zorder=2)
+            ax[1].scatter([x[i]], [v], s=44, color=cols[i], zorder=3, edgecolor="white",
+                          linewidth=0.6)
+            ax[1].text(x[i] + 0.12, v, f"{v:+.4f}", fontsize=8, va="center", color=cols[i])
+        ax[1].axhline(0, color="#404040", linestyle="--", linewidth=1.1)
+        ax[1].set_xticks(x)
+        ax[1].set_xticklabels(labels, fontsize=8)
+        ax[1].set_xlim(-0.5, len(vals) - 0.1)
+        ax[1].set_ylabel("neg2 minus GC, nested contribution")
+        ax[1].grid(axis="x", visible=False)
+        ax[1].set_title("b  the deficit follows the baseline, not the label", loc="left",
+                        fontsize=9)
+    fig.tight_layout()
+    save(fig, "f12_protocol_or_baseline")
+
+
+# --- f13: the order-3 collapse is the 4-mer's alone (R1r) ---------------------------------
+
+def f13():
+    """Raise the baseline one order and the k-mer loses four fifths; SpliceBERT loses a quarter."""
+    t = need("baseline_order_models.csv")
+    if t is None:
+        return
+    d = t[0].set_index("check")
+    fig, ax = plt.subplots(1, 2, figsize=(9.0, 3.3), sharey=True)
+    models = ("kmer", "cnn", "splicebert")
+    for j, (arm, title) in enumerate((("gc", "a  GC-matched"),
+                                      ("dn", "b  dinucleotide-matched"))):
+        for i, m in enumerate(models):
+            k = f"{m} fraction surviving order 3, {arm} arm"
+            if k not in d.index:
+                continue
+            v = float(d.loc[k, "value"])
+            lo, hi = float(d.loc[k, "ci_low"]), float(d.loc[k, "ci_high"])
+            ax[j].plot([i, i], [lo, hi], color=COLOR[m], linewidth=2.4,
+                       solid_capstyle="round", zorder=2)
+            ax[j].scatter([i], [v], s=46, color=COLOR[m], zorder=3, edgecolor="white",
+                          linewidth=0.6)
+            ax[j].text(i + 0.14, v, f"{100 * v:.0f}%", fontsize=8.5, va="center",
+                       color=COLOR[m])
+        ax[j].set_xticks(range(len(models)))
+        ax[j].set_xticklabels([LABEL[m] for m in models], fontsize=8)
+        ax[j].set_xlim(-0.5, len(models) - 0.35)
+        ax[j].set_ylim(0, 1.0)
+        ax[j].grid(axis="x", visible=False)
+        ax[j].set_title(title, loc="left", fontsize=9)
+    ax[0].set_ylabel("share of the contribution surviving\nan order-3 composition baseline")
+    fig.tight_layout()
+    save(fig, "f13_baseline_order_models")
+
+
 FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5,
-           "f6": f6, "f7": f7, "f8": f8, "f9": f9, "f10": f10}
+           "f6": f6, "f7": f7, "f8": f8, "f9": f9, "f10": f10,
+           "f11": f11, "f12": f12, "f13": f13}
 
 
 def main():

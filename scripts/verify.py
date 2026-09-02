@@ -1688,6 +1688,53 @@ def verify_baseline_order_models(T, g):
                    f"protocol dependence survives an order-3 baseline for the {model}",
                    f"CI low {float(lo):+.4f}", "> 0")
 
+    # THE ABSOLUTE COLUMN, which is what makes the shares readable. R1r's first version led
+    # with the shares and drew a fragility conclusion the absolute numbers refute.
+    absorbed = {}
+    for label, key in (
+            ("kmer absolute absorbed by order 3, gc arm", spec["absorbed_kmer_gc"]),
+            ("cnn absolute absorbed by order 3, gc arm", spec["absorbed_cnn_gc"]),
+            ("splicebert absolute absorbed by order 3, gc arm", spec["absorbed_splicebert_gc"]),
+            ("kmer absolute absorbed by order 3, dn arm", spec["absorbed_kmer_dn"]),
+            ("splicebert absolute absorbed by order 3, dn arm", spec["absorbed_splicebert_dn"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+            absorbed[label] = v
+    gcv = [v for k, v in absorbed.items() if k.endswith("gc arm")]
+    if len(gcv) == 3:
+        at_most("the order-3 baseline absorbs a near-CONSTANT absolute amount across model "
+                "classes, so the differing shares are a denominator effect and not differing "
+                "fragility", max(gcv) - min(gcv), spec["max_absorbed_spread_gc"])
+
+    # THE PER-DATASET SIGN. A mean of +0.0058 is consistent with "small everywhere" and with
+    # "negative in a third of the panel". For the 4-mer over a trinucleotide baseline it is
+    # the second, and that is the result the shares could not show.
+    pos = {}
+    for label, key in (
+            ("kmer order-3 gain positive in, gc arm", spec["kmer_order3_positive_gc"]),
+            ("cnn order-3 gain positive in, gc arm", spec["cnn_order3_positive_gc"]),
+            ("splicebert order-3 gain positive in, gc arm",
+             spec["splicebert_order3_positive_gc"]),
+            ("splicebert order-3 gain positive in, dn arm",
+             spec["splicebert_order3_positive_dn"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+            pos[label] = v
+    if spec["splicebert_must_be_positive_everywhere"]:
+        for arm in ("gc", "dn"):
+            v = pos.get(f"splicebert order-3 gain positive in, {arm} arm")
+            k = pos.get(f"kmer order-3 gain positive in, {arm} arm")
+            if v is not None:
+                record(int(v) == spec["n_datasets"],
+                       f"SpliceBERT's contribution over a TRINUCLEOTIDE baseline is positive "
+                       f"on every dataset, {arm} arm", f"{int(v)}/{spec['n_datasets']}",
+                       f"{spec['n_datasets']}/{spec['n_datasets']}")
+            if v is not None and k is not None:
+                record(v > k, f"and the 4-mer's is not, {arm} arm",
+                       f"kmer {int(k)} vs splicebert {int(v)}", "kmer fewer")
+
     if spec["splicebert_multiplier_must_be_lowest"]:
         m = {k: must(f"{k} dn/gc multiplier, order-3 baseline")
              for k in ("kmer", "cnn", "splicebert")}
@@ -1696,6 +1743,54 @@ def verify_baseline_order_models(T, g):
                    "SpliceBERT still has the LOWEST multiplier at order 3, so 'the contrast "
                    "grows with capacity' stays withdrawn",
                    f"{m['splicebert']:.2f}x", f"< {min(m['kmer'], m['cnn']):.2f}x")
+
+
+def verify_multiplier_variance(T, g):
+    """R1s: the multiplier is mostly the protein's, but only against each factor's own null."""
+    print("\nR1s whose property is the multiplier?  (and is 79 levels doing the work?)")
+    d = T.get("multiplier_variance.csv")
+    if d is None:
+        return record(False, "multiplier_variance.csv present", "MISSING",
+                      "run scripts/multiplier_variance.py")
+    spec = g["r1s_multiplier_variance"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_cells"], "(dataset x model) cells, both arms positive",
+               int(n), spec["n_cells"])
+    for label, key in (
+            ("share of log-multiplier variance, protein", spec["share_protein"]),
+            ("share of log-multiplier variance, model", spec["share_model"]),
+            ("share of log-multiplier variance, cell", spec["share_cell"]),
+            ("permutation null share, protein", spec["null_protein"]),
+            ("excess over the permutation null, protein", spec["excess_protein"]),
+            ("panel multiplier, exp(mean log)", spec["panel_multiplier"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE NULL MUST BE PRESENT, not merely correct. A decomposition reported without it is the
+    # claim that was retracted here: 79 levels beat 3 levels on degrees of freedom alone.
+    if spec["null_must_be_reported"]:
+        for k in ("protein", "model", "cell"):
+            record(f"permutation null share, {k}" in q.index,
+                   f"the permutation null is reported for {k}, so its share cannot be read "
+                   f"as a finding on its own", f"permutation null share, {k}", "present")
+
+    if spec["protein_must_beat_its_own_null"]:
+        s = must("share of log-multiplier variance, protein")
+        nl = must("permutation null share, protein")
+        if s is not None and nl is not None:
+            record(s > nl, "protein's share beats the share a 79-level factor gets on "
+                           "relabelled data, so the README's R1g headline stands",
+                   f"{s:.3f}", f"> {nl:.3f}")
 
 
 def verify_horlacher(T, g):
@@ -2390,7 +2485,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

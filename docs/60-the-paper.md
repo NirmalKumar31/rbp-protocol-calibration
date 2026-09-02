@@ -989,7 +989,7 @@ published +0.0398 -- a coincidence of two offsetting errors. **A re-implemented 
 asserted equal to the original, per cell, or it is a different experiment wearing the same
 name.**
 
-## R1r: the order-3 collapse is a property of the 4-mer, not of sequence models
+## R1r: an order-3 baseline absorbs the same amount from every model. That is nearly all of the 4-mer's contribution and a quarter of SpliceBERT's
 
 `baseline_order_models.csv`, `baseline_order_models_per_dataset.csv`, n = 94, both arms, the
 three model classes of R1g, on R1g's own committed per-window scores. No GPU: the CNN and
@@ -998,35 +998,57 @@ SpliceBERT scores are the ones R1g already used, so this costs nothing but CPU t
 **Why this had to be run.** R1o's collapse is close to tautological for a bag of 4-mers, whose
 only information beyond trinucleotide frequency *is* order 4. If it held for every model class,
 the reading would be devastating and general: everything this literature measures as "what the
-model adds over composition" is one order of composition. **It does not hold**, and the
-separation is clean.
+model adds over composition" is one order of composition. **It does not hold for every model**
+-- but the reason is not the one the first version of this section gave, and the difference
+matters.
 
-GC arm, composition **0.7827 → 0.8023**:
+GC arm, composition **0.7827 → 0.8023**; dinucleotide arm, **0.6274 → 0.6791**:
 
-| model | over order 2 | over order 3 | **surviving** |
-|---|---|---|---|
-| 4-mer | +0.0265 | +0.0058 | **21.7%** [16.9, 26.2] |
-| CNN | +0.0330 | +0.0200 | **60.5%** [56.2, 64.6] |
-| SpliceBERT | +0.0890 | +0.0668 | **75.0%** [72.6, 77.2] |
+| model | GC: order 2 → order 3 | share | dinuc: order 2 → order 3 | share |
+|---|---|---|---|---|
+| 4-mer | +0.0265 → **+0.0058** | 21.7% [16.9, 26.2] | +0.0663 → **+0.0124** | 18.8% [14.7, 22.8] |
+| CNN | +0.0330 → **+0.0200** | 60.5% [56.2, 64.6] | +0.0860 → **+0.0508** | 59.1% [54.7, 63.6] |
+| SpliceBERT | +0.0890 → **+0.0668** | 75.0% [72.6, 77.2] | +0.1754 → **+0.1213** | 69.2% [66.6, 71.7] |
 
-Dinucleotide arm, composition **0.6274 → 0.6791**:
+### The share is a ratio, and I read its denominator wrong
 
-| model | over order 2 | over order 3 | **surviving** |
-|---|---|---|---|
-| 4-mer | +0.0663 | +0.0124 | **18.8%** [14.7, 22.8] |
-| CNN | +0.0860 | +0.0508 | **59.1%** [54.7, 63.6] |
-| SpliceBERT | +0.1754 | +0.1213 | **69.2%** [66.6, 71.7] |
+An earlier version of this section led with those shares and concluded "the collapse is a
+property of the 4-mer, not of sequence models" -- i.e. that the k-mer is uniquely **fragile**.
+**That reading is withdrawn.** The absolute amount the order-3 baseline absorbs is nearly
+identical across model classes:
 
-**The three intervals do not overlap, in either arm.** Protein-clustered over 79 proteins.
-Raising the baseline one order costs the 4-mer four fifths of its contribution and SpliceBERT
-about a quarter of its own.
+| model | GC: absorbed | dinuc: absorbed |
+|---|---|---|
+| 4-mer | +0.0208 [+0.0163, +0.0252] | +0.0538 [+0.0448, +0.0633] |
+| CNN | +0.0130 [+0.0098, +0.0165] | +0.0352 [+0.0279, +0.0433] |
+| SpliceBERT | +0.0222 [+0.0182, +0.0263] | +0.0540 [+0.0458, +0.0624] |
 
-**Three things follow, and all three are worth main-text space.**
+**SpliceBERT − 4-mer, absorbed: +0.0015 [+0.0003, +0.0027]** (GC) and **+0.0002 [−0.0022,
++0.0030]** (dinuc). On the dinucleotide arm they are indistinguishable; on the GC arm the
+difference is real but two orders of magnitude smaller than the shares imply. The CNN actually
+loses the **least** in absolute terms, which no capacity story predicts.
 
-*1. The R1o collapse is a fact about bag-of-k-mers models, not about sequence models.* A model
-with positional structure keeps most of what it measures. So the paper does not have to concede
-that "what a model adds over composition" is generally an artefact of where the baseline stops
--- only that it is, for the cheapest model class, which happens to be the one the headline uses.
+**So the correct statement is about a constant, not about fragility.** Adding trinucleotide
+frequencies to the baseline absorbs roughly a fixed quantity of discriminative signal --
+**about +0.021 AUROC on the GC arm and +0.054 on the dinucleotide arm** -- from whatever model
+is being measured. That constant happens to be **nearly all** of a 4-mer's contribution and
+**about a quarter** of SpliceBERT's. The shares are a consequence of the denominators, and
+printing them without the absolute column invites exactly the wrong inference.
+
+### What the result actually is, and it is still strong
+
+*1. Over a trinucleotide baseline the 4-mer's contribution is not reliably positive; SpliceBERT's
+is.* This is the per-dataset fact the shares cannot show, and it is the sharpest thing here:
+
+| order-3 gain positive in | GC arm | dinuc arm |
+|---|---|---|
+| 4-mer | **65/94** | 75/94 |
+| CNN | 80/94 | 90/94 |
+| SpliceBERT | **94/94** | **94/94** |
+
+**For 29 of 94 datasets a 4-mer adds nothing at all over trinucleotide composition** -- the
+point estimate is negative. SpliceBERT is positive on every dataset in both arms. A mean of
++0.0058 was hiding a third of the panel at or below zero.
 
 *2. The order-3 baseline is a sharper instrument than the order-2 one, and this is the useful
 recommendation.* SpliceBERT's advantage over the 4-mer widens from **3.36x to 11.61x** on the GC
@@ -1035,6 +1057,11 @@ SpliceBERT − 4-mer = **+0.0611 [+0.0509, +0.0720]** (GC) and **+0.1089 [+0.098
 (dinuc), CNN − 4-mer = **+0.0142 [+0.0104, +0.0184]** and **+0.0384 [+0.0311, +0.0468]**. A
 benchmark that wants to distinguish model classes rather than rank them by how much
 short-range composition they absorb should raise the composition baseline, not the model.
+
+Both are corollaries of the constant: a fixed absolute absorption leaves a model with a large
+contribution looking far better than one with a small contribution, and that IS what a
+benchmark should want to distinguish. But the mechanism must be stated as absorption, not as
+robustness.
 
 *3. The paper's own claim survives at the higher baseline, for every model class.* The
 protocol contrast at an order-3 baseline:
@@ -1060,6 +1087,47 @@ reported because neither is wrong; do not present them as the same quantity.)*
 scores, on R1g's intersected row set, imported from `deep_model_contrast.py` rather than
 reimplemented. The order-2 column is therefore R1g's published column, asserted per cell at
 **max |difference| = 1.0e-16**. Two arms only: the deep models were never trained on neg2.
+
+## R1s: whose property is the multiplier? The protein's, but the comparison has to be fair
+
+`multiplier_variance.csv`, 262 (dataset x model) cells with both arms positive, 79 proteins.
+
+**Why this section exists.** The README carried "the multiplier is a property of the PROTEIN
+(68.9% of variance) not the model (1.5%)" as R1g's headline. That decomposition was run during
+review and **committed to no script and no table** -- the most quotable line about R1g was
+sourced to a conversation. It is now computed, gated, and corrected in one respect that matters.
+
+Decomposing the **log** multiplier log(gain_dn / gain_gc), each factor's share taken as its
+drop in residual sum of squares given the others:
+
+| factor | levels | share | **null, relabelled data** | **excess** | p |
+|---|---|---|---|---|---|
+| **protein** | 79 | **64.8%** | **29.7%** | **+35.1** | < 0.0005 |
+| model class | 3 | 2.8% | 0.8% | +2.0 | **0.023** |
+| cell line | 2 | 0.2% | 0.4% | −0.2 | 0.49 |
+| residual | | 32.8% | | | |
+
+Panel multiplier **2.99x**, as exp of the mean log. *(A ratio of panel means is a different
+number and R1g reports a third, a geometric mean over the 77 datasets positive in both arms
+for all three models. Name the estimator every time.)*
+
+**The correction, and it is a fairness correction rather than a numerical one.** "68.9% against
+1.5%" is not a comparison between factors. **A factor with 79 levels absorbs 29.7% of the
+variance of *relabelled* data**, while a 3-level factor absorbs 0.8%, so most of the apparent
+gap is degrees of freedom. Once each factor is measured against its own permutation null the
+conclusion survives -- protein is 35 points clear, p < 0.0005 -- but two things change:
+
+1. **Cell line is not "0.1%", it is indistinguishable from noise** (p = 0.49). Say noise.
+2. **Model class is not null** (p = 0.023). This agrees with R1g's own record that SpliceBERT's
+   multiplier is significantly lower (−0.258 [−0.369, −0.139]), which the "invariant across
+   model classes" phrasing had been quietly overriding.
+
+**The claim to print.** The protocol multiplier is mostly a property of the protein; cell line
+is noise; model class is small but real. **Do not write "invariant across model classes."**
+
+**The gate.** `null_must_be_reported` fails the build if the decomposition is ever published
+without its permutation null, because a share without a null is exactly the artefact this
+section retracted.
 
 ## R1p: external validation, and where it limits us
 

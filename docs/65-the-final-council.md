@@ -78,18 +78,32 @@ I proposed "the protocol multiplies a model's contribution by ~2.4x-3.5x, invari
 RBPs, two cell lines and three model classes". The genomics referee ran the variance
 decomposition over the 259 (dataset x model) cells and **one word was wrong**:
 
-| factor | share of variance |
-|---|---|
-| model class | **1.5%** |
-| cell line | **0.1%** |
-| **protein** | **68.9%** |
-| residual | 29.8% |
+**RECOMPUTED AND CORRECTED 2026-09-01** (`scripts/multiplier_variance.py`,
+`multiplier_variance.csv`). The referee's decomposition was committed to no script and no
+table -- the paper's most quotable line about R1g was sourced to a conversation. Rerun on the
+262 (dataset x model) cells with both arms positive, it approximately reproduces, and **a
+permutation null changes what it means**:
 
-Panel mean **2.88x**. So the invariance is across **model class and cell line**, and RBP identity
-is the dominant component. The correct claim:
+| factor | levels | share | null, relabelled | **excess** | p |
+|---|---|---|---|---|---|
+| **protein** | 79 | **64.8%** | **29.7%** | **+35.1** | < 0.0005 |
+| model class | 3 | 2.8% | 0.8% | +2.0 | **0.023** |
+| cell line | 2 | 0.2% | 0.4% | −0.2 | 0.49 |
+| residual | | 32.8% | | | |
 
-> The protocol multiplier is a property of the **protein**, not of the model. Model class
-> explains 1.5% of its variance and cell line 0.1%; RBP identity explains 68.9%.
+Panel multiplier **2.99x** (exp of the mean log; a ratio of means is a different number).
+
+**Two things the original framing got wrong.** First, "68.9% against 1.5%" is not a comparison:
+a factor with 79 levels absorbs 29.7% of the variance of *relabelled* data, so most of the gap
+is degrees of freedom. The comparable statistic is each factor's excess over its **own** null.
+Second, **model class is not null** (p = 0.023), which is what R1g's own withdrawal already
+said when it recorded SpliceBERT's significantly lower multiplier (−0.258 [−0.369, −0.139]).
+The correct claim:
+
+> The protocol multiplier is mostly a property of the **protein**: RBP identity explains 64.8%
+> of its log variance, 35 points more than a 79-level factor absorbs by chance. Cell line is
+> indistinguishable from noise. Model class is small but real, and SpliceBERT's is genuinely
+> lower.
 
 Two wording cautions they gave, both worth keeping: do not launder a detected decline into
 "invariance" (SpliceBERT is significantly lower, −0.258 [−0.369, −0.139]), and keep the absolute

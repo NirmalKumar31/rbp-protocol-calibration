@@ -175,6 +175,32 @@ def main():
             log(f"  {model:12s} {g2:+13.4f} {g3:+13.4f} {100 * g3 / g2:9.0f}%")
         log("")
 
+    # THE SHARE IS A RATIO, AND A RATIO HAS A DENOMINATOR. Reporting only "the k-mer keeps 22%
+    # and SpliceBERT keeps 75%" invites the reading that the k-mer is uniquely FRAGILE. It is
+    # not: the order-3 baseline absorbs almost exactly the same ABSOLUTE amount from every
+    # model, and the shares differ because the totals differ. That has to be measured and
+    # printed next to the shares, or the shares are misleading.
+    log("  absolute amount absorbed by raising the baseline one order:")
+    for arm in ("gc", "dn"):
+        for model in MODELS:
+            a = t[f"{model}_gain2_{arm}"] - t[f"{model}_gain3_{arm}"]
+            v = add(f"{model} absolute absorbed by order 3, {arm} arm", a)
+            log(f"    {arm} {model:11s} {v:+.4f}")
+        d = ((t[f"splicebert_gain2_{arm}"] - t[f"splicebert_gain3_{arm}"])
+             - (t[f"kmer_gain2_{arm}"] - t[f"kmer_gain3_{arm}"]))
+        add(f"splicebert minus kmer, absolute absorbed, {arm} arm", d)
+
+    # AND THE PER-DATASET SIGN, which is what the share cannot show. A mean of +0.0058 is
+    # consistent with "small everywhere" and with "positive in two thirds, negative in a
+    # third". For the k-mer over a trinucleotide baseline it is the second.
+    for arm in ("gc", "dn"):
+        for model in MODELS:
+            n_pos = int((t[f"{model}_gain3_{arm}"] > 0).sum())
+            out.append({"check": f"{model} order-3 gain positive in, {arm} arm",
+                        "value": n_pos, "n": len(t)})
+        log(f"  {arm} arm, order-3 gain positive in: " + "  ".join(
+            f"{m} {int((t[f'{m}_gain3_{arm}'] > 0).sum())}/{len(t)}" for m in MODELS))
+
     # THE QUESTION: does a model with positional structure survive what a bag of 4-mers does not?
     for arm in ("gc", "dn"):
         base = t[f"kmer_gain3_{arm}"]
