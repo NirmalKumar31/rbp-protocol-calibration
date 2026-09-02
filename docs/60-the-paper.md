@@ -784,8 +784,8 @@ different protocols, because there is no common scale on which to do so.
 
 ## R1m: no rescaling recovers a protocol-free quantity. This is the result that earns the title
 
-`scale_sweep.csv`, n = 94, all three arms, 4-mer model. **The single most important section
-after R1k.**
+`scale_sweep.csv`, n = 94, all three arms, 4-mer model. Figure **f11**. **The single most
+important section after R1k.**
 
 **The objection this closes, and it is the one a methods referee will reach for first.** AUROC
 is compressive near 1, so of course a gain measured against a 0.82 baseline is smaller than the
@@ -841,8 +841,8 @@ this row only.
 
 ## R1n: is it the protocol, or the baseline it leaves? Mostly the baseline, and the exception is named
 
-`protocol_or_baseline.csv`, 282 protocol-dataset cells, 94 datasets. **This is the paper's
-thesis.** R1l argued the question was malformed. A hostile referee found two places to ask it
+`protocol_or_baseline.csv`, 282 protocol-dataset cells, 94 datasets. Figure **f12**. **This is
+the paper's thesis.** R1l argued the question was malformed. A hostile referee found two places to ask it
 anyway, and the answer is more interesting than either "it is all the baseline" or "the
 protocol matters".
 
@@ -992,8 +992,9 @@ name.**
 ## R1r: an order-3 baseline absorbs the same amount from every model. That is nearly all of the 4-mer's contribution and a quarter of SpliceBERT's
 
 `baseline_order_models.csv`, `baseline_order_models_per_dataset.csv`, n = 94, both arms, the
-three model classes of R1g, on R1g's own committed per-window scores. No GPU: the CNN and
-SpliceBERT scores are the ones R1g already used, so this costs nothing but CPU time.
+three model classes of R1g, on R1g's own committed per-window scores. Figure **f13**. No GPU:
+the CNN and SpliceBERT scores are the ones R1g already used, so this costs nothing but CPU
+time.
 
 **Why this had to be run.** R1o's collapse is close to tautological for a bag of 4-mers, whose
 only information beyond trinucleotide frequency *is* order 4. If it held for every model class,
@@ -1187,6 +1188,21 @@ significant, and the disagreement reduction is the stronger half of it.
 **What would have falsified it.** Rank agreement falling, or disagreement rising, under
 normalisation -- in which case the honest paper says "we can show the problem and cannot offer
 a fix", which is still publishable and considerably weaker.
+
+## Supplementary Table S1: the panel, joined to ENCODE
+
+`supplementary_table_s1.csv`, built by `scripts/table_s1.py`, wired into run.sh stage 13b.
+
+One row per dataset: protein, cell line, **ENCFF file and ENCSR experiment accession**,
+replicate count, pair count, whether the dataset carries all three protocols, and each
+protocol's composition baseline and nested contribution. **95 datasets, 79 proteins, 95
+distinct ENCODE experiments, 2 replicates each.**
+
+**It also settles the 94-versus-95 question**, which appears in several tables and must be
+stated once in Methods rather than explained per table: **94 datasets carry all three
+protocols and are the unit of every three-arm result; 1 is ladder-only** (R2, n = 95). The
+script fails loudly on an incomplete accession join rather than emitting a table with silent
+gaps, because a supplementary table with holes looks complete.
 
 ## R2: the model ladder (methods table, not a result)
 

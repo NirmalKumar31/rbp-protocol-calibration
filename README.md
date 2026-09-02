@@ -13,9 +13,9 @@ headline AUROC, and never compare contributions measured under different protoco
 |---|---|
 | **R1** | Three protocols, one model: nested contribution **+0.0663** (dinucleotide-matched), **+0.0265** (GC-matched), **+0.0122** (negatives = other RBPs' sites). Apparent AUROC moves the OPPOSITE way, falling 0.1095 in 94/94 while the contribution rises 2.5x |
 | **R1m** | No monotone rescaling reaches protocol independence; floor **2.00x**, achieved by dividing by the baseline's own headroom |
-| **R1l** | Protocol and baseline are confounded by construction: their baseline ranges overlap in a window 0.0056 AUROC wide containing 3 of 282 cells |
+| **R1l / R1n** | Protocol and baseline are largely confounded, but not unmeasurably so. Given the baseline, the protocol label adds **1.0%** of variance; given the protocol, the baseline adds **11.0%**. The 0.0056-wide common support was the THREE-WAY intersection; pairwise, GC vs neg2 overlaps **0.212** over **130/188** cells, and there a protocol residual survives at matched baseline, **−0.0081** [−0.0130, −0.0036] |
 | **R1g** | Holds for three model classes: k-mer **+0.0398**, CNN **+0.0530**, SpliceBERT **+0.0864**. The multiplier is mostly a property of the PROTEIN: **64.8%** of the log multiplier's variance, against the **29.7%** any 79-level factor absorbs from relabelled data (excess **+35.1**, p < 0.0005). Cell line is noise (0.2%, p = 0.49); model class is small but **not** null (2.8%, p = 0.023) |
-| **R1r** | The order-3 collapse is the 4-mer's alone: surviving a trinucleotide baseline, k-mer **21.7%**, CNN **60.5%**, SpliceBERT **75.0%**, intervals non-overlapping |
+| **R1o / R1r** | Raising the composition baseline to order 3 absorbs a near-CONSTANT absolute amount from every model class (**+0.021** GC, **+0.054** dinuc), which is nearly all of a 4-mer's contribution and a quarter of SpliceBERT's. Over a trinucleotide baseline the 4-mer is positive in only **65/94** datasets against SpliceBERT's **94/94**. The protocol contrast survives at order 3 for all three models |
 | **R1c / R1j** | Two artifacts bounded against matched placebos: strand **−0.0055** (85% survives), untranscribed negatives **−0.0043** (90% survives) |
 
 ## Run it

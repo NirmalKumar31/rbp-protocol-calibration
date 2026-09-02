@@ -1,6 +1,6 @@
 # Resume here
 
-Updated 2026-09-01. **498/498 verifier checks, 639 tests, 11 figures, 65 tables, 2 manuscript
+Updated 2026-09-02. **522/522 verifier checks, 661 tests, 14 figures, 65 tables, 2 manuscript
 orphans.** Branch
 `r1-scale-check-and-corrected-refit`, **not merged to `master`**. Total spend **~$16 of a $40
 budget**, all of it the GC-arm deep sweep; everything since has cost nothing. Working tree clean.
@@ -51,10 +51,11 @@ RNA-protein recognition and this paper has none.
 | R1j | **40.1%** of negatives untranscribed but BALANCED across arms (p=0.64); excess **−0.0043**, 89.7% survives | — |
 | R1k | three protocols, **5.4-fold range**; neg2 lowest at 0.53x | **f10** |
 | R1l | protocol and baseline are largely confounded. **CORRECTED:** the 0.0056 AUROC / 3-of-282 figure was the THREE-WAY intersection; pairwise gc-vs-neg2 overlaps 0.212 and 130/188 | — |
-| **R1m** | **no rescaling reaches protocol independence**; floor **2.00x** [1.67, 2.46], interval excludes 1. THIS EARNS THE TITLE | — |
-| **R1n** | the baseline carries MOST of it: protocol label adds **1.0%** overall, baseline **11.0%**. But decomposed by pair it is 0.05% (gc/dn) vs **3.40%** (gc/neg2), and at matched baseline neg2−gc = **−0.0081 [−0.0130, −0.0036]**, so a protocol-family residual DOES exist. Mechanism: the gradient is a property of composition-matched negatives (−0.545, −0.462) and dies for other-RBPs'-sites (−0.122 n.s.) | — |
+| **R1m** | **no rescaling reaches protocol independence**; floor **2.00x** [1.67, 2.46], interval excludes 1. THIS EARNS THE TITLE | **f11** |
+| **R1n** | the baseline carries MOST of it: protocol label adds **1.0%** overall, baseline **11.0%**. But decomposed by pair it is 0.05% (gc/dn) vs **3.40%** (gc/neg2), and at matched baseline neg2−gc = **−0.0081 [−0.0130, −0.0036]**, so a protocol-family residual DOES exist. Mechanism: the gradient is a property of composition-matched negatives (−0.545, −0.462) and dies for other-RBPs'-sites (−0.122 n.s.) | **f12** |
 | R1o | **CORRECTED 2026-09-01, and the correction is bigger than the result.** An order-3 baseline removes **80/84/88%** of the arms' gains and **87%** of the contrast, not ~50%. The fold range does not collapse; it WIDENS, **5.34x → 7.16x**. Order 2 now reproduces the published gain per cell at 9.9e-17 | — |
-| **R1r** | **the order-3 collapse is the 4-mer's alone.** Surviving over an order-3 baseline: k-mer **21.7%**, CNN **60.5%**, SpliceBERT **75.0%** (GC arm; intervals do not overlap). The protocol contrast survives at order 3 for all three models. Free: R1g's committed scores, no GPU | — |
+| **R1r** | **SELF-CORRECTED the same day.** An order-3 baseline absorbs a near-CONSTANT absolute amount from every model class (**+0.021** gc, **+0.054** dn; SpliceBERT−kmer +0.0015 [+0.0003,+0.0027] gc and +0.0002 [−0.0022,+0.0030] dn, and the CNN absorbs the LEAST). So the shares 21.7 / 60.5 / 75.0% are a DENOMINATOR effect, not differential fragility. The real result is the per-dataset sign: order-3 gain positive in **65/94** for the 4-mer, 80/94 CNN, **94/94** SpliceBERT, both arms. Protocol contrast survives at order 3 for all three. Free: R1g's committed scores, no GPU | **f13** |
+| **R1s** | the multiplier is mostly the PROTEIN's: **64.8%** of log-multiplier variance against a **29.7%** permutation null for any 79-level factor (excess +35.1, p<0.0005). Cell line is NOISE (p=0.49); **model class is small but NOT null (p=0.023)**. Retires the README's unsourced "68.9% vs 1.5%" | — |
 | **R1p** | **EXTERNAL VALIDATION.** Horlacher's own negatives, their folds, 45 datasets: range **2.38x** vs our 2.50x, gradient replicates (rho −0.372, p=0.012). **BUT the sign does not reverse there**, so R1n's strong form is ours only | — |
 
 ## WHAT WAS WITHDRAWN THIS SESSION, and must not return
@@ -73,17 +74,34 @@ RNA-protein recognition and this paper has none.
    for composition-matched pairs (0.05%) and real information for the other-RBPs'-sites family
    (3.40%). R1p's "failure to replicate" was the same residual, same protocol family.
 6. **"protocol effect is +0.0188 to +0.0313"** -- superseded; not identified.
+7. **"the order-3 collapse shows the 4-mer is uniquely FRAGILE"** -- withdrawn within hours of
+   being written, by me, before review. The order-3 baseline absorbs the same ABSOLUTE amount
+   from every model class; the shares differ because the totals differ, and the CNN absorbs the
+   least. A ratio was reported without its denominator. **Lesson 21.**
 
 ## WHAT IS LEFT
 
 1. **Write the manuscript.** `docs/60` has every claim and number, `docs/63` fixes what the
    abstract must say. Missing: Introduction, Results-as-prose, Discussion, References.
-2. **Cut it.** Twelve result sections is at least five too many. `docs/65` carries the framing
-   reviewer's specific main-text / supplementary / delete split, and flags ~1,000 words of
-   "an earlier draft said X" passages that belong in a response letter, not the paper.
-3. **Package for submission.** Billing IDs are now scrubbed and gated by a test, and a LICENSE
-   exists. Still to do: git remote and push; a Zenodo deposit; Supplementary Table S1 joining
-   the 95 datasets to their ENCFF/ENCSR accessions (recoverable from `config/panel_full*.tsv`);
+2. **Cut it.** There are now TWENTY result sections. An editor-role review measured the
+   document at **14,045 words** and produced the first real triage: six main-text sections
+   (R1+R1k merged, R1m, R1n+R1l, R1g+R1s, R1p, R1q), seven supplementary, four cut outright
+   (R1b 997 w, R1f 285 w, R1i as a section, R2 as a section). **`docs/65` does NOT contain a
+   main-text/supplementary/delete split** -- this pointer was wrong for weeks; the "cut it"
+   note for R1f is in this file, not there.
+   And the internal-history material is **3.3x larger than previously estimated**: 41
+   paragraphs / 3,291 words of "an earlier draft said X" (23.4% of the document), plus 1,149
+   words of gate talk, **4,440 words / 31.6% total**. Destination is a point-by-point response
+   letter, not the paper.
+3. **Package for submission.** DONE: billing IDs scrubbed and gated, a LICENSE, Supplementary
+   Table S1 (95 datasets to ENCFF/ENCSR, wired into run.sh, and it settles 94-vs-95: 94 carry
+   all three protocols, 1 is ladder-only), `pdf.fonttype = 42` (the PDFs embedded Type 3, which
+   NAR rejects), f0's retracted ClinVar panel replaced, f11/f12/f13 built and wired.
+   **HARD BLOCKER: there is no git remote at all**, so `.github/workflows/ci.yml` has never
+   executed and a code-availability statement has nowhere to point. NAR GB requires the source
+   deposit BEFORE submission. Also: normalise three git identities with a `.mailmap` (30 of 106
+   commits are from a placeholder `n <x@y.z>`) before minting a Zenodo DOI, because the deposit
+   inherits them. Still to do: git remote and push; a Zenodo deposit;
    a `docs/METHODS.md` lifting the negative matcher's hard-coded parameters (`pool_multiple=8`,
    `pool_min=1500`, greedy cKDTree k=40, L1 over dinucleotide COUNTS) into prose; an AI-use
    disclosure sentence (84 of 101 commits carry a Co-Authored-By trailer); `pdf.fonttype = 42`
@@ -148,6 +166,14 @@ poor value and replaced with a bounded 20-dataset replication that answered the 
 19. **An ordering by how principled something sounds is not an ordering.** "Bias-aware" is not
     "harder"; measure the difficulty. This produced a false claim that survived into the
     abstract and was caught by an editor, not by any gate.
+21. **A RATIO IS NOT A RESULT UNTIL ITS DENOMINATOR IS REPORTED.** R1r led with "the 4-mer
+    keeps 22%, SpliceBERT keeps 75%" and concluded the 4-mer is uniquely fragile. The absolute
+    absorption is the SAME for every model class (+0.021 gc, +0.054 dn) and the CNN absorbs the
+    least; the shares differ only because the totals do. **Every share, fraction and multiplier
+    in this project now has to print its numerator and denominator next to it** -- and R1s is
+    the same error in another costume, where a 79-level factor's variance share was compared
+    against a 3-level factor's without either one's null. Gated by `max_absorbed_spread_gc`
+    and `null_must_be_reported`.
 20. **A RE-IMPLEMENTED BASELINE MUST BE ASSERTED EQUAL TO THE ORIGINAL, PER CELL.** R1o built
     its own composition block -- unstandardised, singular, no entropy, sklearn defaults -- and
     so measured a different quantity under the paper's name for a month. It overstated neg2's
