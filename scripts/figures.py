@@ -796,9 +796,141 @@ def f13():
     save(fig, "f13_baseline_order_models")
 
 
+# --- f14: external validation on an independent benchmark (R1p) --------------------------
+
+def f14():
+    """Their positives, their negatives, their folds. Only the measurement is ours.
+
+    Two panels because the section makes two claims: the range travels, and the two-family
+    mechanism travels. The second is the stronger one and was previously unplotted.
+    """
+    t = need("horlacher_per_dataset.csv", "three_arm_per_dataset.csv")
+    if t is None:
+        return
+    h, d = t[0], t[1]
+    fig, ax = plt.subplots(1, 2, figsize=(9.0, 3.5))
+
+    # (a) the two arms' contributions, paired per dataset.
+    lim = (min(h.gain_n1.min(), h.gain_n2.min()) - 0.01,
+           max(h.gain_n1.max(), h.gain_n2.max()) + 0.01)
+    ax[0].plot(lim, lim, color="#404040", linewidth=0.9, linestyle="--", zorder=1)
+    ax[0].scatter(h.gain_n1, h.gain_n2, s=16, color=COLOR["kmer"], alpha=0.8,
+                  edgecolor="white", linewidth=0.3, zorder=3)
+    ax[0].set_xlim(lim)
+    ax[0].set_ylim(lim)
+    ax[0].set_xlabel("contribution, negative-1 (transcript background)")
+    ax[0].set_ylabel("contribution, negative-2 (other RBPs' sites)")
+    below = int((h.gain_n2 < h.gain_n1).sum())
+    ax[0].set_title(f"a  {below}/{len(h)} below the diagonal, {h.gain_n1.mean() / h.gain_n2.mean():.2f}x",
+                    loc="left", fontsize=9)
+
+    # (b) THE MECHANISM, which is what actually replicates: the within-arm baseline gradient is
+    # present for the composition-matched family and absent for other-RBPs'-sites, in their
+    # data and ours. Four bars, two benchmarks, two families.
+    from scipy.stats import spearmanr
+    bars = [
+        ("ours\nGC", spearmanr(d.comp_gc, d.gain_gc)[0], COLOR["gc"], "matched"),
+        ("ours\ndinuc", spearmanr(d.comp_dn, d.gain_dn)[0], COLOR["dinuc"], "matched"),
+        ("theirs\nneg-1", spearmanr(h.comp_n1, h.gain_n1)[0], "#6a51a3", "matched"),
+        ("ours\nneg2", spearmanr(d.comp_neg2, d.gain_neg2)[0], "#bdbdbd", "other sites"),
+        ("theirs\nneg-2", spearmanr(h.comp_n2, h.gain_n2)[0], "#d9d9d9", "other sites"),
+    ]
+    x = np.arange(len(bars))
+    ax[1].bar(x, [b[1] for b in bars], color=[b[2] for b in bars], width=0.68,
+              edgecolor="white", linewidth=0.6)
+    for i, b in enumerate(bars):
+        # Labels INSIDE the bar for the deep ones, so they cannot collide with the tick labels.
+        ax[1].text(i, b[1] + 0.035, f"{b[1]:+.2f}", ha="center", fontsize=7.5,
+                   color="white" if b[1] < -0.3 else "#404040")
+    ax[1].axhline(0, color="#404040", linewidth=0.9)
+    ax[1].set_ylim(min(b[1] for b in bars) * 1.15, 0.02)
+    ax[1].set_xticks(x)
+    ax[1].set_xticklabels([b[0] for b in bars], fontsize=7.5)
+    ax[1].set_ylabel("within-arm Spearman(baseline, contribution)")
+    ax[1].grid(axis="x", visible=False)
+    ax[1].set_title("b  the gradient is a property of composition-matched negatives",
+                    loc="left", fontsize=9)
+    fig.tight_layout()
+    save(fig, "f14_external_validation")
+
+
+# --- f15: the recommendation, and where it stops working (R1q + R1u) ----------------------
+
+def f15():
+    """The deliverable, tested in sample and out. It does not survive the external test.
+
+    Plotted together deliberately: a figure that showed only the in-sample panel would be
+    the strongest available misrepresentation of this paper's own evidence.
+    """
+    t = need("recommendation_works.csv", "transport_check.csv")
+    if t is None:
+        return
+    r, tr = t[0].set_index("check"), t[1].set_index("check")
+    fig, ax = plt.subplots(1, 2, figsize=(9.2, 3.4))
+
+    # (a) in sample: rank agreement raw -> headroom, three protocol pairs.
+    pairs = [("gc", "dn"), ("gc", "neg2"), ("dn", "neg2")]
+    labs = ["GC vs\ndinuc", "GC vs\nneg2", "dinuc vs\nneg2"]
+    for i, (a, b) in enumerate(pairs):
+        k1 = f"rank agreement, raw, {a} vs {b}"
+        k2 = f"rank agreement, headroom, {a} vs {b}"
+        if k1 not in r.index or k2 not in r.index:
+            continue
+        v1, v2 = float(r.loc[k1, "value"]), float(r.loc[k2, "value"])
+        sig = i == 0          # only the first pair's improvement clears zero
+        ax[0].plot([i - 0.16, i + 0.16], [v1, v2], color="#404040", linewidth=1.0, zorder=2)
+        ax[0].scatter([i - 0.16], [v1], s=40, color="#bdbdbd", zorder=3,
+                      edgecolor="white", linewidth=0.5, label="raw" if i == 0 else None)
+        ax[0].scatter([i + 0.16], [v2], s=40, color=COLOR["splicebert"], zorder=3,
+                      edgecolor="white", linewidth=0.5,
+                      label="headroom-normalised" if i == 0 else None)
+        ax[0].text(i + 0.24, v2, "*" if sig else "n.s.", fontsize=8, va="center",
+                   color="#404040")
+    ax[0].set_xticks(range(len(labs)))
+    ax[0].set_xticklabels(labs, fontsize=8)
+    ax[0].set_xlim(-0.5, len(labs) - 0.3)
+    ax[0].set_ylabel("cross-protocol rank agreement")
+    ax[0].legend(frameon=False, fontsize=7.5, loc="lower left")
+    ax[0].grid(axis="x", visible=False)
+    ax[0].set_title("a  our data: improves in 3/3, one interval clear of zero", loc="left",
+                    fontsize=9)
+
+    # (b) OUT of sample, on their benchmark: both pre-registered criteria fire the wrong way.
+    keys = [("rank agreement", "external rank agreement, raw",
+             "external rank agreement, headroom"),
+            ("disagreement", "external scale-free disagreement, raw",
+             "external scale-free disagreement, headroom")]
+    for i, (lab, kr, kh) in enumerate(keys):
+        if kr not in tr.index:
+            continue
+        v1, v2 = float(tr.loc[kr, "value"]), float(tr.loc[kh, "value"])
+        worse = v2 < v1 if i == 0 else v2 > v1
+        col = COLOR["gc"] if worse else COLOR["splicebert"]
+        ax[1].plot([i - 0.16, i + 0.16], [v1, v2], color="#404040", linewidth=1.0, zorder=2)
+        ax[1].scatter([i - 0.16], [v1], s=40, color="#bdbdbd", zorder=3,
+                      edgecolor="white", linewidth=0.5)
+        ax[1].scatter([i + 0.16], [v2], s=40, color=col, zorder=3, edgecolor="white",
+                      linewidth=0.5)
+        ax[1].annotate("", xy=(i + 0.16, v2), xytext=(i - 0.16, v1),
+                       arrowprops=dict(arrowstyle="->", color=col, lw=1.3))
+        # Beside the arrow, not above or below it: above ran into the panel title and below
+        # ran into the tick labels.
+        ax[1].text(i + 0.26, (v1 + v2) / 2, "wrong\ndirection" if worse else "", ha="left",
+                   va="center", fontsize=7.5, color=col)
+    ax[1].set_xticks(range(len(keys)))
+    ax[1].set_xticklabels([k[0] for k in keys], fontsize=8)
+    ax[1].set_xlim(-0.5, len(keys) - 0.05)
+    ax[1].set_ylabel("value on the independent benchmark")
+    ax[1].grid(axis="x", visible=False)
+    ax[1].set_title("b  independent benchmark: both criteria fail to replicate", loc="left",
+                    fontsize=9)
+    fig.tight_layout()
+    save(fig, "f15_recommendation")
+
+
 FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5,
            "f6": f6, "f7": f7, "f8": f8, "f9": f9, "f10": f10,
-           "f11": f11, "f12": f12, "f13": f13}
+           "f11": f11, "f12": f12, "f13": f13, "f14": f14, "f15": f15}
 
 
 def main():

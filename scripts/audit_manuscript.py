@@ -58,6 +58,11 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "results" / "tables"
 PAPER = ROOT / "docs" / "60-the-paper.md"
+# THE DRAFTED MANUSCRIPT IS ALSO AUDITED, from 2026-09-02. docs/60 is the claims ledger and
+# manuscript/ is the prose that will be submitted; a number can be sourced in the first and
+# mistyped in the second, and the second is the one a referee reads. Auditing only the ledger
+# would have checked the wrong document from the moment drafting began.
+MANUSCRIPT = sorted((ROOT / "manuscript").glob("*.md")) if (ROOT / "manuscript").exists() else []
 GOLDEN = ROOT / "config" / "golden.yaml"
 
 # This script's own output lives in results/tables/ and its `value` column IS the orphan list,
@@ -146,7 +151,9 @@ def main():
            for d in (3, 4)}
 
     orphans, checked = [], 0
-    for i, line in enumerate(PAPER.read_text().splitlines(), 1):
+    sources = [(PAPER.name, PAPER)] + [(m.name, m) for m in MANUSCRIPT]
+    for src_name, src in sources:
+      for i, line in enumerate(src.read_text().splitlines(), 1):
         for m in NUM.finditer(line):
             tok = m.group(1)
             if len(tok.split(".")[1]) < MIN_DECIMALS:
@@ -159,7 +166,7 @@ def main():
             d = min(len(tok.split(".")[1]), MAX_DP)
             if round(abs(float(tok)), d) in vals[d]:
                 continue
-            orphans.append((i, tok, line.strip()[:96]))
+            orphans.append((src_name, i, tok, line.strip()[:96]))
 
     log(f"  haystack: {len(vals[4])} values (golden keys, summary cells, column aggregates)")
     log(f"  false-negative rate: {sat[4]:.1%} of the 4-dp grid over [0.5, 1.0] is occupied "
@@ -167,10 +174,10 @@ def main():
         f"about 1 time in {max(int(1 / sat[4]), 1)} and a 3-decimal one closer to 1 in 2")
     log(f"  manuscript numbers checked (>= {MIN_DECIMALS} dp): {checked}")
     log(f"  ORPHANS (traceable to nothing): {len(orphans)}\n")
-    for ln, tok, ctx in orphans:
-        log(f"  L{ln:<5} {tok:<12} {ctx}")
+    for src_name, ln, tok, ctx in orphans:
+        log(f"  {src_name}:{ln:<5} {tok:<12} {ctx}")
 
-    pd.DataFrame(orphans, columns=["line", "value", "context"]).to_csv(
+    pd.DataFrame(orphans, columns=["source", "line", "value", "context"]).to_csv(
         TABLES / SELF, index=False)
     log(f"\n  wrote {TABLES / SELF}")
     return 0

@@ -81,8 +81,14 @@ RNA-protein recognition and this paper has none.
 
 ## WHAT IS LEFT
 
-1. **Write the manuscript.** `docs/60` has every claim and number, `docs/63` fixes what the
-   abstract must say. Missing: Introduction, Results-as-prose, Discussion, References.
+1. **DRAFTING STARTED 2026-09-02.** `manuscript/` now holds title and 198-word abstract,
+   Introduction, Methods, six Results sections, Discussion and Limitations, 26 references
+   (12 verified against publisher records, the rest flagged `[CHECK]`), all declarations
+   including the AI-use disclosure, and legends for 6 main + 9 supplementary display items.
+   `audit_manuscript.py` now scans `manuscript/` as well as `docs/60`, and the drafted prose
+   is orphan-free. Two new main figures built (f14 external validation, f15 the recommendation
+   and its external failure). **Remaining: convert to the journal's format, resolve the
+   `[CHECK]` references, push and mint a DOI.**
 2. **Cut it.** There are now TWENTY result sections. An editor-role review measured the
    document at **14,045 words** and produced the first real triage: six main-text sections
    (R1+R1k merged, R1m, R1n+R1l, R1g+R1s, R1p, R1q), seven supplementary, four cut outright
