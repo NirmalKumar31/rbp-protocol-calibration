@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  2 SEP 2026 14:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  2 SEP 2026 14:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -599,11 +599,11 @@ Package rerunfilecheck Info: File `paper.out' has not changed.
 Here is how much of TeX's memory you used:
  12942 strings out of 469006
  203958 string characters out of 5454814
- 655620 words of memory out of 5000000
+ 655627 words of memory out of 5000000
  41107 multiletter control sequences out of 15000+600000
  695439 words of font info for 195 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,9n,79p,1002b,595s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,9n,79p,1002b,597s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></u
 sr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></usr/lo
 cal/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/t
@@ -615,7 +615,7 @@ st/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2026basic/texmf-dist/fo
 nts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/t
 ype1/public/lm/lmsy8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/p
 ublic/lm/lmtt10.pfb>
-Output written on paper.pdf (20 pages, 405295 bytes).
+Output written on paper.pdf (20 pages, 405405 bytes).
 PDF statistics:
  471 PDF objects out of 1000 (max. 8388607)
  379 compressed objects within 4 object streams
