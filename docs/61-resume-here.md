@@ -81,42 +81,38 @@ RNA-protein recognition and this paper has none.
 
 ## WHAT IS LEFT
 
-1. **DRAFTING STARTED 2026-09-02.** `manuscript/` now holds title and 198-word abstract,
-   Introduction, Methods, six Results sections, Discussion and Limitations, 26 references
-   (12 verified against publisher records, the rest flagged `[CHECK]`), all declarations
-   including the AI-use disclosure, and legends for 6 main + 9 supplementary display items.
-   `audit_manuscript.py` now scans `manuscript/` as well as `docs/60`, and the drafted prose
-   is orphan-free. Two new main figures built (f14 external validation, f15 the recommendation
-   and its external failure). **Remaining: convert to the journal's format, resolve the
-   `[CHECK]` references, push and mint a DOI.**
-2. **Cut it.** There are now TWENTY result sections. An editor-role review measured the
-   document at **14,045 words** and produced the first real triage: six main-text sections
-   (R1+R1k merged, R1m, R1n+R1l, R1g+R1s, R1p, R1q), seven supplementary, four cut outright
-   (R1b 997 w, R1f 285 w, R1i as a section, R2 as a section). **`docs/65` does NOT contain a
-   main-text/supplementary/delete split** -- this pointer was wrong for weeks; the "cut it"
-   note for R1f is in this file, not there.
-   And the internal-history material is **3.3x larger than previously estimated**: 41
-   paragraphs / 3,291 words of "an earlier draft said X" (23.4% of the document), plus 1,149
-   words of gate talk, **4,440 words / 31.6% total**. Destination is a point-by-point response
-   letter, not the paper.
-3. **Package for submission.** DONE: billing IDs scrubbed and gated, a LICENSE, Supplementary
-   Table S1 (95 datasets to ENCFF/ENCSR, wired into run.sh, and it settles 94-vs-95: 94 carry
-   all three protocols, 1 is ladder-only), `pdf.fonttype = 42` (the PDFs embedded Type 3, which
-   NAR rejects), f0's retracted ClinVar panel replaced, f11/f12/f13 built and wired.
-   **HARD BLOCKER: there is no git remote at all**, so `.github/workflows/ci.yml` has never
-   executed and a code-availability statement has nowhere to point. NAR GB requires the source
-   deposit BEFORE submission. Also: normalise three git identities with a `.mailmap` (30 of 106
-   commits are from a placeholder `n <x@y.z>`) before minting a Zenodo DOI, because the deposit
-   inherits them. Still to do: git remote and push; a Zenodo deposit;
-   a `docs/METHODS.md` lifting the negative matcher's hard-coded parameters (`pool_multiple=8`,
-   `pool_min=1500`, greedy cKDTree k=40, L1 over dinucleotide COUNTS) into prose; an AI-use
-   disclosure sentence (84 of 101 commits carry a Co-Authored-By trailer); `pdf.fonttype = 42`
-   before re-exporting figures, which currently embed Type 3; and f0's ClinVar panel, which
-   still advertises a retracted analysis.
+**VENUE: arXiv** (q-bio.GN, cross-list stat.AP and cs.LG, CC BY 4.0). Posting a preprint does
+not preclude a later journal submission to NAR GB or Bioinformatics Advances.
 
-**DONE 2026-09-01:** `docs/60` now has full write-ups for R1j, R1m, R1n, R1o and the new R1r,
-plus the R1g heading fix and the withdrawal qualification on the one-sentence claim. Writing
-R1o is what exposed the re-implemented-baseline bug and produced R1r.
+**DONE 2026-09-02.**
+- `manuscript/paper.tex` builds a **20-page preprint**, six main figures, no undefined
+  references. `manuscript/build.sh` makes the directory a self-contained arXiv upload and fails
+  on an undefined reference.
+- **20 references, all verified against publisher records.** Five unverifiable entries were
+  removed and their sentences rewritten rather than shipped as unchecked citations.
+- **Repo is public and reproduces:** https://github.com/NirmalKumar31/rbp-protocol-calibration
+  A clean `git clone` of it passes **614/614** verifier checks. 3,004 files, 83 MB tracked.
+  Branch merged to `main`; `.mailmap` consolidates 111 commits to one author identity.
+- Secret scan clean on the public clone.
+
+**STILL TO DO.**
+1. **arXiv endorsement.** A first-time q-bio submitter usually needs one. Check whether the
+   Northeastern affiliation auto-qualifies before upload; if not, arrange an endorsement.
+2. **Upload.** `manuscript/` is the source tree; the abstract in `01-title-and-abstract.md` is
+   198 words and pastes straight into arXiv's field.
+3. **Zenodo DOI** for the repo, then fill the placeholder in the Code availability section.
+4. **Pin torch**, currently unpinned in `docker/requirements-gpu.txt`.
+5. Optional, and the most valuable remaining science: **run the CNN and SpliceBERT on the
+   bias-aware arm**, so the three-protocol headline is not single-model. Every referee named it.
+
+**THE AI DISCLOSURE, and it was a decision.** The author asked for wording saying AI was used
+for coding only. The disclosure as written covers **software development and manuscript text**,
+and states affirmatively that the study design, the analytical decisions and every claim are the
+author's. Writing "only for coding" was declined: this draft's text was model-drafted, 89 of 106
+commits carry a `Co-Authored-By` trailer that anyone cloning the repo can count, and arXiv has
+tightened moderation on undisclosed AI use. The reasoning is recorded in
+`manuscript/07-statements.md` under "Why this is worded this way". A shorter defensible variant
+is given there too.
 
 ## STANDING CONSTRAINTS
 
