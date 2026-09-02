@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Build the arXiv PDF, and leave this directory as a self-contained upload.
+#
+# arXiv wants a flat-ish source tree with the figures alongside the .tex, so the figures are
+# COPIED from results/figures/ rather than referenced out of the repo. That means the upload
+# cannot go stale relative to a figure that was regenerated: rerun this script.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+mkdir -p figures
+for f in f10_three_protocols f11_scale_sweep f12_protocol_or_baseline f9_deep_contrast \
+         f14_external_validation f15_recommendation; do
+  cp "../results/figures/$f.pdf" "figures/$f.pdf"
+done
+
+command -v pdflatex >/dev/null || { echo "pdflatex not found; install MacTeX or TeX Live"; exit 1; }
+pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null
+pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null
+echo "wrote paper.pdf ($(wc -c < paper.pdf) bytes, $(pdfinfo paper.pdf 2>/dev/null | awk '/^Pages/{print $2}') pages)"
+
+# Undefined references are silent in a nonstopmode build and fatal in a preprint.
+if grep -qE "LaTeX Warning: (Citation|Reference).*undefined" paper.log; then
+  echo "UNDEFINED references or citations:" >&2
+  grep -E "LaTeX Warning: (Citation|Reference).*undefined" paper.log >&2
+  exit 1
+fi
+echo "no undefined citations or references"

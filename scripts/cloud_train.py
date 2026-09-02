@@ -72,8 +72,39 @@ def read_tsv(text):
 
 
 def bucket(a):
+    """GCS, or a directory that answers to the same interface.
+
+    STORE_DIR (or --store) selects the local store. That is not a testing convenience: the
+    GCP project's billing account was closed, so the bucket this sweep was built against
+    returns 403 on every object. See rbp.utils.localstore.
+    """
+    from rbp.utils import localstore
+    store = getattr(a, "store", None) or os.environ.get("STORE_DIR")
+    if store:
+        return localstore.LocalBucket(
+            store, getattr(a, "store_ro", None) or os.environ.get("STORE_RO"))
     from google.cloud import storage
     return storage.Client(project=a.project).bucket(a.derived)
+
+
+def _where(a):
+    """How to name the store in a log line, so it never claims gs:// for a directory."""
+    store = getattr(a, "store", None) or os.environ.get("STORE_DIR")
+    return store if store else f"gs://{a.derived}"
+
+
+def _not_found_errors():
+    """What "that object is not there" looks like, for whichever store is in use.
+
+    google-cloud-storage is not importable at all in a container that no longer needs it,
+    so this cannot be a module-level import.
+    """
+    from rbp.utils.localstore import NotFound
+    try:
+        from google.api_core import exceptions as gexc
+        return (NotFound, gexc.NotFound)
+    except ImportError:
+        return (NotFound,)
 
 
 def read_scores(blob):
@@ -191,7 +222,7 @@ def do_manifest(a):
         for i, (c, p, m, f, n, _) in enumerate(rows))
     b.blob(MANIFEST).upload_from_string(body)
 
-    log(f"{len(rows)} runs -> gs://{a.derived}/{MANIFEST}")
+    log(f"{len(rows)} runs -> {_where(a)}/{MANIFEST}")
     log(f"  arm={a.arm}  models={list(models)}  k={cfg.cv['k']}  min_pairs={a.min_pairs}")
     n_ds = len({(c, p) for c, p, _, _, _, _ in rows})
     log(f"  {n_ds} datasets x {len(models)} models x {cfg.cv['k']} folds")
@@ -294,6 +325,21 @@ def do_run(a):
         sys.exit(f"no CUDA device visible (torch sees {device}); refusing to run a GPU "
                  f"task on CPU. Pass --device cpu if that is genuinely what you want.")
     log(f"  device {device}  {torch.cuda.get_device_name(0) if device.type == 'cuda' else ''}")
+    # SEED BEFORE BUILD, and this was wrong for the entire study.
+    #
+    # trainer.train() calls set_seed, but it does so AFTER this function has already
+    # constructed the network -- so every weight was drawn from an unseeded RNG and
+    # torch.manual_seed(7) only ever governed dropout and batch order. Three fresh processes
+    # produced three different first-layer sums. All 945 deep-model fold-runs in this project
+    # were therefore trained from an uncontrolled, unrecorded initialisation, and the paper's
+    # "identical seed" was false.
+    #
+    # Measured consequence, from a referee's replication: per-dataset SD of the nested
+    # contribution across independent training runs is 0.006 (CNN) to 0.010 (SpliceBERT).
+    # That is immaterial for a panel mean over 94 datasets, where it induces ~0.001 against a
+    # reported CI half-width of ~0.008, but it is fatal for exact reproducibility and for any
+    # per-dataset count.
+    trainer.set_seed(cfg.seed)
     handle = registry.build(model, cfg)
     dl = tdata.loaders(local, tcfg["batch_size"], seed=cfg.seed, fold=fold, k=cfg.cv["k"])
     ids = tdata.test_ids(local, fold=fold, k=cfg.cv["k"])
@@ -314,8 +360,12 @@ def do_run(a):
                     # a reader is entitled to know which rows came from where, and a results
                     # table that cannot answer that is hiding a real methodological detail.
                     "platform": os.environ.get("PLATFORM", "gcp-batch"),
+                    # The real device, not a two-way guess. This said "cpu" for anything
+                    # that was not CUDA, so a run on Apple MPS -- which is how the CNN arm
+                    # is trained now that there is no GCP -- recorded hardware it never
+                    # touched, in the one field a reader would use to check exactly that.
                     "accelerator": (torch.cuda.get_device_name(0)
-                                    if device.type == "cuda" else "cpu")})
+                                    if device.type == "cuda" else device.type)})
 
     # BENCH MODE UPLOADS NOTHING, and this exists because it already went wrong once.
     #
@@ -364,11 +414,11 @@ def do_run(a):
     # would sit in the bucket at up to 240 MB each. Missing is fine and expected: a run
     # that never resumed and finished inside one attempt still uploaded them, but a
     # forced re-run may not have.
-    from google.api_core import exceptions as gexc
+    missing = _not_found_errors()
     for name in (trainer.CHECKPOINT, trainer.BEST):
         try:
             b.blob(f"ckpt/{prefix}/{name}").delete()
-        except gexc.NotFound:
+        except missing:
             pass
     log(f"  val {metrics['val_auroc']:.4f}  test {metrics['test_auroc']:.4f}  "
         f"in {metrics['seconds']:.0f}s over {metrics['epochs_run']} epochs")
@@ -446,7 +496,7 @@ def do_aggregate(a):
     if len(incomplete):
         print(f"\n{len(incomplete)} incomplete (fewer than 5 folds):")
         print(incomplete[["dataset", "model", "n_folds"]].to_string(index=False))
-    print(f"\nwrote gs://{a.derived}/results/sweep_{a.arm}.csv and results/tables/")
+    print(f"\nwrote {_where(a)}/results/sweep_{a.arm}.csv and results/tables/")
 
 
 def main():
@@ -454,6 +504,10 @@ def main():
     p.add_argument("mode", choices=["manifest", "run", "aggregate"])
     p.add_argument("--derived", default=os.environ.get("DERIVED_BUCKET"))
     p.add_argument("--project", default=os.environ.get("GOOGLE_CLOUD_PROJECT"))
+    p.add_argument("--store", default=os.environ.get("STORE_DIR"),
+                   help="use this directory instead of GCS. See rbp.utils.localstore.")
+    p.add_argument("--store-ro", default=os.environ.get("STORE_RO"),
+                   help="read-only fallback root for --store, e.g. a mounted Volume.")
     p.add_argument("--arm", default=os.environ.get("ARM"),
                    choices=sorted(panelmod.ARMS))
     p.add_argument("--min-pairs", type=int, default=None)
@@ -482,8 +536,8 @@ def main():
     p.add_argument("--no-resume", action="store_true")
     p.add_argument("--dry-run", action="store_true")
     a = p.parse_args()
-    if not a.derived:
-        sys.exit("--derived or DERIVED_BUCKET required")
+    if not a.derived and not a.store:
+        sys.exit("--derived or DERIVED_BUCKET required (or --store for a local store)")
     cfg = cfgmod.load()
     a.arm = panelmod.arm_of(cfg, a.arm)
     if a.min_pairs is None:

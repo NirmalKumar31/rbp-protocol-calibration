@@ -1,0 +1,20 @@
+check,value,ci_low,ci_high,n,note
+proteins assayed in both cell lines,15.0,,,15,"HepG2 vs K562; separate experiments, separately drawn negatives"
+REPLICATION of the contrast across cell lines,0.9093848617656802,0.8123841545264275,0.9723498706402544,15,"pearson, p=2.63e-06; spearman +0.932"
+mean |difference| between the two lines,0.015108827250958905,,,15,compare with the between-dataset sd below
+between-dataset sd of the contrast,0.03175453427583472,,,94,the scale the replication difference should be read against
+replication of the GC-arm gain alone,0.517927806503284,,,15,p=0.048; compare with the contrast above
+replication of the dinuc-arm gain alone,0.813415099878728,,,15,p=0.000226; compare with the contrast above
+contrast r minus the better arm's r,0.11343042014678764,-0.08223010189811239,0.4651527939422995,15,P(<=0) = 0.21; the ordering is NOT established
+"replication, PARTIALLING OUT total nested gain",0.33211926627066357,-0.11596430623722256,0.6901128610735343,15,THE LIMITATION: most of r = 0.909 is protein signal strength
+p for the partialled replication,0.22650676343543072,,,15,"not significant at n = 15, which is the point"
+correlation of the contrast with total gain,0.9515685240870009,,,15,p=4.97e-08; why the partial is so much smaller
+"mean z = gain / SE, GC arm",9.973515104275293,,,94,median 7.01
+"mean z = gain / SE, dinuc arm",13.114947433217099,,,94,median 10.13
+"EFFICIENCY GAIN, z ratio",1.3149774473791276,,,94,"higher in 83/94, paired Wilcoxon p=3.13e-14"
+"relative sample size, ratio of means",0.5783135806193418,,,94,"z ~ sqrt(n); the headline form, and the most favourable"
+"relative sample size, median dataset",0.5937576555883635,,,94,
+"relative sample size, mean over datasets",0.957040929818958,,,94,"close to 1: the advantage is concentrated, not universal"
+datasets needing MORE windows under dinuc matching,14.0,,,94,"the protocol is not better everywhere, and the paper says so"
+"datasets where composition BEATS the model, GC arm",29.0,,,94,
+"datasets where composition BEATS the model, dinuc arm",14.0,,,94,"the harder protocol makes the model look better on this measure, not worse"

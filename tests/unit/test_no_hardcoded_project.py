@@ -11,12 +11,19 @@ Terraform declares the id as a variable with a default, which is the correct pla
 """
 
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 FORBIDDEN = re.compile(r"rbp-composition-2026")
+# A BILLING ACCOUNT ID IS THE THING THAT ACTUALLY MATTERS, and this test did not look for it.
+# The real one sat as a shell default in cloud/cost.sh and in a gcloud command in
+# cloud/killswitch/main.py, in a repo whose README claims "no hardcoded project id... a test
+# fails the build if a literal reappears". It was true of the project id and false of the
+# credential-adjacent identifier next to it.
+BILLING = re.compile(r"\b\d{6}-[0-9A-F]{6}-[0-9A-F]{6}\b")
 
 # docker/ was missing from this list, which is exactly how two hardcoded project ids
 # survived in cloudbuild.cpu.yaml and cloudbuild.gpu.yaml and sent the first image build
@@ -27,14 +34,41 @@ EXEMPT_SUFFIX = {".md", ".tf", ".tfvars", ".example"}
 EXEMPT_NAME = {"cloud.py"}          # the resolver's own docstring explains the convention
 
 
+def _tracked():
+    """Files git would actually publish.
+
+    Scanning the working directory is the wrong scope: cloud/jobs/rendered/ holds 30 untracked
+    build artifacts carrying the old project id, and they are gitignored precisely so they
+    never become public. What matters is what `git ls-files` would ship.
+    """
+    out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True)
+    for name in out.stdout.split("\0"):
+        if not name:
+            continue
+        p = ROOT / name
+        if p.is_file() and ".terraform/" not in name:
+            yield p
+
+
+_TRACKED = None
+
+
 def _files():
+    global _TRACKED
+    if _TRACKED is None:
+        _TRACKED = set(_tracked())
     for d in SEARCH:
         for p in (ROOT / d).rglob("*"):
             if not p.is_file() or p.suffix in EXEMPT_SUFFIX or p.name in EXEMPT_NAME:
                 continue
-            if "tfplan" in p.name or "__pycache__" in str(p) or p.suffix == ".json":
+            # .json was exempt, which is where cloud/jobs/ingest.json kept a service-account
+            # address and a bucket name. Scan tracked .json; untracked build artifacts under
+            # cloud/jobs/rendered/ are gitignored and never published.
+            if "tfplan" in p.name or "__pycache__" in str(p):
                 continue
-            if p.suffix in {".py", ".sh", ".yaml", ".yml"}:
+            if p.suffix == ".json" and p not in _TRACKED:
+                continue
+            if p.suffix in {".py", ".sh", ".yaml", ".yml", ".json"}:
                 yield p
 
 
@@ -86,3 +120,22 @@ def test_cloudbuild_yaml_parses(name):
     d = yaml.safe_load(p.read_text())
     assert "steps" in d, f"{name} has no steps"
     assert "_IMAGE" in d.get("substitutions", {}), f"{name} lost its _IMAGE substitution"
+
+
+
+def test_no_billing_account_id_in_tracked_files():
+    """A billing account ID must never be committed, in ANY tracked file, including docs.
+
+    Not scoped to SEARCH, because docs/ carried it too and a public repo is public in all of
+    its directories. This is the check that was missing while README claimed "a test fails the
+    build if a literal reappears" -- true of the project id, false of the billing account.
+    """
+    hits = []
+    for p in _tracked():
+        try:
+            text = p.read_text(errors="ignore")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for m in BILLING.finditer(text):
+            hits.append(f"{p.relative_to(ROOT)}: {m.group(0)}")
+    assert not hits, "billing account ID in tracked files:\n  " + "\n  ".join(hits)

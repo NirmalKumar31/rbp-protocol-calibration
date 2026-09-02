@@ -19,7 +19,9 @@ RAW="${RAW_BUCKET:-${PROJECT_ID}-raw}"
 set -uo pipefail
 
 PROJECT="${PROJECT:-${PROJECT_ID}}"
-BILLING="${BILLING:-017994-4FC1D0-8D5176}"
+# NO DEFAULT. A billing account ID is a credential-adjacent identifier and must not live in a
+# public repository; this used to carry the real one as a default so the script "just worked".
+BILLING="${BILLING:?set BILLING to your billing account ID, e.g. export BILLING=XXXXXX-XXXXXX-XXXXXX}"
 
 echo "=========================================================="
 echo " COST CHECK  $(date '+%Y-%m-%d %H:%M')  project=$PROJECT"

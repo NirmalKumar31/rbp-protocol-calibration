@@ -273,6 +273,61 @@ s13_analysis() {
   ./cloud/submit.sh analysis || die "analysis"
 }
 
+s13b_local_analysis() {
+  say "stage 13b: post-hoc analyses that run on committed evidence, no cloud"
+  # THESE WERE WIRED INTO NOTHING. verify.py asserts scale_check.csv, incremental_value.csv,
+  # strand_audit.csv and the recompute, and until now no stage regenerated any of them: the
+  # tables were produced by hand and committed, so `run.sh all` could not have reproduced the
+  # numbers it then verified. They need no GPU and no bucket -- only results/tables and
+  # data/evidence, both of which are in the repo -- so they belong in the pipeline.
+  $PY scripts/scale_check.py       || die "scale check"
+  $PY scripts/incremental_value.py || die "incremental value"
+  $PY scripts/unconditional_refit.py || die "unconditional refit"
+  $PY scripts/strand_contrast.py    || die "strand contrast"
+  $PY scripts/strand_placebo.py --from-cache || die "strand placebo"
+  $PY scripts/strand_asymmetry.py --from-cache || die "strand asymmetry"
+  $PY scripts/r1_robustness.py     || die "replication and efficiency"
+  $PY scripts/k_sweep.py --from-cache || die "k sweep"
+  $PY scripts/region_heterogeneity.py --from-cache || die "region heterogeneity"
+  # R1g needs both arms' per-window model scores. The dinucleotide arm's are committed under
+  # data/evidence/scores; the GC arm's are produced by cloud/modal/modal_gc_sweep.py into the
+  # local store, which is not in the repo. --from-cache is therefore the default path here,
+  # rebuilding the summary from the committed per-dataset table, exactly as the four above do.
+  $PY scripts/deep_model_contrast.py --from-cache || die "deep model contrast"
+  $PY scripts/protocol_identification.py || die "protocol identification"
+  $PY scripts/cluster_intervals.py || die "clustered intervals"
+  $PY scripts/expression_control.py --from-cache || die "expression control"
+  $PY scripts/three_arm_contrast.py --from-cache || die "three-arm contrast"
+  $PY scripts/baseline_confounding.py || die "baseline confounding"
+  $PY scripts/scale_sweep.py || die "scale sweep"
+  $PY scripts/protocol_or_baseline.py || die "protocol or baseline"
+  $PY scripts/baseline_order.py --from-cache || die "baseline order"
+  $PY scripts/baseline_order_models.py --from-cache || die "baseline order, model classes"
+  $PY scripts/multiplier_variance.py || die "multiplier variance"
+  $PY scripts/score_scale_check.py --from-cache || die "score scale"
+  $PY scripts/transport_check.py || die "transport check"
+  # match_quality.py needs the 3 GB window store and so is NOT in the default path;
+  # its table is committed. Regenerate with: $PY scripts/match_quality.py
+  $PY scripts/table_s1.py || die "supplementary table s1"
+  $PY scripts/horlacher_arm.py --from-cache || die "horlacher arm"
+  $PY scripts/recommendation_works.py || die "recommendation test"
+  $PY scripts/recompute.py         || die "recompute from per-example evidence"
+  # LAST, because it audits the tables the four above have just written.
+  $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"
+  # --from-cache REBUILDS THE SUMMARY FROM THE COMMITTED PER-DATASET TABLE. Four of these
+  # need window tables or a GENCODE GTF to do their per-dataset work, and neither is in the
+  # repo -- so without this flag the verifier would again be asserting tables that no stage
+  # regenerates, which is the exact defect this stage was created to fix. The per-dataset
+  # table IS the committed evidence; the summary is arithmetic on it, and that arithmetic is
+  # what the golden gates check.
+  #
+  # scripts/strand_audit.py is deliberately NOT here. It needs --gtf and --datasets, i.e. a
+  # GENCODE annotation and the window tables, neither of which is in the repo, so it cannot
+  # run from committed evidence. Its table IS committed and IS verified, which means one gated
+  # table in this project is not regenerable offline. That is a real gap; it is stated in the
+  # limitations rather than hidden behind a stage that would fail on a clean clone.
+}
+
 s14_verify() {
   say "stage 14: verify against golden numbers"
   # TWICE, against two different artefacts, because they can disagree and the disagreement is
@@ -291,7 +346,7 @@ s14_verify() {
 
 STAGES=(s0_preflight s1_terraform s2_images s3_ingest s4_panel s5_prep s6_select \
         s7_rehearsal s8_cnn s9_splicebert s10_locality s11_variants s12_clinvar \
-        s13_analysis s14_verify)
+        s13_analysis s13b_local_analysis s14_verify)
 
 status() {
   say "project=$PROJECT_ID derived=$DERIVED raw=$RAW region=$REGION panel=every-$EVERY"

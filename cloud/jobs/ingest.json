@@ -20,7 +20,7 @@
             },
             "environment": {
               "variables": {
-                "RAW_BUCKET": "rbp-composition-2026-raw"
+                "RAW_BUCKET": "${RAW_BUCKET}"
               }
             }
           }
@@ -41,7 +41,7 @@
       }
     ],
     "serviceAccount": {
-      "email": "rbp-ingest@rbp-composition-2026.iam.gserviceaccount.com"
+      "email": "rbp-ingest@${PROJECT_ID}.iam.gserviceaccount.com"
     }
   },
   "logsPolicy": {

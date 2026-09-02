@@ -130,34 +130,45 @@ def main():
             log(f"           {x.dataset}: {x.note}")
 
     # --- the rehearsal (k-mer) arm: the evidence behind the PRIMARY result ----------------
+    #
+    # MANDATORY, not conditional. This block used to open with
+    # `if reh.exists() and REHEARSAL.exists():`, which meant DELETING the evidence directory
+    # made the strongest check in the repo pass silently -- only zeroing the scores failed it.
+    # A check that an attacker turns off by removing a file is not a check, and this arm is
+    # the one R1 rests on.
     reh = TABLES / REHEARSAL_TABLE
-    if reh.exists() and REHEARSAL.exists():
-        pub = pd.read_csv(reh)
-        rows = []
-        for _, r in pub.iterrows():
-            f = REHEARSAL / r.cell / f"{r.protein}.scores.tsv.gz"
-            if not f.exists():
-                continue
-            d = pd.read_csv(f, sep="\t")
-            score = np.zeros(len(d)) if a.zero_scores else d.score.to_numpy()
-            if d.label.nunique() < 2:
-                continue
-            got = roc_auc_score(d.label, score)
-            rows.append({"dataset": f"{r.protein}:{r.cell}", "model": "kmer (rehearsal)",
-                         "published": float(r.auroc), "recomputed": got,
-                         "abs_diff": abs(got - float(r.auroc)), "note": ""})
-        if rows:
-            rr = pd.DataFrame(rows)
-            parts.append(rr)
-            worst = rr.abs_diff.max()
-            good = len(rr) >= MIN_DATASETS and worst <= a.tol
-            failed |= not good
-            log(f"  [{'PASS' if good else 'FAIL'}] {'kmer':11} {len(rr):3d} datasets recomputed, "
-                f"max|diff| = {worst:.2e}  (want <= {a.tol:.0e} on >= {MIN_DATASETS})")
-        else:
-            log("  [FAIL] kmer        no rehearsal evidence found; the PRIMARY result is "
-                "unchecked")
-            failed = True
+    if not reh.exists():
+        raise SystemExit(f"{reh} is absent; R1's arm cannot be recomputed")
+    if not REHEARSAL.exists():
+        raise SystemExit(
+            f"{REHEARSAL} is absent. These per-example scores are the only thing that makes\n"
+            f"R1's published AUROCs provable rather than merely re-readable.")
+    pub = pd.read_csv(reh)
+    rows = []
+    for _, r in pub.iterrows():
+        f = REHEARSAL / r.cell / f"{r.protein}.scores.tsv.gz"
+        if not f.exists():
+            continue
+        d = pd.read_csv(f, sep="\t")
+        score = np.zeros(len(d)) if a.zero_scores else d.score.to_numpy()
+        if d.label.nunique() < 2:
+            continue
+        got = roc_auc_score(d.label, score)
+        rows.append({"dataset": f"{r.protein}:{r.cell}", "model": "kmer (rehearsal)",
+                     "published": float(r.auroc), "recomputed": got,
+                     "abs_diff": abs(got - float(r.auroc)), "note": ""})
+    if rows:
+        rr = pd.DataFrame(rows)
+        parts.append(rr)
+        worst = rr.abs_diff.max()
+        good = len(rr) >= MIN_DATASETS and worst <= a.tol
+        failed |= not good
+        log(f"  [{'PASS' if good else 'FAIL'}] {'kmer':11} {len(rr):3d} datasets recomputed, "
+            f"max|diff| = {worst:.2e}  (want <= {a.tol:.0e} on >= {MIN_DATASETS})")
+    else:
+        log("  [FAIL] kmer        no rehearsal evidence found; the PRIMARY result is "
+            "unchecked")
+        failed = True
 
     if parts:
         out = pd.concat(parts, ignore_index=True)

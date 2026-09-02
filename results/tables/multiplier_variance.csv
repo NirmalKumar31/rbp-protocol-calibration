@@ -1,0 +1,18 @@
+check,value,n,note,ci_low,ci_high
+"share of log-multiplier variance, protein",0.648096440460326,262,79 levels,,
+"permutation null share, protein",0.29719111982568436,262,p = 0.0000,0.21355100781406317,0.38958336956072315
+"excess over the permutation null, protein",0.35090532063464164,262,p = 0.0000,,
+"share of log-multiplier variance, cell",0.0019088596768089378,262,2 levels,,
+"permutation null share, cell",0.003735938409839652,262,p = 0.4850,4.059120105124956e-06,0.01824342465818995
+"excess over the permutation null, cell",-0.0018270787330307142,262,p = 0.4850,,
+"share of log-multiplier variance, model",0.028042756525163245,262,3 levels,,
+"permutation null share, model",0.007662850964098879,262,p = 0.0230,0.00017208824741183604,0.027089023829264945
+"excess over the permutation null, model",0.020379905561064365,262,p = 0.0230,,
+residual share,0.32751341826576696,262,,,
+"panel multiplier, exp(mean log)",2.989638018697589,262,,,
+protein excess minus model-class excess,0.33052541507357724,262,,,
+"share of log-multiplier variance, dataset",0.6795615448727664,262,94 levels; protein's 79 is nearly this factor,,
+"block-preserving null share, protein",0.57566708073981,262,p = 0.0030; permutes protein labels between datasets,0.4978671512707587,0.6357361258653129
+"excess over the block-preserving null, protein",0.072429359720516,262,p = 0.0030,,
+cross-cell-line correlation of the log multiplier,0.5859289215271075,40,"15 proteins in both lines, x 3 models",,
+cross-cell-line spearman of the log multiplier,0.5943714821763603,40,p = 0.0001,,

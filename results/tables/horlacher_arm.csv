@@ -1,0 +1,15 @@
+check,value,ci_low,ci_high,n,note
+"composition alone, negative-1",0.8210639879941536,0.8023133362910274,0.8404212355234374,45,
+"apparent AUROC, negative-1",0.8605811465757163,0.845685492468225,0.876356563710034,45,
+"nested contribution, negative-1",0.039517158581562496,0.031539095536501166,0.04761651955083419,45,
+"composition alone, negative-2",0.7559866949006626,0.7315854111026877,0.7815663364052706,45,
+"apparent AUROC, negative-2",0.7725848145376288,0.7486755837943487,0.798005921428341,45,
+"nested contribution, negative-2",0.01659811963696602,0.013578053101581057,0.01993245663705692,45,
+"CONTRAST, negative-2 minus negative-1",-0.022919038944596473,-0.02929993971627673,-0.016622786220185395,45,
+"datasets with a positive contrast, n2 minus n1",9.0,,,45,
+fold range across their two negative sets,2.3808214090440103,,,45,
+"spearman(baseline, gain) on their data",-0.20245297773387658,,,90,p=5.6e-02
+"within-dataset spearman(delta baseline, delta gain), their data",-0.3723320158102767,,,45,p=1.18e-02; ours is -0.664
+datasets where negative-2 raises the baseline,9.0,,,45,
+"n2 minus n1 gain, negative-2 baseline HIGHER",-0.040909667877637536,-0.0548640170001081,-0.025057843344224014,45,
+"n2 minus n1 gain, negative-2 baseline LOWER",-0.01842138171133621,-0.024683528735688375,-0.012219480582404952,45,

@@ -1,0 +1,19 @@
+check,value,ci_low,ci_high
+"rank agreement, raw, gc vs dn",0.8477621645052921,,
+"rank agreement, headroom, gc vs dn",0.899259473322978,,
+"rank agreement gain, gc vs dn",0.05149730881768588,0.007322194559956192,0.11501405155082806
+"scale-free disagreement, raw, gc vs dn",1.1511731323910515,,
+"scale-free disagreement, headroom, gc vs dn",0.4820659331472064,,
+"rank agreement, raw, gc vs neg2",0.6736769858758083,,
+"rank agreement, headroom, gc vs neg2",0.7236860166889427,,
+"rank agreement gain, gc vs neg2",0.05000903081313446,-0.03958292946901164,0.13823518852091954
+"scale-free disagreement, raw, gc vs neg2",0.5041935125027424,,
+"scale-free disagreement, headroom, gc vs neg2",0.4514704424556318,,
+"rank agreement, raw, dn vs neg2",0.6070079109923057,,
+"rank agreement, headroom, dn vs neg2",0.6279593974641478,,
+"rank agreement gain, dn vs neg2",0.020951486471842085,-0.06856678117233564,0.09842132206522838
+"scale-free disagreement, raw, dn vs neg2",1.5522982914330552,,
+"scale-free disagreement, headroom, dn vs neg2",0.8019542716735699,,
+protocol pairs where rank agreement improves,3.0,,
+protocol pairs where disagreement shrinks,3.0,,
+number of protocol pairs,3.0,,

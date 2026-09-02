@@ -49,12 +49,20 @@ meta:
 # --- R1: the negative-set protocol effect ---------------------------------------------
 # The headline is the unanimity and the second-order gain, not the drop.
 r1_cost_of_matching:
-  auroc_gc:        {value: 0.7963, tol: 0.015}
-  auroc_dinuc:     {value: 0.6893, tol: 0.015}
-  # -0.1095 on the 94-dataset study panel, -0.1070 across the full 189-dataset panel. The
-  # tolerance spans both, because which panel is in play is a scoping decision, not a change
-  # in the science: the effect is unanimous either way.
-  cost:            {value: -0.1080, tol: 0.012}
+  # RECENTRED on what cost_of_matching.csv actually contains. These read 0.7963 and 0.6893
+  # against measured 0.7981 and 0.6886, drift that a 0.015 tolerance absorbed silently -- the
+  # same defect as `cost` below, found by cross-checking against the identical quantity now
+  # emitted by scripts/scale_check.py from the two rehearsal arms. The two paths are gated
+  # separately on purpose: if they ever disagree, one of the tables is stale.
+  auroc_gc:        {value: 0.7981, tol: 0.010}
+  auroc_dinuc:     {value: 0.6886, tol: 0.010}
+  # CENTRED ON WHAT THE PAPER CLAIMS AND ON WHAT THE TABLE CONTAINS, which are the same
+  # number. This was {value: -0.1080, tol: 0.012}, split between the 94-dataset study panel
+  # (-0.1095) and the full 189-dataset panel (-0.1070) so the tolerance would span both. But
+  # verify_r1 reads cost_of_matching.csv, which IS the 94-dataset panel, so the gate was
+  # centred 0.0015 away from the only value it can ever see and the abstract's figure sat off
+  # centre in its own check. Measured mean -0.1095, bootstrap CI half-width 0.0116.
+  cost:            {value: -0.1095, tol: 0.012}
   # A SUPPORTING CHECK, NOT THE HEADLINE, and this block used to contradict itself. It
   # called the gain ratio "the actual finding" while the R4 block said the same comparison
   # must not be the headline, because the composition baseline's features ARE the ones the
@@ -86,6 +94,1018 @@ r1_cost_of_matching:
   # Every dataset must fall. Not "on average".
   fraction_datasets_falling: {value: 1.0, tol: 0.0}
   wilcoxon_p_max: 1.0e-15
+
+# --- R1, continued: is the protocol effect real or an AUROC-scale artefact? ------------
+#
+# WHY THIS BLOCK EXISTS. R1's headline contrast, +0.0397, was printed in the manuscript and
+# existed in NO committed table and under NO golden key. It could not be recomputed and it
+# could not fail. `contrast_auroc` below is the first assertion of it in the project's
+# history, and it is now derived by `scripts/scale_check.py` from the two rehearsal arms.
+#
+# THE OBJECTION IT ANSWERS. A nested AUROC gain is compressed when the baseline is already
+# high, and the two arms start at 0.7827 and 0.6280. Measured compression factor: 1.51x. So
+# the observed direction is predicted by the scale alone, and the claim needs the part that
+# is NOT scale. Transplanting the GC arm's own d' increment onto the dinucleotide baseline
+# gives the scale-only contrast; what remains is the protocol effect. Measured: 21% scale,
+# 79% protocol.
+r1_scale_check:
+  # WHICH MODEL. The manuscript said "5-mer" four times; both rehearsal tables record k = 4 on
+  # all 189 rows. params.yaml's `cv: k: 5` is the CV FOLD COUNT, not the k-mer size. Gated
+  # because 150 assertions all checked values and none checked what produced them.
+  kmer_k:                {value: 4.0, tol: 0.0}
+  # THE SIX CELLS OF R1's HEADLINE TABLE. Printed in the manuscript, computed on the fly and
+  # stored in no table until scripts/audit_manuscript.py went looking -- the same state the
+  # +0.0397 contrast survived six review rounds in.
+  mean_composition_gc:   {value: 0.7827, tol: 0.010}
+  mean_composition_dn:   {value: 0.6280, tol: 0.010}
+  mean_score_gc:         {value: 0.7981, tol: 0.010}
+  mean_score_dn:         {value: 0.6886, tol: 0.010}
+  mean_full_gc:          {value: 0.8092, tol: 0.010}
+  mean_full_dn:          {value: 0.6941, tol: 0.010}
+  contrast_auroc:        {value: 0.0397, tol: 0.004}
+  nested_gc:             {value: 0.0265, tol: 0.004}
+  nested_dn:             {value: 0.0662, tol: 0.007}
+  contrast_scale_only:   {value: 0.0083, tol: 0.002}
+  # THE HONEST HEADLINE. If this fails, R1 fails and there is no paper.
+  contrast_protocol:     {value: 0.0313, tol: 0.004}
+  # THE TRANSPLANT RUNS BOTH WAYS AND ONLY THE FAVOURABLE DIRECTION WAS REPORTED. Moving the
+  # dinucleotide arm's increment onto the GC baseline instead attributes MORE to compression and
+  # leaves +0.0215. Both directions are legitimate under the same binormal logic, so the honest
+  # statement is a RANGE: the protocol effect is +0.0215 to +0.0313, and the choice of direction
+  # moves it further than either interval is wide. Every member of the family keeps the sign,
+  # which is what the paper now claims.
+  contrast_protocol_reverse: {value: 0.0215, tol: 0.004}
+  contrast_scale_only_reverse: {value: 0.0182, tol: 0.004}
+  contrast_protocol_logit: {value: 0.0288, tol: 0.004}
+  contrast_protocol_logit_reverse: {value: 0.0188, tol: 0.004}
+  # THE BOUND THE PAPER CLAIMS: every member of the family keeps the sign.
+  min_protocol_effect_any_transplant: 0.012
+  reverse_ci_must_exclude_zero: true
+  protocol_ci_must_exclude_zero: true
+  # Scale must be a minority of the effect. Measured 0.21; a run where compression accounts
+  # for most of the contrast means the claim is an artefact.
+  max_scale_share:       0.35
+  # The same comparison on an unbounded scale, which would be zero if compression were the
+  # whole story.
+  contrast_dprime:       {value: 0.1290, tol: 0.015}
+  # The corrected version of the abstract's "hides two-thirds". It is about half.
+  hidden_fraction_corrected: {value: 0.4735, tol: 0.05}
+  #
+  # THE REVERSAL, GATED SO IT CANNOT BE QUIETLY DROPPED. On the log-odds scale the contrast
+  # changes sign. That is reported in the paper, not hidden, and these three keys are why it
+  # is not fatal: the between-arm coefficient gap tracks each task's TOTAL signal and is
+  # uncorrelated with the incremental value it is supposed to measure, which is the standard
+  # non-comparability of logistic coefficients across fits (Mood 2010). If the fingerprint
+  # ever inverts -- the gap tracking increment rather than total signal -- the reversal
+  # becomes real evidence against R1 and this block must fail.
+  contrast_logodds:      {value: -0.3771, tol: 0.06}
+  min_rho_coef_gap_total:     0.35
+  max_rho_coef_gap_increment: 0.25
+  contrast_logodds_normalised: {value: 0.1154, tol: 0.035}
+  # NOT A SECOND ANSWER TO THE REVERSAL, AND IT WAS PRESENTED AS ONE. The residual is
+  # algebraically identical to the normalised contrast above under a positive weight:
+  #   residual_i == dfull_gc_i * (coef_dn_i/dfull_dn_i - coef_gc_i/dfull_gc_i)
+  # verified at max|diff| 5.0e-16 with sign agreement 94/94. Reporting both as corroborating
+  # each other was wrong. Worse, the null coef ~ d' is CHOSEN, not derived: under coef ~ d'^0.5
+  # the residual is -0.1721 and under d'^1.5 it is +0.5278, so the sign of the "answer" is a
+  # free exponent. Both values stay gated so they cannot drift, but nothing is claimed from
+  # them; the load-bearing answer to the reversal is the correlational fingerprint below.
+  logodds_scale_null:    {value: -0.4927, tol: 0.040}
+  logodds_residual:      {value: 0.1156, tol: 0.035}
+  # The exponent sensitivity that retired the argument, gated so the retraction has a source.
+  logodds_residual_p05:  {value: -0.1721, tol: 0.040}
+  logodds_residual_p15:  {value: 0.5278, tol: 0.060}
+
+# --- R1: does the strand artifact drive the surviving contrast? ------------------------
+#
+# READ THIS BLOCK AS A RECORD, NOT AS A CLEARANCE. The previous strand block in this file was
+# deleted because it gated a retracted quantity behind a ceiling (contrast_rho_max: 0.40) so
+# loose that a real confound would have passed it. This block must not repeat that. It pins the
+# measured values so they cannot drift, and it asserts only the two things the data actually
+# support: that the two halves agree, and that the association is not the known size effect
+# relabelled. It does NOT assert that the artifact is harmless, because this test cannot show
+# that -- frac_sense spans only 0.433 to 0.615 across the 40 audited datasets, so there is
+# almost no leverage, and rho = -0.24 carries an interval of [-0.54, +0.11].
+r1_strand_contrast:
+  n_datasets:            {value: 40.0, tol: 0.0}
+  mean_frac_sense:       {value: 0.5519, tol: 0.010}
+  # The contrast on this subset must match the published one, or the 40 are not representative
+  # and nothing measured on them transfers.
+  contrast_on_subset:    {value: 0.0378, tol: 0.006}
+  rho_frac_sense_contrast: {value: -0.2396, tol: 0.05}
+  # Size is the one confound already known to move the contrast (rho +0.307 on all 94). If the
+  # partial correlation ever diverges sharply from the raw one, the reading changes.
+  partial_rho_given_size: {value: -0.2522, tol: 0.05}
+  max_raw_partial_gap:   0.10
+  # THE ONE REASSURING RESULT, AND IT IS GATED AS SUCH: the sense-rich and sense-poor halves
+  # agree, and the difference between them is small against the +0.0397 being defended.
+  halves_difference:     {value: -0.0068, tol: 0.006}
+  max_abs_halves_difference: 0.020
+  halves_ci_must_include_zero: true
+  # THE ADVERSE NUMBER, GATED SO IT CANNOT BE DROPPED. A linear extrapolation to fully correct
+  # stranding lands at -0.046, i.e. sign reversal, on an interval of [-0.189, +0.072] that is
+  # far too wide to act on in either direction. It is recorded because the honest conclusion is
+  # "this cannot be settled from committed data", and deleting the number would make the
+  # limitation read softer than it is.
+  extrapolated_at_full_sense: {value: -0.0458, tol: 0.020}
+  # Leverage, asserted so that anyone reading the correlation sees why it is weak.
+  max_frac_sense_leverage: 0.25
+
+# --- R1: the strand artifact, measured properly (restriction + matched placebo) ---------
+#
+# THE PRE-REGISTERED TEST, AND IT PASSED. Written into docs/61 before it was run: the contrast
+# must keep its sign, its interval must exclude zero, and at least 60% of the published point
+# estimate must survive. Result: +0.0318 [+0.0234, +0.0415], 85% surviving.
+#
+# WHY THE PLACEBO IS THE EXPERIMENT. Keeping only pairs whose negative is unambiguously on its
+# own gene's strand discards ~57% of pairs, and a 256-feature k-mer model loses more from that
+# than a 19-feature composition baseline does, in BOTH arms. Restriction alone therefore shows
+# -0.0091, which a naive reading attributes entirely to strand. Dropping the same number of
+# pairs at RANDOM shows -0.0032 of the same shrinkage with no strand involved. The difference,
+# -0.0059, is the strand-specific effect.
+#
+# THE ARTIFACT IS REAL, NOT ABSENT. Its interval excludes zero, so this is a measured control
+# rather than a null result, and it is stronger evidence for that reason. It costs ~15% of the
+# contrast. An earlier 20-dataset run reported -0.0002 using a dinucleotide arm that was a
+# different draw; the canonical tables were fetched (96 MiB, $0.011) and every dataset here is
+# gated on reproducing its published row before being used.
+r1_strand_placebo:
+  n_datasets:            {value: 40.0, tol: 0.0}
+  contrast_full:         {value: 0.0378, tol: 0.007}
+  contrast_sense_only:   {value: 0.0287, tol: 0.007}
+  contrast_placebo:      {value: 0.0338, tol: 0.007}
+  contrast_placebo_strat: {value: 0.0342, tol: 0.007}
+  change_from_restriction: {value: -0.0091, tol: 0.003}
+  change_from_placebo:   {value: -0.0040, tol: 0.002}
+  # THE DECOMPOSITION. Restriction alone reports -0.0091 and a naive reading calls all of it
+  # strand. A random-drop placebo reproduces -0.0040 of it with no strand involved. What is
+  # left is strand: -0.0055, interval clear of zero.
+  strand_excess_unstratified: {value: -0.0051, tol: 0.003}
+  locus_mix:             {value: 0.0004, tol: 0.0015}
+  strand_excess:         {value: -0.0055, tol: 0.003}
+  max_abs_strand_excess: 0.010
+  # THE ARTIFACT IS REAL, AND THIS ASSERTION HAS BEEN ON AND OFF ONCE ALREADY. With 5 placebo
+  # seeds and region-only strata the excess was -0.0036 [-0.0071, +0.0001], the interval
+  # touched zero, and the manuscript withdrew the claim. That interval was inflated by Monte
+  # Carlo noise: ~16% of its variance was placebo seed variance rather than signal. At 20 seeds
+  # and region x gene-density strata the excess is -0.0055 [-0.0089, -0.0022] and the claim is
+  # restored. Do not toggle this again without raising the seed count first.
+  excess_ci_must_exclude_zero: true
+  # THE STRATIFICATION BARELY MATTERS ONCE THE SEEDS ARE ADEQUATE, which is itself worth
+  # recording: at 5 seeds the stratified and unstratified placebos differed by -0.0024 with an
+  # interval clear of zero, and that gap is now +0.0004 and not distinguishable from zero. The
+  # earlier "locus mix" was largely seed noise. Asserted as SMALL, not as nonzero.
+  max_abs_locus_mix:     0.0020
+  corrected_contrast:    {value: 0.0322, tol: 0.006}
+  corrected_ci_must_exclude_zero: true
+  min_fraction_surviving: 0.60
+
+# --- R1: which arm carries the strand artifact? ----------------------------------------
+#
+# The direction of this asymmetry decides whether the artifact could be MANUFACTURING the
+# contrast or merely shrinking it. Measured: the cue is weaker in the GC arm, which is the arm
+# with the smaller nested gain, so it biases the contrast DOWNWARD and +0.0397 is conservative.
+# Coordinates only, no model fitting, independent of the placebo experiment.
+r1_strand_asymmetry:
+  frac_sense_gc:   {value: 0.4275, tol: 0.020}
+  frac_sense_dn:   {value: 0.4744, tol: 0.020}
+  asymmetry:       {value: 0.0469, tol: 0.012}
+  # THE CLAIM: the dinucleotide arm must be MORE sense, in most datasets.
+  min_datasets_dinuc_more_sense: 33
+  asymmetry_must_be_positive: true
+  # WHY THE PLACEBO IS STRATIFIED ON GENE DENSITY. Retention requires exactly one overlapping
+  # gene strand, so it selects against multi-gene loci by construction. Gated so the stratum
+  # choice has a measured justification rather than an asserted one.
+  ngenes_kept:     {value: 1.0964, tol: 0.060}
+  ngenes_dropped:  {value: 1.3677, tol: 0.060}
+  kept_must_be_less_dense: true
+
+# --- R1d: does the contrast replicate, and does it buy anything? -----------------------
+#
+# THE ANSWER TO "THE SIGN IS DESIGN-IMPLIED". The concession is correct: the composition
+# baseline's 15 df are exactly what the dinucleotide matcher controls, so the direction is
+# implied and only the magnitude is informative. These two keys are what the magnitude is
+# worth. Replication across cell lines is out-of-sample (separate eCLIP experiments, separately
+# drawn negatives) and the design forces nothing about it -- the sign is guaranteed in each
+# line independently, so a high correlation is information about MAGNITUDE. And efficiency is
+# what a benchmark builder acts on; it is immune to the objection entirely, because the sign
+# being predictable says nothing about how well the effect is measured.
+r1_robustness:
+  n_proteins_both_lines: {value: 15.0, tol: 0.0}
+  replication_r:         {value: 0.9094, tol: 0.030}
+  min_replication_ci_low: 0.70
+  # THE ORDERING WAS ASSERTED AND IS NOT SUPPORTED. This block previously required the
+  # contrast to replicate BETTER than either arm alone. A paired protein bootstrap gives
+  # r_contrast - max(r_arm) = +0.113 [-0.082, +0.465] with P(<=0) = 0.21 on n = 15, so the
+  # ordering is a point estimate and not a finding. The arms are pinned; the ordering is not
+  # asserted. The claim in the text is "at least as well as".
+  replication_gc_alone:  {value: 0.5179, tol: 0.060}
+  replication_dn_alone:  {value: 0.8134, tol: 0.050}
+  replication_ordering_gap: {value: 0.1134, tol: 0.030}
+  # The ordering must NOT be assertable: its interval has to straddle zero, or the earlier
+  # claim was right after all and the text should be changed back deliberately.
+  ordering_ci_must_include_zero: true
+  # THE LIMITATION R1d LACKED. R1f gates the fact that its region association vanishes once
+  # total nested gain is partialled out. R1d was billed as the answer to the design-implied-sign
+  # objection and had no equivalent control, yet the contrast correlates with total gain at
+  # +0.95, so two cell lines agreeing on the contrast may be agreeing on the protein's signal
+  # strength. Partialled, r falls from 0.909 to 0.332 and its interval straddles zero. Gated so
+  # the limitation cannot be dropped, and so that if it ever becomes assertable that is a
+  # deliberate change.
+  replication_partial:   {value: 0.3321, tol: 0.060}
+  contrast_total_gain_corr: {value: 0.9516, tol: 0.030}
+  between_dataset_sd:    {value: 0.0318, tol: 0.004}
+  partial_p:             {value: 0.2270, tol: 0.060}
+  partial_ci_must_include_zero: true
+  efficiency_z_ratio:    {value: 1.3150, tol: 0.050}
+  min_efficiency_ratio:  1.10
+  # THE RATIO OF MEANS FLATTERS IT. The mean of the per-dataset ratios is 0.957, close to 1,
+  # and 14/94 datasets need MORE windows under dinucleotide matching. All four are gated so the
+  # favourable form cannot be quoted alone.
+  relative_sample_size:  {value: 0.5783, tol: 0.040}
+  relative_sample_median: {value: 0.5938, tol: 0.040}
+  relative_sample_mean:  {value: 0.9570, tol: 0.060}
+  datasets_needing_more_windows: {value: 14.0, tol: 0.0}
+  composition_beats_model_gc: {value: 29.0, tol: 0.0}
+  composition_beats_model_dn: {value: 14.0, tol: 0.0}
+
+# --- R1e: is the contrast an artifact of k, and can it be REBUILT? ---------------------
+#
+# THE SECOND VERIFICATION IN THIS REPOSITORY. Every other R1 number is READ from a table the
+# analysis pass wrote, so its gate detects drift and not error. k_sweep.py refits composition
+# and k-mer models from `dataset.tsv` sequence for all 94 datasets in both arms and rebuilds
+# the contrast. It lands on the committed value exactly. If the published contrast were wrong,
+# this column could not agree with it.
+#
+# All 94 datasets pass the per-arm reproduction gate at k=4 before any other k is trusted.
+r1_k_sweep:
+  n_datasets:        {value: 94.0, tol: 0.0}
+  contrast_k3:       {value: 0.0311, tol: 0.005}
+  contrast_k4:       {value: 0.0397, tol: 0.005}
+  contrast_k5:       {value: 0.0397, tol: 0.005}
+  contrast_k6:       {value: 0.0355, tol: 0.005}
+  # THE PROOF. Rebuilt from sequence against the committed table, same datasets.
+  max_rebuild_diff:  0.0005
+  # THE ROBUSTNESS. The contrast must survive every k, or it is a k artifact.
+  min_contrast_any_k: 0.020
+  min_datasets_positive_all_k: 75
+  # And the manuscript's "5-mer" error must be shown to be inconsequential, not merely
+  # corrected: k=5 and k=4 must agree.
+  max_k5_minus_k4:   0.004
+
+# --- R1f: heterogeneity by binding region ---------------------------------------------
+#
+# The one biological statement the study supports, gated together with the limitation that
+# qualifies it. The contrast is twice as large for CDS-dominant proteins as for intron-dominant
+# ones, and the mechanism is checkable: intronic sites are compositionally distinctive
+# (polypyrimidine tracts, U-rich stretches), so composition alone already discriminates them
+# and the protocol has less to expose. THE LIMITATION IS GATED TOO: partialling out the total
+# nested gain removes the association, so region indexes how much non-compositional signal
+# exists rather than acting as a separate mechanism. Claimed the second way it is right;
+# claimed the first way it is wrong.
+r1_region:
+  contrast_cds:      {value: 0.0635, tol: 0.008}
+  contrast_intron:   {value: 0.0316, tol: 0.006}
+  contrast_utr3:     {value: 0.0328, tol: 0.008}
+  cds_minus_intron:  {value: 0.0319, tol: 0.007}
+  cds_intron_ci_must_exclude_zero: true
+  # THE MECHANISM: intronic sites must be MORE compositional, or the explanation is wrong.
+  composition_intron: {value: 0.6656, tol: 0.015}
+  composition_cds:    {value: 0.5765, tol: 0.015}
+  intron_must_be_more_compositional: true
+  # THE LIMITATION, asserted so it cannot be dropped: the association must NOT survive
+  # partialling out total gain. If it ever does, the claim gets STRONGER and this must be
+  # revisited deliberately rather than silently.
+  max_partial_rho:   0.25
+
+# --- R1g: the contrast is not a property of the model class ---------------------------
+#
+# The paper's sharpest limitation used to be that every number in it came from an
+# L2-penalised logistic on 4-mer counts. R1g runs R1's own nested decomposition on a
+# 7,089-parameter CNN and a 19.7M-parameter fine-tuned SpliceBERT, in both arms, on the same
+# folds and the same rows, and the 4-mer is REFITTED alongside them rather than read from
+# rehearsal_binding_* so that all three rungs are measured identically.
+#
+# THE CLAIM IS *NOT* A CAPACITY LADDER. An earlier version of this block said "the contrast
+# grows with model capacity" and that is WITHDRAWN: it reverses on the ratio scale (R1g's
+# multipliers are 3.08 / 3.51 / 2.38x) and R1h's specification grid ranks the CNN, the MIDDLE
+# rung, as the only model whose protocol effect survives every specification. What R1g
+# establishes is narrower and still worth having: the effect is not a property of the model
+# class, holding for a 256-feature logistic, a 7,089-parameter CNN and a 19.7M-parameter
+# fine-tuned transformer. The additive ordering below is retained as a FACT about the additive
+# scale, not as a claim about capacity.
+r1g_deep_contrast:
+  n_datasets: 94
+  kmer:
+    nested_gc:      {value: 0.0265, tol: 0.0020}
+    nested_dn:      {value: 0.0663, tol: 0.0030}
+    contrast_auroc: {value: 0.0398, tol: 0.0025}
+    protocol_min:   {value: 0.0188, tol: 0.0020}
+    protocol_max:   {value: 0.0314, tol: 0.0020}
+    positive_datasets: {value: 88, tol: 3}
+  cnn:
+    nested_gc:      {value: 0.0330, tol: 0.0025}
+    nested_dn:      {value: 0.0860, tol: 0.0040}
+    contrast_auroc: {value: 0.0530, tol: 0.0035}
+    protocol_min:   {value: 0.0213, tol: 0.0025}
+    protocol_max:   {value: 0.0412, tol: 0.0030}
+    positive_datasets: {value: 89, tol: 3}
+  splicebert:
+    nested_gc:      {value: 0.0890, tol: 0.0045}
+    nested_dn:      {value: 0.1754, tol: 0.0060}
+    contrast_auroc: {value: 0.0864, tol: 0.0040}
+    protocol_min:   {value: 0.0253, tol: 0.0025}
+    protocol_max:   {value: 0.0543, tol: 0.0035}
+    positive_datasets: {value: 94, tol: 3}
+  # Every model's contrast must be positive with its interval clear of zero, and its
+  # protocol effect must survive EVERY member of the transplant family, not the flattering
+  # one. Same standard R1b is held to.
+  contrast_ci_must_exclude_zero: true
+  protocol_must_survive_every_transplant: true
+  # THE LADDER, AS PAIRED DIFFERENCES ON THE SAME 94 DATASETS. Point estimates alone would
+  # not carry this: the k-mer's interval [0.0337, 0.0459] and the CNN's [0.0446, 0.0614]
+  # overlap. The paired difference is the right statistic and it is what is gated.
+  #
+  # The CNN step is the weak rung and the numbers say so -- larger in 58 of 94 datasets
+  # against 94 of 94 for SpliceBERT over the k-mer. That is stated, not smoothed over.
+  ladder:
+    step_cnn_minus_kmer:        {value: 0.0132, tol: 0.0030}
+    step_splicebert_minus_cnn:  {value: 0.0334, tol: 0.0035}
+    step_splicebert_minus_kmer: {value: 0.0466, tol: 0.0040}
+  ladder_steps_ci_must_exclude_zero: true
+  # TWO-SIDED, because one-sided floors let inflation through. A referee rewrote the evidence
+  # so the CNN beat the k-mer on all 94 datasets instead of the real 58, preserving both
+  # column means, and `>= 55` passed while golden.yaml claimed the weak rung "is stated, not
+  # smoothed over". A count that can only be wrong upwards is not gated.
+  step_datasets_cnn_minus_kmer: {value: 58, tol: 4}
+  # THE ORDERING ON THE ADDITIVE SCALE, kept as a fact and NOT as a capacity claim. The
+  # capacity reading is withdrawn (see the block header and R1g/R1h); this gate exists so the
+  # additive numbers cannot drift, not to license "it grows with capacity".
+  additive_ordering_holds: true
+
+  # THE SCALE REVERSAL, AND WHY IT IS GATED RATHER THAN OMITTED.
+  #
+  # R1b's rule: "a result whose sign depends on the scale is not a result unless the reversal
+  # itself has a diagnosis." That rule was applied ruthlessly to the log-odds reversal and
+  # then NOT applied to this paper's own newest headline, until a referee ran the ratio scale
+  # and found it. The additive ladder above is real; the MULTIPLIER ladder is not.
+  #
+  # Restricted to the 77 datasets where every model has a positive gain in both arms, since a
+  # log-ratio requires it. The protocol multiplier is ~2.4-3.5x for all three model classes
+  # and is SMALLEST for the largest model, because the AUROC ceiling bites harder at
+  # SpliceBERT's higher baseline. So the additive growth is mostly one near-invariant
+  # multiplier applied to more total signal.
+  #
+  # THE DIAGNOSIS IS THE CLAIM. Gated so that a future draft cannot report "grows with
+  # capacity" without also reporting the scale on which it does not.
+  ratio:
+    datasets_positive_both_arms: 77
+    multiplier_kmer:        {value: 3.083, tol: 0.20}
+    multiplier_cnn:         {value: 3.511, tol: 0.30}
+    multiplier_splicebert:  {value: 2.382, tol: 0.20}
+    logstep_splicebert_minus_kmer: {value: -0.2579, tol: 0.045}
+    logstep_splicebert_minus_cnn:  {value: -0.3877, tol: 0.055}
+  # The reversal must be REAL (interval clear of zero on the wrong side), not marginal.
+  ratio_ladder_must_reverse_for_splicebert: true
+  # Every model class must still show a substantial multiplier -- that is what answers
+  # "would this vanish for a real model?" without the additive overclaim.
+  min_multiplier_any_model: 2.0
+  # The strong form of "not a model-class artefact": the deep model's interval must clear
+  # the k-mer's point estimate entirely, not merely overlap it on the right side.
+  splicebert_ci_must_exceed_kmer_point: true
+  # ROWS. The GC arm is scored from the very dataset.tsv it was trained on, so anything
+  # below 1.0 there means a fold went missing. The dinucleotide arm's windows drifted by
+  # 0.06% after its sweep ran, which is tolerated and measured, not assumed away.
+  min_row_coverage_gc: 1.0
+  min_row_coverage_dn: 0.99
+  # THE CROSS-CHECK THAT TIES R1g TO R1. The refitted 4-mer must reproduce the published
+  # contrast from scale_check.csv. If these ever diverge, one of the two is wrong and the
+  # comparison against the deep models is meaningless.
+  max_kmer_refit_drift: 0.002
+  # THE ATTACK THIS CLOSES. deep_contrast.csv is a summary of
+  # deep_contrast_per_dataset.csv, and until this key existed nothing compared them -- so
+  # editing the summary alone would have passed every check above. That is precisely how a
+  # permuted cost_of_matching.csv once passed 166/166. The summary's means are recomputed
+  # from the per-dataset rows and must agree exactly.
+  max_summary_arithmetic_diff: 1.0e-9
+  # --- ANTI-FORGERY, added after a referee forged this table end to end and passed 314/314 --
+  #
+  # The arithmetic gate above is ONE-DIRECTIONAL: it verifies the summary is arithmetic on the
+  # evidence, which is equally satisfied by evidence reverse-engineered from the summary. These
+  # four close that, and the fourth is the one that actually required new data.
+  #
+  # 1. THE INTERNAL IDENTITY. gain is returned by DeLong as full minus comp, so it is exact.
+  #    The forgery kept comp_* and *_full_* real and replaced every gain; this breaks on that.
+  max_gain_identity_diff: 1.0e-12
+  # 2. PANEL IDENTITY. Renaming all 94 datasets to FAKE0:XXXX, or permuting the label column so
+  #    every row attaches to the wrong protein, both passed. The panel must BE the R1 panel.
+  panel_must_match_rehearsal: true
+  # 3. COVERAGE MUST NOT DEFAULT. summarise() read `d[col].min() if col in d else 1.0`, so
+  #    DELETING the columns made the gate assert perfect coverage. A wrong value was caught; an
+  #    absent one was not. Same shape as the 2026-08 failure where deleting a file passed.
+  coverage_columns_must_be_present: true
+  # 4. THE EVIDENCE IS NOW ANCHORED TO PER-WINDOW SCORES IN THE REPO. Both arms' 940
+  #    scores.tsv.gz are committed (16 MB for the GC arm, which was the missing half), so the
+  #    raw pooled AUROC of every (dataset, model, arm) cell is recomputable here from
+  #    data/evidence alone -- no window table, no sequences, no cloud store. A forged row
+  #    cannot survive this unless the forger also rewrites 940 gzipped score files.
+  max_raw_auroc_diff: 1.0e-9
+  min_anchored_cells: 376
+
+# --- R1h: is the protocol effect IDENTIFIED? Two referee attacks, run properly ----------
+#
+# R1b splits the contrast into AUROC compression and a residual it calls the protocol effect,
+# by transplanting one arm's d' increment onto the other's baseline. A statistical referee
+# attacked that twice. Both attacks are reproduced in scripts/protocol_identification.py
+# rather than rebutted in prose, and one of them lands.
+#
+# ATTACK 1, the stated range is an arbitrary truncation: SURVIVED, but the paper must widen
+# what it quotes. Six monotone links x two directions keep the sign for every model.
+#
+# ATTACK 2, the identifying assumption is false: LANDS. The transplant needs the d' increment
+# to be baseline-invariant and it is not. Net of the mechanical regression-to-the-mean slope
+# (computed from Hanley-McNeil SEs, -0.0055 gc / -0.0165 dn), SpliceBERT's slope is -0.336.
+# Adding that slope back leaves the k-mer and the CNN standing and collapses SpliceBERT to
+# an interval containing zero.
+#
+# CONSEQUENCE, GATED SO IT CANNOT BE QUIETLY DROPPED: "the protocol effect grows with model
+# capacity" is WITHDRAWN. The largest model's protocol effect is not identified.
+r1h_protocol_identification:
+  # Net-of-mechanism slopes. The mechanical term is now model-specific, as it must be: an
+  # earlier version set cov(e_full, e_comp) = 0 and got the SAME mechanical slope for all
+  # three models within an arm, which over-subtracted by 5x-30x and biased the protocol
+  # effect high. The covariance is 0.38-0.86 and is recovered from the committed DeLong SEs.
+  slope_kmer_gc:       {value: -0.0643, tol: 0.010}
+  slope_splicebert_gc: {value: -0.3407, tol: 0.040}
+  mechanical_slope_kmer_gc:       {value: -0.0003, tol: 0.0010}
+  mechanical_slope_splicebert_dn: {value: -0.0086, tol: 0.0030}
+  # The tell that the old formula was wrong. Assert against its return.
+  mechanical_slope_must_vary_across_models: true
+  corr_full_comp_kmer_gc: {value: 0.8633, tol: 0.05}
+
+  # ATTACK 1. The honest range, over links with an ROC or variance-stabilising rationale.
+  link_family_min_kmer:       {value: 0.0127, tol: 0.0030}
+  link_family_max_kmer:       {value: 0.0506, tol: 0.0060}
+  link_family_min_splicebert: {value: 0.0159, tol: 0.0030}
+  link_family_max_splicebert: {value: 0.1022, tol: 0.0100}
+  link_family_must_keep_sign: true
+  # AND THE ONE THAT DOES NOT, NAMED. The odds scale a/(1-a) is lambda=+1 in the same power
+  # family as -log(1-a); every link above sits at lambda <= 0. It reverses the sign. It is
+  # excluded from the headline range because it has no ROC derivation and its derivative
+  # diverges at the ceiling, and that exclusion is stated rather than silent.
+  odds_forward_kmer:       {value: -0.0036, tol: 0.0030}
+  odds_forward_splicebert: {value: -0.0148, tol: 0.0050}
+  odds_link_must_reverse: true
+
+  # ATTACK 2. THE SPECIFICATION GRID, which is the honest form. The slope can be estimated in
+  # the source arm, the target arm or pooled, and the two arms disagree by 2x-3x -- so the
+  # linear-in-baseline model is misspecified by its own diagnostic and NO member is
+  # identified. What is reported is the span and how many specifications keep the sign.
+  spec_span_min_kmer:       {value: -0.0044, tol: 0.0040}
+  spec_span_max_kmer:       {value: 0.0200, tol: 0.0040}
+  spec_span_min_splicebert: {value: -0.0103, tol: 0.0040}
+  spec_span_max_splicebert: {value: 0.0044, tol: 0.0040}
+  spec_excluding_zero_kmer:       4
+  spec_excluding_zero_cnn:        6
+  spec_excluding_zero_splicebert: 1
+  spec_total: 6
+  # THE CLAIM, AND IT IS NOT A CAPACITY CLAIM. The CNN -- the MIDDLE rung -- is the only
+  # model whose protocol effect survives every specification. Any ordering by parameter count
+  # is therefore refuted, not merely unsupported.
+  cnn_must_survive_all_specifications: true
+  splicebert_must_fail_majority_of_specifications: true
+
+# --- R1i: intervals recomputed with the clustering the panel actually has ---------------
+#
+# 94 datasets, 79 proteins: 15 proteins appear in both cell lines and contribute two rows
+# each. Every bootstrap in this project resamples DATASETS, which treats those two rows as
+# independent evidence. The within-protein correlation of the contrast is +0.92 for the
+# k-mer, so it plainly is not. Every interval the manuscript printed was too narrow.
+#
+# The correction widens intervals by up to 1.23x and changes NO conclusion. That is why it
+# is worth making: it costs nothing and removes an objection a referee would land.
+r1i_cluster_intervals:
+  n_proteins: 79
+  n_doubled_proteins: 15
+  within_protein_correlation_kmer: {value: 0.924, tol: 0.05}
+  # The correction must actually do something, or it is not being applied.
+  min_width_ratio: 1.02
+  max_width_ratio: {value: 1.23, tol: 0.12}
+  # THE CLAIM THAT MATTERS. If any headline crosses zero once protein clustering is
+  # respected, the paper must restate it rather than keep the narrower interval.
+  all_headlines_exclude_zero_clustered: true
+  # THE REST OF THE PAPER, not just R1g. R1's own headline and R1f get the same correction.
+  r1_contrast_width_ratio:  {value: 1.22, tol: 0.12}
+  r1f_cds_width_ratio:      {value: 1.09, tol: 0.12}
+  # R1c needs NO correction, and that is checked rather than assumed: its 40 datasets are 40
+  # distinct proteins, so there is nothing to cluster.
+  r1c_duplicated_proteins: 0
+
+  # --- THE PER-DATASET COUNTS, restated at the measured design effect -------------------
+  #
+  # "the score adds significantly in 80/94" uses DeLong's SE, which understates here twice
+  # over: it conditions on two FITTED score vectors as if fixed (measured inflation 1.10 by
+  # permutation null), and it treats spatially clustered windows as independent (1.23 by
+  # 10-kb block bootstrap). nested.py's own test_score docstring identifies the second and
+  # cluster-bootstraps over genes; the headline estimator does not.
+  #
+  # Eight datasets is 8.5% of the panel. Too large for a Methods caveat, so the counts are
+  # restated and BOTH figures are gated -- the published one so the change is visible, and
+  # the corrected one because it is what the paper should print.
+  helps_gc_published:      80
+  helps_gc_design_effect:  72
+  helps_dn_published:      82
+  helps_dn_design_effect:  78
+  design_effect: 1.35
+
+# --- R1j: the expression confound, measured against a matched placebo -------------------
+#
+# THE OBJECTION, AND IT IS THE LARGEST ONE ANYONE RAISED. Negatives are drawn from the
+# positive's chromosome with no expression filter, so a large share sit in loci no transcript
+# is produced from. Measured against ENCODE total RNA-seq: 40.1% of negatives overlap no gene
+# above 1 TPM on either strand, and a single scalar -- log TPM of the overlapping gene --
+# separates the classes at AUROC 0.833, BETTER than the sequence model. If the benchmark's
+# dominant axis were transcribed-versus-untranscribed rather than bound-versus-unbound, the
+# whole paper would be measuring the wrong thing.
+#
+# WHY IT DOES NOT MANUFACTURE THE CONTRAST. The confound has to DIFFER between the arms to
+# create a difference between them, and it does not: 40.0993% against 40.1005%, arm difference
+# +0.000012 [-0.0033, +0.0032], paired Wilcoxon p = 0.64. Balance is the whole argument.
+#
+# THE SAME LESSON AS R1c, LEARNED AGAIN. A one-seed scratch estimate gave -0.0021 [-0.0052,
+# +0.0012] and 93.8% surviving, i.e. "indistinguishable from zero". At 20 placebo seeds with
+# the region-stratified design the excess is -0.0043 [-0.0069, -0.0018] and the interval
+# EXCLUDES zero. The artifact is real and small, exactly as the strand artifact turned out to
+# be. Do not retract or accept an artifact estimate on too few placebo seeds.
+r1j_expression_control:
+  n_datasets: 84
+  untranscribed_fraction_gc:    {value: 0.4010, tol: 0.02}
+  untranscribed_fraction_dn:    {value: 0.4010, tol: 0.02}
+  # THE BALANCE ARGUMENT. This interval MUST straddle zero, or the confound is differential
+  # and the contrast is contaminated rather than merely inflated in both arms.
+  arm_difference_must_straddle_zero: true
+  max_abs_arm_difference: 0.005
+  contrast_full:                {value: 0.0414, tol: 0.005}
+  contrast_expressed_only:      {value: 0.0310, tol: 0.005}
+  contrast_placebo_stratified:  {value: 0.0353, tol: 0.005}
+  # THE ANSWER, pre-committed as primary: restriction minus a placebo dropping the same
+  # number of pairs, stratified on the negative's region class.
+  expression_excess:            {value: -0.0043, tol: 0.0025}
+  expression_excess_must_exclude_zero: true
+  locus_mix:                    {value: 0.0007, tol: 0.0015}
+  contrast_corrected:           {value: 0.0371, tol: 0.005}
+  surviving_fraction:           {value: 0.8967, tol: 0.05}
+  min_surviving_fraction: 0.80
+  # Monte Carlo noise in the placebo must stay well below the effect it is measuring.
+  max_placebo_seed_noise: 0.008
+
+# --- R1k: three negative-set protocols, and the prediction that was falsified ------------
+#
+# THE PAPER'S THESIS, TESTED PROPERLY. Two protocols invite the reply that both are variants
+# of one flawed design. This adds a third that shares none of their defects: Horlacher et al.
+# 2023's bias-aware negative-2, i.e. OTHER RBPs' binding sites in the same cell line. Those
+# negatives are transcribed, CLIP-accessible and strand-correct by construction, and no
+# composition matcher touches them.
+#
+# THE PREDICTION WAS WRITTEN DOWN AND IT WAS WRONG. scripts/three_arm_contrast.py predicted
+# composition would fall toward 0.5 under neg2 and the nested contribution would RISE. Neither
+# happened. Composition is HIGHEST under neg2 (0.8248) and the contribution is LOWEST
+# (+0.0122), because different RBPs bind compositionally different sites, so telling one
+# protein's sites from another's is largely a composition task.
+#
+# WHAT IT DOES TO THE CLAIM: strengthens the thesis, kills the recommendation. The same model
+# on the same positives measures +0.0122 to +0.0663 depending only on how the negatives were
+# built -- a 5.4-fold range. But the ordering is NOT "harder negatives reveal more": the
+# field's own bias-aware protocol reveals the LEAST, at 0.53x the GC arm. "Prefer dinucleotide
+# matching" is therefore not supportable as a recommendation; "no protocol-independent
+# contribution exists" is, and is the better claim.
+r1k_three_arm:
+  n_datasets: 94
+  composition_gc:   {value: 0.7827, tol: 0.010}
+  composition_dn:   {value: 0.6274, tol: 0.010}
+  composition_neg2: {value: 0.8248, tol: 0.015}
+  gain_gc:   {value: 0.0265, tol: 0.006}
+  gain_dn:   {value: 0.0663, tol: 0.011}
+  gain_neg2: {value: 0.0122, tol: 0.005}
+  contrast_dn_minus_gc:   {value: 0.0398, tol: 0.0025}
+  contrast_neg2_minus_gc: {value: -0.0143, tol: 0.005}
+  contrast_neg2_minus_dn: {value: -0.0540, tol: 0.008}
+  multiplier_dn_over_gc:   {value: 2.94, tol: 0.20}
+  multiplier_neg2_over_gc: {value: 0.53, tol: 0.10}
+  # THE FALSIFIED PREDICTION, asserted so it cannot be quietly reinterpreted later. neg2 must
+  # have the HIGHEST composition baseline and the LOWEST nested contribution of the three.
+  neg2_must_have_highest_composition: true
+  neg2_must_have_lowest_gain: true
+  # THE RANGE IS THE CLAIM.
+  min_fold_range_across_protocols: 4.0
+  # THE ORDERING IS MONOTONE IN MEASURED DIFFICULTY, and an earlier version of this comment
+  # said the opposite. Ordered by apparent AUROC -- the only operational definition of
+  # "harder" this study measures -- dinuc 0.6937 < gc 0.8092 < neg2 0.8370, and the
+  # contributions run exactly the other way. neg2 is the EASIEST discrimination, not the
+  # hardest. The "prefer dinucleotide matching" recommendation is withdrawn because what
+  # harder negatives buy is HEADROOM, which the protocol sets, not because the ordering is
+  # irregular. This gate asserts the direction that fact implies.
+  contrast_neg2_minus_gc_must_be_negative: true
+  # THE TRANSPLANT CANNOT SEPARATE COMPRESSION FROM PROTOCOL HERE, and now there are six
+  # residuals rather than four to show it: their SIGN follows the direction of transplant,
+  # high-baseline-to-low positive and low-to-high negative. Same non-identification as R1h,
+  # visible across three protocols instead of two.
+  protocol_effect_gc_on_dn:     {value: 0.0314, tol: 0.005}
+  protocol_effect_gc_on_neg2:   {value: -0.0086, tol: 0.005}
+  protocol_effect_dn_on_neg2:   {value: -0.0259, tol: 0.006}
+  protocol_effect_neg2_on_dn:   {value: 0.0452, tol: 0.008}
+  transplant_residuals_must_change_sign: true
+  # The gain tracks how much room the baseline leaves. This is the circularity critique,
+  # measured rather than argued.
+  spearman_composition_gain: {value: -0.600, tol: 0.06}
+
+# --- R1l: protocol and baseline are not separable, and that IS the finding ---------------
+#
+# THE STRONGEST OBJECTION LEFT. R1k concedes the contribution tracks the composition baseline
+# at rho -0.60, so a referee says: "the protocol changes the contribution" is just "the
+# protocol changes the baseline", which is trivial.
+#
+# THE NAIVE TEST APPEARS TO AGREE. Pooled over 282 cells, gain ~ cubic(baseline) gives
+# R2 0.3955; adding protocol dummies gives 0.4065, F(2,276) = 2.55, p = 0.080.
+#
+# THE TEST IS UNINFORMATIVE, AND THAT IS THE POINT. The three protocols' baseline
+# distributions barely overlap: the intersection of their 10th-90th percentile ranges is
+# 0.0056 AUROC wide and contains 3 of 282 cells. There is no region where two protocols can be
+# compared at the same baseline, so nothing can separate them on this data. Protocol and
+# baseline are not correlated variables; the protocol IS the operation that sets the baseline.
+#
+# WHAT NEVERTHELESS SURVIVES. Compression does not explain the differences: transplanting a
+# model's own d' increment across baselines accounts for 21%, 40% and 52% of the three pairwise
+# gaps, and a single constant increment on each cell's own baseline predicts the 282 gains at
+# R2 = 0.18 with residuals ordered by protocol. The arms differ by more than the ceiling -- but
+# how much more is not estimable, and the paper says so.
+r1l_baseline_confounding:
+  r2_baseline_alone:      {value: 0.3955, tol: 0.02}
+  r2_with_protocol:       {value: 0.4065, tol: 0.02}
+  f_protocol_beyond_baseline: {value: 2.55, tol: 0.5}
+  # The naive test must remain UNCONVINCING. If it ever becomes significant, either the data
+  # changed or the overlap did, and the argument below has to be re-made rather than reused.
+  min_p_protocol_beyond_baseline: 0.02
+  # THE STRUCTURAL FACT. Both must hold: the window is tiny AND almost nothing is in it.
+  common_support_width:   {value: 0.0056, tol: 0.004}
+  max_cells_in_common_support: 10
+  baseline_median_gc:     {value: 0.780, tol: 0.015}
+  baseline_median_dn:     {value: 0.610, tol: 0.015}
+  baseline_median_neg2:   {value: 0.815, tol: 0.015}
+  # COMPRESSION IS NOT THE WHOLE STORY. Each fraction must stay well below 1.
+  compression_share_gc_dn:    {value: 0.21, tol: 0.08}
+  compression_share_gc_neg2:  {value: 0.40, tol: 0.10}
+  compression_share_dn_neg2:  {value: 0.52, tol: 0.10}
+  max_compression_share: 0.75
+  r2_one_constant_increment: {value: 0.183, tol: 0.05}
+  # And the leftovers must still be ordered by protocol, or there is nothing beyond the ceiling.
+  residual_dn:   {value: 0.0247, tol: 0.008}
+  residual_neg2: {value: -0.0143, tol: 0.008}
+  residuals_must_be_ordered: true
+
+# --- R1m: no rescaling of AUROC removes the protocol dependence --------------------------
+#
+# THE FIRST OBJECTION A REFEREE RAISES AGAINST THE TITLE. The paper claims the measured
+# contribution is protocol-dependent, using a BOUNDED statistic across three protocols whose
+# baselines differ by 0.20 AUROC. Is the range just the bounded scale?
+#
+# "Some transform would remove it" is an existential claim, so it needs a search, not an
+# argument. Eight monotone transforms, fold range over the three protocol means, intervals
+# bootstrapping the 79 PROTEINS per R1i.
+#
+# THE FLOOR IS 2.00x [1.67, 2.46] AND IT EXCLUDES 1. The transform achieving it divides by the
+# baseline's remaining headroom, which is not a rescaling of the model's output at all -- it is
+# a rescaling by the protocol's own baseline. The only way to shrink protocol dependence is to
+# divide it out by hand using the quantity the protocol sets.
+#
+# THIS IS THE ANALYSIS THAT COULD NOT LOSE. Had a transform collapsed the range, the paper
+# would have become "here is the protocol-independent coordinate, use it" -- better and more
+# citable. It did not, so the title stands with a search behind it.
+r1m_scale_sweep:
+  n_transforms: 8
+  fold_range_raw:        {value: 5.42, tol: 0.40}
+  fold_range_dprime:     {value: 3.18, tol: 0.35}
+  fold_range_logit:      {value: 2.72, tol: 0.35}
+  fold_range_headroom:   {value: 2.00, tol: 0.30}
+  fold_range_excess:     {value: 18.18, tol: 3.0}
+  minimum_fold_range:    {value: 2.00, tol: 0.30}
+  # THE CLAIM. No transform reaches protocol independence, so the floor must stay clear of 1.
+  min_floor_fold_range: 1.30
+  floor_ci_must_exclude_one: true
+  # Somers' D is a linear rescale of AUROC, so its fold range MUST equal the raw one exactly.
+  # If it ever differs, the sweep has a bug.
+  max_somers_raw_difference: 1.0e-9
+
+# --- R1n: it is the baseline, not the protocol label -------------------------------------
+#
+# R1l argued protocol and baseline cannot be separated because the arms barely overlap. That
+# was too comfortable. A hostile referee found two places where they DO overlap and asked the
+# question there. The answer is that the protocol label carries essentially no information.
+#
+#   incremental R2 of the protocol label given the baseline:  1.00%
+#   incremental R2 of the baseline given the protocol label: 11.04%
+#
+# THE NATURAL EXPERIMENT. neg2 usually raises the baseline against GC matching, but in 27 of
+# 94 datasets it LOWERS it -- and there the result REVERSES, from -0.0212 to +0.0028. Whichever
+# protocol leaves the lower baseline gets the higher contribution, whichever protocol that is.
+# Within-dataset spearman(delta baseline, delta gain) = -0.664, p = 3e-13.
+#
+# THE MATCHED COMPARISON. Matched on baseline within 0.02 AUROC, dn minus gc is
+# -0.0087 [-0.0265, +0.0122] against a raw +0.0398. The contrast does not survive matching.
+# comp_dn < comp_gc in 94/94, so within a dataset the two arms are rank-confounded by
+# construction and the match has to borrow across datasets; both designs are reported.
+r1n_protocol_or_baseline:
+  incremental_r2_protocol: {value: 0.0100, tol: 0.004}
+  incremental_r2_baseline: {value: 0.1104, tol: 0.020}
+  # The label must stay uninformative relative to the baseline, by a wide margin.
+  max_incremental_r2_protocol: 0.03
+  min_baseline_over_protocol_ratio: 5.0
+  n_discordant_datasets: {value: 27, tol: 3}
+  gain_diff_concordant: {value: -0.0212, tol: 0.006}
+  gain_diff_discordant: {value: 0.0028, tol: 0.005}
+  # THE CLAIM. The sign must FLIP between concordant and discordant datasets, or the natural
+  # experiment shows nothing.
+  discordant_must_reverse_sign: true
+  within_dataset_spearman: {value: -0.664, tol: 0.08}
+  matched_dn_minus_gc: {value: -0.0087, tol: 0.010}
+  # And the matched comparison must CONTAIN ZERO, i.e. the contrast does not survive matching.
+  matched_must_contain_zero: true
+  n_rank_confounded: 94
+
+  # --- THE CORRECTION: R1l's "no common support" was the THREE-WAY intersection -----------
+  #
+  # R1l reported a common support 0.0056 AUROC wide holding 3 of 282 cells and concluded no
+  # matched comparison was possible. That is the intersection of ALL THREE arms. Pairwise:
+  #   gc vs dn    0.073 AUROC,  33/188 cells   (and rank-confounded 94/94)
+  #   gc vs neg2  0.212 AUROC, 130/188 cells   <- the comparison IS possible here
+  #   dn vs neg2  0.006 AUROC,   2/188 cells
+  #
+  # I ran the matched design on the one pair where it cannot work and never on the pair where
+  # it can. Run properly, neg2 vs gc at matched baseline is NEGATIVE with the interval clear
+  # of zero under two independent designs. So a protocol-specific residual DOES exist, the
+  # headline 1.00% averages an answerable pair with an unanswerable one, and R1n's strong form
+  # is weakened rather than supported.
+  pairwise_support_gc_dn:   {value: 0.073, tol: 0.03}
+  pairwise_support_gc_neg2: {value: 0.212, tol: 0.05}
+  incremental_r2_gc_dn:   {value: 0.0005, tol: 0.0015}
+  incremental_r2_gc_neg2: {value: 0.0340, tol: 0.010}
+  matched_neg2_minus_gc:  {value: -0.0081, tol: 0.005}
+  intercept_neg2_minus_gc: {value: -0.0043, tol: 0.004}
+  # THE CLAIM: a residual exists for neg2 and must not be reported as absent.
+  neg2_residual_must_exclude_zero: true
+  # THE MECHANISM: the baseline gradient is a property of composition-matched genomic-background
+  # negatives and DIES for other-RBPs'-sites negatives. That replicates on Horlacher's data too.
+  within_arm_spearman_gc:   {value: -0.545, tol: 0.08}
+  within_arm_spearman_neg2: {value: -0.122, tol: 0.10}
+  gradient_must_die_for_neg2: true
+
+# --- R1o: how much of the "contribution" is one order of composition up? -----------------
+#
+# THE SHARPEST OBJECTION ANYONE MADE ABOUT WHAT THE QUANTITY IS. A bag of 4-mer counts carries
+# no positional information, and the composition baseline stops at order 2. So the headline
+# quantity is definitionally order-3-and-4 composition beyond order-1-and-2 composition, and
+# where the baseline stops is an analyst's choice that nobody had measured the consequences of.
+#
+# MEASURED, on 30 size-stratified datasets whose own R1 contrast is +0.0399 against the
+# published +0.0398, so the subsample is representative:
+#
+#   extending the baseline to order 3 removes 46% (gc), 56% (dn), 55% (neg2) of each arm's
+#   contribution, and 64% of the R1 contrast (+0.0399 -> +0.0143).
+#
+# WHAT IT COSTS: the word "sequence model" must be qualified. What is measured is short-range
+# compositional signal one order above wherever the matcher stopped -- not motif recognition,
+# and nothing positional.
+#
+# WHAT IT DOES NOT COST, AND THIS IS THE POINT: the FOLD RANGE, which is the paper's actual
+# claim, is 2.67x at order 2 and 2.62x at order 3. Everything shrinks proportionally. The
+# magnitude is a function of an analyst's choice; the protocol dependence is not.
+# CORRECTED 2026-09-01, and the correction is larger than the original result. The first
+# version of baseline_order.py built its OWN composition block instead of using the paper's:
+# all 4 mono + all 16 dinucleotide frequencies, unstandardised, into sklearn's default
+# LogisticRegression. Singular design matrix, no entropy column, and an L2 penalty on features
+# of scale 0.06 -- which underfits both baselines, overstates both gains (1.22x on GC, 2.31x on
+# neg2) and underfits order 3 worst of all. It reported ~50% removed; the true figure is 80-88%.
+# It reported a fold range of 2.67x that was never the paper's 5.42x.
+#
+# IT PASSED REVIEW because its order-2 R1 CONTRAST landed at +0.0399 against the published
+# +0.0398 -- two offsetting errors. The lesson, now enforced by max_order2_reproduction below:
+# a re-implemented baseline must be asserted equal to the original PER CELL, not agree with it
+# on one aggregate.
+r1o_baseline_order:
+  n_datasets: 30
+  # THE ANCHOR. Order 2 IS nested.composition_features, so the gain must be the published gain
+  # cell by cell. Everything else in this block is meaningless if this drifts.
+  max_order2_reproduction: 1.0e-9
+  gain_order2_gc:   {value: 0.0288, tol: 0.006}
+  gain_order3_gc:   {value: 0.0058, tol: 0.003}
+  gain_order2_dn:   {value: 0.0650, tol: 0.010}
+  gain_order3_dn:   {value: 0.0105, tol: 0.005}
+  gain_order2_neg2: {value: 0.0122, tol: 0.005}
+  gain_order3_neg2: {value: 0.0015, tol: 0.0012}
+  removed_fraction_gc:   {value: 0.80, tol: 0.10}
+  removed_fraction_dn:   {value: 0.84, tol: 0.10}
+  contrast_order2: {value: 0.0361, tol: 0.007}
+  contrast_order3: {value: 0.0048, tol: 0.003}
+  removed_fraction_contrast: {value: 0.87, tol: 0.10}
+  # THE SUBSAMPLE MUST BE REPRESENTATIVE, or none of the above transfers to the full panel.
+  max_subsample_contrast_drift: 0.006
+  # THE CLAIM THAT MUST SURVIVE. Most of the MAGNITUDE is an analyst's choice; the protocol
+  # DEPENDENCE is not.
+  #
+  # CORRECTED AGAIN 2026-09-02, by an adversarial statistician. The first correction said the
+  # range "WIDENS, 5.34x -> 7.16x" and that the arms "do not shrink proportionally". Neither is
+  # supported at n = 30. The intervals were written as NaN and the prose printed the point
+  # estimates as if identified: order-2 is 5.34x [3.95, 7.71], order-3 is 7.16x [3.65, 22.65],
+  # and the CHANGE is [-1.89, +16.43] with P(<=0) = 0.18. The order-3 range's denominator is the
+  # neg2 order-3 mean of 0.0015, whose own interval spans a factor of six. The removed fractions
+  # 0.80 / 0.84 / 0.88 also have overlapping intervals, so their ORDERING is not resolved.
+  #
+  # The surviving claim is the weaker one: the range does NOT COLLAPSE toward 1. Whether it
+  # widens is unknown.
+  fold_range_order2: {value: 5.34, tol: 0.60}
+  fold_range_order3: {value: 7.16, tol: 1.20}
+  min_fold_range_order3: 3.0
+  range_change_direction_unresolved: true
+  most_of_the_magnitude_must_be_removable: true
+  # AND THE PER-DATASET SIGN, which a ratio of means cannot show. On the neg2 arm the TYPICAL
+  # dataset retains nothing over a trinucleotide baseline -- the median per-dataset ratio is
+  # NEGATIVE -- and the positive panel mean is carried by three datasets. A mean of +0.0015 read
+  # as "small but positive everywhere" would be false.
+  order3_positive_gc:   {value: 18, tol: 2}
+  order3_positive_dn:   {value: 23, tol: 2}
+  order3_positive_neg2: {value: 17, tol: 2}
+  median_ratio_neg2: {value: -0.020, tol: 0.030}
+  neg2_median_must_be_reported: true
+  # The subsample's representativeness was argued from ORDER-2 quantities only, and the order-3
+  # retained fraction is size-dependent (+0.354 / +0.627 / +0.432), while head(30) after
+  # iloc[::3] deterministically discards the two largest datasets. So the removal fractions are
+  # biased UPWARD. Gated so the size dependence must be reported alongside them.
+  size_dependence_dn: {value: 0.627, tol: 0.15}
+  size_dependence_must_be_reported: true
+
+# --- R1r: is the order-3 collapse the 4-mer's, or every model's? -------------------------
+#
+# R1o's 80% collapse is near-tautological for a bag of 4-mers, whose only information beyond
+# trinucleotide frequency IS order 4. If it held for every model class the reading would be
+# general and devastating. It does not: on R1g's own committed per-window scores, over 94
+# datasets and both arms, the 4-mer keeps ~20% of its contribution over an order-3 baseline
+# while SpliceBERT keeps ~70-75%, and the three models' intervals do not overlap in either arm.
+#
+# TWO CONSEQUENCES FOR THE PAPER:
+#   * the order-3 baseline SEPARATES model classes far better than the order-2 one
+#     (SpliceBERT/4-mer widens from 3.36x to 11.61x on GC), so it is the better instrument;
+#   * the protocol contrast survives at order 3 for ALL THREE models, intervals clear of zero,
+#     so protocol dependence is not an artefact of the baseline's order for any model class.
+#
+# NO NEW COMPUTE. The CNN and SpliceBERT scores are R1g's, on R1g's intersected row set, via
+# deep_model_contrast's own loader. So the order-2 column IS deep_contrast_per_dataset.csv and
+# that is asserted per cell.
+r1r_baseline_order_models:
+  n_datasets: 94
+  max_order2_reproduction: 1.0e-9
+  surviving_kmer_gc:       {value: 0.217, tol: 0.06}
+  surviving_cnn_gc:        {value: 0.605, tol: 0.06}
+  surviving_splicebert_gc: {value: 0.750, tol: 0.05}
+  surviving_kmer_dn:       {value: 0.188, tol: 0.06}
+  surviving_cnn_dn:        {value: 0.591, tol: 0.06}
+  surviving_splicebert_dn: {value: 0.692, tol: 0.05}
+  # THE SHARE GAP. Note what this does and does not assert: it pins the gap in the SHARES,
+  # which is a denominator effect (see below). It is NOT evidence that the k-mer is more
+  # fragile, and its old label said so until 2026-09-02.
+  min_deep_advantage_over_kmer: 0.15
+  # THE COMPRESSION CORRECTION, which this section omitted and which the paper itself calls
+  # "not optional". The order-3 baseline RAISES composition (+0.0196 gc, +0.0517 dn), cutting
+  # the headroom every model works in -- and it cuts more from a model with a bigger gain, which
+  # is precisely what made the raw absorption look constant. Transplanting each model's order-2
+  # d' increment onto the order-3 baseline, the k-mer's residual is 1.29x (gc) and 1.41x (dn)
+  # SpliceBERT's. So BOTH of this section's framings were partial: the shares (3.4x) overstate
+  # the difference and the raw absorption (1.0x) understates it. The truth is ~1.3-1.4x.
+  residual_kmer_gc:       {value: -0.0182, tol: 0.004}
+  residual_cnn_gc:        {value: -0.0099, tol: 0.004}
+  residual_splicebert_gc: {value: -0.0141, tol: 0.004}
+  residual_kmer_dn:       {value: -0.0460, tol: 0.008}
+  residual_splicebert_dn: {value: -0.0327, tol: 0.007}
+  corrected_ratio_gc: {value: 1.29, tol: 0.20}
+  corrected_ratio_dn: {value: 1.41, tol: 0.20}
+  compression_correction_must_be_reported: true
+  # AND THE CNN CONTRADICTS ANY CAPACITY STORY on both scales: it absorbs the LEAST, raw and
+  # corrected, with intervals clear of zero. The dn spread was ungated until now.
+  cnn_minus_kmer_absorbed_gc: {value: -0.0077, tol: 0.003}
+  cnn_minus_kmer_absorbed_dn: {value: -0.0186, tol: 0.005}
+  max_absorbed_spread_dn: 0.025
+  gain_order3_kmer_gc:       {value: 0.0058, tol: 0.003}
+  gain_order3_splicebert_gc: {value: 0.0668, tol: 0.010}
+  gain_order3_kmer_dn:       {value: 0.0124, tol: 0.005}
+  gain_order3_splicebert_dn: {value: 0.1213, tol: 0.015}
+  contrast_order3_kmer:       {value: 0.0067, tol: 0.003}
+  contrast_order3_cnn:        {value: 0.0309, tol: 0.007}
+  contrast_order3_splicebert: {value: 0.0545, tol: 0.008}
+  # THE SHARE IS A RATIO AND ITS DENOMINATOR DID THE WORK. The first version of R1r led with
+  # "the k-mer keeps 22%, SpliceBERT keeps 75%" and concluded the k-mer is uniquely FRAGILE.
+  # Withdrawn: the order-3 baseline absorbs almost the SAME ABSOLUTE amount from every model
+  # (+0.021 gc, +0.054 dn), and on the dinuc arm SpliceBERT minus k-mer is indistinguishable
+  # from zero. The shares follow from the totals. These keys force the absolute column to be
+  # present and to stay close, so the fragility reading cannot be restored.
+  absorbed_kmer_gc:       {value: 0.0208, tol: 0.004}
+  absorbed_cnn_gc:        {value: 0.0130, tol: 0.004}
+  absorbed_splicebert_gc: {value: 0.0222, tol: 0.004}
+  absorbed_kmer_dn:       {value: 0.0538, tol: 0.008}
+  absorbed_splicebert_dn: {value: 0.0540, tol: 0.008}
+  # The absorption is a CONSTANT across model classes, not a capacity effect. If this ever
+  # exceeds the bound, R1r's mechanism changes and the section must be rewritten.
+  max_absorbed_spread_gc: 0.010
+  # THE RESULT THAT REPLACED THE SHARES: over a trinucleotide baseline the 4-mer is not
+  # reliably positive and SpliceBERT is positive everywhere. A mean of +0.0058 hid this.
+  kmer_order3_positive_gc:       {value: 65, tol: 4}
+  cnn_order3_positive_gc:        {value: 80, tol: 4}
+  splicebert_order3_positive_gc: {value: 94, tol: 0}
+  splicebert_order3_positive_dn: {value: 94, tol: 0}
+  splicebert_must_be_positive_everywhere: true
+
+  # AND THE WITHDRAWN CLAIM STAYS WITHDRAWN. SpliceBERT has the LOWEST multiplier at both
+  # orders, so the order-3 table cannot be used to revive "the contrast grows with capacity".
+  multiplier_order3_kmer:       {value: 2.16, tol: 0.30}
+  multiplier_order3_cnn:        {value: 2.55, tol: 0.30}
+  multiplier_order3_splicebert: {value: 1.82, tol: 0.25}
+  splicebert_multiplier_must_be_lowest: true
+
+# --- R1p: external validation on Horlacher's own benchmark, and where it LIMITS us --------
+#
+# Every other result is measured on windows this project built. This one is not: same nested
+# decomposition, Horlacher et al. 2023's published negative sets, THEIR fold assignments, on
+# 45 size-stratified datasets of the 88 our panel shares with their 223.
+# Zenodo 10.5281/zenodo.10600977, md5 c93a38b8bd684be2ccb5f6f82c6c4700, verified.
+#
+# WHAT REPLICATES:
+#   * the RANGE. Their two negative sets give 2.38x, against 2.50x for our dinuc/GC pair.
+#     Measured on their positives, their peaks, their folds. This is the strongest external
+#     support the paper has.
+#   * the BASELINE GRADIENT. Within-dataset spearman(delta baseline, delta gain) = -0.372,
+#     p = 0.012, the same sign as our -0.664.
+#
+# WHAT DOES NOT, AND IT LIMITS R1n:
+#   * the sign does NOT reverse. On our data, where the alternative protocol lowers the
+#     baseline the contrast flips (-0.0212 -> +0.0028). On theirs it does not: -0.0409 where
+#     negative-2 raises the baseline, -0.0184 where it lowers it. The gradient is there (the
+#     deficit halves in the predicted direction) but negative-2 gives less regardless.
+#
+# CONCLUSION THE PAPER MUST DRAW. R1n's strong form -- "the protocol label carries essentially
+# no information beyond the baseline" -- holds on our windows and NOT on theirs. The honest
+# claim is the weaker one: the baseline explains most of the protocol dependence and, on our
+# data, all of it; on an independent benchmark a protocol-specific residual remains.
+r1p_horlacher:
+  n_datasets: 45
+  composition_n1: {value: 0.8211, tol: 0.020}
+  composition_n2: {value: 0.7560, tol: 0.020}
+  gain_n1:        {value: 0.0395, tol: 0.008}
+  gain_n2:        {value: 0.0166, tol: 0.006}
+  contrast_n2_minus_n1: {value: -0.0229, tol: 0.007}
+  # THE EXTERNAL VALIDATION. Their range must be comparable to ours or the claim does not
+  # travel. Ours is 2.50x for the corresponding two-protocol comparison.
+  fold_range_their_data: {value: 2.38, tol: 0.45}
+  min_fold_range_their_data: 1.6
+  # The gradient must replicate in SIGN.
+  within_dataset_spearman: {value: -0.372, tol: 0.12}
+  gradient_must_replicate_in_sign: true
+  # AND THE LIMITATION, ASSERTED so it cannot be dropped: the sign does NOT reverse on their
+  # data, unlike ours. If a future run makes it reverse, R1n's strong form is restored and
+  # that must be a deliberate decision, not a silent one.
+  gain_diff_n2_baseline_higher: {value: -0.0409, tol: 0.012}
+  gain_diff_n2_baseline_lower:  {value: -0.0184, tol: 0.010}
+  sign_must_not_reverse_on_their_data: true
+
+# --- R1q: does the recommendation actually help? Measured, not asserted ------------------
+#
+# THE GAP THIS FILLS. Everything up to here shows that NOT reporting the composition baseline
+# is a problem. Nothing showed that DOING it helps. A benchmarking paper whose recommendation
+# is untested is a complaint, not a contribution.
+#
+# THE TEST. Put a reader in the position the recommendation is meant to rescue: two papers,
+# two protocols, comparing what the models contributed. Raw contributions against the
+# headroom-normalised coordinate the two-number report buys.
+#
+#   rank agreement (Spearman, scale-free)   improves in 3/3 pairs
+#   disagreement on a common scale          shrinks in 3/3 pairs, by 58%, 10% and 48%
+#
+# HONEST LIMIT, GATED: only the GC-vs-dinucleotide rank improvement has an interval clear of
+# zero (+0.007 to +0.115). The other two are consistent in direction and not individually
+# significant, and the paper must say so. The DISAGREEMENT reduction is the stronger half.
+r1q_recommendation:
+  rank_raw_gc_dn:        {value: 0.848, tol: 0.05}
+  rank_headroom_gc_dn:   {value: 0.899, tol: 0.05}
+  rank_gain_gc_dn:       {value: 0.051, tol: 0.03}
+  disagreement_raw_gc_dn:      {value: 1.151, tol: 0.15}
+  disagreement_headroom_gc_dn: {value: 0.482, tol: 0.10}
+  disagreement_raw_dn_neg2:      {value: 1.552, tol: 0.20}
+  disagreement_headroom_dn_neg2: {value: 0.802, tol: 0.15}
+  n_pairs: 3
+  # THE CLAIM: the direction must be consistent across every pair, on both measures.
+  pairs_rank_improves: 3
+  pairs_disagreement_shrinks: 3
+  recommendation_must_help_on_every_pair: true
+  # AND THE LIMIT: at least one pair's rank improvement must be individually significant, or
+  # the claim is direction-only and has to be worded that way.
+  min_significant_rank_pairs: 1
 
 # --- R2: four models on identical splits ----------------------------------------------
 r2_four_models:
@@ -298,7 +1318,56 @@ integrity:
   duplicate_datasets_allowed: 0
   # Checked against the actual suite, not a number typed once and left to drift. It read 480
   # while the suite had grown to 575.
-  min_tests_passing: 570
+  # 607 collect locally after the local-store shim added 10. Raised with the suite, because
+  # a floor left behind is the bug this key exists to prevent: it once read 480 while the
+  # suite had grown to 576.
+  min_tests_passing: 610
+  # HOW MANY CHECKS RAN, asserted, because almost every gate in verify.py is written
+  # `if value is not None:` and therefore DISAPPEARS when a row is missing instead of failing.
+  # Deleting five rows from one table once produced "106/106 passed". Asserting the count
+  # catches that for every gate at once, including the ones nobody has attacked yet.
+  # Raise this deliberately when checks are added; that is the point, not an inconvenience.
+  # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
+  # number here is directly comparable to the per-section output above it.
+  min_domain_checks: 613
+  # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
+  # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
+  # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
+  # table computed on the fly and stored nowhere (precisely the state the +0.0397 contrast
+  # survived six review rounds in, now written by scripts/scale_check.py), and it found that
+  # R4's five-row table splices its top row in from a different table with a different n.
+  #
+  # 45 IS NOT A CLEAN BILL OF HEALTH. Most survivors are aggregates over a SUBSET, such as the
+  # mean conservation AUROC over the 44 powered datasets, which no whole-column aggregate can
+  # reproduce. They need triaging one at a time, and the legitimate ones need emitting into
+  # tables so this can ratchet toward zero. Until then the gate buys one thing, which is that a
+  # NEW unsourced number fails the build.
+  #
+  # DO NOT RAISE THIS TO MAKE A BUILD PASS. Add the number to the table that owns it.
+  # Down from 45. Cutting the dead sections removed most of them, and pruning the limitations
+  # that belonged to those sections removed the rest. The two that remain are both the
+  # algebraic identity that retracted the composition-share claim:
+  #
+  #   0.127853   C = mean(composition_auroc) - 0.5, the constant that makes share_m = C/gain_m
+  #   1.648166   share_kmer/share_SB == gain_SB/gain_kmer, quoted to 6 dp precisely to show the
+  #              two routes agree EXACTLY, which is what proves it is an identity
+  #
+  # They are evidence ABOUT a retraction rather than claims, and reproducing them in a table
+  # would mean re-deriving a quantity the paper exists to disown. A THIRD ORPHAN MEANS SOMEONE
+  # PRINTED A NUMBER WITH NO SOURCE.
+  max_manuscript_orphans: 2
+  # Duplicated numbers must agree. cost_of_matching.csv is a join of the two rehearsal arms and
+  # verify.py read only the join, so scrambling rehearsal_binding_dinuc.csv passed 166/166
+  # while breaking 88/94, 94/94 and the Wilcoxon p. Exact equality: these are copies, not
+  # recomputations, so any difference at all is corruption.
+  max_cross_table_diff: 0.0
+  # THE --from-cache TABLES ARE EVIDENCE AND WERE UNGATED. Zeroing every per-arm gain in
+  # k_sweep_per_dataset.csv and every AUROC in strand_placebo_per_dataset.csv reproduced both
+  # summaries bit-for-bit and passed, so R1e's "rebuilt from raw sequence" reproduced from a
+  # table of zeros. These two keys assert the arithmetic linking evidence columns to summary
+  # columns, and the rebuild against the published rehearsal values.
+  max_cache_arithmetic_diff: 1.0e-12
+  max_rebuild_vs_published_diff: 2.0e-3
 
 # --- the wrong-protein control's donor must actually be a WRONG protein -----------------
 #
@@ -383,19 +1452,21 @@ r4_multidonor:
 # half -- the objection predicts a much LARGER contrast where the artifact is strongest, and
 # the data give a slightly smaller one.
 strand_audit:
+  # WHAT THIS BLOCK USED TO CONTAIN, AND WHY IT IS GONE. Six keys here gated the stability of
+  # the composition-SHARE contrast across antisense-rich and antisense-poor halves
+  # (contrast_rho_max, contrast_rho_p_min, share_rho_min, contrast_antisense_rich 0.2485,
+  # contrast_antisense_poor 0.2644, contrast_halves_max_diff). That contrast is RETRACTED: it
+  # is an algebraic identity, share_m = C/gain_m with C constant across models, so
+  # share_kmer/share_SB equals gain_SB/gain_kmer exactly and the comparison excluded zero with
+  # probability 1. Gating a retracted quantity is worse than not gating it, because the passing
+  # count then certifies something the paper does not claim -- and those six checks were part
+  # of every "N/N passed" this project has reported.
+  #
+  # WHAT SURVIVES is the measurement itself, which is real and is a genuine limitation:
+  # negatives inherit the POSITIVE's strand (negatives.py:328), so only ~55% of them carry
+  # their own gene's strand and the rest are antisense. It inflates every absolute AUROC in R1.
   frac_sense:              {value: 0.552, tol: 0.06}
   frac_no_gene_max:        0.02      # negatives really are inside genes, so "antisense" is meaningful
-  # THE GATE THAT DEFENDS THE HEADLINE. If the artifact ever starts predicting the contrast,
-  # the model-dependence claim is no longer safe and this must fail loudly.
-  contrast_rho_max:        0.40
-  contrast_rho_p_min:      0.05      # must stay NON-significant
-  # Both shares are expected to track it. Asserted so that a future run where they DON'T is
-  # flagged, because that would mean the mechanism is not what this file says it is.
-  share_rho_min:           0.30
-  # The model-free version: the contrast must be stable across the two halves.
-  contrast_antisense_rich: {value: 0.2485, tol: 0.06}
-  contrast_antisense_poor: {value: 0.2644, tol: 0.06}
-  contrast_halves_max_diff: 0.08
 
 # --- the correctness half of verification -------------------------------------------------
 #
@@ -435,3 +1506,298 @@ r4_incremental_value:
   # The positional rule must remain informative WITHIN conservation strata, or it is just
   # conservation in disguise and the paper has one baseline, not two.
   positional_rule_min_auroc_within_phylop_decile: 0.70
+  # The two positional-rule numbers the paper actually prints, which were ungated while the
+  # floor above was the only assertion. They also both MOVED: prevalence was computed on the
+  # pre-deduplicated assignment table (2.40 rows per variant), so leave-one-out removed one
+  # copy and left ~1.4 copies of a variant's own label in its own block. 0.8246 -> 0.8164 and
+  # 0.7678 -> 0.7548 after deduplicating first.
+  positional_rule_unstratified_auroc: {value: 0.8164, tol: 0.010}
+  positional_rule_phylop_spearman:    {value: 0.3375, tol: 0.030}
+
+# --- the estimator R4 needed, done correctly, on the arm that is in the repo -----------
+#
+# WHAT THIS BLOCK REPLACES. `variant_specificity_refit.csv` was built by a caller that passed
+# conservation into EVERY fit, so its "controls = none" row was already adjusted and the
+# published "0.21% attenuation" was the effect of dropping 168 rows. The keys above
+# (r4_incremental_value) still gate those retracted numbers and must not be trusted; this
+# block gates the corrected procedure on the k-mer arm, which is the only variant score table
+# committed to the repo. It is a methods demonstration, not R4.
+#
+# THE POINT, AND IT INVERTS THE ORIGINAL READING. Near-zero attenuation was presented as
+# evidence that the model's signal is independent of conservation. It is the opposite. Logistic
+# regression is not collapsible, so a covariate this strong (phyloP coefficient ~2.12) AMPLIFIES
+# the other coefficient by ~65% when it is genuinely independent. Landing at ~0% therefore
+# requires real sharing, and the amount of sharing it requires (rho ~0.085) is close to the
+# correlation actually measured (rho ~0.065). The two agree, so the picture is consistent and
+# the original conclusion was backwards.
+r4_unconditional_refit:
+  coef_unconditional_within: {value: 0.2915, tol: 0.020}
+  coef_conditional_within:   {value: 0.3067, tol: 0.020}
+  # Raw attenuation is near zero AND flips sign between the two standardisations (+0.024
+  # pooled, -0.052 within). That instability is itself a reason it was never a safe headline.
+  max_abs_raw_attenuation:   0.10
+  # The null, twice, by independent routes. If the simulation and the closed form disagree,
+  # one of them is broken and the interpretation rests on nothing. The first attempt at this
+  # simulation WAS broken -- it drew the covariate from the label, making it a collider, and
+  # reported -1.5% instead of -68% -- which would have reproduced the retracted conclusion.
+  # CORRECTED TWICE, BOTH CORRECTIONS RECORDED. First the null was built by drawing the
+  # covariate FROM the label, which makes it a collider: -1.5%. Then by forward simulation with
+  # a NORMAL covariate: -68%. Non-collapsibility depends on the omitted covariate's whole
+  # distribution and not only its variance, and phyloP is skewed (+1.04, sd 3.19, range -20 to
+  # +10), so it is now drawn through a Gaussian copula onto phyloP's empirical marginal: -87%.
+  # Every correction moved the null further from zero, i.e. every earlier version was
+  # anti-conservative. Seeds raised 12 -> 40 (seed-to-seed sd was ~0.054).
+  null_attenuation_simulated: {value: -0.8740, tol: 0.040}
+  # NOT A CROSS-CHECK, AND NO LONGER GATED AS AGREEMENT. 1 - sqrt(1 + 0.346 c^2) is a
+  # small-sigma probit approximation; at c = 2.12 it is far outside its range and it is
+  # anti-conservative. This file previously asserted the two "must agree" to within 0.15, which
+  # gated a known-invalid approximation against the correct simulation. Pinned, not compared.
+  null_attenuation_analytic:  {value: -0.6005, tol: 0.040}
+  # THE CLAIM. Both standardisations must show a large positive excess over the null.
+  min_excess_attenuation:    0.60
+  # SELF-VALIDATION, AND IT IS WEAKER THAN IT LOOKED. With the corrected marginal the
+  # attenuation implies rho ~0.098 against a measured ~0.064. Same order, same sign, which is
+  # what supports the reading -- but they no longer agree to 0.02 as they appeared to under the
+  # normal-marginal null, and the tolerance now says so.
+  implied_rho:               {value: 0.0978, tol: 0.020}
+  measured_rho:              {value: 0.0640, tol: 0.015}
+  max_implied_measured_gap:  0.045
+
+# --- R1s: whose property is the protocol multiplier? -------------------------------------
+#
+# README.md and docs/65 asserted "a property of the PROTEIN (68.9% of variance) not the model
+# (1.5%)" from a referee agent's decomposition that lived in no script and no table. Recomputed
+# over the 262 (dataset x model) cells where both arms are positive, on the LOG multiplier, it
+# approximately reproduces -- and a permutation null changes the reading.
+#
+# PROTEIN HAS 79 LEVELS. A 79-level factor absorbs 29.7% of the variance of RELABELLED data, so
+# "68.9% against 1.5%" is mostly degrees of freedom rather than a finding. The comparable
+# statistic is each factor's excess over its OWN null. On that scale protein is far ahead
+# (+35.1, p < 0.0005), cell line is noise (p = 0.49) and MODEL CLASS IS NOT NULL (p = 0.023) --
+# consistent with R1g's own record that SpliceBERT's multiplier is significantly lower.
+r1s_multiplier_variance:
+  n_cells: 262
+  n_proteins: 79
+  share_protein: {value: 0.648, tol: 0.05}
+  share_model:   {value: 0.028, tol: 0.02}
+  share_cell:    {value: 0.002, tol: 0.01}
+  null_protein:  {value: 0.297, tol: 0.05}
+  excess_protein: {value: 0.351, tol: 0.06}
+  panel_multiplier: {value: 2.99, tol: 0.20}
+  # CORRECTED 2026-09-02. The wholesale-y null above is TOO PERMISSIVE and the +35.1 excess it
+  # reports is about five-fold too generous. It destroys the protein effect AND the
+  # within-dataset correlation among the model cells that share windows, labels and folds -- and
+  # since 79 proteins sit on 94 datasets, protein is very nearly the DATASET factor (68.0% as a
+  # factor in its own right, MORE than protein's 64.8%). A null that permutes protein labels
+  # between datasets, keeping each (dataset x model) block intact, isolates protein identity
+  # from experiment identity and is the null the claim needs.
+  share_dataset: {value: 0.680, tol: 0.05}
+  null_protein_block:   {value: 0.576, tol: 0.05}
+  excess_protein_block: {value: 0.072, tol: 0.030}
+  # AND THE DIRECT TEST, which is stronger than any variance share and is what the section now
+  # leads with: does the SAME protein get the same multiplier in the other cell line?
+  cross_cell_r:   {value: 0.586, tol: 0.10}
+  cross_cell_rho: {value: 0.594, tol: 0.10}
+  cross_cell_n:   {value: 40, tol: 0}
+  block_null_must_be_reported: true
+  # THE GATE THAT MATTERS. If a future run ever shows protein's share failing to beat its own
+  # permutation null, the README's headline about R1g is false and must come out rather than
+  # be softened. And the null must be PRESENT: a decomposition without it is the claim that
+  # was retracted here.
+  protein_must_beat_its_own_null: true
+  null_must_be_reported: true
+
+# --- R1t: the rungs of the R1g ladder were not measured on the same scale -----------------
+#
+# THE DEFECT, found by a methods referee in review and confirmed. The nested contribution adds
+# the model's score as a covariate to a logistic regression. The 4-mer entered as a LOG-ODDS
+# (baseline.oof_scores returns decision_function); the CNN and SpliceBERT entered as
+# PROBABILITIES, because that is what their GPU sweeps wrote to data/evidence. A logistic
+# regression is NOT invariant to a monotone nonlinear transform of a covariate, so the deep
+# models' gains were measured with a range-compressed version of their own score and the
+# k-mer's were not. That is an asymmetry in the one section whose point is that the three rungs
+# share rows, folds and estimator.
+#
+# MEASURED ON ALL 94 DATASETS, BOTH ARMS. The bias is real, one-directional and small: the
+# probability scale UNDERSTATES the deep gains by +0.0008 (CNN) and +0.0030 (SpliceBERT) on the
+# GC arm, every interval clear of zero. So the published deep numbers are CONSERVATIVE.
+#
+# AND THE PAPER'S CLAIM IS INVARIANT TO IT. The R1 contrast moves by 0.0002-0.0003:
+#   CNN        +0.0530 -> +0.0528
+#   SpliceBERT +0.0864 -> +0.0867
+#   k-mer      +0.0398 unchanged, it was always the logit
+# far inside the protein-clustered intervals. The ladder's ORDER and the contrast both stand.
+r1t_score_scale:
+  n_datasets: 94
+  # The published deep gains must be exactly reproducible on the probability scale, or this
+  # script is not modelling the published pipeline and none of the deltas mean anything.
+  max_published_reproduction: 1.0e-9
+  delta_cnn_gc:        {value: 0.0008, tol: 0.0006}
+  delta_splicebert_gc: {value: 0.0030, tol: 0.0010}
+  delta_cnn_dn:        {value: 0.0006, tol: 0.0006}
+  delta_splicebert_dn: {value: 0.0033, tol: 0.0012}
+  contrast_cnn_logit:        {value: 0.0528, tol: 0.006}
+  contrast_splicebert_logit: {value: 0.0867, tol: 0.008}
+  # THE TWO GATES THAT CARRY THE CONCLUSION. The bias must stay small enough that the ladder's
+  # absolute values are not misstated, and the CONTRAST must be invariant to the scale -- which
+  # is what makes the defect a disclosed sensitivity rather than a correction to the claim.
+  max_scale_bias: 0.006
+  max_contrast_shift: 0.004
+  scale_bias_must_be_one_directional: true
+
+# --- Achieved match quality: what the matchers DID, not what they were asked for ----------
+#
+# THE GAP, found by a methods referee. Every arm was specified by its tolerance or objective,
+# and the paper argues FROM the specification: the GC arm controls 1 of the baseline's 15
+# degrees of freedom, the dinucleotide arm 15 of 15. That is exactly true of the DESIGN. The
+# REALISATION was measured nowhere -- no table, no key, and none of the 522 assertions touched
+# it. prepare.py computed the L1 into prep_report.txt files that no longer exist.
+#
+# TWO FACTS THE METHODS MUST STATE, now that they are measured over all 456,734 pairs:
+#   1. THE GC TOLERANCE IS NOT 0.05. The matcher relaxes -- 40 draws, tolerance doubled to 0.10
+#      after 25 misses, best-seen accepted up to 3x = 0.15. 94.8% of pairs are inside 0.05 and
+#      the observed maximum is 0.1486, sitting exactly at the fallback cap. Reporting "matched
+#      within 5 percentage points" overstates what happened for 5.2% of pairs.
+#   2. "DINUCLEOTIDE-MATCHED" MEANS L1 ~ 0.22, NOT ~ 0. The matcher improves median composition
+#      distance 0.500 -> 0.220, a factor of 2.27. So "15 of 15 controlled" is a statement about
+#      the design and only approximately about the data. This is also the number R1f needed:
+#      it is described as "confounded with achieved match quality" with no figure anywhere.
+#
+# And neg2 is not composition-matched at all (median |dGC| 0.139 against the GC arm's 0.030),
+# by construction -- which is exactly why its composition baseline is the highest of the three.
+match_quality:
+  n_datasets: 94
+  gc_gap_median_gc: {value: 0.0297, tol: 0.004}
+  gc_gap_max_gc:    {value: 0.1486, tol: 0.004}
+  gc_gap_median_dn: {value: 0.0198, tol: 0.004}
+  gc_gap_median_neg2: {value: 0.1387, tol: 0.020}
+  dinuc_l1_median_gc:   {value: 0.500, tol: 0.04}
+  dinuc_l1_median_dn:   {value: 0.220, tol: 0.03}
+  dinuc_l1_median_neg2: {value: 0.700, tol: 0.06}
+  within_nominal_gc: {value: 0.948, tol: 0.03}
+  l1_improvement_factor: {value: 2.27, tol: 0.25}
+  # THE GATES. The relaxation ladder must be reported and the observed max must stay inside the
+  # 3x fallback cap the matcher actually enforces -- if a pair ever exceeds 0.15 the matcher did
+  # something other than what this section describes. And the dinucleotide arm must remain
+  # materially better matched than the GC arm, or the 1-of-15 vs 15-of-15 argument fails on the
+  # realisation and not merely on the design.
+  gc_fallback_cap: 0.15
+  min_l1_improvement: 1.8
+  ladder_must_be_reported: true
+
+# --- FOLD INTEGRITY: did the committed scores use the study's chromosome folds? ------------
+#
+# THE WORST DEFECT FOUND IN REVIEW, and the harness could not see it. config/folds.tsv is a
+# frozen chromosome-to-fold map and chromosome grouping is the entire design: a model must never
+# be tested on a chromosome it trained on. For 20 of the 94 DINUCLEOTIDE-arm datasets the
+# committed CNN and SpliceBERT per-window scores were produced under a different partition -- a
+# stratified random split that PRESERVED FOLD SIZES, so no size or count check could catch it,
+# while putting up to 23 chromosomes in every fold.
+#
+# Confirmed three independent ways: the score file's own fold column disagrees with
+# dataset.tsv's (agreement 0.48-0.99); every score fold spans all 23 chromosomes where every
+# table fold spans 4-5; and the direct metric -- rows with a same-strand genomic neighbour
+# within 1 kb assigned to a DIFFERENT fold -- reaches 44.5%, against exactly 0 under folds.tsv
+# and 0 everywhere in the GC arm.
+#
+# deep_model_contrast.py asserted in its own docstring that "both arms use the same chromosome
+# folds, the same seed ... the only difference is how the negative windows were chosen". False
+# for those 20. None of the 549 assertions checked it: the harness gated the VALUES the scores
+# produced and never what produced them. That is lesson 9, again, at the level of the evidence.
+#
+# WHAT MOVES, AND IT IS LESS THAN THE DEFECT SUGGESTS. The k-mer is refit in-script on the
+# study folds for every dataset, so it is a clean internal control. Dropping the 20:
+#   k-mer      +0.0398 -> +0.0436   (+0.0038)
+#   CNN        +0.0530 -> +0.0506   (-0.0024)
+#   SpliceBERT +0.0864 -> +0.0878   (+0.0015)
+# all inside the protein-clustered half-widths of ~0.009. The affected quantity is the CNN's
+# dinucleotide-arm deep gain: difference-in-differences against the k-mer is +0.0294, though the
+# leaky datasets are also the panel's largest (median 15,596 vs 4,373 pairs) so that is an upper
+# bound confounded with size.
+#
+# THE GC ARM IS CLEAN, 94 OF 94. So R1's headline, R1m, R1n, R1q and the GC arm of R1o/R1r are
+# untouched, and every k-mer number in the paper is untouched.
+fold_integrity:
+  n_score_sets: 376
+  grouped_gc: {value: 94, tol: 0}
+  aligned_gc: {value: 94, tol: 0}
+  grouped_dn: {value: 74, tol: 0}
+  leaky_datasets: {value: 20, tol: 0}
+  max_chroms_per_score_fold_gc: {value: 5, tol: 0}
+  max_chroms_per_score_fold_dn: {value: 23, tol: 0}
+  contrast_kmer_clean:      {value: 0.0436, tol: 0.006}
+  contrast_cnn_clean:       {value: 0.0506, tol: 0.006}
+  contrast_splicebert_clean: {value: 0.0878, tol: 0.008}
+  # THE GATES THAT MATTER.
+  #  1. The GC arm must stay perfectly chromosome-grouped with ZERO cross-fold neighbours. It
+  #     carries the headline; if it ever leaks, the paper stops.
+  #  2. No NEW dataset may become leaky. The count is pinned at exactly 20, two-sided, because
+  #     a one-sided floor would pass a rerun that leaked more (lesson 17).
+  #  3. The conclusion must survive dropping them. If a contrast shift ever exceeds this bound
+  #     the leaky datasets are load-bearing and the dinucleotide deep sweep must be rerun
+  #     rather than caveated.
+  gc_must_be_fully_grouped: true
+  max_cross_fold_neighbours_gc: 0.0
+  max_contrast_shift_from_leakage: 0.006
+
+# --- R1u: a protocol-free coordinate EXISTS in sample. It does not TRANSPORT. --------------
+#
+# THIS RETRACTS AND REPLACES THE PAPER'S TITLE CLAIM. R1m said "no monotone rescaling recovers
+# a protocol-free quantity: over eight transforms the range never falls below 2.00x". But
+# g/(1-comp) is not a coordinate, it is the p = 1 member of a one-parameter family, and the
+# sweep stopped exactly at the member that is the paper's own recommendation. Extend the family:
+#
+#   p       0     0.5    1.0    1.25   1.544   1.75   2.0
+#   range  5.42   3.43   2.00   1.48   1.005   1.34   1.95
+#
+# At p = 1.544 the three protocols agree on the panel mean to 0.5%. The claim is FALSE as
+# literally worded, and the "eight standard coordinates" hatch does not save it: g/(1-comp)^1.544
+# has exactly as much derivation as g/(1-comp), namely none -- both are argmins of one sweep.
+#
+# WHAT REPLACES IT IS STRONGER. The equalising exponent is a property of the BENCHMARK. Fitted
+# on our three protocols it is 1.544; fitted on Horlacher's two it is 3.649, and OUR exponent
+# leaves their benchmark at 2.340x against the 2.381x it started from -- i.e. it buys nothing
+# there. So no normalisation transports: any transform strong enough to equalise one benchmark
+# must be refitted on the next, which is what "there is no protocol-free measure" should have
+# meant all along. This is a claim about transportability, not about a floor, and it is testable
+# on exactly the external data the project did not build.
+#
+# AND THE 2.00x INFERENCE ITSELF SURVIVES, against a corrected null. max/min over three noisy
+# means is bounded below by 1 and biased up, so 1.0 was too generous a bar. With equal true arm
+# means and the real between-arm dataset pairing preserved, the null has median 1.064 and a 95th
+# percentile of 1.175. The observed 2.002 is well outside it.
+r1u_transport:
+  n_datasets_external: 45
+  range_at_p1: {value: 2.002, tol: 0.05}
+  exponent_ours:   {value: 1.544, tol: 0.10}
+  range_at_argmin: {value: 1.005, tol: 0.05}
+  exponent_theirs: {value: 3.649, tol: 0.40}
+  their_range_raw:          {value: 2.381, tol: 0.10}
+  their_range_at_our_p:     {value: 2.340, tol: 0.15}
+  their_range_at_their_p:   {value: 1.000, tol: 0.05}
+  null_median: {value: 1.064, tol: 0.05}
+  null_p95:    {value: 1.175, tol: 0.06}
+  # THE EXTERNAL FALSIFICATION, which fires. recommendation_works.py names its own criterion:
+  # "rank agreement falling, or disagreement rising, under normalisation". Both happen on their
+  # 45 datasets. Not significant (P(<=0) = 0.70), so a failure to replicate and not a
+  # refutation -- but it is the paper's own pre-registered test on independent data and the
+  # paper must report it rather than wait for a referee to run it.
+  external_rank_raw:      {value: 0.706, tol: 0.05}
+  external_rank_headroom: {value: 0.656, tol: 0.05}
+  external_disagreement_raw:      {value: 0.860, tol: 0.06}
+  external_disagreement_headroom: {value: 0.908, tol: 0.06}
+  # AND THE MECHANISM DOES REPLICATE, per arm, which R1p currently reports as a partial
+  # FAILURE. Their composition-matched arm shows the gradient at p = 2e-06; their
+  # other-RBPs'-sites arm does not. That is R1n's two-family mechanism on an independent lab's
+  # negatives and folds, and it is the strongest external result in the paper.
+  external_gradient_n1: {value: -0.645, tol: 0.10}
+  external_gradient_n2: {value: -0.187, tol: 0.12}
+  # THE GATES.
+  #  1. An in-sample equalising exponent MUST be reported. Suppressing it would restore a claim
+  #     that is false, and a referee holding the Zenodo deposit finds it in an afternoon.
+  #  2. The exponent must NOT transport -- that is now the paper's claim, so if a future run
+  #     ever finds the two benchmarks agreeing on an exponent, the claim must be restated.
+  #  3. The external falsification must be reported whichever way it points.
+  in_sample_exponent_must_be_reported: true
+  min_exponent_ratio: 1.8
+  external_falsification_must_be_reported: true

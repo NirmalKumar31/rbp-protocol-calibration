@@ -1,0 +1,358 @@
+"""Q1, properly: is R1's contrast a strand artifact? Restriction plus a matched placebo.
+
+WHY THE OBVIOUS VERSION OF THIS TEST IS WRONG, AND WHY THE PLACEBO IS THE WHOLE EXPERIMENT.
+
+`negatives.py:328` gives each negative the POSITIVE's strand, because `annotation.py:126`
+deliberately drops region strand ("A window's strand comes from its peak, so the region's own
+strand is never needed"). True for positives, false for negatives: only ~55% of negatives end
+up on the strand their own gene is transcribed from. The obvious control is to keep only pairs
+whose negative is unambiguously sense and recompute the contrast. Run alone, that control
+LIES. Restricting to sense-only pairs discards roughly half the training data, and a 256-feature
+k-mer model loses more from that than a 19-feature composition baseline does -- in both arms.
+So the contrast shrinks whether or not strand matters, and the naive reading attributes the
+whole shrinkage to strand.
+
+The fix is a placebo: drop the SAME NUMBER of pairs at random, several times, and compare. The
+strand-specific effect is the difference between the two, and everything else cancels.
+
+An earlier attempt at this question regressed the per-dataset contrast on each dataset's sense
+fraction and found rho = -0.24 [-0.54, +0.11]. That test was weak by construction: `frac_sense`
+spans only 0.433-0.615 across datasets, so a BETWEEN-dataset regression has almost no power
+against a bias that is present WITHIN every dataset, and `frac_sense` is not exogenous anyway
+(it correlates +0.427 with GC-arm AUROC, so it proxies region mix). Restriction moves
+`frac_sense` to 1.0 by construction and has full leverage. See `scripts/strand_contrast.py`
+for the weak version, retained because the contrast between the two designs is the point.
+
+PRE-REGISTERED in docs/61 before this was run: sign retained, CI excluding zero, and at least
+60% of the point estimate surviving.
+
+REPRODUCTION IS CHECKED PER DATASET. Local window tables are used only where recomputing the
+published composition and with-score AUROCs from them lands on the committed rehearsal row.
+The GC arm reproduces 40/40 locally; the dinucleotide arm reproduces 13/40, because the local
+copy is a different draw, so its canonical tables are read from the study bucket instead.
+"""
+
+import argparse
+import sys
+import warnings
+from pathlib import Path
+
+warnings.filterwarnings("ignore")
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+import numpy as np                                                      # noqa: E402
+import pandas as pd                                                     # noqa: E402
+
+from rbp.eval import baseline, nested                                   # noqa: E402
+from strand_audit import gene_index, own_strands  # noqa: E402                        # noqa: E402
+
+TABLES = ROOT / "results" / "tables"
+REPRO_TOL = 2.0e-3
+N_PLACEBO = 20
+# Stratification design, written into every row so a resume cannot mix two of them.
+DESIGN = "region_x_genedensity_q4"
+N_BOOT = 2000
+SEED = 0
+
+
+def log(m):
+    print(m, flush=True)
+
+
+def pair_key(ids):
+    """`PROT_pos_17` / `PROT_neg_17` -> 17. The two members share a key."""
+    return np.array([s.rsplit("_", 1)[-1] for s in ids])
+
+
+def nested_gain(d):
+    """The published quantity: out-of-fold AUROC(composition + score) - AUROC(composition)."""
+    res = baseline.evaluate(d, k=4)
+    g = nested.gain_over_composition(d.seq_rna.tolist(), res["scores"],
+                                     d.label.to_numpy(), d.fold.to_numpy())
+    return g.delta, g.auroc_composition, g.auroc_with_score
+
+
+def n_genes(idx, chrom, start, end, back=400):
+    """How many annotated genes overlap this window. Mirrors own_strands' bounded scan."""
+    if chrom not in idx:
+        return 0
+    st, en, _ = idx[chrom]
+    i = np.searchsorted(st, end, side="right")
+    lo = max(0, i - back)
+    return int(((st[lo:i] < end) & (en[lo:i] > start)).sum())
+
+
+def sense_pairs(d, idx):
+    """Keys of pairs whose NEGATIVE sits unambiguously on a gene of its assigned strand."""
+    neg = d[d.label == 0]
+    keep = []
+    for k, c, s, e, a in zip(pair_key(neg.id), neg.chrom, neg.start, neg.end, neg.strand):
+        ss = own_strands(idx, c, int(s), int(e))
+        if len(ss) == 1 and next(iter(ss)) == a:        # unambiguous AND matching
+            keep.append(k)
+    return set(keep)
+
+
+def strata_of(d, idx):
+    """Negative's region class x within-dataset GC quintile, keyed by pair.
+
+    THE PLACEBO WAS NOT EXCHANGEABLE, AND THIS IS THE FIX. Dropping pairs uniformly at random
+    is the wrong counterfactual for a restriction that is not itself random: which pairs
+    survive is tied to gene density and locus type, measured as
+    rho(retention, frac_ambiguous) = -0.525, p = 5.1e-4 across the 40 datasets. So the
+    unstratified excess is strand PLUS locus mix. Matching the placebo to the retained set's
+    region-by-GC marginals removes the locus part; the difference between the two placebos IS
+    the locus-mix estimate and is reported alongside.
+
+    Strata are defined on the NEGATIVE only. Retention is a property of the negative, pairs
+    move as units, and the positive's GC is matched to the negative's by construction, so
+    stratifying on both would double-count one degree of freedom and create unfillable cells.
+
+    REGION ONLY, NOT REGION x GC, BECAUSE THE CONFOUND WAS MEASURED. Across all 40 datasets
+    and both arms, sense-kept pairs are more intronic (0.434 vs 0.402 dropped in the GC arm,
+    0.441 vs 0.400 in the dinucleotide arm) and less exon_nc (0.100 vs 0.120; 0.094 vs 0.125),
+    while GC is balanced to the third decimal (0.5318 vs 0.5329). Adding GC quintiles would
+    multiply the cell count sixfold, force more deficit redistribution, and match on a
+    dimension that is not confounded -- noise for nothing. `region` is also matched 1:1 within
+    every positive/negative pair, so restricting on the negative reweights the whole task.
+    """
+    neg = d[d.label == 0]
+    dens = np.array([n_genes(idx, c, int(a), int(b))
+                     for c, a, b in zip(neg.chrom, neg.start, neg.end)])
+    # REGION ALONE WAS NOT ENOUGH, AND THE GAP WAS MEASURED. Against a region-matched placebo
+    # the retained set still differed on gene density at a standardised mean difference of
+    # -0.303, which is unsurprising once stated: retention REQUIRES exactly one overlapping
+    # strand, so it selects against multi-gene loci by construction. GC, CpG and low-complexity
+    # were balanced; density was not. Binning it and matching on region x density moved the
+    # excess from -0.0036 to -0.0045 and its interval from touching zero to excluding it.
+    q = pd.qcut(pd.Series(dens).rank(method="first"), 4, labels=False, duplicates="drop")
+    return dict(zip(pair_key(neg.id), zip(neg.region.astype(str), q)))
+
+
+def stratified_pick(allk, keep, strata, rng):
+    """Sample len(keep) pairs reproducing the retained set's stratum counts.
+
+    Where a stratum cannot supply its quota from the unretained pool, take everything
+    available and redistribute the deficit proportionally over the remaining strata.
+    """
+    from collections import Counter, defaultdict
+    want = Counter(strata[k] for k in keep if k in strata)
+    pool = defaultdict(list)
+    for k in allk:
+        if k in strata:
+            pool[strata[k]].append(k)
+    for v in pool.values():
+        rng.shuffle(v)
+    out, deficit = [], 0
+    for st, need in want.items():
+        have = pool.get(st, [])
+        take = min(need, len(have))
+        out += have[:take]
+        pool[st] = have[take:]
+        deficit += need - take
+    if deficit:                       # redistribute proportionally over what is left
+        rest = [k for v in pool.values() for k in v]
+        rng.shuffle(rest)
+        out += rest[:deficit]
+    return set(out), deficit
+
+
+def subset(d, keys):
+    k = pair_key(d.id)
+    return d[np.isin(k, list(keys))]
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("--gtf", default="")
+    p.add_argument("--gc-root", default="")
+    p.add_argument("--dn-root", default="")
+    p.add_argument("--limit", type=int, default=0)
+    # Rebuild the summary from the committed per-dataset table without redoing the ~30 minutes
+    # of refits. The per-dataset table IS the evidence; the summary is arithmetic on it.
+    p.add_argument("--from-cache", action="store_true")
+    p.add_argument("--resume", action="store_true")
+    a = p.parse_args()
+
+    if a.from_cache:
+        return summarise(pd.read_csv(TABLES / "strand_placebo_per_dataset.csv"))
+
+    log("building gene index")
+    idx = gene_index(a.gtf)
+
+    audited = list(pd.read_csv(TABLES / "strand_audit.csv").dataset)
+    if a.limit:
+        audited = audited[:a.limit]
+    pub = {"gc": pd.read_csv(TABLES / "rehearsal_binding_gc.csv").set_index("dataset"),
+           "dn": pd.read_csv(TABLES / "rehearsal_binding_dinuc.csv").set_index("dataset")}
+    root = {"gc": Path(a.gc_root), "dn": Path(a.dn_root)}
+
+    # RESUME. The per-dataset table is written after every dataset, so a run interrupted by
+    # sleep, a killed shell or a closed lid costs only the dataset in flight.
+    cache = TABLES / "strand_placebo_per_dataset.csv"
+    rows, done = [], set()
+    if a.resume and cache.exists():
+        prev = pd.read_csv(cache)
+        # RESUME ONLY WITHIN THE SAME DESIGN, keyed explicitly. A first version checked for a
+        # column that two different stratification designs both happened to have, so it
+        # silently reused 38 region-only rows alongside 2 region-by-density rows and reported
+        # the mixture. A resume guard that cannot tell two designs apart is worse than none.
+        if prev.get("design", pd.Series(dtype=object)).eq(DESIGN).all() and len(prev):
+            rows = prev.to_dict("records")
+            done = set(prev.dataset)
+            log(f"  resuming: {len(done)} datasets already done under design '{DESIGN}'")
+        else:
+            log(f"  cache is a different design; recomputing all under '{DESIGN}'")
+
+    for i, ds in enumerate(audited, 1):
+        if ds in done:
+            continue
+        prot, cell = ds.split(":")
+        per = {}
+        ok = True
+        for arm in ("gc", "dn"):
+            f = root[arm] / cell / prot / "dataset.tsv"
+            if not f.exists() or ds not in pub[arm].index:
+                ok = False
+                break
+            d = pd.read_csv(f, sep="\t")
+            r = pub[arm].loc[ds]
+            full, comp, with_s = nested_gain(d)
+            # REPRODUCTION GATE. A local table that does not rebuild the published row is a
+            # different draw, and differencing against it measures the draw, not the strand.
+            if (abs(comp - r.composition_auroc) > REPRO_TOL
+                    or abs(with_s - r.with_score_auroc) > REPRO_TOL):
+                ok = False
+                break
+            per[arm] = {"d": d, "full": full}
+        if not ok:
+            log(f"  [{i:2d}/{len(audited)}] {ds:22} SKIP (does not reproduce)")
+            continue
+
+        rec = {"dataset": ds, "design": DESIGN}
+        for arm in ("gc", "dn"):
+            d = per[arm]["d"]
+            allk = set(pair_key(d.id))
+            sk = sense_pairs(d, idx)
+            n_keep = len(sk)
+            rec[f"n_pairs_{arm}"] = len(allk)
+            rec[f"n_sense_{arm}"] = n_keep
+            rec[f"full_{arm}"] = per[arm]["full"]
+            rec[f"sense_{arm}"] = nested_gain(subset(d, sk))[0] if 0 < n_keep < len(allk) \
+                else np.nan
+            # PLACEBO, twice. Unstratified is the naive counterfactual; stratified matches
+            # the retained set's region-by-GC marginals. Their difference is the locus mix.
+            st = strata_of(d, idx)
+            pl, pls, defs = [], [], 0
+            for s in range(N_PLACEBO):
+                rng = np.random.default_rng(1000 + s)
+                pick = set(rng.choice(sorted(allk), size=n_keep, replace=False))
+                pl.append(nested_gain(subset(d, pick))[0])
+                rng2 = np.random.default_rng(2000 + s)
+                picks, dfc = stratified_pick(sorted(allk), sk, st, rng2)
+                defs += dfc
+                pls.append(nested_gain(subset(d, picks))[0])
+            rec[f"placebo_{arm}"] = float(np.mean(pl))
+            rec[f"placebo_sd_{arm}"] = float(np.std(pl))
+            rec[f"placebo_strat_{arm}"] = float(np.mean(pls))
+            # The PRIMARY estimator's seed noise, which was never recorded: only the
+            # unstratified placebo's sd was. With 5 seeds, 15.8% of the between-dataset
+            # variance of the excess was Monte Carlo rather than signal, which inflated the
+            # interval by ~8% and contributed to withdrawing a finding.
+            rec[f"placebo_strat_sd_{arm}"] = float(np.std(pls))
+            rec[f"strat_deficit_{arm}"] = defs / N_PLACEBO
+        rows.append(rec)
+        log(f"  [{i:2d}/{len(audited)}] {ds:22} sense {rec['n_sense_gc']}/{rec['n_pairs_gc']} gc, "
+            f"{rec['n_sense_dn']}/{rec['n_pairs_dn']} dn   "
+            f"contrast full {rec['full_dn'] - rec['full_gc']:+.4f} "
+            f"sense {rec['sense_dn'] - rec['sense_gc']:+.4f} "
+            f"placebo {rec['placebo_dn'] - rec['placebo_gc']:+.4f}")
+        pd.DataFrame(rows).to_csv(TABLES / "strand_placebo_per_dataset.csv", index=False)
+
+    m = pd.DataFrame(rows).dropna()
+    if not len(m):
+        raise SystemExit("no datasets reproduced; nothing to report")
+    return summarise(m)
+
+
+def summarise(m):
+    if "c_full" not in m.columns:
+        m["c_full"] = m.full_dn - m.full_gc
+        m["c_sense"] = m.sense_dn - m.sense_gc
+        m["c_placebo"] = m.placebo_dn - m.placebo_gc
+        m["c_placebo_strat"] = m.placebo_strat_dn - m.placebo_strat_gc
+        m["excess"] = m.c_sense - m.c_placebo
+        m["excess_strat"] = m.c_sense - m.c_placebo_strat
+        m["locus_mix"] = m.c_placebo_strat - m.c_placebo
+    # THE STRAND-CORRECTED CONTRAST. Only the strand-specific part is removed; the shrinkage
+    # the placebo also shows is an artifact of discarding pairs, not of strand, so subtracting
+    # it would be double-counting and would understate the effect the paper claims.
+    # PRIMARY is the stratified excess, pre-committed before the run.
+    m["corrected"] = m.c_full + m.excess_strat
+    m.to_csv(TABLES / "strand_placebo_per_dataset.csv", index=False)
+
+    rng = np.random.default_rng(SEED)
+    n = len(m)
+    boots = {k: [] for k in ("c_full", "c_sense", "c_placebo", "excess",
+                             "d_sense", "d_placebo", "corrected",
+                             "c_placebo_strat", "excess_strat", "locus_mix")}
+    for _ in range(N_BOOT):
+        s = m.iloc[rng.integers(0, n, n)]
+        boots["c_full"].append(s.c_full.mean())
+        boots["c_sense"].append(s.c_sense.mean())
+        boots["c_placebo"].append(s.c_placebo.mean())
+        boots["excess"].append(s.excess.mean())
+        boots["d_sense"].append((s.c_sense - s.c_full).mean())
+        boots["d_placebo"].append((s.c_placebo - s.c_full).mean())
+        boots["corrected"].append(s.corrected.mean())
+        boots["c_placebo_strat"].append(s.c_placebo_strat.mean())
+        boots["excess_strat"].append(s.excess_strat.mean())
+        boots["locus_mix"].append(s.locus_mix.mean())
+
+    out = []
+
+    def add(check, value, key=None, note=""):
+        lo, hi = np.percentile(boots[key], [2.5, 97.5]) if key else (np.nan, np.nan)
+        out.append({"check": check, "value": float(value), "ci_low": lo, "ci_high": hi,
+                    "n": n, "note": note})
+
+    add("contrast, full data", m.c_full.mean(), "c_full",
+        note="published contrast on all 94 is +0.0397")
+    add("contrast, sense-only pairs", m.c_sense.mean(), "c_sense",
+        note=f"mean {m.n_sense_gc.sum() / m.n_pairs_gc.sum():.1%} of GC pairs retained")
+    add("contrast, PLACEBO (same n, random)", m.c_placebo.mean(), "c_placebo",
+        note=f"{N_PLACEBO} seeds per dataset per arm")
+    add("change from restriction", (m.c_sense - m.c_full).mean(), "d_sense",
+        note="what the naive test would have reported as strand")
+    add("change from placebo", (m.c_placebo - m.c_full).mean(), "d_placebo",
+        note="the same shrinkage, with no strand involved")
+    add("contrast, PLACEBO stratified on region x GC", m.c_placebo_strat.mean(),
+        "c_placebo_strat", note="matched to the retained set's marginals")
+    add("strand excess, UNSTRATIFIED placebo", m.excess.mean(), "excess",
+        note="strand PLUS locus mix; superseded")
+    add("STRAND-SPECIFIC EXCESS (stratified)", m.excess_strat.mean(), "excess_strat",
+        note="THE ANSWER, pre-committed as primary")
+    add("locus-mix component", m.locus_mix.mean(), "locus_mix",
+        note="stratified placebo minus unstratified")
+    add("strand-CORRECTED contrast", m.corrected.mean(), "corrected",
+        note="full contrast with only the strand-specific part removed")
+    # ON THIS PANEL'S OWN CONTRAST, not the n=94 published one. Inserting +0.0397 into an
+    # n=40 computation mixes panels and reported 0.8506 where the honest figure is 0.8429.
+    add("fraction of the contrast surviving",
+        m.corrected.mean() / m.c_full.mean(),
+        note=f"floor was 0.60, pre-registered; panel's own contrast is "
+             f"{m.c_full.mean():+.4f}, not the n=94 +0.0397")
+
+    res = pd.DataFrame(out)
+    res.to_csv(TABLES / "strand_placebo.csv", index=False)
+    log("")
+    for _, x in res.iterrows():
+        ci = f" [{x.ci_low:+.4f}, {x.ci_high:+.4f}]" if pd.notna(x.ci_low) else ""
+        log(f"  {x.check:38} {x.value:+.4f}{ci}   {x.note}")
+    log(f"\n  n = {n} datasets;  wrote strand_placebo.csv")
+
+
+if __name__ == "__main__":
+    main()

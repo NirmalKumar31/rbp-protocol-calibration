@@ -1,0 +1,31 @@
+check,value,ci_low,ci_high,n,note
+"k-mer size, both arms",4.0,,,94,observed [np.int64(4)]; -1 means the arms disagree
+"mean AUROC, composition alone, GC arm",0.7827305894799742,,,94,cell of the R1 table
+"mean AUROC, composition alone, dinuc arm",0.6279577163719093,,,94,cell of the R1 table
+"mean AUROC, score alone, GC arm",0.7981348703252871,,,94,cell of the R1 table
+"mean AUROC, score alone, dinuc arm",0.6886367833860715,,,94,cell of the R1 table
+"mean AUROC, composition + score, GC arm",0.8092423107126487,,,94,cell of the R1 table
+"mean AUROC, composition + score, dinuc arm",0.6941490555219909,,,94,cell of the R1 table
+"nested contribution, GC arm",0.026511721232674708,0.021001979796338,0.032431513755279015,94,
+"nested contribution, dinuc arm",0.06619133915008159,0.05588347544637779,0.07654198065448982,94,
+"CONTRAST, AUROC scale (published headline)",0.03967961791740689,0.033607985175735065,0.045776955467476094,94,dinuc larger in 88/94; this number appeared in no committed table before now
+"compression factor, GC vs dinuc baseline",1.5080615982658583,,,94,how much more AUROC a fixed signal increment buys in the dinuc arm
+"CONTRAST, d-prime scale (unbounded)",0.1289671754264775,0.10912941732718093,0.1498877673411278,94,dinuc larger in 87/94; zero if compression were the whole story
+contrast attributable to SCALE alone,0.00833534636769408,0.006144399569132682,0.010871312869702903,94,GC arm's own d' increment moved onto the dinuc baseline
+"CONTRAST, protocol effect net of scale",0.0313442715497128,0.02668887669731567,0.03627646222892852,94,THE HONEST HEADLINE; positive in 87/94
+"CONTRAST, protocol effect, REVERSE transplant",0.02148661803018556,0.018040162007160868,0.025209849593353997,94,dinuc increment moved onto the GC baseline; the unfavourable direction
+"compression, REVERSE transplant",0.018192999887221332,0.014195765868973665,0.0223171831118994,94,the unfavourable direction attributes more
+"protocol effect, logit link",0.028796291118593487,0.024267565894347077,0.033496948651583494,94,"same transplant, different link"
+"protocol effect, logit link REVERSE",0.018839438652949042,0.015595385456690307,0.02227719852964309,94,the fourth member of the family
+smallest protocol effect across links and directions,0.018839438652949042,,,94,THE BOUND: every member of the family must keep the sign
+scale share of the published contrast,0.21006619532083454,,,94,"fraction of +0.0397 that is the AUROC ceiling, not the protocol"
+"fraction of the contribution hidden by GC matching, corrected",0.47354037480104627,,,94,published claim was two-thirds; uncorrected value is 0.599
+"CONTRAST, log-odds scale (REVERSES)",-0.3770742385786919,-0.4747247882134197,-0.2863225540738172,94,dinuc larger in only 11/94
+"total signal ratio, GC over dinuc",1.7945342390692414,,,94,d'(composition+score); logistic coefficients are not comparable across fits with different total signal
+"spearman(coef gap, TOTAL-signal gap)",0.5197196835603078,,,94,p=7.97e-08; the coefficient gap tracks total signal
+"spearman(coef gap, INCREMENTAL-value gap)",0.06534696384062422,,,94,p=0.531; and not the quantity it is supposed to measure
+log-odds gap predicted by SCALE alone,-0.492670857971168,-0.559777649193711,-0.4288296038829517,94,what the reversal would be if it were only latent rescaling
+log-odds residual after the scale null,0.11559661939247606,0.0549583906508909,0.17347319899122146,94,"POSITIVE means incremental value survives the rescaling, i.e. R1's direction"
+scale-null residual under d' exponent 0.5,-0.17206213155529307,-0.24909099792261105,-0.101298893065566,94,RETIRED: the sign of the residual is a free exponent
+scale-null residual under d' exponent 1.5,0.5277730023669893,0.44046103787777663,0.6215714299855682,94,...and so is its magnitude
+"CONTRAST, log-odds normalised by total signal",0.11539268026530039,0.0715312147477841,0.15966548945860654,94,sign restored; dinuc larger in 68/94

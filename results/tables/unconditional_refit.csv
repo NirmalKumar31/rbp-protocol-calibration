@@ -1,0 +1,19 @@
+standardisation,check,value,ci_low,ci_high,n,note
+pooled,"coef, TRULY unconditional",0.26733876662512773,0.21826324243368692,0.31903257303966637,27492,
+pooled,"coef, conditional on phyloP",0.26094645686385354,0.19945560125674047,0.3209845601574985,27492,
+pooled,attenuation fraction (identical rows),0.02391089718102024,,,27492,positive = conservation explains part of it
+pooled,phyloP coefficient in the joint fit,2.120301607898981,,,27492,the strength the null is calibrated to
+pooled,NULL attenuation at rho=0 (simulated),-0.8777582615070088,,,27492,non-collapsibility; this is what 'no sharing' predicts
+pooled,NULL attenuation at rho=0 (analytic reference only),-0.5985946647999345,,,27492,"small-sigma approximation, ANTI-CONSERVATIVE at this c; not a check"
+pooled,excess attenuation over the null,0.901669158688029,,,27492,THE INTERPRETABLE QUANTITY: >0 means signal IS shared
+pooled,correlation implied by the observed attenuation,0.09816266098812788,,,27492,what rho would have to be to produce what we saw
+pooled,"spearman(|delta|, phyloP), MEASURED",0.06581819328660551,,,27492,p=8.8e-28; compare with the implied value
+within_dataset,"coef, TRULY unconditional",0.29150808024074953,0.2579661004537807,0.32598112851077676,27492,
+within_dataset,"coef, conditional on phyloP",0.30665460343078205,0.26489928174536226,0.3511014476371248,27492,
+within_dataset,attenuation fraction (identical rows),-0.05195918815534495,,,27492,positive = conservation explains part of it
+within_dataset,phyloP coefficient in the joint fit,2.1243789588208357,,,27492,the strength the null is calibrated to
+within_dataset,NULL attenuation at rho=0 (simulated),-0.874023448123036,,,27492,non-collapsibility; this is what 'no sharing' predicts
+within_dataset,NULL attenuation at rho=0 (analytic reference only),-0.6004665389802817,,,27492,"small-sigma approximation, ANTI-CONSERVATIVE at this c; not a check"
+within_dataset,excess attenuation over the null,0.8220642599676911,,,27492,THE INTERPRETABLE QUANTITY: >0 means signal IS shared
+within_dataset,correlation implied by the observed attenuation,0.09780238089706944,,,27492,what rho would have to be to produce what we saw
+within_dataset,"spearman(|delta|, phyloP), MEASURED",0.06397331016573544,,,27492,p=2.47e-26; compare with the implied value

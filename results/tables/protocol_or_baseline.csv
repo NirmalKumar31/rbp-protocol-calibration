@@ -1,0 +1,26 @@
+check,value,ci_low,ci_high,n,note
+"incremental R2 of the protocol label, given the baseline",0.00999415781342536,,,,
+"incremental R2 of the baseline, given the protocol label",0.11042740616249412,,,,
+datasets where neg2 raises the composition baseline,67.0,,,,
+"neg2 minus gc gain, concordant datasets",-0.021166846706702807,-0.02693057049360594,-0.015725662293961624,67.0,
+"neg2 higher in, concordant datasets",14.0,,,67.0,
+"neg2 minus gc gain, discordant datasets",0.002805564321136365,-4.249701142831052e-05,0.00628698291424506,27.0,
+"neg2 higher in, discordant datasets",16.0,,,27.0,
+"within-dataset spearman(delta baseline, delta gain)",-0.6639815048947006,,,,p=3.0e-13
+"pairwise common support width, gc vs dn",0.07282862281683633,,,,
+"cells in pairwise common support, gc vs dn",33.0,,,,
+"pairwise common support width, gc vs neg2",0.2118073642768581,,,,
+"cells in pairwise common support, gc vs neg2",130.0,,,,
+"pairwise common support width, dn vs neg2",0.005567220815970719,,,,
+"cells in pairwise common support, dn vs neg2",2.0,,,,
+"incremental R2 of protocol, gc vs dn",0.0005110692713839794,,,,
+"incremental R2 of protocol, gc vs neg2",0.034021852455813066,,,,
+"incremental R2 of protocol, dn vs neg2",0.013093033864449507,,,,
+"neg2 minus gc, matched on baseline",-0.008061564069542242,-0.013030501245162867,-0.0035639809041241957,94.0,
+"neg2 minus gc, within-dataset intercept at zero baseline shift",-0.004315833995707366,-0.007654564739704263,-0.0012046727446321816,94.0,
+"within-arm spearman(baseline, gain), gc",-0.544832568724488,,,,p=0.000
+"within-arm spearman(baseline, gain), dn",-0.4618357836939638,,,,p=0.000
+"within-arm spearman(baseline, gain), neg2",-0.12197377451865767,,,,p=0.242
+datasets where the dinuc baseline is lower than the GC baseline,94.0,,,,
+"dn minus gc, matched on baseline",-0.008659647363852765,-0.026526543875285382,0.01222479001494242,41.0,
+"dn minus gc, unmatched (the published contrast)",0.03975093841052303,,,,

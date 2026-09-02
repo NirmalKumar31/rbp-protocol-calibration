@@ -120,6 +120,9 @@ def main():
 
     device = registry.device_of(a.device)
     t0 = time.time()
+    # Seed BEFORE build: trainer.train seeds too, but only after the network already exists,
+    # so weight initialisation was uncontrolled for the whole study. See cloud_train.py.
+    trainer.set_seed(cfg.seed)
     handle = registry.build(model, cfg)
     sizes = handle.sizes()
     print(f"{protein} {cell} {arm} fold{fold} x {handle.label}  mode={handle.mode}  "

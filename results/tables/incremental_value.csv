@@ -6,7 +6,7 @@ check,value,ci_low,ci_high,n,note
 "coef, mismatched, controls = plus trivial window rule",0.6917621654554891,0.6225595241294464,0.7597323046725527,18830,
 attenuation fraction after conditioning on phyloP,0.0020591980660304987,,,18830,THE CLAIM: conservation does not explain the model away
 arms separated under control,1.0,,,18830,matched CI low 1.036 > mismatched CI high 0.712
-"spearman(positional rule, phyloP)",0.33907588588695836,,,27364,p=0
-"positional rule, unstratified",0.8245813657535565,,,27364,
-"positional rule, MIN AUROC within a phyloP decile",0.7678184792846341,,,10,"if this is near 0.5 the rule IS conservation and there is one baseline, not two"
-"positional rule, MAX AUROC within a phyloP decile",0.8318861840935837,,,10,
+"spearman(positional rule, phyloP)",0.3375001128982224,,,27273,p=0
+"positional rule, unstratified",0.8163506115049104,,,27273,
+"positional rule, MIN AUROC within a phyloP decile",0.754845945930545,,,10,"if this is near 0.5 the rule IS conservation and there is one baseline, not two"
+"positional rule, MAX AUROC within a phyloP decile",0.817255612047221,,,10,

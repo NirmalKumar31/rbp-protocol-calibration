@@ -94,9 +94,9 @@ Then link billing, because a project without billing can do almost nothing:
 ```bash
 gcloud billing accounts list
 # ACCOUNT_ID            NAME         OPEN
-# 017994-4FC1D0-8D5176  RBP project  True
+# XXXXXX-XXXXXX-XXXXXX  RBP project  True
 
-gcloud billing projects link rbp-repro-2026 --billing-account=017994-4FC1D0-8D5176
+gcloud billing projects link rbp-repro-2026 --billing-account=XXXXXX-XXXXXX-XXXXXX
 ```
 
 Verify, and verify by reading the field rather than trusting the absence of an error:
@@ -129,7 +129,7 @@ in §3.3. This is one of the few places the UI is genuinely safer.
 long-running **Operation** immediately; the project does not exist yet. `gcloud` then polls
 the operation until done, which is why you see `Waiting for [operations/create_project...]`.
 
-Google allocates a **project number** (`470178555301` here) alongside your chosen ID. The
+Google allocates a **project number** (`PROJECT_NUMBER` here) alongside your chosen ID. The
 number is what internal systems actually use — you will see it in service account emails,
 log resource names and error messages, and it is *not* interchangeable with the ID in those
 places.
@@ -237,7 +237,7 @@ To audit: **APIs & Services** → **Enabled APIs & services**.
 
 Enabling an API flips a per-project flag *and* often creates a **service agent** — a
 Google-managed service account like
-`service-470178555301@gcp-sa-batch.iam.gserviceaccount.com` — that the service uses to act on
+`service-PROJECT_NUMBER@gcp-sa-batch.iam.gserviceaccount.com` — that the service uses to act on
 your behalf. This is why enabling can take a minute and why it is a long-running operation.
 
 **The failure mode when you forget.** The control plane accepts your request (the API surface

@@ -74,13 +74,22 @@ def main():
     # --- is the positional rule conservation in disguise? --------------------------------
     cv = pd.read_csv(TABLES / "variant_conservation.csv")[["vid", "conservation"]]
     va = pd.read_csv(TABLES / "variant_assignments.csv")
-    d = va.merge(cv, on="vid", how="left").dropna(subset=["conservation"])
+    # DEDUPLICATE BEFORE THE BLOCK STATISTIC, NOT AFTER. variant_assignments.csv carries 2.40
+    # rows per variant (one per dataset the variant was scored in), and the leave-one-out
+    # subtraction removes exactly ONE of them. Computing prevalence on the duplicated table
+    # therefore left ~1.4 copies of a variant's own label inside its own 1-Mb block, which is
+    # own-label leakage into the baseline the paper calls trivial. Verified constant per vid:
+    # 0/27,492 variants disagree on label or position across copies, so the dedup is lossless
+    # and which copy survives cannot matter.
+    d = (va.merge(cv, on="vid", how="left")
+           .dropna(subset=["conservation"])
+           .drop_duplicates("vid"))
     blk = d.chrom + "_" + (d.pos // BLOCK).astype(str)
     gb = d.assign(_b=blk).groupby("_b").label
     tot, cnt = gb.transform("sum"), gb.transform("size")
-    # leave-one-out, exactly as the reported baseline: a variant never sees its own label
+    # leave-one-out: a variant never sees its own label
     d["prev"] = ((tot - d.label) / (cnt - 1)).where(cnt > 1, np.nan)
-    d = d.dropna(subset=["prev"]).drop_duplicates("vid")
+    d = d.dropna(subset=["prev"])
 
     rho, pv = spearmanr(d.prev, d.conservation)
     rows.append({"check": "spearman(positional rule, phyloP)", "value": float(rho),

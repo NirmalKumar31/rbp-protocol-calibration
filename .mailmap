@@ -1,0 +1,8 @@
+# Canonical identity for the git history. 30 of the early commits were made with a placeholder
+# author (`n <x@y.z>`) and most of the rest with a machine-local hostname address. A Zenodo or
+# GitHub archive inherits whatever the log says, so the mapping is fixed here rather than by
+# rewriting history, which would invalidate every commit hash referenced in the docs.
+Nirmal Kumar Thirupallikrishnan <thirupallikrishnan.n@northeastern.edu>
+Nirmal Kumar Thirupallikrishnan <thirupallikrishnan.n@northeastern.edu> <nirmalkumar@Nirmals-MacBook-Air.local>
+Nirmal Kumar Thirupallikrishnan <thirupallikrishnan.n@northeastern.edu> <x@y.z>
+Nirmal Kumar Thirupallikrishnan <thirupallikrishnan.n@northeastern.edu> n <x@y.z>

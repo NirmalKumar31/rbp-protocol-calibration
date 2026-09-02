@@ -24,6 +24,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+from scipy.stats import norm, spearmanr  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "results" / "tables"
@@ -38,13 +39,20 @@ LABEL = {"composition": "composition (19 feat)", "kmer": "k-mer LR", "cnn": "CNN
 
 plt.rcParams.update({"figure.dpi": 150, "font.size": 9, "axes.grid": True,
                      "grid.alpha": 0.25, "grid.linewidth": 0.5, "axes.spines.top": False,
-                     "axes.spines.right": False, "axes.axisbelow": True})
+                     "axes.spines.right": False, "axes.axisbelow": True,
+                     # TYPE 42 (TrueType), NOT matplotlib's default Type 3. Type 3 embeds
+                     # glyphs as PostScript drawing programs: the text is not selectable, not
+                     # searchable and not reliably extractable, and NAR, Bioinformatics and
+                     # every IEEE venue reject it outright at submission. It is a one-line fix
+                     # that otherwise surfaces as a desk rejection weeks later.
+                     "pdf.fonttype": 42, "ps.fonttype": 42})
+SAVE_DPI = 400          # >= 300 for print; the panel figures are dense
 
 
 def save(fig, name):
     FIGS.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "pdf"):
-        fig.savefig(FIGS / f"{name}.{ext}", bbox_inches="tight")
+        fig.savefig(FIGS / f"{name}.{ext}", bbox_inches="tight", dpi=SAVE_DPI)
     plt.close(fig)
     print(f"  wrote results/figures/{name}.png / .pdf", flush=True)
 
@@ -112,19 +120,25 @@ def f0():
     ax[1].set_title(f"b  {d.protein.nunique()} proteins, {n_both} in both lines",
                     loc="left", fontsize=9)
 
-    # (c) ClinVar coverage per dataset, which is what R4's power actually rests on. Reported
-    # rather than assumed: the ladder pools ~19k variants, but they are distributed very
-    # unevenly across datasets and the median dataset contributes far fewer than the mean.
-    if "n_variants" in d.columns and d.n_variants.notna().any():
-        v = d.n_variants.dropna()
-        ax[2].hist(np.log10(v.clip(lower=1)), bins=22, color="#7a5195",
-                   edgecolor="white", linewidth=0.4)
-        ax[2].axvline(np.log10(v.median()), color="#404040", linestyle="--", linewidth=1.1)
-        ax[2].text(np.log10(v.median()), ax[2].get_ylim()[1] * 0.92,
-                   f" median {int(v.median())}", fontsize=7.5, va="top")
-        ax[2].set_xlabel("ClinVar variants per dataset, log$_{10}$")
+    # (c) THE THING THE PAPER IS ABOUT: what each protocol leaves the model to do. This panel
+    # used to plot ClinVar coverage per dataset, for an analysis that has since been RETRACTED
+    # -- so the overview figure was advertising a result the paper no longer makes. The three
+    # composition-baseline distributions belong here instead: they are the paper's independent
+    # variable, and their near-disjointness is R1l in one picture.
+    arms = need("three_arm_per_dataset.csv")
+    if arms is not None:
+        a3 = arms[0]
+        for key, col, lab in (("dn", COLOR["dinuc"], "dinucleotide-matched"),
+                              ("gc", COLOR["gc"], "GC-matched"),
+                              ("neg2", "#7a5195", "neg2 (other RBPs' sites)")):
+            v = a3[f"comp_{key}"]
+            ax[2].hist(v, bins=np.linspace(0.5, 1.0, 26), histtype="step", linewidth=1.5,
+                       color=col, label=f"{lab}  {v.mean():.3f}")
+        ax[2].legend(frameon=False, fontsize=6.8, loc="upper left")
+        ax[2].set_ylim(0, ax[2].get_ylim()[1] * 1.35)   # room for the legend over the peak
+        ax[2].set_xlabel("composition-only AUROC (the baseline the protocol leaves)")
         ax[2].set_ylabel("datasets")
-        ax[2].set_title(f"c  {int(v.sum()):,} variant-dataset pairs", loc="left", fontsize=9)
+        ax[2].set_title("c  same positives, three protocols", loc="left", fontsize=9)
     else:
         ax[2].axis("off")
     save(fig, "f0_panel_overview")
@@ -136,7 +150,9 @@ def f1():
     """The headline. Same positives, same model, two negative sets.
 
     Paired per dataset, because the two arms share their positives -- an unpaired plot
-    would throw away exactly the structure that makes 187/187 meaningful.
+    would throw away exactly the structure that makes 94/94 meaningful. (This said 187/187
+    until 2026-09-02: a count from the discarded build that docs/PANELS.md explicitly says
+    must not reappear. The panel is 94 paired datasets.)
     """
     got = need("cost_of_matching.csv")
     if got is None:
@@ -228,281 +244,693 @@ def f2():
     save(fig, "f2_four_models")
 
 
-# --- f3: is the signal local? ------------------------------------------------------------
+
+# --- f3: the strand control, and why the obvious version of it lies ----------------------
+#
+# Three bars and a difference. The point is not that the contrast shrinks under restriction --
+# it does, and a naive reading calls all of that strand. The point is that a matched random
+# drop reproduces most of the same shrinkage with no strand involved, and matching the placebo
+# on region accounts for more still. What is left is the artifact.
 
 def f3():
-    got = need("locality_ism.csv")
-    if got is None:
+    t = need("strand_placebo.csv")
+    if t is None:
         return
-    d = got[0].dropna(subset=["kmer_gini", "sb_gini"])
-    if len(d) < 3:
-        print("  skipped f3: fewer than 3 paired datasets")
-        return
-    fig, ax = plt.subplots(1, 2, figsize=(7.0, 3.1))
+    q = t[0].set_index("check")
+    v = lambda k: float(q.loc[k, "value"])                               # noqa: E731
+    err = lambda k: [[v(k) - float(q.loc[k, "ci_low"])],                 # noqa: E731
+                     [float(q.loc[k, "ci_high"]) - v(k)]]
 
-    lo = min(d.kmer_gini.min(), d.sb_gini.min()) - 0.03
-    hi = max(d.kmer_gini.max(), d.sb_gini.max()) + 0.03
-    ax[0].plot([lo, hi], [lo, hi], color="#999999", lw=0.8, ls="--")
-    ax[0].scatter(d.kmer_gini, d.sb_gini, s=22, color=COLOR["splicebert"],
-                  edgecolor="white", linewidth=0.4, zorder=3)
-    ax[0].set_xlabel("k-mer LR, ISM Gini")
-    ax[0].set_ylabel("SpliceBERT, ISM Gini")
-    ax[0].set_xlim(lo, hi)
-    ax[0].set_ylim(lo, hi)
-    n_up = int((d.sb_gini > d.kmer_gini).sum())
-    ax[0].set_title(f"More local in {n_up}/{len(d)} datasets", loc="left", fontsize=9)
+    fig, ax = plt.subplots(1, 2, figsize=(8.2, 3.4),
+                           gridspec_kw={"width_ratios": [1.35, 1]})
 
-    diff = (d.sb_gini - d.kmer_gini).sort_values().values
-    ax[1].bar(np.arange(len(diff)), diff,
-              color=[COLOR["splicebert"] if v > 0 else COLOR["gc"] for v in diff],
-              edgecolor="white", linewidth=0.3)
-    ax[1].axhline(0, color="black", lw=0.8)
-    ax[1].axhline(diff.mean(), color="black", lw=1.2, ls="--",
-                  label=f"mean {diff.mean():+.3f}")
-    ax[1].set_xlabel("datasets, sorted")
-    ax[1].set_ylabel("Gini(SpliceBERT) - Gini(k-mer)")
-    ax[1].legend(frameon=False, fontsize=8)
-    ax[1].set_title("Positional concentration", loc="left", fontsize=9)
-    save(fig, "f3_locality")
+    bars = [("contrast, full data", "full\ndata", COLOR["kmer"]),
+            ("contrast, sense-only pairs", "sense-only\npairs", COLOR["gc"]),
+            ("contrast, PLACEBO (same n, random)", "placebo\n(random)", "#b0b0b0"),
+            ("contrast, PLACEBO stratified on region x GC", "placebo\n(region-matched)",
+             "#8c8c8c")]
+    for i, (k, lab, c) in enumerate(bars):
+        ax[0].bar(i, v(k), width=0.62, color=c, edgecolor="white", linewidth=1.2, zorder=3)
+        ax[0].errorbar(i, v(k), yerr=err(k), color="#333333", capsize=3, lw=1.2, zorder=4)
+    ax[0].axhline(v("contrast, full data"), color="#333333", lw=0.8, ls=":", zorder=2)
+    ax[0].set_xticks(range(len(bars)), [b[1] for b in bars], fontsize=7.5)
+    ax[0].set_ylabel("contrast in nested gain")
+    ax[0].set_ylim(0, v("contrast, full data") * 1.30)
+    ax[0].set_title("a  restriction shrinks it; so does dropping at random", loc="left")
+
+    # The decomposition of the -0.0091 that restriction alone reports.
+    parts = [("change from placebo", "cost of\ndropping pairs", "#b0b0b0"),
+             ("locus-mix component", "locus\nmix", "#8c8c8c"),
+             ("STRAND-SPECIFIC EXCESS (stratified)", "strand", COLOR["splicebert"])]
+    for i, (k, lab, c) in enumerate(parts):
+        ax[1].bar(i, v(k), width=0.6, color=c, edgecolor="white", linewidth=1.2, zorder=3)
+        ax[1].errorbar(i, v(k), yerr=err(k), color="#333333", capsize=3, lw=1.2, zorder=4)
+        ax[1].text(i, v(k) - 0.0011, f"{v(k):+.4f}", ha="center", va="top", fontsize=7.5)
+    ax[1].axhline(0, color="#333333", lw=0.8)
+    ax[1].set_xticks(range(len(parts)), [p_[1] for p_ in parts], fontsize=7.5)
+    ax[1].set_ylabel("component of the -0.0091")
+    surv = v("fraction of the contrast surviving")
+    ax[1].set_title(f"b  {surv:.0%} of the contrast survives", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f3_strand_placebo")
 
 
-# --- f4: the variant arm -----------------------------------------------------------------
+# --- f4: the magnitude replicates, and it buys precision ---------------------------------
+#
+# The paper concedes that the SIGN of the contrast is design-implied, so this figure is about
+# the only part that is not. Panel a is an out-of-sample prediction: fifteen proteins measured
+# in two cell lines, separate experiments with separately drawn negatives.
 
 def f4():
-    """R4, as a paired per-dataset comparison rather than one pooled AUROC.
-
-    THE POOLED VERSION OF THIS FIGURE WAS WRONG AND LOOKED BETTER. It showed four bars,
-    matched 0.829 against a wrong-protein 0.680, and that gap of +0.149 was inflated by
-    between-dataset heterogeneity: mean |delta| per dataset correlates with that dataset's
-    pathogenic rate at rho +0.73 and spans 10.4x, so a pooled AUROC partly measures which
-    dataset a variant came from. Paired within dataset the gap is +0.065.
-
-    Conservation was the only arm immune to the artefact, because phyloP is on a fixed
-    external scale -- which is why the inflation stayed invisible: the arm that could not be
-    inflated was winning anyway.
-
-    Panel a is the honest ladder across power strata. Panel b is the paired test. Panel c
-    puts the size of the inflation on the record instead of quietly dropping it.
-    """
-    got = need("variant_ladder_paired.csv", "variant_specificity.csv",
-               "variant_coefficients.csv")
-    if got is None:
+    t = need("cost_of_matching.csv", "rehearsal_binding_gc.csv", "rehearsal_binding_dinuc.csv")
+    if t is None:
         return
-    paired, per, coef = got
-    fig, ax = plt.subplots(1, 3, figsize=(11.0, 3.2))
+    cm, gc, dn = t
+    cm["contrast"] = cm.delta_auroc_dn - cm.delta_auroc_gc
+    w = cm.pivot_table(index="protein", columns="cell", values="contrast").dropna()
+    fig, ax = plt.subplots(1, 2, figsize=(8.0, 3.4))
 
-    # (a) each arm against statistical power. The mismatched floor is flat; matched rises.
-    x = np.arange(len(paired))
-    for col, key, lab in (("conservation", "conservation", "phyloP conservation"),
-                          ("matched", "splicebert", "right protein"),
-                          ("mismatched", "kmer", "wrong protein")):
-        c = "#8c8c8c" if col == "conservation" else COLOR[key]
-        c = "#bdbdbd" if col == "mismatched" else c
-        ax[0].plot(x, paired[col], "o-", color=c, lw=1.6, ms=5, label=lab)
-    ax[0].set_xticks(x)
-    ax[0].set_xticklabels([f"\u2265{int(v)}\n(n={int(n)})"
-                           for v, n in zip(paired.min_pathogenic, paired.n_datasets)],
-                          fontsize=8)
-    ax[0].set_xlabel("pathogenic variants per dataset")
-    ax[0].set_ylabel("mean per-dataset AUROC")
-    # Headroom then upper-left: at center-right the box sat on the rising matched line.
-    ax[0].set_ylim(top=ax[0].get_ylim()[1] + 0.06)
-    ax[0].legend(frameon=False, fontsize=7.5, loc="upper left")
-    ax[0].set_title("a  the floor is flat, the signal is not", loc="left", fontsize=9)
+    a_, b_ = w.iloc[:, 0], w.iloc[:, 1]
+    lim = [min(a_.min(), b_.min()) - 0.01, max(a_.max(), b_.max()) + 0.01]
+    ax[0].plot(lim, lim, color="#999999", ls="--", lw=1, zorder=1)
+    ax[0].scatter(a_, b_, s=34, color=COLOR["kmer"], edgecolor="white", linewidth=0.6, zorder=3)
+    r = np.corrcoef(a_, b_)[0, 1]
+    ax[0].set(xlim=lim, ylim=lim, xlabel=f"contrast in {w.columns[0]}",
+              ylabel=f"contrast in {w.columns[1]}")
+    ax[0].set_title(f"a  replicates across cell lines, r = {r:+.2f} (n={len(w)})", loc="left")
 
-    # (b) the paired test itself, on the adequately powered datasets.
-    q = per[per.n_pathogenic >= 20]
-    ax[1].scatter(q.auroc_mismatched, q.auroc_matched, s=16,
-                  color=COLOR["splicebert"], alpha=0.75, edgecolor="white", linewidth=0.3)
-    lim = [min(q.auroc_mismatched.min(), q.auroc_matched.min()) - 0.03,
-           max(q.auroc_mismatched.max(), q.auroc_matched.max()) + 0.03]
-    ax[1].plot(lim, lim, "--", color="#999999", lw=1.0)
-    ax[1].set_xlim(lim); ax[1].set_ylim(lim)
-    ax[1].set_xlabel("wrong-protein head, AUROC")
-    ax[1].set_ylabel("right-protein head, AUROC")
-    row = paired[paired.min_pathogenic == 20]
-    if len(row):
-        r = row.iloc[0]
-        ax[1].set_title(f"b  right wins {int(r.matched_wins)}/{int(r.n_datasets)}, "
-                        f"p={r.p_specificity:.1e}", loc="left", fontsize=9)
+    # Panel b: the same gain, measured more precisely. z = gain / SE, per dataset, paired.
+    m = gc.merge(dn, on="dataset", suffixes=("_gc", "_dn"))
+    for arm in ("gc", "dn"):
+        se = (m[f"delta_ci_high_{arm}"] - m[f"delta_ci_low_{arm}"]) / (2 * 1.959963985)
+        m[f"z_{arm}"] = m[f"delta_auroc_{arm}"] / se.replace(0, np.nan)
+    m = m.dropna(subset=["z_gc", "z_dn"])
+    for _, r_ in m.iterrows():
+        ax[1].plot([0, 1], [r_.z_gc, r_.z_dn], color="#999999", lw=0.4, alpha=0.45, zorder=1)
+    for i, (col, arm) in enumerate((("z_gc", "gc"), ("z_dn", "dinuc"))):
+        ax[1].scatter(np.full(len(m), i), m[col], s=9, color=COLOR[arm], zorder=3,
+                      edgecolor="white", linewidth=0.3)
+        ax[1].hlines(m[col].median(), i - 0.22, i + 0.22, color="black", lw=1.8, zorder=4)
+    ax[1].set_xticks([0, 1], ["GC-matched", "dinucleotide-matched"], fontsize=8)
+    ax[1].set_xlim(-0.4, 1.4)
+    ax[1].set_yscale("log")
+    ax[1].set_ylabel("z = nested gain / SE")
+    up = int((m.z_dn > m.z_gc).sum())
+    ax[1].set_title(f"b  measured more precisely in {up}/{len(m)}", loc="left")
 
-    # (c) the inflation, stated rather than deleted.
-    w = 0.36
-    arms = ["mismatched", "matched"]
-    for i, tag in enumerate(("pooled", "within_dataset")):
-        c = coef[coef.standardisation == tag].set_index("arm").reindex(arms)
-        pos = np.arange(len(arms)) + (i - 0.5) * w
-        ax[2].bar(pos, c.coef, width=w, color=["#bdbdbd", COLOR["splicebert"]],
-                  alpha=1.0 if tag == "within_dataset" else 0.45,
-                  edgecolor="white", linewidth=0.5,
-                  label="pooled (inflated)" if tag == "pooled" else "within dataset")
-        ax[2].errorbar(pos, c.coef, yerr=[c.coef - c.ci_low, c.ci_high - c.coef],
-                       fmt="none", ecolor="black", elinewidth=0.9, capsize=2.5)
-    ax[2].set_xticks(np.arange(len(arms)))
-    ax[2].set_xticklabels(["wrong\nprotein", "right\nprotein"], fontsize=8)
-    ax[2].set_ylabel("conservation-controlled coefficient")
-    ax[2].legend(frameon=False, fontsize=7.5)
-    ax[2].set_title("c  pooling inflates both arms", loc="left", fontsize=9)
-    save(fig, "f4_variant_ladder")
+    fig.tight_layout()
+    save(fig, "f4_replication")
 
 
-# --- f5: the size confound, stated rather than buried ------------------------------------
+# --- f5: effect modification by dataset size, printed rather than buried -----------------
 
 def f5():
-    got = need("matched_four_models.csv")
-    if got is None:
+    t = need("cost_of_matching.csv")
+    if t is None:
         return
-    d = got[0].rename(columns={"kmer_auroc": "kmer", "composition_auroc": "composition"})
-    fig, ax = plt.subplots(figsize=(4.0, 3.1))
+    d = t[0]
+    d["contrast"] = d.delta_auroc_dn - d.delta_auroc_gc
+    from scipy.stats import spearmanr
+    rho = spearmanr(np.log10(d.pairs), d.contrast)
+    fig, ax = plt.subplots(figsize=(4.4, 3.2))
+    ax.axhline(0, color="#999999", lw=0.8, ls="--")
+    ax.scatter(d.pairs, d.contrast, s=13, color=COLOR["kmer"], alpha=0.75,
+               edgecolor="white", linewidth=0.3, zorder=3)
     lp = np.log10(d.pairs)
-    for m in ["composition", "kmer", "cnn", "splicebert"]:
-        r = np.corrcoef(lp, d[m])[0, 1]
-        ax.scatter(d.pairs, d[m], s=7, color=COLOR[m], alpha=0.6,
-                   label=f"{LABEL[m]}  r={r:+.2f}", edgecolor="none")
-        b, a_ = np.polyfit(lp, d[m], 1)
-        xs = np.linspace(lp.min(), lp.max(), 40)
-        ax.plot(10 ** xs, a_ + b * xs, color=COLOR[m], lw=1.3)
+    b_, a_ = np.polyfit(lp, d.contrast, 1)
+    xs = np.linspace(lp.min(), lp.max(), 40)
+    ax.plot(10 ** xs, a_ + b_ * xs, color="#333333", lw=1.4, zorder=4)
     ax.set_xscale("log")
-    ax.set_xlabel("training pairs per dataset")
-    ax.set_ylabel("pooled out-of-fold AUROC")
-    # Outside the axes, not "lower right": at this size the legend covered the composition
-    # cloud, which is the series the panel exists to contrast against.
-    ax.legend(frameon=False, fontsize=7.5, loc="upper left", bbox_to_anchor=(1.02, 1.0))
-    ax.set_title("Better models depend MORE on dataset size", loc="left", fontsize=9)
-    save(fig, "f5_size_confound")
+    ax.set_xlabel("pairs per dataset")
+    ax.set_ylabel("contrast in nested gain")
+    ax.set_title(f"Larger in larger datasets: rho = {rho.statistic:+.3f}, "
+                 f"p = {rho.pvalue:.1g}", loc="left", fontsize=9)
+    save(fig, "f5_size_modification")
 
 
-# --- f6: the trivial baselines, which is the paper's strongest negative result -----------
-#
-# THIS FIGURE DID NOT EXIST FOR THREE DAYS while the claim it carries was called the paper's
-# headline. `variant_ladder_paired.csv` already held `block_prevalence` and
-# `model_minus_prevalence`; f4 loaded that exact frame and drew three arms out of four,
-# omitting the one the argument rests on. A claim with no figure is a claim a referee skims.
-#
-# Panel a is the one that matters: every point is one dataset, and a point below the diagonal
-# is a dataset where a rule that knows only WHERE a variant sits beat a fine-tuned language
-# model. Aggregates hide unanimity; scatters show it.
+# --- f6: the contrast does not depend on the k-mer size ----------------------------------
+
 def f6():
-    got = need("variant_specificity.csv", "variant_ladder_paired.csv",
-               "variant_specificity_attacks.csv", "robustness.csv")
-    if got is None:
+    t = need("k_sweep_per_dataset.csv", "k_sweep.csv")
+    if t is None:
         return
-    per, ladder, attacks, rob = got
+    per, summ = t
+    q = summ.set_index("check")
+    ks = [3, 4, 5, 6]
+    fig, ax = plt.subplots(1, 2, figsize=(8.0, 3.3),
+                           gridspec_kw={"width_ratios": [1, 1.1]})
+
+    for i, k in enumerate(ks):
+        c = per[f"contrast_k{k}"]
+        ax[0].scatter(np.full(len(c), i) + np.random.default_rng(k).normal(0, 0.05, len(c)),
+                      c, s=7, color=COLOR["kmer"], alpha=0.45, edgecolor="none", zorder=2)
+        v = float(q.loc[f"contrast, k={k}", "value"])
+        lo = float(q.loc[f"contrast, k={k}", "ci_low"])
+        hi = float(q.loc[f"contrast, k={k}", "ci_high"])
+        ax[0].errorbar(i, v, yerr=[[v - lo], [hi - v]], fmt="o", ms=6, color="#333333",
+                       capsize=4, lw=1.5, zorder=4)
+    ax[0].axhline(0, color="#999999", lw=0.9, ls="--")
+    ax[0].set_xticks(range(len(ks)), [f"k={k}" for k in ks])
+    ax[0].set_ylabel("contrast in nested gain")
+    ax[0].set_title("a  positive at every k", loc="left")
+
+    # Panel b: the two arms' gains, so the reader sees WHERE the contrast comes from.
+    for arm, lab, c in (("gc", "GC-matched", COLOR["gc"]), ("dn", "dinuc-matched", COLOR["dinuc"])):
+        ys = [per[f"gain_{arm}_k{k}"].mean() for k in ks]
+        ax[1].plot(ks, ys, marker="o", ms=5, lw=1.8, color=c, label=lab)
+    ax[1].set_xticks(ks)
+    ax[1].set_xlabel("k-mer size")
+    ax[1].set_ylabel("mean nested gain")
+    ax[1].legend(frameon=False, fontsize=8)
+    d54 = float(q.loc["k=5 minus k=4", "value"])
+    ax[1].set_title(f"b  k=5 minus k=4 = {d54:+.4f}", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f6_k_sweep")
+
+
+# --- f7: the effect is twice as large for coding-region binders --------------------------
+#
+# Panel b is the mechanism, not decoration: if intronic sites were NOT more compositional the
+# explanation offered in the text would be wrong, and the reader can check it here.
+
+def f7():
+    t = need("region_heterogeneity_per_dataset.csv")
+    if t is None:
+        return
+    d = t[0]
+    order = [g for g in ("cds", "utr3", "intron") if (d.dominant == g).sum() >= 8]
+    col = {"cds": COLOR["cnn"], "utr3": COLOR["splicebert"], "intron": COLOR["kmer"]}
+    fig, ax = plt.subplots(1, 2, figsize=(8.0, 3.3))
+
+    for i, g in enumerate(order):
+        sub = d[d.dominant == g]
+        ax[0].scatter(np.full(len(sub), i) +
+                      np.random.default_rng(1).normal(0, 0.06, len(sub)),
+                      sub.contrast, s=13, color=col[g], alpha=0.7, edgecolor="white",
+                      linewidth=0.3, zorder=3)
+        ax[0].hlines(sub.contrast.mean(), i - 0.26, i + 0.26, color="black", lw=2, zorder=4)
+        ax[1].scatter(np.full(len(sub), i) +
+                      np.random.default_rng(2).normal(0, 0.06, len(sub)),
+                      sub.composition_auroc_dn, s=13, color=col[g], alpha=0.7,
+                      edgecolor="white", linewidth=0.3, zorder=3)
+        ax[1].hlines(sub.composition_auroc_dn.mean(), i - 0.26, i + 0.26, color="black",
+                     lw=2, zorder=4)
+    lab = [f"{g}\n(n={int((d.dominant == g).sum())})" for g in order]
+    for a_ in ax:
+        a_.set_xticks(range(len(order)), lab, fontsize=8)
+        a_.set_xlim(-0.5, len(order) - 0.5)
+    ax[0].axhline(0, color="#999999", lw=0.8, ls="--")
+    ax[0].set_ylabel("contrast in nested gain")
+    ax[0].set_title("a  twice as large for CDS binders", loc="left")
+    ax[1].set_ylabel("composition alone, dinuc arm")
+    ax[1].set_title("b  ...because intronic sites ARE more compositional", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f7_region")
+
+
+# --- f8: R1 is not the AUROC ceiling -----------------------------------------------------
+#
+# The figure exists to answer one referee objection, so each panel is one step of that answer
+# and nothing else. (a) the raw paired effect. (b) how much of it survives once AUROC
+# compression is removed, which is the only number that matters. (c) why the third scale
+# disagrees: the coefficient gap tracks total task signal, not incremental value, so it is
+# measuring difficulty. Panel c is two scatters rather than one because the argument IS the
+# contrast between the two correlations.
+
+def f8():
+    t = need("rehearsal_binding_gc.csv", "rehearsal_binding_dinuc.csv", "scale_check.csv")
+    if t is None:
+        return
+    gc, dn, sc = t
+    m = gc.merge(dn, on="dataset", suffixes=("_gc", "_dn"))
+    q = sc.set_index("check")
+    val = lambda k: float(q.loc[k, "value"])
+    err = lambda k: [[val(k) - float(q.loc[k, "ci_low"])], [float(q.loc[k, "ci_high"]) - val(k)]]
+
+    r2 = np.sqrt(2.0)
+    dp = lambda a: r2 * norm.ppf(np.clip(a, 1e-6, 1 - 1e-6))
+    for a in ("gc", "dn"):
+        m[f"dd_{a}"] = dp(m[f"with_score_auroc_{a}"]) - dp(m[f"composition_auroc_{a}"])
+        m[f"dfull_{a}"] = dp(m[f"with_score_auroc_{a}"])
+
     fig, ax = plt.subplots(1, 3, figsize=(11.4, 3.5))
 
-    # (a) paired scatter, powered stratum, on the COMMON variant mask
-    mcol = "auroc_matched_common" if "auroc_matched_common" in per else "auroc_matched"
-    q = per[(per.n_pathogenic >= 20)].dropna(subset=[mcol, "auroc_block_prevalence"])
-    ax[0].plot([0.3, 1.0], [0.3, 1.0], color="#999999", lw=1, ls="--", zorder=1)
-    ax[0].scatter(q.auroc_block_prevalence, q[mcol], s=26, color=COLOR["splicebert"],
-                  edgecolor="white", linewidth=0.6, zorder=3)
-    below = int((q[mcol] < q.auroc_block_prevalence).sum())
-    ax[0].set_xlabel("1-Mb positional prevalence, AUROC")
-    ax[0].set_ylabel("SpliceBERT, AUROC")
-    ax[0].set_title(f"a  the model loses on {below}/{len(q)} datasets", loc="left")
-    ax[0].set_xlim(0.3, 1.0)
-    ax[0].set_ylim(0.3, 1.0)
-    ax[0].set_aspect("equal")
+    # (a) the paired effect, per dataset
+    lim = [0, max(m.delta_auroc_gc.max(), m.delta_auroc_dn.max()) * 1.06]
+    ax[0].plot(lim, lim, color="#999999", ls="--", lw=1, zorder=1)
+    ax[0].scatter(m.delta_auroc_gc, m.delta_auroc_dn, s=22, alpha=0.8,
+                  color=COLOR["kmer"], edgecolor="white", linewidth=0.4, zorder=3)
+    n_up = int((m.delta_auroc_dn > m.delta_auroc_gc).sum())
+    ax[0].set(xlim=lim, ylim=lim, xlabel="nested gain, GC-matched",
+              ylabel="nested gain, dinuc-matched")
+    ax[0].set_title(f"a  larger under proper matching in {n_up}/{len(m)}", loc="left")
 
-    # (b) the scorers, worst to best, so the reader's eye lands on conservation
-    row = ladder[ladder.min_pathogenic == 20]
-    bars = []
-    if len(row):
-        r = row.iloc[0]
-        bars = [("k-mer |delta|", 0.5519, "#bbbbbb"),
-                ("dataset identity", 0.6682, "#bbbbbb"),
-                ("wrong-protein head", float(r.mismatched), COLOR["kmer"]),
-                ("SpliceBERT", float(r.matched), COLOR["splicebert"]),
-                ("1-Mb prevalence", float(r.block_prevalence), COLOR["gc"]),
-                ("phyloP", float(r.conservation), "#7b3294")]
-    for i, (lab, v, c) in enumerate(bars):
-        ax[1].barh(i, v - 0.5, left=0.5, color=c, height=0.62)
-        ax[1].text(v + 0.006, i, f"{v:.3f}", va="center", fontsize=8)
-    ax[1].set_yticks(range(len(bars)))
-    ax[1].set_yticklabels([b[0] for b in bars])
-    ax[1].set_xlim(0.5, 0.98)
-    ax[1].set_xlabel("AUROC (paired, 44 powered datasets)")
-    ax[1].set_title("b  two of the three winners use no model", loc="left")
-    ax[1].grid(axis="y", visible=False)
+    # (b) the decomposition: what survives removing compression
+    # observed contrast first, then the two things it decomposes into. Three distinct hues,
+    # because these are three different quantities and two shades of the same blue read as one.
+    keys = [("CONTRAST, AUROC scale (published headline)", "observed\ncontrast", COLOR["kmer"]),
+            ("contrast attributable to SCALE alone", "AUROC\ncompression", "#b0b0b0"),
+            ("CONTRAST, protocol effect net of scale", "protocol effect\n(what survives)",
+             COLOR["splicebert"])]
+    for i, (k, lab, c) in enumerate(keys):
+        ax[1].bar(i, val(k), width=0.62, color=c, edgecolor="white", linewidth=1.2, zorder=3)
+        ax[1].errorbar(i, val(k), yerr=err(k), color="#333333", capsize=3, lw=1.2, zorder=4)
+        ax[1].text(i, float(q.loc[k, "ci_high"]) + 0.0016, f"{val(k):+.4f}",
+                   ha="center", fontsize=8)
+    ax[1].axhline(0, color="#333333", lw=0.8)
+    ax[1].set_xticks(range(3), [lab for _, lab, _ in keys], fontsize=8)
+    ax[1].set_ylim(0, val(keys[0][0]) * 1.34)
+    ax[1].set_ylabel("contrast in nested gain")
+    share = val("scale share of the published contrast")
+    ax[1].set_title(f"b  compression explains {share:.0%}, not all of it", loc="left")
 
-    # (c) the decay. A rule that wins only at one block size is a binning artefact; one that
-    # decays smoothly with block size is reading real positional structure.
-    dec = {}
-    for _, x in attacks.iterrows():
-        if str(x.attack).startswith("trivial rule at"):
-            dec[str(x.attack).replace("trivial rule at ", "")] = float(x.value)
-    if dec:
-        order = ["100 kb", "1000 kb", "10000 kb"]
-        xs = [k for k in order if k in dec]
-        ax[2].plot(range(len(xs)), [dec[k] for k in xs], marker="o", color=COLOR["gc"], lw=1.6)
-        for i, k in enumerate(xs):
-            ax[2].annotate(f"{dec[k]:.3f}", (i, dec[k]), textcoords="offset points",
-                           xytext=(0, 8), ha="center", fontsize=8)
-        ax[2].set_xticks(range(len(xs)))
-        ax[2].set_xticklabels(["100 kb", "1 Mb", "10 Mb"])
-    m = ladder[ladder.min_pathogenic == 20]
-    if len(m):
-        ax[2].axhline(float(m.iloc[0].matched), color=COLOR["splicebert"], ls=":", lw=1.4)
-        ax[2].text(0.02, float(m.iloc[0].matched) + 0.004, "SpliceBERT", fontsize=8,
-                   color=COLOR["splicebert"])
-    ax[2].set_ylabel("pooled AUROC")
-    ax[2].set_xlabel("genomic block size")
-    ax[2].set_title("c  positional signal decays with block size", loc="left")
+    # (c) why the log-odds scale disagrees
+    cgap = m.coef_gc - m.coef_dn
+    for x, lab, c in ((m.dfull_gc - m.dfull_dn, "vs TOTAL task signal", COLOR["gc"]),
+                      (m.dd_dn - m.dd_gc, "vs INCREMENTAL value", COLOR["splicebert"])):
+        rho = spearmanr(cgap, x).statistic
+        ax[2].scatter(x, cgap, s=20, alpha=0.75, color=c, edgecolor="white",
+                      linewidth=0.3, zorder=3, label=f"{lab}   rho {rho:+.2f}")
+    ax[2].axhline(0, color="#999999", lw=0.8, ls="--")
+    ax[2].legend(frameon=False, fontsize=7.5, loc="lower right")
+    ax[2].set(xlabel="between-arm gap (d' units)",
+              ylabel="between-arm gap in coefficient")
+    ax[2].set_title("c  the coefficient tracks difficulty, not value", loc="left")
 
     fig.tight_layout()
-    save(fig, "f6_trivial_baselines")
+    save(fig, "f8_scale_check")
 
 
-# --- f7: why the threshold is 20, answered with a curve rather than a sentence -----------
+# --- f9: R1g, the contrast is not an artefact of the model class -------------------------
 #
-# The single most reachable objection to the specificity result is "you chose 20 pathogenic
-# variants because it worked". `variant_threshold_curve.csv` answers it and was read by
-# NOTHING for three days -- computed, uploaded, and consumed by no figure, no gate and no
-# test. A threshold defended by a monotone curve is a design choice; the same threshold
-# defended by prose is a suspicion.
-#
-# The two lines are the argument. A generic plausibility floor should not care how many
-# pathogenic variants a dataset has, and a protein's own head should. Flat versus rising IS
-# the detection threshold.
-def f7():
-    got = need("variant_threshold_curve.csv")
-    if got is None:
+# The paper's sharpest limitation was that every number came from one model class. This
+# figure is the answer, and it has to make three separate points or it does not close the
+# objection. (a) the arm gap is present for all three models, so it is not a property of
+# bags of k-mers. (b) it GROWS with model capacity, and the protocol effect survives the
+# compression correction for each. (c) it holds dataset by dataset rather than only on
+# average, which is what makes the paired comparison meaningful.
+
+def f9():
+    t = need("deep_contrast_per_dataset.csv", "deep_contrast.csv")
+    if t is None:
         return
-    (c,) = got
-    c = c.sort_values("min_pathogenic")
-    fig, ax = plt.subplots(1, 2, figsize=(8.6, 3.5))
+    d, s = t
+    models = [m for m in ("kmer", "cnn", "splicebert") if f"{m}_gain_gc" in d.columns]
+    q = s.set_index(["model", "quantity"]).value
+    fig, ax = plt.subplots(1, 3, figsize=(10.4, 3.3))
 
-    ax[0].plot(c.min_pathogenic, c.matched, marker="o", ms=3.5, lw=1.6,
-               color=COLOR["splicebert"], label="right protein")
-    ax[0].plot(c.min_pathogenic, c.mismatched, marker="s", ms=3.5, lw=1.6,
-               color=COLOR["kmer"], label="wrong protein (the floor)")
-    ax[0].axvline(20, color="#999999", ls="--", lw=1)
-    ax[0].text(21, ax[0].get_ylim()[0] + 0.005, "reported\nthreshold", fontsize=7.5,
-               color="#666666")
-    ax[0].set_xlabel("minimum pathogenic variants per dataset")
-    ax[0].set_ylabel("mean per-dataset AUROC")
-    ax[0].set_title("a  the floor is flat; the model is not", loc="left")
-    ax[0].legend(frameon=False, fontsize=8, loc="lower right")
+    # a. nested contribution, both arms, every model
+    w = 0.34
+    for i, m in enumerate(models):
+        for j, (arm, key) in enumerate((("gc", "gc"), ("dinuc", "dn"))):
+            v = d[f"{m}_gain_{key}"]
+            ax[0].bar(i + (j - 0.5) * w, v.mean(), w * 0.9, color=COLOR[arm],
+                      zorder=3, label=f"{arm}-matched" if i == 0 else None)
+            ax[0].errorbar(i + (j - 0.5) * w, v.mean(), yerr=v.sem(), color="black",
+                           lw=1, capsize=2, zorder=4)
+    ax[0].set_xticks(range(len(models)), [LABEL[m] for m in models], fontsize=8)
+    ax[0].set_ylabel("nested contribution over composition")
+    ax[0].set_title("a  every model shows the arm gap", loc="left")
+    ax[0].legend(fontsize=7, frameon=False)
 
-    sig = c[c.p < 0.05]
-    ax[1].axhline(0, color="#999999", lw=1)
-    ax[1].plot(c.min_pathogenic, c.gap, marker="o", ms=3.5, lw=1.8, color="#7b3294")
-    if len(sig):
-        ax[1].scatter(sig.min_pathogenic, sig.gap, s=52, facecolor="none",
-                      edgecolor="#7b3294", linewidth=1.4, zorder=4,
-                      label=f"p < 0.05 (from {int(sig.min_pathogenic.min())})")
-        ax[1].legend(frameon=False, fontsize=8, loc="upper left")
-    ax[1].axvline(20, color="#999999", ls="--", lw=1)
-    ax[1].set_xlabel("minimum pathogenic variants per dataset")
-    ax[1].set_ylabel("specificity gap (right - wrong protein)")
-    ax[1].set_title("b  monotone in power, not a spike at 20", loc="left")
+    # b. the contrast, with the part that survives the compression correction
+    for i, m in enumerate(models):
+        c = q[(m, "contrast_auroc")]
+        lo = s[(s.model == m) & (s.quantity == "contrast_auroc")].ci_low.iloc[0]
+        hi = s[(s.model == m) & (s.quantity == "contrast_auroc")].ci_high.iloc[0]
+        ax[1].bar(i, c, 0.55, color=COLOR[m], zorder=3)
+        ax[1].errorbar(i, c, yerr=[[c - lo], [hi - c]], color="black", lw=1, capsize=3,
+                       zorder=4)
+        pmin, pmax = q[(m, "protocol_effect_min")], q[(m, "protocol_effect_max")]
+        ax[1].add_patch(plt.Rectangle((i - 0.28, pmin), 0.56, pmax - pmin,
+                                      facecolor="white", edgecolor="black", lw=0.8,
+                                      hatch="///", alpha=0.85, zorder=5))
+    ax[1].axhline(0, color="#999999", lw=0.8, ls="--")
+    ax[1].set_xticks(range(len(models)), [LABEL[m] for m in models], fontsize=8)
+    ax[1].set_ylabel("contrast (dinuc - GC)")
+    ax[1].set_title("b  hatched: survives compression", loc="left")
+
+    # c. dataset by dataset, deepest model against the k-mer
+    if "kmer" in models and "splicebert" in models:
+        x = d.kmer_gain_dn - d.kmer_gain_gc
+        y = d.splicebert_gain_dn - d.splicebert_gain_gc
+        lim = [min(x.min(), y.min()) - 0.01, max(x.max(), y.max()) + 0.01]
+        ax[2].plot(lim, lim, color="#999999", lw=0.8, ls="--", zorder=2)
+        ax[2].axhline(0, color="#cccccc", lw=0.6, zorder=1)
+        ax[2].axvline(0, color="#cccccc", lw=0.6, zorder=1)
+        ax[2].scatter(x, y, s=14, color=COLOR["splicebert"], alpha=0.75,
+                      edgecolor="white", linewidth=0.3, zorder=3)
+        ax[2].set_xlim(lim)
+        ax[2].set_ylim(lim)
+        ax[2].set_xlabel("contrast, k-mer LR")
+        ax[2].set_ylabel("contrast, SpliceBERT")
+        above = int((y > x).sum())
+        ax[2].set_title(f"c  larger for SpliceBERT in {above}/{len(d)}", loc="left")
 
     fig.tight_layout()
-    save(fig, "f7_power_threshold")
+    save(fig, "f9_deep_contrast")
+
+# --- f10: R1k, the paper's central figure ------------------------------------------------
+#
+# Three protocols, one model, one set of positives. The figure has to carry the whole thesis,
+# so it makes exactly three points and no others. (a) the measured contribution spans 5.4x and
+# the ordering is NOT by negative-set hardness -- the field's own bias-aware protocol is the
+# LOWEST. (b) why: the contribution tracks how much room the composition baseline leaves, which
+# is the circularity critique adopted rather than deflected. (c) it is not an averaging
+# artefact -- the reordering happens dataset by dataset.
+
+def f10():
+    t = need("three_arm_per_dataset.csv", "three_arm_contrast.csv")
+    if t is None:
+        return
+    d, s = t
+    q = s.set_index("check")
+    arms = [("dn", "dinucleotide\nmatched"), ("gc", "GC\nmatched"),
+            ("neg2", "other RBPs'\nsites (neg2)")]
+    col = {"dn": COLOR["dinuc"], "gc": COLOR["gc"], "neg2": COLOR["cnn"]}
+    fig, ax = plt.subplots(1, 3, figsize=(10.6, 3.4))
+
+    # a. composition baseline and nested contribution, per protocol
+    x = np.arange(len(arms))
+    for i, (a, _) in enumerate(arms):
+        g = d[f"gain_{a}"]
+        ax[0].bar(i, g.mean(), 0.6, color=col[a], zorder=3)
+        ax[0].errorbar(i, g.mean(), yerr=g.sem(), color="black", lw=1, capsize=3, zorder=4)
+        ax[0].text(i, g.mean() + g.sem() + 0.004, f"{g.mean():+.4f}", ha="center",
+                   fontsize=7.5)
+    ax[0].set_xticks(x, [lbl for _, lbl in arms], fontsize=7.5)
+    ax[0].set_ylabel("nested contribution over composition")
+    ax[0].set_ylim(0, 0.082)
+    ax[0].set_title("a  same model, same positives: 5.4x", loc="left")
+
+    # b. the mechanism: gain falls as the composition baseline rises
+    for a, _ in arms:
+        ax[1].scatter(d[f"comp_{a}"], d[f"gain_{a}"], s=11, color=col[a], alpha=0.65,
+                      edgecolor="white", linewidth=0.25, zorder=3,
+                      label={"dn": "dinuc", "gc": "GC", "neg2": "neg2"}[a])
+    rho = float(q.loc["spearman(composition baseline, nested gain), all arms pooled", "value"])
+    ax[1].axhline(0, color="#cccccc", lw=0.6, zorder=1)
+    ax[1].set_xlabel("composition alone (AUROC)")
+    ax[1].set_ylabel("nested contribution")
+    ax[1].legend(fontsize=7, frameon=False, loc="upper right")
+    ax[1].set_title(f"b  it tracks the headroom, rho = {rho:+.2f}", loc="left")
+
+    # c. per dataset, so it is not an averaging artefact
+    lim = [-0.02, max(d.gain_dn.max(), d.gain_gc.max()) + 0.01]
+    ax[2].plot(lim, lim, color="#999999", lw=0.8, ls="--", zorder=2)
+    ax[2].scatter(d.gain_gc, d.gain_dn, s=12, color=COLOR["dinuc"], alpha=0.7,
+                  edgecolor="white", linewidth=0.25, zorder=3, label="dinuc vs GC")
+    ax[2].scatter(d.gain_gc, d.gain_neg2, s=12, color=COLOR["cnn"], alpha=0.7,
+                  edgecolor="white", linewidth=0.25, zorder=3, label="neg2 vs GC")
+    ax[2].set_xlim(lim)
+    ax[2].set_ylim(lim)
+    ax[2].set_xlabel("nested contribution, GC-matched")
+    ax[2].set_ylabel("nested contribution, other protocol")
+    ax[2].legend(fontsize=7, frameon=False, loc="upper left")
+    up = int((d.gain_dn > d.gain_gc).sum())
+    dn_ = int((d.gain_neg2 < d.gain_gc).sum())
+    ax[2].set_title(f"c  above in {up}/94, below in {dn_}/94", loc="left")
+
+    fig.tight_layout()
+    save(fig, "f10_three_protocols")
+
+# --- f11: no rescaling reaches protocol independence (R1m) -------------------------------
+
+def f11():
+    """The result that earns the title. Eight monotone transforms, none reaching 1.0x.
+
+    A dot chart rather than bars: the quantity is a ratio with an interval, the coordinates are
+    not commensurable with each other, and a bar from zero would invite reading the areas.
+    """
+    t = need("scale_sweep.csv")
+    if t is None:
+        return
+    d = t[0].set_index("check")
+    rows = [("raw AUROC gain", "fold range, raw AUROC gain"),
+            ("Somers' D  (affine control)", "fold range, Somers' D gain"),
+            ("arcsine increment", "fold range, arcsine increment"),
+            ("cloglog increment", "fold range, cloglog increment"),
+            ("d' increment (binormal)", "fold range, d' increment (binormal)"),
+            ("logit increment", "fold range, logit increment"),
+            ("headroom-normalised, g/(1-comp)", "fold range, headroom-normalised, g/(1-comp)")]
+    rows = [(lab, k) for lab, k in rows if k in d.index]
+    rows.sort(key=lambda r: -float(d.loc[r[1], "value"]))
+
+    fig, ax = plt.subplots(figsize=(6.6, 3.4))
+    for i, (lab, k) in enumerate(rows):
+        v = float(d.loc[k, "value"])
+        lo, hi = float(d.loc[k, "ci_low"]), float(d.loc[k, "ci_high"])
+        best = "headroom" in k
+        col = COLOR["splicebert"] if best else COLOR["kmer"]
+        ax.plot([lo, hi], [i, i], color=col, linewidth=2.0, solid_capstyle="round", zorder=2)
+        ax.scatter([v], [i], s=34, color=col, zorder=3, edgecolor="white", linewidth=0.6)
+        ax.text(hi + 0.15, i, f"{v:.2f}x", va="center", fontsize=7.5, color=col)
+    ax.axvline(1.0, color="#404040", linestyle="--", linewidth=1.1)
+    # Rotated onto the rule itself: horizontally it collided with the title, and nudging it
+    # down would have run it through the shortest interval, which is the one that matters.
+    ax.text(1.0, (len(rows) - 1) / 2, "  protocol independence", rotation=90, va="center",
+            ha="left", fontsize=7, color="#404040")
+    ax.set_yticks(range(len(rows)))
+    ax.set_yticklabels([lab for lab, _ in rows], fontsize=8)
+    ax.set_xlabel("fold range in measured contribution across the three protocols")
+    ax.set_xlim(0.6, None)
+    ax.grid(axis="y", visible=False)
+    ax.set_title("no monotone rescaling reaches a protocol-free quantity", loc="left",
+                 fontsize=9)
+    fig.tight_layout()
+    save(fig, "f11_scale_sweep")
+
+
+# --- f12: it is the baseline, not the protocol label (R1n) --------------------------------
+
+def f12():
+    """The thesis in two panels: the gradient, and the natural experiment that isolates it."""
+    t = need("three_arm_per_dataset.csv", "protocol_or_baseline.csv")
+    if t is None:
+        return
+    d, s = t[0], t[1].set_index("check")
+    fig, ax = plt.subplots(1, 2, figsize=(9.0, 3.4))
+
+    # (a) every arm-dataset cell: the gain falls as the baseline the protocol leaves rises.
+    for key, col, lab in (("dn", COLOR["dinuc"], "dinucleotide-matched"),
+                          ("gc", COLOR["gc"], "GC-matched"),
+                          ("neg2", "#7a5195", "neg2")):
+        ax[0].scatter(d[f"comp_{key}"], d[f"gain_{key}"], s=13, color=col, alpha=0.7,
+                      edgecolor="white", linewidth=0.25, label=lab, zorder=3)
+    ax[0].axhline(0, color="#404040", linewidth=0.8)
+    ax[0].set_xlabel("composition-only AUROC")
+    ax[0].set_ylabel("nested contribution")
+    ax[0].legend(frameon=False, fontsize=7)
+    ax[0].set_title("a  282 cells, one gradient", loc="left", fontsize=9)
+
+    # (b) THE NATURAL EXPERIMENT. Where neg2 lowers the baseline, its deficit reverses. This is
+    # the panel that separates "the baseline does it" from "the protocol label does it".
+    hi = (d.comp_neg2 > d.comp_gc).values
+    labels, vals, los, his = [], [], [], []
+    for lab, key in (("neg2 raises\nthe baseline", "concordant"),
+                     ("neg2 LOWERS\nthe baseline", "discordant")):
+        k = f"neg2 minus gc gain, {key} datasets"
+        if k not in s.index:
+            ax[1].axis("off")
+            break
+        labels.append(f"{lab}\nn={int(hi.sum() if key == 'concordant' else (~hi).sum())}")
+        vals.append(float(s.loc[k, "value"]))
+        los.append(float(s.loc[k, "ci_low"]))
+        his.append(float(s.loc[k, "ci_high"]))
+    if vals:
+        x = np.arange(len(vals))
+        cols = [COLOR["gc"], COLOR["splicebert"]]
+        for i, v in enumerate(vals):
+            ax[1].plot([x[i], x[i]], [los[i], his[i]], color=cols[i], linewidth=2.2,
+                       solid_capstyle="round", zorder=2)
+            ax[1].scatter([x[i]], [v], s=44, color=cols[i], zorder=3, edgecolor="white",
+                          linewidth=0.6)
+            ax[1].text(x[i] + 0.12, v, f"{v:+.4f}", fontsize=8, va="center", color=cols[i])
+        ax[1].axhline(0, color="#404040", linestyle="--", linewidth=1.1)
+        ax[1].set_xticks(x)
+        ax[1].set_xticklabels(labels, fontsize=8)
+        ax[1].set_xlim(-0.5, len(vals) - 0.1)
+        ax[1].set_ylabel("neg2 minus GC, nested contribution")
+        ax[1].grid(axis="x", visible=False)
+        ax[1].set_title("b  the deficit follows the baseline, not the label", loc="left",
+                        fontsize=9)
+    fig.tight_layout()
+    save(fig, "f12_protocol_or_baseline")
+
+
+# --- f13: the order-3 collapse is the 4-mer's alone (R1r) ---------------------------------
+
+def f13():
+    """Raise the baseline one order and the k-mer loses four fifths; SpliceBERT loses a quarter."""
+    t = need("baseline_order_models.csv")
+    if t is None:
+        return
+    d = t[0].set_index("check")
+    fig, ax = plt.subplots(1, 2, figsize=(9.0, 3.3), sharey=True)
+    models = ("kmer", "cnn", "splicebert")
+    for j, (arm, title) in enumerate((("gc", "a  GC-matched"),
+                                      ("dn", "b  dinucleotide-matched"))):
+        for i, m in enumerate(models):
+            k = f"{m} fraction surviving order 3, {arm} arm"
+            if k not in d.index:
+                continue
+            v = float(d.loc[k, "value"])
+            lo, hi = float(d.loc[k, "ci_low"]), float(d.loc[k, "ci_high"])
+            ax[j].plot([i, i], [lo, hi], color=COLOR[m], linewidth=2.4,
+                       solid_capstyle="round", zorder=2)
+            ax[j].scatter([i], [v], s=46, color=COLOR[m], zorder=3, edgecolor="white",
+                          linewidth=0.6)
+            ax[j].text(i + 0.14, v, f"{100 * v:.0f}%", fontsize=8.5, va="center",
+                       color=COLOR[m])
+        ax[j].set_xticks(range(len(models)))
+        ax[j].set_xticklabels([LABEL[m] for m in models], fontsize=8)
+        ax[j].set_xlim(-0.5, len(models) - 0.35)
+        ax[j].set_ylim(0, 1.0)
+        ax[j].grid(axis="x", visible=False)
+        ax[j].set_title(title, loc="left", fontsize=9)
+    ax[0].set_ylabel("share of the contribution surviving\nan order-3 composition baseline")
+    fig.tight_layout()
+    save(fig, "f13_baseline_order_models")
+
+
+# --- f14: external validation on an independent benchmark (R1p) --------------------------
+
+def f14():
+    """Their positives, their negatives, their folds. Only the measurement is ours.
+
+    Two panels because the section makes two claims: the range travels, and the two-family
+    mechanism travels. The second is the stronger one and was previously unplotted.
+    """
+    t = need("horlacher_per_dataset.csv", "three_arm_per_dataset.csv")
+    if t is None:
+        return
+    h, d = t[0], t[1]
+    fig, ax = plt.subplots(1, 2, figsize=(9.0, 3.5))
+
+    # (a) the two arms' contributions, paired per dataset.
+    lim = (min(h.gain_n1.min(), h.gain_n2.min()) - 0.01,
+           max(h.gain_n1.max(), h.gain_n2.max()) + 0.01)
+    ax[0].plot(lim, lim, color="#404040", linewidth=0.9, linestyle="--", zorder=1)
+    ax[0].scatter(h.gain_n1, h.gain_n2, s=16, color=COLOR["kmer"], alpha=0.8,
+                  edgecolor="white", linewidth=0.3, zorder=3)
+    ax[0].set_xlim(lim)
+    ax[0].set_ylim(lim)
+    ax[0].set_xlabel("contribution, negative-1 (transcript background)")
+    ax[0].set_ylabel("contribution, negative-2 (other RBPs' sites)")
+    below = int((h.gain_n2 < h.gain_n1).sum())
+    ax[0].set_title(f"a  {below}/{len(h)} below the diagonal, {h.gain_n1.mean() / h.gain_n2.mean():.2f}x",
+                    loc="left", fontsize=9)
+
+    # (b) THE MECHANISM, which is what actually replicates: the within-arm baseline gradient is
+    # present for the composition-matched family and absent for other-RBPs'-sites, in their
+    # data and ours. Four bars, two benchmarks, two families.
+    from scipy.stats import spearmanr
+    bars = [
+        ("ours\nGC", spearmanr(d.comp_gc, d.gain_gc)[0], COLOR["gc"], "matched"),
+        ("ours\ndinuc", spearmanr(d.comp_dn, d.gain_dn)[0], COLOR["dinuc"], "matched"),
+        ("theirs\nneg-1", spearmanr(h.comp_n1, h.gain_n1)[0], "#6a51a3", "matched"),
+        ("ours\nneg2", spearmanr(d.comp_neg2, d.gain_neg2)[0], "#bdbdbd", "other sites"),
+        ("theirs\nneg-2", spearmanr(h.comp_n2, h.gain_n2)[0], "#d9d9d9", "other sites"),
+    ]
+    x = np.arange(len(bars))
+    ax[1].bar(x, [b[1] for b in bars], color=[b[2] for b in bars], width=0.68,
+              edgecolor="white", linewidth=0.6)
+    for i, b in enumerate(bars):
+        # Labels INSIDE the bar for the deep ones, so they cannot collide with the tick labels.
+        ax[1].text(i, b[1] + 0.035, f"{b[1]:+.2f}", ha="center", fontsize=7.5,
+                   color="white" if b[1] < -0.3 else "#404040")
+    ax[1].axhline(0, color="#404040", linewidth=0.9)
+    ax[1].set_ylim(min(b[1] for b in bars) * 1.15, 0.02)
+    ax[1].set_xticks(x)
+    ax[1].set_xticklabels([b[0] for b in bars], fontsize=7.5)
+    ax[1].set_ylabel("within-arm Spearman(baseline, contribution)")
+    ax[1].grid(axis="x", visible=False)
+    ax[1].set_title("b  the gradient is a property of composition-matched negatives",
+                    loc="left", fontsize=9)
+    fig.tight_layout()
+    save(fig, "f14_external_validation")
+
+
+# --- f15: the recommendation, and where it stops working (R1q + R1u) ----------------------
+
+def f15():
+    """The deliverable, tested in sample and out. It does not survive the external test.
+
+    Plotted together deliberately: a figure that showed only the in-sample panel would be
+    the strongest available misrepresentation of this paper's own evidence.
+    """
+    t = need("recommendation_works.csv", "transport_check.csv")
+    if t is None:
+        return
+    r, tr = t[0].set_index("check"), t[1].set_index("check")
+    fig, ax = plt.subplots(1, 2, figsize=(9.2, 3.4))
+
+    # (a) in sample: rank agreement raw -> headroom, three protocol pairs.
+    pairs = [("gc", "dn"), ("gc", "neg2"), ("dn", "neg2")]
+    labs = ["GC vs\ndinuc", "GC vs\nneg2", "dinuc vs\nneg2"]
+    for i, (a, b) in enumerate(pairs):
+        k1 = f"rank agreement, raw, {a} vs {b}"
+        k2 = f"rank agreement, headroom, {a} vs {b}"
+        if k1 not in r.index or k2 not in r.index:
+            continue
+        v1, v2 = float(r.loc[k1, "value"]), float(r.loc[k2, "value"])
+        sig = i == 0          # only the first pair's improvement clears zero
+        ax[0].plot([i - 0.16, i + 0.16], [v1, v2], color="#404040", linewidth=1.0, zorder=2)
+        ax[0].scatter([i - 0.16], [v1], s=40, color="#bdbdbd", zorder=3,
+                      edgecolor="white", linewidth=0.5, label="raw" if i == 0 else None)
+        ax[0].scatter([i + 0.16], [v2], s=40, color=COLOR["splicebert"], zorder=3,
+                      edgecolor="white", linewidth=0.5,
+                      label="headroom-normalised" if i == 0 else None)
+        ax[0].text(i + 0.24, v2, "*" if sig else "n.s.", fontsize=8, va="center",
+                   color="#404040")
+    ax[0].set_xticks(range(len(labs)))
+    ax[0].set_xticklabels(labs, fontsize=8)
+    ax[0].set_xlim(-0.5, len(labs) - 0.3)
+    ax[0].set_ylabel("cross-protocol rank agreement")
+    ax[0].legend(frameon=False, fontsize=7.5, loc="lower left")
+    ax[0].grid(axis="x", visible=False)
+    ax[0].set_title("a  our data: improves in 3/3, one interval clear of zero", loc="left",
+                    fontsize=9)
+
+    # (b) OUT of sample, on their benchmark: both pre-registered criteria fire the wrong way.
+    keys = [("rank agreement", "external rank agreement, raw",
+             "external rank agreement, headroom"),
+            ("disagreement", "external scale-free disagreement, raw",
+             "external scale-free disagreement, headroom")]
+    for i, (lab, kr, kh) in enumerate(keys):
+        if kr not in tr.index:
+            continue
+        v1, v2 = float(tr.loc[kr, "value"]), float(tr.loc[kh, "value"])
+        worse = v2 < v1 if i == 0 else v2 > v1
+        col = COLOR["gc"] if worse else COLOR["splicebert"]
+        ax[1].plot([i - 0.16, i + 0.16], [v1, v2], color="#404040", linewidth=1.0, zorder=2)
+        ax[1].scatter([i - 0.16], [v1], s=40, color="#bdbdbd", zorder=3,
+                      edgecolor="white", linewidth=0.5)
+        ax[1].scatter([i + 0.16], [v2], s=40, color=col, zorder=3, edgecolor="white",
+                      linewidth=0.5)
+        ax[1].annotate("", xy=(i + 0.16, v2), xytext=(i - 0.16, v1),
+                       arrowprops=dict(arrowstyle="->", color=col, lw=1.3))
+        # Beside the arrow, not above or below it: above ran into the panel title and below
+        # ran into the tick labels.
+        ax[1].text(i + 0.26, (v1 + v2) / 2, "wrong\ndirection" if worse else "", ha="left",
+                   va="center", fontsize=7.5, color=col)
+    ax[1].set_xticks(range(len(keys)))
+    ax[1].set_xticklabels([k[0] for k in keys], fontsize=8)
+    ax[1].set_xlim(-0.5, len(keys) - 0.05)
+    ax[1].set_ylabel("value on the independent benchmark")
+    ax[1].grid(axis="x", visible=False)
+    ax[1].set_title("b  independent benchmark: both criteria fail to replicate", loc="left",
+                    fontsize=9)
+    fig.tight_layout()
+    save(fig, "f15_recommendation")
 
 
 FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5,
-           "f6": f6, "f7": f7}
+           "f6": f6, "f7": f7, "f8": f8, "f9": f9, "f10": f10,
+           "f11": f11, "f12": f12, "f13": f13, "f14": f14, "f15": f15}
 
 
 def main():
