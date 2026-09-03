@@ -1329,7 +1329,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 613
+  min_domain_checks: 626
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1801,3 +1801,42 @@ r1u_transport:
   in_sample_exponent_must_be_reported: true
   min_exponent_ratio: 1.8
   external_falsification_must_be_reported: true
+
+# --- R1v: the three-protocol span, for all three model classes ---------------------------
+#
+# THE GAP EVERY REVIEWER NAMED, now closed. Until 2026-09-03 everything three-protocol was
+# 4-mer only and everything multi-model was two-arm only, so the paper's headline was a
+# single-model result whose defence belonged to models that had never seen the third protocol.
+# The neural sweep was extended to the bias-aware arm (940 fold-runs, 17.4 GPU-hours, $19.10).
+#
+# THE SPAN IS NOT AN ARTEFACT OF THE CHEAP MODEL:
+#   4-mer       +0.0663 / +0.0265 / +0.0122   5.42x [4.43, 6.58]
+#   CNN         +0.0860 / +0.0330 / +0.0113   7.63x [6.23, 9.63]
+#   SpliceBERT  +0.1754 / +0.0890 / +0.0466   3.76x [3.27, 4.34]
+#
+# Two things follow. It is present for every model class, so "a five-fold span measured with a
+# bag of k-mers is an artefact of a weak model" is answered directly rather than by analogy.
+# And it is WIDEST FOR THE CNN, not for the largest model, which is the same non-monotonicity
+# in capacity the ratio-scale multiplier already showed. Nothing here grows with capacity.
+#
+# PROVENANCE: unlike the dinucleotide arm, all 188 (dataset, model) score sets on this arm were
+# verified chromosome-grouped BEFORE use -- max 5 chromosomes per fold, zero misaligned.
+r1v_three_arm_models:
+  n_datasets: 94
+  comp_dn:   {value: 0.6274, tol: 0.01}
+  comp_gc:   {value: 0.7827, tol: 0.01}
+  comp_neg2: {value: 0.8248, tol: 0.01}
+  kmer_neg2:       {value: 0.0122, tol: 0.004}
+  cnn_neg2:        {value: 0.0113, tol: 0.004}
+  splicebert_neg2: {value: 0.0466, tol: 0.008}
+  span_kmer:       {value: 5.42, tol: 0.60}
+  span_cnn:        {value: 7.63, tol: 1.00}
+  span_splicebert: {value: 3.76, tol: 0.60}
+  # THE CLAIM, gated as the sentence the paper makes rather than as three loose numbers: the
+  # span survives for the WEAKEST-spanning model class. If it ever falls toward 1 for any
+  # model, the headline stops being a property of the benchmark and becomes one of the 4-mer.
+  min_span_over_models: 3.0
+  # And the bias-aware arm must remain the lowest for every model class, since that reversal
+  # (easiest discrimination, least measured contribution) is the paper's title claim.
+  neg2_lowest_for_all_models: true
+  span_must_not_grow_with_capacity: true

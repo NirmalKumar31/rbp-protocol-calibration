@@ -1439,6 +1439,41 @@ cross-fold neighbour fraction of exactly zero; the leaky count is pinned two-sid
 rerun that leaked *more* cannot pass; and every contrast must survive dropping them, or the
 dinucleotide deep sweep has to be rerun rather than caveated.
 
+## R1v: the three-protocol span, for all three model classes. The reviewers' gap, closed
+
+`three_arm_models.csv`, `three_arm_models_per_dataset.csv`, n = 94, three protocols x three
+models, identical rows and folds.
+
+**The gap.** Until 2026-09-03 everything three-protocol was 4-mer only and everything
+multi-model was two-arm only, so the headline was a single-model result whose defence belonged
+to models that had never seen the third protocol. Three independent reviewers drew that box.
+The neural sweep was extended to the bias-aware arm: 940 fold-runs, 17.4 GPU-hours, **$19.10**.
+
+| model | dinucleotide | GC | bias-aware | **span** |
+|---|---|---|---|---|
+| 4-mer | +0.0663 | +0.0265 | +0.0122 | **5.42x** [4.43, 6.58] |
+| CNN | +0.0860 | +0.0330 | +0.0113 | **7.63x** [6.23, 9.63] |
+| SpliceBERT | +0.1754 | +0.0890 | +0.0466 | **3.76x** [3.27, 4.34] |
+| *composition alone* | *0.6274* | *0.7827* | *0.8248* | |
+
+**Three things follow.**
+
+1. **The span is present for every model class**, weakest still 3.76x. "A five-fold span
+   measured with a bag of k-mers is an artefact of a weak model" is now answered directly
+   rather than by analogy to a two-arm comparison.
+2. **The bias-aware protocol yields the least for all 3 of 3 models** while having the highest
+   composition baseline. The reversal in the title is not a k-mer artefact.
+3. **The span is WIDEST for the CNN**, not the largest model. Same non-monotonicity in capacity
+   the ratio-scale multiplier shows. Gated, so "the contrast grows with capacity" stays
+   withdrawn.
+
+**Provenance, and it is better than the dinucleotide arm's.** All 188 (dataset, model) score
+sets on this arm were verified chromosome-grouped **before** use: maximum 5 chromosomes per
+fold, zero misaligned, against the dn arm's 20 leaky datasets. The neg2 column is clean.
+
+**Still 4-mer only:** the transform sweep (R1m/R1u), the baseline decomposition (R1n) and the
+recommendation test (R1q). The span itself is now known for all three model classes.
+
 ## R1t: the ladder's rungs were not measured on the same scale. Measured, and the claim survives
 
 `score_scale_check.csv`, `score_scale_per_dataset.csv`, n = 94, both arms.

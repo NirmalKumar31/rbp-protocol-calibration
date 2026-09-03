@@ -64,6 +64,7 @@ TABLES = ROOT / "results" / "tables"
 # or the 940 score files. A referee forged it end to end and passed 314/314. 16 MB closes it.
 EVIDENCE = ROOT / "data" / "evidence" / "scores"
 EVIDENCE_GC = ROOT / "data" / "evidence" / "scores_gc"
+EVIDENCE_NEG2 = ROOT / "data" / "evidence" / "scores_neg2"
 # The ladder, cheapest first. kmer is refitted in-script on the same rows; the other two are
 # read from the per-window scores their sweeps wrote.
 MODELS = ["kmer", "cnn", "splicebert"]
@@ -122,11 +123,19 @@ def arm_roots(store):
     into the local store. Different provenance, identical format.
     """
     store = Path(store)
-    return {
+    roots = {
         "gc": (store / "processed" / "gc",
                EVIDENCE_GC if EVIDENCE_GC.exists() else store / "runs" / "gc"),
         "dn": (store / "processed" / "dinuc", EVIDENCE),
     }
+    # THE BIAS-AWARE ARM, swept 2026-09-03. Until then the three-protocol results were 4-mer
+    # only and the multi-model results were two-arm only, so the two halves of the paper's
+    # argument never met in one cell; every reviewer drew that box. Unlike the dinucleotide
+    # arm, all 188 of these score sets were verified chromosome-grouped before use.
+    neg2_scores = EVIDENCE_NEG2 if EVIDENCE_NEG2.exists() else store / "runs" / "neg2"
+    if (store / "processed" / "neg2").exists() and neg2_scores.exists():
+        roots["neg2"] = (store / "processed" / "neg2", neg2_scores)
+    return roots
 
 
 def per_dataset(store, datasets):

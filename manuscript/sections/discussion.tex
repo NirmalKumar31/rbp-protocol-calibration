@@ -93,11 +93,12 @@ is 0.15 rather than its nominal 0.05, holding the nominal tolerance for 94.8\% o
 dinucleotide matcher reduces composition distance 2.27-fold rather than to zero.
 Degrees-of-freedom statements are exact for the design and approximate for the data.
 
-\paragraph{Three protocols, two cell lines, three model classes, one assay.} The three-protocol
-results use the 4-mer only, because the neural models were never trained on the bias-aware arm;
-the multi-model results use two arms only. The two halves of the argument therefore do not meet
-in a single cell, and extending the neural sweep to the third protocol is the most valuable
-single addition to this work.
+\paragraph{Three protocols, two cell lines, three model classes, one assay.} All three model
+classes were measured under all three protocols, so the design is complete in that respect. It
+remains two cell lines and one assay: everything here is eCLIP in K562 and HepG2, and whether
+the calibration holds for other crosslinking protocols or other organisms is untested. The
+transform sweep, the baseline decomposition and the recommendation test are still reported for
+the 4-mer only; the span itself is now known for all three model classes.
 
 \paragraph{Provenance limitations on the neural arms.} For 20 of 94 datasets in the
 dinucleotide arm the committed neural scores came from a partition that is not

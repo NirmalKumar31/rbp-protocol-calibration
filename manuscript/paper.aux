@@ -36,18 +36,19 @@
 \citation{mood2010}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces The protocol contrast for three model classes, $n=94$ datasets, identical rows and folds. Intervals are protein-clustered percentile intervals over the 79 proteins.}}{8}{table.3}\protected@file@percent }
 \newlabel{tab:models}{{3}{8}{The protocol contrast for three model classes, $n=94$ datasets, identical rows and folds. Intervals are protein-clustered percentile intervals over the 79 proteins}{table.3}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces The full design: three negative-set protocols by three model classes, $n=94$ datasets, identical rows and folds throughout. Spans are ratios of panel means with protein-clustered percentile intervals.}}{8}{table.4}\protected@file@percent }
+\newlabel{tab:threemodels}{{4}{8}{The full design: three negative-set protocols by three model classes, $n=94$ datasets, identical rows and folds throughout. Spans are ratios of panel means with protein-clustered percentile intervals}{table.4}{}}
 \@writefile{toc}{\contentsline {paragraph}{Whose property is the multiplier?}{8}{section*.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Why we do not decompose the span into compression and a residual protocol effect.}{8}{section*.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{A provenance limitation on this section specifically.}{8}{section*.9}\protected@file@percent }
 \citation{horlacher2023}
-\citation{horlacher2023}
-\citation{horlacher2023}
+\@writefile{toc}{\contentsline {paragraph}{A provenance limitation on this section specifically.}{9}{section*.9}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {The contrast holds for three model classes.} Nested contribution in each arm for a 4-mer logistic regression, a 7089-parameter convolutional network and a fully fine-tuned 19.78~M-parameter SpliceBERT, on identical rows and folds, $n=94$. Intervals are 95\% percentile intervals from a bootstrap over the 79 proteins, taking all datasets of each sampled protein (4000 draws). On the ratio scale the ordering reverses, so the contrast does not grow with capacity.}}{9}{figure.4}\protected@file@percent }
 \newlabel{fig:models}{{4}{9}{\textbf {The contrast holds for three model classes.} Nested contribution in each arm for a 4-mer logistic regression, a 7089-parameter convolutional network and a fully fine-tuned 19.78~M-parameter SpliceBERT, on identical rows and folds, $n=94$. Intervals are 95\% percentile intervals from a bootstrap over the 79 proteins, taking all datasets of each sampled protein (4000 draws). On the ratio scale the ordering reverses, so the contrast does not grow with capacity}{figure.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.5}The calibration replicates on an independent benchmark}{9}{subsection.2.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces The same decomposition on an independent benchmark, $n=45$ datasets. Their positives, negatives and folds.}}{9}{table.4}\protected@file@percent }
-\newlabel{tab:external}{{4}{9}{The same decomposition on an independent benchmark, $n=45$ datasets. Their positives, negatives and folds}{table.4}{}}
 \citation{horlacher2023}
+\citation{horlacher2023}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces The same decomposition on an independent benchmark, $n=45$ datasets. Their positives, negatives and folds.}}{10}{table.5}\protected@file@percent }
+\newlabel{tab:external}{{5}{10}{The same decomposition on an independent benchmark, $n=45$ datasets. Their positives, negatives and folds}{table.5}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \textbf  {Replication on an independent benchmark.} \citet  {horlacher2023}'s released negative sets, their peak calling and their folds, over the 45 datasets shared with our panel; only the measurement is ours. (a) Nested contribution under their negative-2 against their negative-1, paired per dataset; 36 of 45 fall below the diagonal. (b) The mechanism, which is what travels: the within-arm gradient from composition baseline to contribution, for the composition-matched arms in both benchmarks and the other-RBPs'-sites arms in both. The gradient is present in one family and absent in the other, in both benchmarks independently.}}{10}{figure.5}\protected@file@percent }
 \newlabel{fig:external}{{5}{10}{\textbf {Replication on an independent benchmark.} \citet {horlacher2023}'s released negative sets, their peak calling and their folds, over the 45 datasets shared with our panel; only the measurement is ours. (a) Nested contribution under their negative-2 against their negative-1, paired per dataset; 36 of 45 fall below the diagonal. (b) The mechanism, which is what travels: the within-arm gradient from composition baseline to contribution, for the composition-matched arms in both benchmarks and the other-RBPs'-sites arms in both. The gradient is present in one family and absent in the other, in both benchmarks independently}{figure.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.6}The recommendation, and the limits of what it buys}{10}{subsection.2.6}\protected@file@percent }
@@ -55,48 +56,47 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces \textbf  {The recommendation, and where it stops working.} (a) On our data, cross-protocol rank agreement before and after dividing by the baseline's headroom, for each protocol pair. Agreement improves in 3 of 3, but only the GC-versus-dinucleotide improvement has a protein-clustered interval clear of zero. (b) The same test on the independent benchmark of Figure~\ref {fig:external}, $n=45$: rank agreement falls and disagreement rises under normalisation, which are the two criteria pre-registered as falsifying the recommendation. The change in rank agreement is $-0.050$ $[-0.222,+0.140]$, so this is a failure to replicate rather than a refutation.}}{11}{figure.6}\protected@file@percent }
 \newlabel{fig:recommendation}{{6}{11}{\textbf {The recommendation, and where it stops working.} (a) On our data, cross-protocol rank agreement before and after dividing by the baseline's headroom, for each protocol pair. Agreement improves in 3 of 3, but only the GC-versus-dinucleotide improvement has a protein-clustered interval clear of zero. (b) The same test on the independent benchmark of Figure~\ref {fig:external}, $n=45$: rank agreement falls and disagreement rises under normalisation, which are the two criteria pre-registered as falsifying the recommendation. The change in rank agreement is $-0.050$ $[-0.222,+0.140]$, so this is a failure to replicate rather than a refutation}{figure.6}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Discussion}{11}{section.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Apparent difficulty is not a proxy for benchmark quality.}{11}{section*.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{There are two protocol families, not a continuum of stringency.}{11}{section*.11}\protected@file@percent }
+\citation{horlacher2023}
+\@writefile{toc}{\contentsline {paragraph}{Apparent difficulty is not a proxy for benchmark quality.}{12}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{There are two protocol families, not a continuum of stringency.}{12}{section*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{A quantity's protocol dependence can be reduced by fitting and not by choosing.}{12}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{On what ``adds over composition'' means.}{12}{section*.13}\protected@file@percent }
 \citation{horlacher2023}
 \citation{grimm2015}
 \citation{whalen2022}
-\@writefile{toc}{\contentsline {paragraph}{A quantity's protocol dependence can be reduced by fitting and not by choosing.}{12}{section*.12}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{On what ``adds over composition'' means.}{12}{section*.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Relation to prior work.}{12}{section*.14}\protected@file@percent }
-\citation{vannostrand2020}
+\@writefile{toc}{\contentsline {paragraph}{Relation to prior work.}{13}{section*.14}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{The sign of the primary contrast is design-implied.}{13}{section*.16}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Every magnitude is indexed to a mono- and dinucleotide baseline.}{13}{section*.17}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Achieved matching is not exact matching.}{13}{section*.18}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Three protocols, two cell lines, three model classes, one assay.}{13}{section*.19}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Provenance limitations on the neural arms.}{13}{section*.20}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Positive sets differ slightly between arms.}{13}{section*.21}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{No significance filter on positives and no expression filter on negatives.}{13}{section*.22}\protected@file@percent }
-\citation{frankish2023}
+\citation{vannostrand2020}
+\@writefile{toc}{\contentsline {paragraph}{Provenance limitations on the neural arms.}{14}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Positive sets differ slightly between arms.}{14}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{No significance filter on positives and no expression filter on negatives.}{14}{section*.22}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Two limitations of the verification harness itself.}{14}{section*.23}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Inference is asymptotic in places.}{14}{section*.24}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {4}Materials and Methods}{14}{section.4}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Panel selection}{14}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Windows}{14}{subsection.4.2}\protected@file@percent }
-\citation{horlacher2023}
-\citation{horlacher2023}
+\citation{frankish2023}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Windows}{15}{subsection.4.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}The three negative-set protocols}{15}{subsection.4.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{GC-matched.}{15}{section*.25}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Dinucleotide-matched.}{15}{section*.26}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Bias-aware (other RBPs' sites).}{15}{section*.27}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Achieved match quality}{15}{subsection.4.4}\protected@file@percent }
+\citation{horlacher2023}
+\citation{horlacher2023}
+\@writefile{toc}{\contentsline {paragraph}{Bias-aware (other RBPs' sites).}{16}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Achieved match quality}{16}{subsection.4.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Achieved match quality between each positive and its assigned negative, all pairs. $L_1$ is over the sixteen dinucleotide frequencies, on a 0 to 2 scale.}}{16}{table.6}\protected@file@percent }
+\newlabel{tab:match}{{6}{16}{Achieved match quality between each positive and its assigned negative, all pairs. $L_1$ is over the sixteen dinucleotide frequencies, on a 0 to 2 scale}{table.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Cross-validation}{16}{subsection.4.5}\protected@file@percent }
 \citation{delong1988}
 \citation{sun2014}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Achieved match quality between each positive and its assigned negative, all pairs. $L_1$ is over the sixteen dinucleotide frequencies, on a 0 to 2 scale.}}{16}{table.5}\protected@file@percent }
-\newlabel{tab:match}{{5}{16}{Achieved match quality between each positive and its assigned negative, all pairs. $L_1$ is over the sixteen dinucleotide frequencies, on a 0 to 2 scale}{table.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Cross-validation}{16}{subsection.4.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}The composition baseline and the nested contribution}{16}{subsection.4.6}\protected@file@percent }
 \citation{alipanahi2015}
 \citation{chen2024}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}The composition baseline and the nested contribution}{17}{subsection.4.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Models}{17}{subsection.4.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{4-mer logistic regression.}{17}{section*.28}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Convolutional network.}{17}{section*.29}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{SpliceBERT.}{17}{section*.30}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Inference}{17}{subsection.4.8}\protected@file@percent }
 \citation{numpy}
 \citation{scipy}
 \citation{sklearn}
@@ -105,6 +105,8 @@
 \citation{encode2012,vannostrand2020}
 \citation{frankish2023}
 \citation{horlacher2023}
+\@writefile{toc}{\contentsline {paragraph}{SpliceBERT.}{18}{section*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Inference}{18}{subsection.4.8}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Reproducibility}{18}{subsection.4.9}\protected@file@percent }
 \bibcite{encode2012}{{1}{2012}{{ENCODE Project Consortium}}{{}}}
 \bibcite{vannostrand2016}{{2}{2016}{{Van Nostrand et~al.}}{{}}}
@@ -126,4 +128,4 @@
 \bibcite{sklearn}{{18}{2011}{{Pedregosa et~al.}}{{}}}
 \bibcite{pytorch}{{19}{2019}{{Paszke et~al.}}{{}}}
 \bibcite{matplotlib}{{20}{2007}{{Hunter}}{{}}}
-\gdef \@abspage@last{20}
+\gdef \@abspage@last{21}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  2 SEP 2026 14:50
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  2 SEP 2026 23:02
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -563,32 +563,32 @@ ne 197.
 <figures/f9_deep_contrast.pdf, id=220, 746.07896pt x 233.43797pt>
 File: figures/f9_deep_contrast.pdf Graphic file (type pdf)
 <use figures/f9_deep_contrast.pdf>
-Package pdftex.def Info: figures/f9_deep_contrast.pdf  used on input line 278.
+Package pdftex.def Info: figures/f9_deep_contrast.pdf  used on input line 309.
 (pdftex.def)             Requested size: 469.75502pt x 146.9812pt.
-<figures/f14_external_validation.pdf, id=223, 662.92003pt x 247.89787pt>
+ [9 <./figures/f9_deep_contrast.pdf>]
+<figures/f14_external_validation.pdf, id=240, 662.92003pt x 247.89787pt>
 File: figures/f14_external_validation.pdf Graphic file (type pdf)
 <use figures/f14_external_validation.pdf>
 Package pdftex.def Info: figures/f14_external_validation.pdf  used on input lin
-e 323.
+e 354.
 (pdftex.def)             Requested size: 469.75502pt x 175.66449pt.
- [9 <./figures/f9_deep_contrast.pdf>]
-<figures/f15_recommendation.pdf, id=244, 659.68608pt x 240.5025pt>
+ [10 <./figures/f14_external_validation.pdf>]
+<figures/f15_recommendation.pdf, id=259, 659.68608pt x 240.5025pt>
 File: figures/f15_recommendation.pdf Graphic file (type pdf)
 <use figures/f15_recommendation.pdf>
-Package pdftex.def Info: figures/f15_recommendation.pdf  used on input line 360
+Package pdftex.def Info: figures/f15_recommendation.pdf  used on input line 391
 .
 (pdftex.def)             Requested size: 469.75502pt x 171.26437pt.
-)
-(./sections/discussion.tex [10 <./figures/f14_external_validation.pdf>]
-[11 <./figures/f15_recommendation.pdf>] [12] [13]) (./sections/methods.tex
-[14] [15] [16] [17]) (./sections/data-availability.tex)
-Overfull \hbox (2.35481pt too wide) in paragraph at lines 86--92
+) (./sections/discussion.tex [11 <./figures/f15_recommendation.pdf>] [12] [13])
+ (./sections/methods.tex [14] [15] [16] [17])
+(./sections/data-availability.tex [18])
+Overfull \hbox (2.35481pt too wide) in paragraph at lines 87--93
 \T1/lmr/m/n/10.95 (-20) All anal-y-sis code is avail-able at [][]$\T1/lmtt/m/n/
 10.95 https : / / github . com / NirmalKumar31 / rbp-[]protocol-[]calibration$[
 ][]
  []
 
-[18] (./sections/bibliography.tex [19]) [20] (./paper.aux)
+(./sections/bibliography.tex [19] [20]) [21] (./paper.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -597,13 +597,13 @@ Package rerunfilecheck Info: File `paper.out' has not changed.
 (rerunfilecheck)             Checksum: 5AC879CD5FE694BEAB1ED14C4FF883A1;4024.
  ) 
 Here is how much of TeX's memory you used:
- 12942 strings out of 469006
- 203958 string characters out of 5454814
- 655627 words of memory out of 5000000
- 41107 multiletter control sequences out of 15000+600000
- 695439 words of font info for 195 fonts, out of 8000000 for 9000
+ 12947 strings out of 469006
+ 204013 string characters out of 5454814
+ 655848 words of memory out of 5000000
+ 41108 multiletter control sequences out of 15000+600000
+ 695569 words of font info for 196 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,9n,79p,1002b,597s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,9n,79p,1002b,611s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></u
 sr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></usr/lo
 cal/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/t
@@ -615,10 +615,10 @@ st/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2026basic/texmf-dist/fo
 nts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/t
 ype1/public/lm/lmsy8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/p
 ublic/lm/lmtt10.pfb>
-Output written on paper.pdf (20 pages, 405405 bytes).
+Output written on paper.pdf (21 pages, 407549 bytes).
 PDF statistics:
- 471 PDF objects out of 1000 (max. 8388607)
- 379 compressed objects within 4 object streams
- 107 named destinations out of 1000 (max. 500000)
+ 479 PDF objects out of 1000 (max. 8388607)
+ 386 compressed objects within 4 object streams
+ 109 named destinations out of 1000 (max. 500000)
  35511 words of extra memory for PDF output out of 35830 (max. 10000000)
 

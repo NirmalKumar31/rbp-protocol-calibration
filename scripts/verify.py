@@ -1826,6 +1826,69 @@ def verify_baseline_order_models(T, g):
                    f"{m['splicebert']:.2f}x", f"< {min(m['kmer'], m['cnn']):.2f}x")
 
 
+def verify_three_arm_models(T, g):
+    """R1v: the three-protocol span holds for every model class, and is widest for the CNN."""
+    print("\nR1v three protocols x three models  (is the span a k-mer artefact?)")
+    d = T.get("three_arm_models.csv")
+    if d is None:
+        return record(False, "three_arm_models.csv present", "MISSING",
+                      "run scripts/three_arm_models.py")
+    spec = g["r1v_three_arm_models"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+    for label, key in (
+            ("composition AUROC, dn arm", spec["comp_dn"]),
+            ("composition AUROC, gc arm", spec["comp_gc"]),
+            ("composition AUROC, neg2 arm", spec["comp_neg2"]),
+            ("kmer nested contribution, neg2 arm", spec["kmer_neg2"]),
+            ("cnn nested contribution, neg2 arm", spec["cnn_neg2"]),
+            ("splicebert nested contribution, neg2 arm", spec["splicebert_neg2"]),
+            ("kmer three-protocol span", spec["span_kmer"]),
+            ("cnn three-protocol span", spec["span_cnn"]),
+            ("splicebert three-protocol span", spec["span_splicebert"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE CLAIM. Gated on the WEAKEST-spanning model, because the sentence the paper makes is
+    # "for every model class", and a mean over models would let one collapse unnoticed.
+    lo = must("minimum three-protocol span over model classes")
+    if lo is not None:
+        record(lo >= spec["min_span_over_models"],
+               "the three-protocol span survives for EVERY model class, so it is not an "
+               "artefact of measuring with a bag of k-mers",
+               f"{lo:.2f}x (weakest)", f">= {spec['min_span_over_models']}x")
+
+    # THE REVERSAL, generalised. The bias-aware protocol is the easiest discrimination and
+    # yields the least for every model, which is the paper's title claim.
+    if spec["neg2_lowest_for_all_models"]:
+        v = must("model classes whose lowest contribution is the bias-aware arm")
+        if v is not None:
+            record(int(v) == 3, "the bias-aware arm yields the LEAST for every model class, "
+                                "which is the reversal the title states", f"{int(v)}/3", "3/3")
+
+    # AND IT DOES NOT GROW WITH CAPACITY. The CNN spans widest, not SpliceBERT. If that ever
+    # inverts, "the contrast grows with capacity" would need re-examining rather than the
+    # withdrawal being quietly retained.
+    if spec["span_must_not_grow_with_capacity"]:
+        k, c, s = (must("kmer three-protocol span"), must("cnn three-protocol span"),
+                   must("splicebert three-protocol span"))
+        if None not in (k, c, s):
+            record(s < c and s < k,
+                   "SpliceBERT has the NARROWEST span of the three, so the span does not grow "
+                   "with capacity and the withdrawn claim stays withdrawn",
+                   f"splicebert {s:.2f}x vs cnn {c:.2f}x, kmer {k:.2f}x", "splicebert lowest")
+
+
 def verify_transport(T, g):
     """R1u: an equalising exponent exists in sample and does not transport. Both halves gated."""
     print("\nR1u transportability  (does any rescaling carry to another benchmark?)")
@@ -2889,7 +2952,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_transport, verify_fold_integrity, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
