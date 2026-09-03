@@ -2,11 +2,9 @@
 
     python scripts/multiplier_variance.py
 
-THE CLAIM THIS EXISTS TO CHECK. README.md and docs/65 assert "the multiplier is a property of
-the PROTEIN (68.9% of variance) not the model (1.5%)". That decomposition was run by a referee
-agent during review and committed to no script and no table: the paper's most quotable
-one-liner about R1g was, until now, sourced to a conversation. Either it reproduces and gets
-gated, or it comes out of the README.
+PURPOSE. The claim that the protocol multiplier is a property of the protein rather than of the
+model rests on a variance decomposition. This computes it, so that the claim is sourced to code
+rather than asserted, and gates the result.
 
 WHAT IS DECOMPOSED. One cell per (dataset, model): the LOG multiplier log(gain_dn / gain_gc),
 defined only where both arms are positive, because a ratio across zero is not a multiplier.

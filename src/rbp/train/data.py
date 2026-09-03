@@ -42,7 +42,7 @@ def split_frame(df, split, fold=None, k=5):
     by a model that never saw it -- which is what "pooled out-of-fold" in params.yaml
     means, and what the composition control it is compared against already does.
 
-    The trainer read only the `split` column until 2026-08-23, so the model arm and the
+    An earlier revision of the trainer read only the `split` column, so the model arm and the
     composition arm would have been measured under different protocols and could not have
     been compared. Every dataset has carried a `fold` column since preprocessing; it was
     simply never wired up.

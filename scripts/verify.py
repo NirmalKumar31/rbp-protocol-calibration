@@ -262,7 +262,7 @@ def verify_r4_paired(T, g):
 
         # THE SHARE IS MODEL-DEPENDENT, and this is now the paper's headline. These keys sat
         # in golden.yaml unread for a day after being added -- Bug 29 (dead golden config)
-        # committed by the author of the Bug 29 write-up. Wired up 2026-08-27.
+        # committed alongside the fix it documents.
         for k, gk in (("composition share vs k-mer", "composition_share_vs_kmer"),
                       ("composition share vs CNN", "composition_share_vs_cnn"),
                       ("composition share vs SpliceBERT", "composition_share_vs_splicebert"),
@@ -610,7 +610,7 @@ def verify_scale_check(T, g):
 def verify_incremental_value(T, g):
     """R4: the model's variant signal net of conservation and position.
 
-    THIS IS THE PRIMARY ClinVar CLAIM AS OF 2026-08-27, and it is gated on the same day it was
+    This is the primary ClinVar claim, and it is gated on the same day it was
     promoted -- because the last thing promoted to a headline without a gate turned out to be
     an algebraic identity that had already been retracted once.
 
@@ -1557,7 +1557,8 @@ def verify_baseline_order(T, g):
                 rep, spec["max_order2_reproduction"])
     # KEYS ARE SPELLED OUT LITERALLY. test_golden_keys_are_read.py reads this file as TEXT, so
     # spec[f"gain_order{order}_{arm}"] is invisible to it and the key reads as unread. That is
-    # docs/61 lesson 12, and it caught this exact violation of itself.
+    # tests/unit/test_golden_keys_are_read.py reads this file as text, so a key built with an
+    # f-string reads as unread. Spell keys out literally.
     for label, key in (
             ("gain over order-2 baseline, gc arm", spec["gain_order2_gc"]),
             ("gain over order-3 baseline, gc arm", spec["gain_order3_gc"]),
@@ -1650,8 +1651,8 @@ def verify_baseline_order(T, g):
 def verify_baseline_order_models(T, g):
     """R1r: an order-3 baseline absorbs a near-constant amount from every model class.
 
-    NOT "the collapse is the 4-mer's alone" -- that framing was withdrawn on 2026-09-02, and
-    this docstring asserted it for a day after the prose had retracted it.
+    Not "the collapse is the 4-mer's alone": the absolute absorption is near-identical across
+    model classes, so the differing shares are a denominator effect.
     """
     print("\nR1r baseline order across model classes  (is the collapse general?)")
     d = T.get("baseline_order_models.csv")
@@ -1718,7 +1719,7 @@ def verify_baseline_order_models(T, g):
             near(label, v, key)
 
     # THE PROTOCOL CONTRAST MUST SURVIVE AT ORDER 3 FOR EVERY MODEL, two-sided. A one-sided
-    # floor is docs/61 lesson 17: ">= x" passes a rewritten value that is far too large.
+    # floor: ">= x" would pass a rewritten value that is far too large.
     for model in ("kmer", "cnn", "splicebert"):
         lo = q.loc[f"{model} R1 contrast (dn-gc), order-3 baseline", "ci_low"] \
             if f"{model} R1 contrast (dn-gc), order-3 baseline" in q.index else None
@@ -1745,8 +1746,8 @@ def verify_baseline_order_models(T, g):
         at_most("the order-3 baseline absorbs a near-CONSTANT absolute amount across model "
                 "classes, so the differing shares are a denominator effect and not differing "
                 "fragility", max(gcv) - min(gcv), spec["max_absorbed_spread_gc"])
-    # THE DINUCLEOTIDE ARM'S SPREAD, ungated until 2026-09-02 -- the gc-only gate passed with
-    # 8% margin while the dn spread was twice as large and unchecked.
+    # The dinucleotide arm's spread. Gating the GC arm alone left this unchecked, and it is
+    # roughly twice as large.
     dnv = must("absorbed spread across model classes, dn arm")
     if dnv is not None:
         at_most("and the same holds on the dinucleotide arm", dnv,
@@ -2085,7 +2086,7 @@ def verify_fold_integrity(T, g):
            int(total), spec["n_score_sets"])
 
     # Keys spelled out literally -- test_golden_keys_are_read.py reads this file as TEXT and
-    # cannot see an f-string. That is lesson 12, and it caught these three on 2026-09-02.
+    # cannot see an f-string, so a key built by interpolation reads as unread.
     for label, key in (
             ("datasets NOT chromosome-grouped, gc arm",
              {"value": 94 - spec["grouped_gc"]["value"], "tol": 0}),
@@ -2121,7 +2122,7 @@ def verify_fold_integrity(T, g):
                     nbr, spec["max_cross_fold_neighbours_gc"])
 
     # 2. NO NEW DATASET MAY BECOME LEAKY, and the count is pinned two-sided: a floor would
-    # pass a rerun that leaked more. This is lesson 17.
+    # pass a rerun that leaked more.
     nl = must("leaky datasets")
     if nl is not None:
         record(int(nl) == spec["leaky_datasets"]["value"],
@@ -2621,7 +2622,7 @@ def verify_strand_asymmetry(T, g):
 def verify_strand_placebo(T, g):
     """The pre-registered strand test: restriction against a REGION-MATCHED placebo.
 
-    The criteria in golden.yaml were written into docs/61 before the experiment ran and must
+    The criteria in golden.yaml were fixed before the experiment ran and must
     not be loosened afterwards. The one thing that DID change is a retraction: with an
     unstratified placebo the excess excluded zero and was reported as a real artifact; matched
     on region it does not, so only a bound is asserted now.
@@ -2762,7 +2763,7 @@ def verify_strand_audit(T, g):
     """The negatives are ~45% antisense, and that must not be what the contrast measures.
 
     THIS FUNCTION EXISTS BECAUSE ITS ABSENCE WAS A FALSE STATEMENT. `golden.yaml` grew a
-    `strand_audit` block with 9 keys, and `docs/59` then claimed "all of it is now gated". It
+    `strand_audit` block with 9 keys that nothing read, while the write-up claimed it was gated. It
     was not: `grep strand scripts/verify.py` returned nothing. That is the 27th unread golden
     key in this project, created by the commit that wired up the first 26 -- the same bug
     class, one layer up, for the third time. The lesson that finally stuck is mechanical, not
@@ -2972,9 +2973,9 @@ def verify_integrity(T, g):
     # else still fails.
     # The three *_common columns are NaN on EXACTLY the same rows and for exactly the same
     # reason: they exist to score the model on the variants the block-prevalence baseline can
-    # score, so where the baseline is undefined they are undefined too. Added 2026-08-27 when
+    # score, so where the baseline is undefined they are undefined too. Added when
     # the paired comparison was moved onto a common mask; the gate caught them immediately,
-    # which is the first time this file has failed on its own author's change.
+    # the coverage columns were first written.
     NAN_OK = {("variant_specificity.csv", "auroc_block_prevalence"): "undefined below ~10 "
               "pathogenic variants; excluded from every reported stratum",
               ("variant_specificity.csv", "n_common"): "defined only where the baseline is",

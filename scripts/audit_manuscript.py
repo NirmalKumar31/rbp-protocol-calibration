@@ -57,12 +57,12 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "results" / "tables"
-PAPER = ROOT / "docs" / "60-the-paper.md"
-# THE DRAFTED MANUSCRIPT IS ALSO AUDITED, from 2026-09-02. docs/60 is the claims ledger and
-# manuscript/ is the prose that will be submitted; a number can be sourced in the first and
-# mistyped in the second, and the second is the one a referee reads. Auditing only the ledger
-# would have checked the wrong document from the moment drafting began.
-MANUSCRIPT = sorted((ROOT / "manuscript").glob("*.md")) if (ROOT / "manuscript").exists() else []
+# The submitted prose is the document that matters. An earlier revision also audited a
+# separate claims ledger under docs/, which now lives on the working-notes branch.
+MANUSCRIPT_DIR = ROOT / "manuscript"
+# Every manuscript section is audited, not a single file: a value can be correct in one place
+# and mistyped in another, and the submitted prose is what a referee reads.
+MANUSCRIPT = sorted(MANUSCRIPT_DIR.glob("*.md")) + sorted((MANUSCRIPT_DIR / "sections").glob("*.tex"))
 GOLDEN = ROOT / "config" / "golden.yaml"
 
 # This script's own output lives in results/tables/ and its `value` column IS the orphan list,
@@ -144,14 +144,14 @@ def haystack():
 
 
 def main():
-    if not PAPER.exists():
-        raise SystemExit(f"{PAPER} is absent")
+    if not MANUSCRIPT:
+        raise SystemExit(f"no manuscript sources under {MANUSCRIPT_DIR}")
     vals = haystack()
     sat = {d: len({v for v in vals[d] if 0.5 <= v <= 1.0}) / (10 ** d * 0.5 + 1)
            for d in (3, 4)}
 
     orphans, checked = [], 0
-    sources = [(PAPER.name, PAPER)] + [(m.name, m) for m in MANUSCRIPT]
+    sources = [(m.name, m) for m in MANUSCRIPT]
     for src_name, src in sources:
       for i, line in enumerate(src.read_text().splitlines(), 1):
         for m in NUM.finditer(line):

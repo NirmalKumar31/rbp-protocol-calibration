@@ -20,8 +20,8 @@ than argued. If the deltas are negligible the ladder stands and the paper says s
 number. If they are not, the deep arms have to be reported on the logit scale.
 
 WHY NOT JUST REFIT EVERYTHING ON THE LOGIT. Because the published numbers are gated in
-golden.yaml and quoted throughout docs/60, and silently changing the estimand would be exactly
-the failure this project keeps catching. Measure the difference first, then decide.
+golden.yaml and quoted throughout the manuscript, and silently changing the estimand would
+substitute one quantity for another under the same name. Measure the difference first.
 """
 
 import argparse

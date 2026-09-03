@@ -1,6 +1,6 @@
 """Fold-based splitting for the training path.
 
-The trainer read only the frozen `split` column until 2026-08-23, so a GPU sweep would
+An earlier revision of the trainer read only the frozen `split` column, so a GPU sweep would
 have been measured under a different protocol from the composition control it is compared
 against. These tests pin the cross-validation path that params.yaml calls primary.
 

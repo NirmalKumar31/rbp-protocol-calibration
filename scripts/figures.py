@@ -150,9 +150,8 @@ def f1():
     """The headline. Same positives, same model, two negative sets.
 
     Paired per dataset, because the two arms share their positives -- an unpaired plot
-    would throw away exactly the structure that makes 94/94 meaningful. (This said 187/187
-    until 2026-09-02: a count from the discarded build that docs/PANELS.md explicitly says
-    must not reappear. The panel is 94 paired datasets.)
+    would throw away exactly the structure that makes 94/94 meaningful. The panel is 94 paired
+    datasets; earlier counts refer to the candidate pool and do not apply here.
     """
     got = need("cost_of_matching.csv")
     if got is None:

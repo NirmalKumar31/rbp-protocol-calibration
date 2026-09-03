@@ -502,7 +502,7 @@ r1g_deep_contrast:
   panel_must_match_rehearsal: true
   # 3. COVERAGE MUST NOT DEFAULT. summarise() read `d[col].min() if col in d else 1.0`, so
   #    DELETING the columns made the gate assert perfect coverage. A wrong value was caught; an
-  #    absent one was not. Same shape as the 2026-08 failure where deleting a file passed.
+  #    absent one was not. Same shape as the earlier failure where deleting a file passed.
   coverage_columns_must_be_present: true
   # 4. THE EVIDENCE IS NOW ANCHORED TO PER-WINDOW SCORES IN THE REPO. Both arms' 940
   #    scores.tsv.gz are committed (16 MB for the GC arm, which was the missing half), so the
@@ -879,7 +879,7 @@ r1n_protocol_or_baseline:
 # WHAT IT DOES NOT COST, AND THIS IS THE POINT: the FOLD RANGE, which is the paper's actual
 # claim, is 2.67x at order 2 and 2.62x at order 3. Everything shrinks proportionally. The
 # magnitude is a function of an analyst's choice; the protocol dependence is not.
-# CORRECTED 2026-09-01, and the correction is larger than the original result. The first
+# CORRECTED, and the correction is larger than the original result. The first
 # version of baseline_order.py built its OWN composition block instead of using the paper's:
 # all 4 mono + all 16 dinucleotide frequencies, unstandardised, into sklearn's default
 # LogisticRegression. Singular design matrix, no entropy column, and an L2 penalty on features
@@ -912,7 +912,7 @@ r1o_baseline_order:
   # THE CLAIM THAT MUST SURVIVE. Most of the MAGNITUDE is an analyst's choice; the protocol
   # DEPENDENCE is not.
   #
-  # CORRECTED AGAIN 2026-09-02, by an adversarial statistician. The first correction said the
+  # CORRECTED A SECOND TIME. The first correction said the
   # range "WIDENS, 5.34x -> 7.16x" and that the arms "do not shrink proportionally". Neither is
   # supported at n = 30. The intervals were written as NaN and the prose printed the point
   # estimates as if identified: order-2 is 5.34x [3.95, 7.71], order-3 is 7.16x [3.65, 22.65],
@@ -971,7 +971,7 @@ r1r_baseline_order_models:
   surviving_splicebert_dn: {value: 0.692, tol: 0.05}
   # THE SHARE GAP. Note what this does and does not assert: it pins the gap in the SHARES,
   # which is a denominator effect (see below). It is NOT evidence that the k-mer is more
-  # fragile, and its old label said so until 2026-09-02.
+  # fragile, though an earlier label here said so.
   min_deep_advantage_over_kmer: 0.15
   # THE COMPRESSION CORRECTION, which this section omitted and which the paper itself calls
   # "not optional". The order-3 baseline RAISES composition (+0.0196 gc, +0.0517 dn), cutting
@@ -1201,7 +1201,7 @@ r4_paired_specificity:
   composition_share_vs_kmer:       {value: 0.6818, tol: 0.035}
   composition_share_vs_cnn:        {value: 0.6197, tol: 0.035}
   composition_share_vs_splicebert: {value: 0.4137, tol: 0.035}
-  # THE CONTRAST IS NOT A FINDING. Retracted as a headline 2026-08-27, one day after being
+  # THE CONTRAST IS NOT A FINDING. Retracted as a headline one day after being
   # promoted to one, and kept here with the reason attached.
   #
   # share_m = C / gain_m, where C = mean(composition_auroc) - 0.5 is IDENTICAL for every
@@ -1232,7 +1232,7 @@ r4_paired_specificity:
   # THE FOUR ATTACKS, from a council review. Each was raised as a reason the specificity
   # result is not real, and each is recomputed every run so a regression fails the build.
   #
-  # The coefficients above were WRONG until 2026-08-26 and too SMALL, not too large:
+  # The coefficients above were previously WRONG, and too SMALL rather than too large:
   # fit_delta_coef applied abs() to a value the caller had already standardised within
   # dataset, folding the below-mean half of a z-score back over the above-mean half. Caught
   # because the same contrast returned 0.729 from the pipeline and 1.169 from a hand-written
@@ -1268,7 +1268,7 @@ r4_paired_specificity:
 
 # --- R4: the pooled ladder, retained for comparison only ---
 r4_variant_ladder:
-  # ESTABLISHED FROM THIS PIPELINE'S OWN RUN (2026-08-26), not carried over.
+  # ESTABLISHED FROM THIS PIPELINE'S OWN RUN, not carried over.
   #
   # Every other block here was re-established when the pipeline was rebuilt. R4's was not,
   # because R4 could not complete until the ClinVar arm ran for the first time -- so these
@@ -1371,7 +1371,7 @@ integrity:
 
 # --- the wrong-protein control's donor must actually be a WRONG protein -----------------
 #
-# RETRACTED 2026-08-27, and left here with its own obituary because deleting it would hide
+# RETRACTED, and left here with its own record because deleting it would hide
 # the most instructive failure in this project.
 #
 # The original block asserted `clean_donor_gap: 0.1210` on the 17 donors with "negligible
@@ -1482,7 +1482,7 @@ recompute:
 
 # --- R4: incremental value over conservation and position (the primary ClinVar claim) -----
 #
-# PROMOTED TO PRIMARY 2026-08-27 after peer review, and gated on the same day, because the
+# PROMOTED TO PRIMARY after review, and gated at the same time, because the
 # last claim promoted to a headline without a gate turned out to be an algebraic identity.
 #
 # The previous framing ("conservation 0.892 and a positional rule 0.818 beat the model 0.755")
@@ -1584,7 +1584,7 @@ r1s_multiplier_variance:
   null_protein:  {value: 0.297, tol: 0.05}
   excess_protein: {value: 0.351, tol: 0.06}
   panel_multiplier: {value: 2.99, tol: 0.20}
-  # CORRECTED 2026-09-02. The wholesale-y null above is TOO PERMISSIVE and the +35.1 excess it
+  # CORRECTED. The wholesale-y null above is TOO PERMISSIVE and the +35.1 excess it
   # reports is about five-fold too generous. It destroys the protein effect AND the
   # within-dataset correlation among the model cells that share windows, labels and folds -- and
   # since 79 proteins sit on 94 datasets, protein is very nearly the DATASET factor (68.0% as a
@@ -1703,7 +1703,7 @@ match_quality:
 # deep_model_contrast.py asserted in its own docstring that "both arms use the same chromosome
 # folds, the same seed ... the only difference is how the negative windows were chosen". False
 # for those 20. None of the 549 assertions checked it: the harness gated the VALUES the scores
-# produced and never what produced them. That is lesson 9, again, at the level of the evidence.
+# produced and never what produced them, now at the level of the evidence files.
 #
 # WHAT MOVES, AND IT IS LESS THAN THE DEFECT SUGGESTS. The k-mer is refit in-script on the
 # study folds for every dataset, so it is a clean internal control. Dropping the 20:
@@ -1732,7 +1732,7 @@ fold_integrity:
   #  1. The GC arm must stay perfectly chromosome-grouped with ZERO cross-fold neighbours. It
   #     carries the headline; if it ever leaks, the paper stops.
   #  2. No NEW dataset may become leaky. The count is pinned at exactly 20, two-sided, because
-  #     a one-sided floor would pass a rerun that leaked more (lesson 17).
+  #     a one-sided floor would pass a rerun that leaked more.
   #  3. The conclusion must survive dropping them. If a contrast shift ever exceeds this bound
   #     the leaky datasets are load-bearing and the dinucleotide deep sweep must be rerun
   #     rather than caveated.
@@ -1804,7 +1804,7 @@ r1u_transport:
 
 # --- R1v: the three-protocol span, for all three model classes ---------------------------
 #
-# THE GAP EVERY REVIEWER NAMED, now closed. Until 2026-09-03 everything three-protocol was
+# THE GAP REVIEWERS NAMED, now closed. Previously everything three-protocol was
 # 4-mer only and everything multi-model was two-arm only, so the paper's headline was a
 # single-model result whose defence belonged to models that had never seen the third protocol.
 # The neural sweep was extended to the bias-aware arm (940 fold-runs, 17.4 GPU-hours, $19.10).

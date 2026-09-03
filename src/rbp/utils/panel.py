@@ -6,7 +6,7 @@ WHY THIS EXISTS AS A SHARED MODULE. Three analysis scripts each had their own co
 directory. That was wrong in two directions at once once the dinucleotide arm existed:
 
   * the filename is not keyed by arm, so whichever arm ran last overwrote the other's
-    pair counts. Measured on 2026-08-21: AATF's file said 1081 (its dinuc count) while
+    pair counts. Measured: AATF's file said 1081 (its dinuc count) while
     its GC dataset holds 1043 pairs.
   * the dataset directory was hardcoded to the GC arm, so the dinuc counts were used to
     filter GC data.
@@ -27,10 +27,8 @@ ROOT = Path(__file__).resolve().parents[3]
 ARMS = {
     "gc": "data/processed",
     "dinuc": "data/processed_dinucmatch",
-    # The bias-aware arm, added 2026-09-02 when the neural sweep was extended to it. Its
-    # windows were built by scripts/build_neg2.py, which wrote them straight to processed/neg2
-    # without ever going through this map, so the arm existed in the analysis for weeks while
-    # every path helper here denied it. Adding it is what lets --arm neg2 reach the trainer.
+    # The bias-aware arm. Its windows are built by scripts/build_neg2.py directly under
+    # processed/neg2; this entry is what lets --arm neg2 resolve through the path helpers.
     "neg2": "data/processed_neg2",
 }
 

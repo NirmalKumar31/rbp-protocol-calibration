@@ -23,7 +23,7 @@ against a bias that is present WITHIN every dataset, and `frac_sense` is not exo
 `frac_sense` to 1.0 by construction and has full leverage. See `scripts/strand_contrast.py`
 for the weak version, retained because the contrast between the two designs is the point.
 
-PRE-REGISTERED in docs/61 before this was run: sign retained, CI excluding zero, and at least
+PRE-REGISTERED before this was run: sign retained, CI excluding zero, and at least
 60% of the point estimate surviving.
 
 REPRODUCTION IS CHECKED PER DATASET. Local window tables are used only where recomputing the

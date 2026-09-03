@@ -31,9 +31,9 @@ Structure follows the convention of the target literature (Horlacher *et al.* 20
 Methods, Results with declarative subsection headings, Discussion with Limitations, Conclusion,
 then the declarations and 20 references.
 
-The markdown files `01-` to `08-` are the working drafts and the reasoning behind editorial
-choices, including the reference-verification status and the AI-use wording. They are not part
-of the submission and can be ignored by a reader.
+`manuscript/` contains only what the submission needs: `paper.tex`, `sections/`, `figures/`,
+`build.sh` and the built `paper.pdf`. Drafting notes and the record of editorial decisions are
+on the `working-notes` branch.
 
 ## Main display items
 
@@ -59,7 +59,7 @@ embed TrueType fonts and rasters are 400 dpi.
 | Table S9, positive-set overlap between arms | `results/tables/positive_set_overlap.csv` |
 | Per-dataset results, three protocols by three models | `results/tables/three_arm_models_per_dataset.csv` |
 | Supplementary figures S1 to S8 | `results/figures/f0,f1,f2,f3,f4,f6,f13*` |
-| Legends for every display item | `manuscript/08-figure-legends.md` |
+| Legends for every display item | typeset in `manuscript/paper.pdf` as figure and table captions |
 
 ## Reproducing the numbers
 

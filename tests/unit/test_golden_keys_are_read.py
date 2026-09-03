@@ -12,7 +12,7 @@ omission. This happened three times.
   2. `r1_headline_is_gc_share_only` was added to FORBID a headline. Nothing read it, and the
      forbidden headline was duly promoted two weeks later -- by the person who wrote the key.
   3. The fix for (1) and (2) wired up 26 keys and, in the same commit, added a 9-key
-     `strand_audit` block that nothing read, plus a line in `docs/59` asserting it was gated.
+     `strand_audit` block that nothing read, while the write-up asserted it was gated.
 
 Three occurrences of one bug, each found by a human squinting at a grep. So the defence is
 mechanical: this test parses golden.yaml, walks every leaf key, and fails if the name appears

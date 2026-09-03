@@ -168,7 +168,7 @@ def train(handle, loaders, outdir, *, epochs=12, patience=4, seed=7,
         # Time already spent, so `seconds` is the run's total and not the time since the
         # most recent resume. A preempted run otherwise under-reports its own cost.
         prior = blob.get("elapsed", 0.0)
-        if "best_state" in blob and not best_path.exists():   # pre-2026-08-23 checkpoint
+        if "best_state" in blob and not best_path.exists():   # legacy checkpoint layout
             atomic_save(blob["best_state"], best_path)
         log(f"  resumed from epoch {blob['epoch']} "
             f"(best val AUROC {best:.4f} at epoch {best_epoch}, {prior:.0f}s already spent)")
