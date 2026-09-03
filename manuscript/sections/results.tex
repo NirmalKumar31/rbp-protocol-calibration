@@ -47,10 +47,10 @@ The direction of the GC-versus-dinucleotide contrast is implied by the design. T
 baseline spans the fifteen degrees of freedom of the dinucleotide simplex; GC matching
 constrains one linear functional of that space and dinucleotide matching constrains all fifteen,
 so the arm that constrains more must leave the baseline weaker. Only the magnitude of that
-contrast is informative. The position of the bias-aware arm is not implied by the same argument:
-that protocol constrains none of the fifteen degrees of freedom and its negatives are not
-composition-matched in any respect (median absolute GC difference 0.1387 against 0.0297 for the
-GC arm), yet it has the highest composition baseline of the three.
+contrast is informative. The position of the bias-aware arm is not implied by the same argument. That protocol
+constrains none of the fifteen degrees of freedom, and its negatives are not
+composition-matched in any respect (median absolute GC difference 0.1387, against 0.0297 for
+the GC arm). It nonetheless has the highest composition baseline of the three.
 
 Two artefacts were bounded against matched placebos with twenty placebo seeds each. Strand
 misassignment, which arises because a matched negative inherits its positive's strand label,
@@ -154,11 +154,11 @@ the change in contribution were related at Spearman $-0.664$ ($p=3\times10^{-13}
 Matching on the baseline directly is possible only across datasets, because the dinucleotide
 baseline is below the GC baseline in all 94 datasets and the two are therefore perfectly
 rank-confounded within a dataset. Under nearest-baseline matching the $+0.0398$ contrast fell to
-$-0.0087$ (CI $-0.0265$ to $+0.0122$, $n=41$ pairs). This design is not a clean test of the
-contrast: the retained pairs are drawn from opposing tails of their respective distributions
-(mean baseline 0.6875 against a panel mean of 0.6274 for the dinucleotide members, and 0.6904
-against 0.7827 for their GC partners), 41 comparisons are served by 24 distinct GC partners with
-one reused eleven times, and proteins are not matched. Nearest-neighbour matching on a covariate
+$-0.0087$ (CI $-0.0265$ to $+0.0122$, $n=41$ pairs). This design is not a clean test of the contrast. The retained pairs are drawn from opposing
+tails of their respective distributions: mean baseline 0.6875 against a panel mean of 0.6274
+for the dinucleotide members, and 0.6904 against 0.7827 for their GC partners. The 41
+comparisons are served by 24 distinct GC partners, one of them reused eleven times, and
+proteins are not matched. Nearest-neighbour matching on a covariate
 monotonically related to the outcome, with replacement and across proteins, is biased toward the
 null here, and the common support for this pair is 0.073 AUROC wide over 33 of 188 cells.
 
@@ -234,7 +234,7 @@ composition alone & 0.6274 & 0.7827 & 0.8248 & \\
 \end{table}
 
 The span was present for every model class and was smallest, at 3.76-fold, for the largest
-model. The bias-aware protocol yielded the lowest contribution for all three model classes while
+model. Across all three, the bias-aware protocol yielded the lowest contribution for all three model classes while
 carrying the highest composition baseline, so the inversion between apparent difficulty and
 measured contribution is not specific to a bag-of-$k$-mers measurement. The two-arm contrast was
 $+0.0398$ (CI $+0.0325$ to $+0.0477$) for the 4-mer, $+0.0530$ (CI $+0.0440$ to $+0.0627$) for
@@ -268,8 +268,8 @@ transportability assumption.
 
 Two provenance limitations apply to this subsection. For 20 of the 94 datasets in the
 dinucleotide arm the retained neural scores were produced under a partition that is not
-chromosome-grouped: fold sizes were preserved, so count-based checks do not detect it, but up to
-23 chromosomes appear in a single fold and up to 44.5\% of rows have a same-strand neighbour
+chromosome-grouped. Fold sizes were preserved, so count-based checks do not detect it. Up to 23
+chromosomes appear in a single fold, and up to 44.5\% of rows have a same-strand neighbour
 within 1~kb assigned to a different fold, against zero under the study folds and zero in the GC
 and bias-aware arms. The 4-mer is refit on the study folds for every dataset and is unaffected.
 Restricted to the 74 correctly partitioned datasets the contrasts were $+0.0436$, $+0.0506$ and

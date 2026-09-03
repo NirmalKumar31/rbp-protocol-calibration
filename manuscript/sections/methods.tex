@@ -141,10 +141,10 @@ The nested contribution of a model is
 \mathrm{AUROC}(\text{composition} + \text{standardised model score}) -
 \mathrm{AUROC}(\text{composition alone}),
 \end{equation*}
-both fitted by $L_2$-penalised logistic regression ($C=1$, lbfgs, at most 3000 iterations) once
-per fold on that fold's training rows, both evaluated as pooled out-of-fold linear predictors on
-identical rows and identical folds, and compared by DeLong's paired estimator
-\citep{delong1988} in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired estimator is
+Both terms were fitted by $L_2$-penalised logistic regression ($C=1$, lbfgs, at most 3000
+iterations), once per fold on that fold's training rows, and evaluated as pooled out-of-fold
+linear predictors on identical rows and folds. The two were compared by DeLong's paired
+estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired estimator is
 necessary here because the two score vectors are fitted on overlapping training data and
 evaluated on identical rows, so they are strongly correlated and treating them as independent
 understates the variance of their difference. Confidence intervals on a single dataset's

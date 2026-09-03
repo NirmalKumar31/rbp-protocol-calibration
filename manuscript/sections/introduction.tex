@@ -1,48 +1,45 @@
 Sequence models that predict RNA-binding protein (RBP) occupancy are evaluated almost entirely
 by the area under the receiver operating characteristic curve (AUROC) on held-out windows.
-Positive windows are taken from a crosslinking assay, most often eCLIP
+Positive windows come from a crosslinking assay, most often eCLIP
 \citep{vannostrand2016,vannostrand2020}, but negative windows have to be constructed, and the
-construction is usually described in a sentence of the methods. Horlacher \textit{et al.}
+construction is usually given a sentence in the methods. Horlacher \textit{et al.}
 \citep{horlacher2023} benchmarked eleven RBP prediction methods across hundreds of CLIP-seq
-experiments under two negative-set definitions and showed that the apparent performance of a
-method depends on which definition is used. They proposed a bias-aware alternative in which
-negatives are drawn from the binding sites of other RBPs rather than from genomic background.
+experiments under two negative-set definitions and showed that a method's apparent performance
+depends on which definition is used. They proposed a bias-aware alternative in which negatives
+are drawn from the binding sites of other RBPs rather than from genomic background.
 
-What that leaves open is the size and the direction of the dependence for the quantity a reader
-is usually trying to recover. A raw AUROC conflates the signal a model found with the difficulty
-of the discrimination it was given, and the two can be varied independently by the person
-building the benchmark. Negatives sampled uniformly from the genome differ from crosslinked
-positives in base composition, so a classifier that responds to nucleotide frequency alone will
-score well without having learned anything sequence-specific. Matching negatives on GC content
-is the usual mitigation, but GC content is a single linear functional of the sixteen-dimensional
-dinucleotide simplex, so fifteen degrees of freedom of compositional difference remain available
-to any model. Analogous circularity has been characterised in variant-effect prediction, where
-the assembly of the evaluation set both inflates apparent accuracy and reorders methods
-\citep{grimm2015}, and sensitivity of genomic machine-learning evaluations to the definition of
-the negative class is recognised more generally \citep{whalen2022}.
+How large that dependence is, and in which direction it acts, remains open. A raw AUROC
+conflates the signal a model found with the difficulty of the discrimination it was set, and
+whoever builds the benchmark controls the second. Negatives sampled uniformly from the genome
+differ from crosslinked positives in base composition, so a classifier responding to nucleotide
+frequency alone will score well without having learned anything sequence-specific. Matching
+negatives on GC content is the usual mitigation, but GC content is one linear functional of the
+sixteen-cell dinucleotide simplex, leaving the remaining fourteen degrees of freedom of
+compositional difference available to any model. Comparable circularity is characterised in
+variant-effect prediction, where the assembly of the evaluation set both inflates apparent
+accuracy and reorders methods \citep{grimm2015}, and the sensitivity of genomic
+machine-learning evaluations to the definition of the negative class is recognised more
+generally \citep{whalen2022}.
 
-A model's incremental contribution over an explicit composition baseline is less exposed to this
-than its raw AUROC. We define the nested contribution as the difference between the pooled
-out-of-fold AUROC of a logistic model on composition features plus the model's score and that of
-the composition features alone, fitted on the same rows and the same folds. This quantity is
-what a reader is asking for when they ask what a sequence model adds, and it is what we measure
-here.
+A model's increment over an explicit composition baseline is less exposed to compositional
+confounding than its raw AUROC. We define the nested contribution as the difference between the
+pooled out-of-fold AUROC of a logistic model on composition features together with the model's
+score, and that of the composition features alone, fitted on the same rows and the same folds.
 
 We assembled 94 ENCODE eCLIP datasets and constructed negatives three ways: matched on GC
 content, matched on all sixteen dinucleotide frequencies, and drawn from the binding sites of
 other RBPs assayed in the same cell line, following \citet{horlacher2023}. Model, positives,
-chromosome-blocked folds and estimator were held fixed across the three arms, and the
-composition baseline was refit on each arm's own windows so that no baseline was carried between
-designs. Three model classes were measured under all three protocols: a 4-mer logistic
-regression, a 7089-parameter convolutional network, and a fully fine-tuned 19.78~M-parameter
-nucleotide language model.
+chromosome-blocked folds and estimator were held fixed across arms, and the composition baseline
+was refit on each arm's own windows so that no baseline was carried between designs. Three model
+classes were measured under all three protocols: a 4-mer logistic regression, a 7089-parameter
+convolutional network, and a fully fine-tuned 19.78~M-parameter nucleotide language model.
 
 Apparent difficulty and measured contribution move in opposite directions. Dinucleotide matching
 reduced apparent AUROC in all 94 datasets while approximately tripling the nested contribution,
-and the bias-aware protocol produced both the easiest discrimination of the three and the
-smallest contribution. The nested contribution spanned 5.4-fold across protocols for the 4-mer
-and between 3.8 and 7.6-fold across the three model classes, against 0.019 AUROC separating the
-4-mer from the convolutional network on the same panel. Eight standard monotone
-reparameterisations reduced the span without closing it, and an exponent fitted to close it did
-not transport to an independent benchmark. We conclude with a two-number reporting
-recommendation, and with the limits of what it achieves.
+and the bias-aware protocol gave both the easiest discrimination of the three and the smallest
+contribution. The contribution spanned 5.4-fold across protocols for the 4-mer, and between 3.8
+and 7.6-fold across the three model classes; by comparison, 0.019 AUROC separates the 4-mer from
+the convolutional network on this panel. Eight standard monotone reparameterisations reduced the
+span without closing it, and an exponent fitted to close it did not transport to an independent
+benchmark. On that basis we recommend reporting the composition-only AUROC alongside every
+headline AUROC, and we set out what that does and does not achieve.

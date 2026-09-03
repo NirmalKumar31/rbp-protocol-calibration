@@ -1,10 +1,17 @@
-When reporting how well a sequence model identifies RBP binding sites, the
-composition-only AUROC obtained under the same protocol should be reported alongside the
-headline AUROC, and contributions measured under different negative-set protocols should not be
-compared. The first costs one additional logistic regression on nineteen features. The second is
-a restriction on inference rather than an addition to it, and it is the more consequential of
-the two, because a substantial part of cross-study comparison in this literature is of that
-kind.
+How much a sequence model adds over sequence composition is not a property of the model alone.
+Holding the model, the positives, the folds and the estimator fixed, and varying only how the
+negative windows were assembled, the measured contribution of a 4-mer varied 5.4-fold, and
+between 3.8 and 7.6-fold across three model classes. The direction of that variation is opposite
+to the direction of apparent performance: the protocol that made the discrimination hardest by
+AUROC produced the largest contribution, and the protocol that made it easiest produced the
+smallest.
+
+Two consequences for reporting follow. The composition-only AUROC obtained under the same
+protocol should be given alongside every headline AUROC, which costs one additional logistic
+regression on nineteen features. And contributions measured under different negative-set
+protocols should not be compared, which is a restriction on inference rather than an addition to
+it, and is the more consequential of the two because a substantial part of cross-study
+comparison in this literature is of that kind.
 
 Apparent difficulty is not a proxy for the stringency of an evaluation. Moving to
 dinucleotide-matched negatives reduced apparent AUROC in every dataset examined while raising
@@ -17,28 +24,30 @@ protein's sites from another's is largely a composition task, and a protocol tha
 leaves a sequence model comparatively little to add.
 
 The relation between the composition baseline a protocol leaves and the contribution a model
-subsequently shows was strong for composition-matched negatives, in our data and independently
-in that of \citet{horlacher2023}, and absent for negatives drawn from the sites of other
-proteins, with a residual difference between the two groups surviving adjustment for the
-baseline. This suggests that the more useful distinction for a benchmark designer is the kind of
-object the negative is rather than the stringency of the matching, and that contributions are
-comparable within such a group in a way that they are not between groups. We note, however, that
-this structure was recovered from the 4-mer measurement and did not reproduce for either neural
-model, so we present it as a feature of that measurement rather than of the quantity.
+subsequently shows was strong for composition-matched negatives, both in our data and
+independently in that of \citet{horlacher2023}, and absent for negatives drawn from the sites of
+other proteins. A residual difference between the two groups survived adjustment for the
+baseline. This suggests that what matters for a benchmark designer is less the stringency of the
+matching than what the negative window is: contributions appear comparable within a group of
+protocols that draw negatives from the same kind of object, and not between such groups. This
+structure was, however, recovered from the 4-mer measurement and did not reproduce for either
+neural model, and we therefore present it as a feature of that measurement rather than of the
+quantity.
 
 Protocol dependence can be reduced by fitting a transformation but not by choosing one from
 among the standard set. Eight standard reparameterisations reduced the span without closing it,
 and the smallest of them, division by the baseline's headroom, is the two-number report
-expressed as a single number. An exponent that closes the span does exist, but it does not
-transport: the exponent fitted to our three protocols leaves an independent benchmark
-essentially where it started, the exponent fitted to that benchmark is 2.4 times ours, and the
-exponent differs by a factor of 1.22 between model classes measured on the same data. This is
+expressed as a single number. An exponent that closes the span does exist, but it does not transport. The exponent fitted to
+our three protocols leaves an independent benchmark essentially where it started; the exponent
+fitted to that benchmark is 2.4 times ours; and the exponent differs by a factor of 1.22
+between model classes measured on the same data. This is
 the sense in which no protocol-free measure of contribution is available. The obstacle is not
 that no transformation works but that a transformation which works has to be refitted for each
 measurement, which is precisely what a comparable quantity cannot require.
 
-The composition baseline used here stops at order two, which is what a dinucleotide-preserving
-shuffle would hold fixed and is a defensible choice, but it is a choice and it carries weight.
+The composition baseline used here stops at order two, matching what a
+dinucleotide-preserving shuffle would hold fixed. That is defensible, but it is a choice, and
+it carries more weight than its brevity in the methods suggests.
 Refitting the baseline at order three, adding the 63 trinucleotide frequencies, removed
 approximately four fifths of the 4-mer's measured contribution and 87\% of the two-arm contrast,
 and on the bias-aware arm the median dataset retained nothing. For a bag-of-$k$-mers model, most
@@ -47,24 +56,22 @@ composition rather than motif recognition or any positional feature. Any study r
 increment over a composition baseline is reporting a quantity indexed by the order of that
 baseline, and few state which order was used.
 
-Two observations temper this. Protocol dependence is not an artefact of where the baseline
+Two results qualify this. Protocol dependence is not an artefact of where the baseline
 stops: at an order-three baseline the two-arm contrast remained $+0.0067$, $+0.0309$ and
 $+0.0545$ for the three model classes, all with intervals excluding zero, and the span across
 protocols did not collapse. And the collapse is specific to models whose features are nested
 within the span of the baseline. Over a trinucleotide baseline the 4-mer's contribution was
-positive in 65 of 94 datasets against 94 of 94 for SpliceBERT, and after accounting for the
-reduced headroom that the raised baseline leaves, the 4-mer lost approximately 1.4 times what
-SpliceBERT lost. A benchmark intended to separate model classes rather than to rank them by how
-much short-range composition they absorb could therefore raise the order of its baseline. That
-recommendation carries a circularity that should be stated: trinucleotide counts are linear
+positive in 65 of 94 datasets against 94 of 94 for SpliceBERT, and after accounting for the reduced headroom the raised
+baseline leaves, the 4-mer lost approximately 1.4 times what SpliceBERT lost. A benchmark intended to separate model classes rather than to rank them by how
+much short-range composition they absorb could therefore raise the order of its baseline. That recommendation carries a circularity worth stating: trinucleotide counts are linear
 aggregates of 4-mer counts, so an order-three baseline is structurally unfavourable to $k$-mer
-models, and it separates models by how much of their signal lies outside short-range composition
+models, and separates models by how much of their signal lies outside short-range composition
 rather than by capacity as such.
 
 \citet{horlacher2023} established that negative-set construction changes apparent performance
-across many RBP prediction methods and proposed the bias-aware alternative. The present work
-does not contest that and depends on it, since their released negative sets provide our only
-external validation. What we add is a calibration: the quantity that moves is not only apparent
+across many RBP prediction methods and proposed the bias-aware alternative. The present work does not contest that and depends on
+it, since their released negative sets provide our only external validation. What we add is a
+calibration of it: the quantity that moves is not only apparent
 AUROC but the increment over an explicit baseline; it moves in the opposite direction to
 apparent difficulty; it moves by a factor of between 3.8 and 7.6 depending on the model class,
 which is comparable to or larger than the differences these benchmarks exist to resolve; and no
@@ -72,8 +79,8 @@ reparameterisation renders it comparable across benchmarks. The same structural 
 documented in variant-effect prediction, where the assembly of the evaluation set both inflates
 and reorders apparent method performance \citep{grimm2015}, and the sensitivity of genomic
 machine-learning evaluations to the definition of the negative class has been noted more broadly
-\citep{whalen2022}. Our contribution is to quantify it for one well-defined estimand in one
-well-covered assay, and to separate the part that is arithmetic from the part that is not.
+\citep{whalen2022}. We quantify it for one well-defined estimand in one
+well-covered assay, and separate the part that is arithmetic from the part that is not.
 
 \subsection*{Limitations}
 
