@@ -4,6 +4,10 @@
 # testing story on the spot. That is the correct reaction: a suite nobody runs on a clean
 # checkout is a suite that passes on one laptop.
 #
+# scripts/ci_local.sh runs these same steps on a developer machine. If you change a step
+# here, change it there in the same commit: CI failed four times on pushes that passed
+# locally, and every time the cause was that the two ran different commands.
+#
 # This deliberately does NOT run the pipeline. The pipeline needs GCP credentials, a genome
 # and about $50. What CI can prove on a clean clone is that the code imports, the tests pass,
 # and the numbers nobody is allowed to edit silently have not been edited silently.

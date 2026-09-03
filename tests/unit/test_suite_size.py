@@ -11,8 +11,14 @@ against 576 locally. Asserting a single floor across both environments fails the
 for a reason that has nothing to do with the suite shrinking, which is exactly the kind of
 gate that gets disabled and then trusted anyway.
 
-So the floor is enforced where the whole suite is collectable -- a developer machine and CI --
-and skipped where it provably is not.
+So the floor is enforced where the whole suite is collectable and skipped where it provably is
+not. "Collectable" has two ways of failing, and only one of them was handled. The absence of
+torch is the first. The second is a caller who passes --ignore, which is exactly what
+.github/workflows/ci.yml does for the two torch-importing modules: the collected count is then
+a subset by construction and comparing it to a whole-suite floor is meaningless. On a machine
+that has torch AND passes those ignores, which is what scripts/ci_local.sh does in order to
+reproduce CI faithfully, the old test reported the suite as having shrunk by twelve tests when
+nothing had been removed.
 """
 
 from pathlib import Path
@@ -34,6 +40,10 @@ def _has_torch():
 def test_suite_is_at_least_the_documented_size(pytestconfig):
     if not _has_torch():
         pytest.skip("no torch: this is the CPU image, which cannot collect the full suite")
+    ignored = pytestconfig.getoption("ignore") or []
+    if ignored:
+        pytest.skip(f"--ignore given ({len(ignored)} path(s)): the collected count is a "
+                    f"subset by construction and cannot be compared to a whole-suite floor")
     floor = yaml.safe_load((ROOT / "config" / "golden.yaml").read_text())["integrity"][
         "min_tests_passing"]
     tr = pytestconfig.pluginmanager.get_plugin("terminalreporter")

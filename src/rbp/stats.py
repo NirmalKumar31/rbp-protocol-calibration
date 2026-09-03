@@ -171,9 +171,22 @@ def lr_test(X_reduced, X_full, y, method="firth"):
     model, so the penalty cancels instead of biasing the statistic. Verified against the
     uniform null in tests/unit/test_nested.py.
 
-    The statistic is clipped at zero. A negative value cannot happen for nested models
-    sharing an objective, so it signals a convergence failure and is reported as no
-    evidence rather than propagating a nonsensical p-value.
+    NON-CONVERGENCE IS REPORTED IN BOTH DIRECTIONS, and it was not always. A negative
+    statistic cannot happen for nested models sharing an objective, so it signals a
+    convergence failure and is clipped to zero, i.e. reported as no evidence. An INFINITE
+    statistic is the same failure with the opposite sign, and it used to pass straight
+    through: chi2.sf(inf) is 0.0, so a diverged fit was reported as overwhelming evidence.
+    The guard was therefore asymmetric in the direction that flatters a result.
+
+    A non-finite statistic now returns nan for the p-value, so the failure is visible
+    instead of being read as either extreme. Callers that treat nan as "no evidence" behave
+    conservatively; callers that propagate it make the failure obvious.
+
+    This matters on near-separable designs, which is exactly where the control is most
+    interesting: a score that separates the classes almost perfectly drives the penalised
+    likelihood toward its bound, and whether the fit diverges then depends on BLAS
+    summation order and so on the machine. tests/unit/test_nested.py's pure-composition
+    fixture sits on that boundary and failed intermittently in CI for that reason.
     """
     df = X_full.shape[1] - X_reduced.shape[1]
     if df <= 0:
@@ -192,6 +205,8 @@ def lr_test(X_reduced, X_full, y, method="firth"):
         b_f, _ = fit_full(X_full, y, method)
         stat = 2.0 * (loglik(X_full, y, b_f) - loglik(X_reduced, y, b_r))
 
+    if not np.isfinite(stat):
+        return float("nan"), df, float("nan")
     stat = float(max(stat, 0.0))
     return stat, df, float(chi2.sf(stat, df))
 
