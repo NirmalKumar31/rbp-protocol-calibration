@@ -16,6 +16,12 @@
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[colorlinks=true,allcolors=blue]{hyperref}
 \usepackage{microtype}
+% Preprint conventions. Line numbers and 1.5 spacing are what reviewers ask for on a
+% manuscript under consideration; both are cosmetic and can be dropped for a camera-ready
+% version by commenting out these three lines.
+\usepackage[modulo]{lineno}
+\usepackage{setspace}
+\onehalfspacing
 
 % \doi is used in the text (Data availability) as well as the bibliography, so it has to be
 % defined in the preamble rather than alongside thebibliography, which is \input last.
@@ -42,6 +48,7 @@ contribution: a three-protocol calibration across 94 ENCODE eCLIP datasets}
 \date{}
 
 \begin{document}
+\linenumbers
 \maketitle
 
 \begin{abstract}

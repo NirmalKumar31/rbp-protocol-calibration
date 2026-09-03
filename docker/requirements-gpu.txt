@@ -1,7 +1,20 @@
 # Pinned to the exact versions the local results were produced with, same reasoning as
-# requirements-cpu.txt. torch is NOT here: it comes from the CUDA base image, because
-# pip-installing it would pull a second copy of the CUDA runtime into the layer and add
-# several GB for nothing.
+# requirements-cpu.txt.
+#
+# TORCH IS NOT INSTALLED FROM HERE, and that is deliberate: it comes from the CUDA base image,
+# because pip-installing it would pull a second copy of the CUDA runtime into the layer and add
+# several GB for nothing. But "not installed here" was being read as "unpinned", and a reviewer
+# asked which version produced the results, which was recoverable only by reading the
+# Dockerfile's FROM line. So the version is recorded here as a comment, next to everything else
+# it has to be consistent with:
+#
+#   torch==2.13.0+cu126   from  pytorch/pytorch:2.13.0-cuda12.6-cudnn9-runtime
+#                               (docker/Dockerfile.gpu) and pinned explicitly in
+#                               cloud/modal/modal_gc_sweep.py for the Modal image.
+#
+# CUDA 12.6 and not 13.x is also load-bearing: CUDA 13 dropped sm_70, which is what a V100 is,
+# and bake_weights.py verify asserts sm_70 is in torch.cuda.get_arch_list(). Changing either
+# number means changing Dockerfile.gpu, the Modal image and this comment together.
 #
 # Regenerate with:
 #   .venv/bin/pip freeze | grep -iE '^(transformers|multimolecule|peft|...)='

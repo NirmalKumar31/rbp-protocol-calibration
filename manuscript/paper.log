@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  3 SEP 2026 09:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  3 SEP 2026 09:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -363,37 +363,58 @@ Package microtype Info: Loading configuration file microtype.cfg.
 File: microtype.cfg 2026/03/01 v3.2d microtype main configuration file (RS)
 )
 LaTeX Info: Redefining \microtypesetup on input line 3065.
+) (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lineno/lineno.sty
+Package: lineno 2026/02/16 line numbers on paragraphs v5.7
+\linenopenalty=\count317
+\output=\toks28
+\linenoprevgraf=\count318
+\linenumbersep=\dimen186
+\linenumberwidth=\dimen187
+\c@linenumber=\count319
+\c@pagewiselinenumber=\count320
+\c@LN@truepage=\count321
+\c@internallinenumber=\count322
+\c@internallinenumbers=\count323
+\quotelinenumbersep=\dimen188
+\bframerule=\dimen189
+\bframesep=\dimen190
+\bframebox=\box56
+\@LN@amsmath@ams@eqpen=\count324
 )
-LaTeX Font Info:    Trying to load font information for T1+lmr on input line 44
+(/usr/local/texlive/2026basic/texmf-dist/tex/latex/setspace/setspace.sty
+Package: setspace 2022/12/04 v6.7b set line spacing
+)
+LaTeX Font Info:    Trying to load font information for T1+lmr on input line 50
 .
- (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/t1lmr.fd
+
+(/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/t1lmr.fd
 File: t1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/l3backend/l3backend-pdftex.d
 ef
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count317
+\l__color_backend_stack_int=\count325
 ) (./paper.aux)
 \openout1 = `paper.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 44.
-LaTeX Font Info:    ... okay on input line 44.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -431,17 +452,17 @@ LaTeX Font Info:    ... okay on input line 44.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count318
-\scratchdimen=\dimen186
-\scratchbox=\box56
-\nofMPsegments=\count319
-\nofMParguments=\count320
-\everyMPshowfont=\toks28
-\MPscratchCnt=\count321
-\MPscratchDim=\dimen187
-\MPnumerator=\count322
-\makeMPintoPDFobject=\count323
-\everyMPtoPDFconversion=\toks29
+\scratchcounter=\count326
+\scratchdimen=\dimen191
+\scratchbox=\box57
+\nofMPsegments=\count327
+\nofMParguments=\count328
+\everyMPshowfont=\toks29
+\MPscratchCnt=\count329
+\MPscratchDim=\dimen192
+\MPnumerator=\count330
+\makeMPintoPDFobject=\count331
+\everyMPtoPDFconversion=\toks30
 )
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.s
 ty
@@ -461,19 +482,22 @@ File: color.cfg 2016/01/02 v1.6 sample color configuration
 Package color Info: Driver file: pdftex.def on input line 149.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/graphics/mathcolor.ltx))
-Package hyperref Info: Link coloring ON on input line 44.
+Package hyperref Info: Link coloring ON on input line 50.
 
 (./paper.out) (./paper.out)
 \@outlinefile=\write3
 \openout3 = `paper.out'.
 
-LaTeX Info: Redefining \microtypecontext on input line 44.
-Package microtype Info: Applying patch `item' on input line 44.
-Package microtype Info: Applying patch `toc' on input line 44.
-Package microtype Info: Applying patch `eqnum' on input line 44.
-Package microtype Info: Applying patch `footnote' on input line 44.
-Package microtype Info: Applying patch `verbatim' on input line 44.
-LaTeX Info: Redefining \microtypesetup on input line 44.
+LaTeX Info: Redefining \microtypecontext on input line 50.
+Package microtype Info: Applying patch `item' on input line 50.
+Package microtype Info: Applying patch `toc' on input line 50.
+Package microtype Info: Applying patch `eqnum' on input line 50.
+
+
+Package microtype Warning: Unable to apply patch `footnote' on input line 50.
+
+Package microtype Info: Applying patch `verbatim' on input line 50.
+LaTeX Info: Redefining \microtypesetup on input line 50.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -484,43 +508,52 @@ Package microtype Info: Patching command `\showhyphens'.
 Package microtype Info: No adjustment of tracking.
 Package microtype Info: No adjustment of interword spacing.
 Package microtype Info: No adjustment of character kerning.
-
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
 )
-LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 4
-6.
+LaTeX Font Info:    Trying to load font information for T1+lmss on input line 5
+3.
+
+(/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/t1lmss.fd
+File: t1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
+)
+Package microtype Info: Loading generic protrusion settings for font family
+(microtype)             `lmss' (encoding: T1).
+(microtype)             For optimal results, create family-specific settings.
+(microtype)             See the microtype manual for details.
+LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 5
+3.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 4
-6.
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 5
+3.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-46.
+53.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-46.
+53.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 46.
+(Font)              <12> on input line 53.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 46.
+(Font)              <8> on input line 53.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 46.
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 4
-6.
+(Font)              <6> on input line 53.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 5
+3.
 
 (/usr/local/texlive/2026basic/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -534,76 +567,76 @@ Package microtype Info: Loading generic protrusion settings for font family
 
 {/Users/nirmalkumar/Library/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap
 /pdftex.map}{/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-ec.e
-nc}] [2]) (./sections/results.tex
+nc}]) (./sections/results.tex [2]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 10.
+(Font)              <10.95> on input line 11.
  [3{/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/
 usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local
 /texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
-<figures/f10_three_protocols.pdf, id=120, 760.11162pt x 240.66498pt>
+<figures/f10_three_protocols.pdf, id=119, 760.11162pt x 240.66498pt>
 File: figures/f10_three_protocols.pdf Graphic file (type pdf)
 <use figures/f10_three_protocols.pdf>
-Package pdftex.def Info: figures/f10_three_protocols.pdf  used on input line 81
+Package pdftex.def Info: figures/f10_three_protocols.pdf  used on input line 69
 .
 (pdftex.def)             Requested size: 469.75502pt x 148.73334pt.
- [4] [5 <./figures/f10_three_protocols.pdf>]
-<figures/f11_scale_sweep.pdf, id=151, 470.87923pt x 240.67085pt>
+ [4 <./figures/f10_three_protocols.pdf>]
+<figures/f11_scale_sweep.pdf, id=144, 470.87923pt x 240.67085pt>
 File: figures/f11_scale_sweep.pdf Graphic file (type pdf)
 <use figures/f11_scale_sweep.pdf>
-Package pdftex.def Info: figures/f11_scale_sweep.pdf  used on input line 154.
+Package pdftex.def Info: figures/f11_scale_sweep.pdf  used on input line 132.
 (pdftex.def)             Requested size: 338.22418pt x 172.8679pt.
- [6 <./figures/f11_scale_sweep.pdf>]
-<figures/f12_protocol_or_baseline.pdf, id=176, 645.23206pt x 240.34001pt>
+ [5] [6 <./figures/f11_scale_sweep.pdf>]
+<figures/f12_protocol_or_baseline.pdf, id=174, 645.23206pt x 240.34001pt>
 File: figures/f12_protocol_or_baseline.pdf Graphic file (type pdf)
 <use figures/f12_protocol_or_baseline.pdf>
 Package pdftex.def Info: figures/f12_protocol_or_baseline.pdf  used on input li
-ne 243.
+ne 206.
 (pdftex.def)             Requested size: 469.75502pt x 174.97733pt.
- [7] [8 <./figures/f12_protocol_or_baseline.pdf>] [9]
-<figures/f9_deep_contrast.pdf, id=230, 746.07896pt x 233.43797pt>
+ [7 <./figures/f12_protocol_or_baseline.pdf>] [8]
+<figures/f9_deep_contrast.pdf, id=209, 746.07896pt x 233.43797pt>
 File: figures/f9_deep_contrast.pdf Graphic file (type pdf)
 <use figures/f9_deep_contrast.pdf>
-Package pdftex.def Info: figures/f9_deep_contrast.pdf  used on input line 355.
+Package pdftex.def Info: figures/f9_deep_contrast.pdf  used on input line 287.
 (pdftex.def)             Requested size: 469.75502pt x 146.9812pt.
- [10 <./figures/f9_deep_contrast.pdf>]
-<figures/f14_external_validation.pdf, id=249, 662.92003pt x 247.89787pt>
+<figures/f14_external_validation.pdf, id=215, 662.92003pt x 247.89787pt>
 File: figures/f14_external_validation.pdf Graphic file (type pdf)
 <use figures/f14_external_validation.pdf>
 Package pdftex.def Info: figures/f14_external_validation.pdf  used on input lin
-e 400.
+e 329.
 (pdftex.def)             Requested size: 469.75502pt x 175.66449pt.
- [11 <./figures/f14_external_validation.pdf>]
-<figures/f15_recommendation.pdf, id=268, 659.68608pt x 240.5025pt>
+ [9 <./figures/f9_deep_contrast.pdf>]
+<figures/f15_recommendation.pdf, id=236, 659.68608pt x 240.5025pt>
 File: figures/f15_recommendation.pdf Graphic file (type pdf)
 <use figures/f15_recommendation.pdf>
-Package pdftex.def Info: figures/f15_recommendation.pdf  used on input line 441
+Package pdftex.def Info: figures/f15_recommendation.pdf  used on input line 363
 .
 (pdftex.def)             Requested size: 469.75502pt x 171.26437pt.
-) (./sections/discussion.tex [12 <./figures/f15_recommendation.pdf>] [13] [14])
- (./sections/methods.tex [15] [16] [17] [18])
+) [10 <./figures/f14_external_validation.pdf>] (./sections/discussion.tex [11 <
+./figures/f15_recommendation.pdf>] [12] [13]) (./sections/methods.tex [14] [15]
+ [16] [17]) [18]
 (./sections/data-availability.tex)
-Overfull \hbox (2.35481pt too wide) in paragraph at lines 88--94
+Overfull \hbox (2.35481pt too wide) in paragraph at lines 95--101
 \T1/lmr/m/n/10.95 (-20) All anal-y-sis code is avail-able at [][]$\T1/lmtt/m/n/
 10.95 https : / / github . com / NirmalKumar31 / rbp-[]protocol-[]calibration$[
 ][]
  []
 
-[19] (./sections/bibliography.tex [20]) [21] (./paper.aux)
+(./sections/bibliography.tex [19] [20]) [21] (./paper.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: 5AC879CD5FE694BEAB1ED14C4FF883A1;4024.
+(rerunfilecheck)             Checksum: 122F39B97C2C0BE8955F7AB5687F0676;3491.
  ) 
 Here is how much of TeX's memory you used:
- 12973 strings out of 469006
- 204353 string characters out of 5454814
- 656051 words of memory out of 5000000
- 41115 multiletter control sequences out of 15000+600000
- 705055 words of font info for 206 fonts, out of 8000000 for 9000
+ 13237 strings out of 469006
+ 209643 string characters out of 5454814
+ 662421 words of memory out of 5000000
+ 41445 multiletter control sequences out of 15000+600000
+ 696393 words of font info for 179 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,11n,79p,1002b,585s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,9n,79p,1002b,617s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></u
 sr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></usr/lo
 cal/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/t
@@ -612,13 +645,14 @@ exlive/2026basic/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></usr/local/texlive
 asic/texmf-dist/fonts/type1/public/lm/lmr12.pfb></usr/local/texlive/2026basic/t
 exmf-dist/fonts/type1/public/lm/lmr8.pfb></usr/local/texlive/2026basic/texmf-di
 st/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2026basic/texmf-dist/fo
-nts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/t
-ype1/public/lm/lmsy8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/p
-ublic/lm/lmtt10.pfb>
-Output written on paper.pdf (21 pages, 412952 bytes).
+nts/type1/public/lm/lmss8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/ty
+pe1/public/lm/lmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/p
+ublic/lm/lmsy8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/
+lm/lmtt10.pfb>
+Output written on paper.pdf (21 pages, 412977 bytes).
 PDF statistics:
- 485 PDF objects out of 1000 (max. 8388607)
- 391 compressed objects within 4 object streams
- 111 named destinations out of 1000 (max. 500000)
- 41655 words of extra memory for PDF output out of 42996 (max. 10000000)
+ 458 PDF objects out of 1000 (max. 8388607)
+ 362 compressed objects within 4 object streams
+ 86 named destinations out of 1000 (max. 500000)
+ 37559 words of extra memory for PDF output out of 42996 (max. 10000000)
 
