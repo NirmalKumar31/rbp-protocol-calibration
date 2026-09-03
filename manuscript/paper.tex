@@ -53,24 +53,23 @@ contribution: a three-protocol calibration across 94 ENCODE eCLIP datasets}
 
 \begin{abstract}
 \noindent
-Sequence models for RNA-binding proteins are evaluated against negative windows, and how those
-windows are chosen is usually treated as an implementation detail. Across 94 paired ENCODE eCLIP
-datasets we hold the model, the positives, the chromosome-blocked folds and the estimator fixed
-and vary only the negative-set protocol, measuring the nested contribution of a 4-mer model over
-a 19-feature mono- and dinucleotide composition baseline refit under each protocol. Replacing
-GC-matched with dinucleotide-matched negatives lowers apparent AUROC by 0.110 in 94 of 94
-datasets while raising the measured contribution from 0.027 to 0.066. A bias-aware protocol
-drawing negatives from other proteins' binding sites is the easiest of the three discriminations
-and yields the least, 0.012. Apparent difficulty and measured contribution therefore move in
-opposite directions, spanning 5.4-fold for a 4-mer model and between 3.8 and 7.6-fold across
-three model classes measured on identical rows, a range about three times the gap between a
-k-mer model and a convolutional network on the same datasets. The composition baseline each
-protocol leaves behind accounts for most of the variation for the 4-mer, though not for every
-model class. No rescaling supplies a transportable
-remedy: an exponent that equalises our three protocols exists, but the exponent fitted to an
-independent benchmark differs from it 2.4-fold. We recommend reporting the composition-only
-AUROC obtained under the same protocol beside every headline AUROC, and not comparing
-contributions measured under different protocols.
+Sequence models for RNA-binding proteins are evaluated against constructed negative windows,
+and how those windows are chosen is usually treated as an implementation detail. Across 94
+paired ENCODE eCLIP datasets we held the model, the positives, the chromosome-blocked folds and
+the estimator fixed and varied only the negative-set protocol, measuring the nested contribution
+of a model over a 19-feature mono- and dinucleotide composition baseline refit under each
+protocol. Replacing GC-matched with dinucleotide-matched negatives lowered apparent AUROC by
+0.110 in 94 of 94 datasets while raising the measured contribution from 0.027 to 0.066. A
+bias-aware protocol drawing negatives from other proteins' binding sites gave the easiest
+discrimination of the three and the smallest contribution, 0.012. Apparent difficulty and
+measured contribution therefore move in opposite directions, spanning 5.4-fold for a 4-mer and
+between 3.8 and 7.6-fold across three model classes measured on identical rows. Eight standard
+monotone reparameterisations reduced this span without closing it, and an exponent fitted to
+close it did not transport to an independent benchmark. We recommend that the composition-only
+AUROC obtained under the same protocol be reported alongside every headline AUROC, and that
+contributions measured under different protocols not be compared. Our per-dataset measurements
+and verification harness allow benchmark designers to situate their own negative-set choice
+against these three.
 \end{abstract}
 
 \noindent\textbf{Keywords:} RNA-binding proteins; eCLIP; benchmarking; negative-set
@@ -79,14 +78,17 @@ construction; sequence composition; incremental value; AUROC
 \section{Introduction}
 \input{sections/introduction}
 
+\section{Materials and Methods}
+\input{sections/methods}
+
 \section{Results}
 \input{sections/results}
 
 \section{Discussion}
 \input{sections/discussion}
 
-\section{Materials and Methods}
-\input{sections/methods}
+\section{Conclusion}
+\input{sections/conclusion}
 
 \section*{Data availability}
 \input{sections/data-availability}

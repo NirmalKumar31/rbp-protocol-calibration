@@ -1,4 +1,4 @@
-\subsection{Effect of negative-set protocol on measured contribution}
+\subsection{Negative-set protocol changes measured contribution more than five-fold}
 
 Across 94 paired datasets the same 4-mer model gave three different accounts of its own
 contribution depending only on how the negative windows were built (Table~\ref{tab:three},
@@ -71,7 +71,7 @@ reported direction.
 \label{fig:three}
 \end{figure}
 
-\subsection{Behaviour under monotone reparameterisation}
+\subsection{No standard reparameterisation removes the protocol dependence}
 
 AUROC is compressive near unity, so a contribution measured against a baseline of 0.82 is
 arithmetically smaller than the same contribution measured against 0.63, and part of the
@@ -134,7 +134,7 @@ differs by a factor of 1.22 between model classes measured on the same benchmark
 \label{fig:scale}
 \end{figure}
 
-\subsection{Attribution to the composition baseline}
+\subsection{The composition baseline accounts for most of the dependence for a $k$-mer model}
 
 Pooled over all 282 protocol-dataset cells the contribution was inversely related to the
 composition baseline (Spearman $-0.600$, $p=6\times10^{-29}$), which is to say that most of what
@@ -208,7 +208,7 @@ SpliceBERT & 1.07\% & 24.06\% & $-0.583$ & $-0.767$ & $-0.568$ \\
 \label{fig:baseline}
 \end{figure}
 
-\subsection{Dependence on model class}
+\subsection{The span holds for three model classes and does not grow with capacity}
 
 Both neural models were trained on all three arms under the same folds, seed and code path,
 with per-window out-of-fold scores retained (Figure~\ref{fig:models},
@@ -289,7 +289,7 @@ transforms.
 \label{fig:models}
 \end{figure}
 
-\subsection{Replication on an independent benchmark}
+\subsection{The calibration and its mechanism replicate on an independent benchmark}
 
 We applied the same decomposition to the negative sets released by \citet{horlacher2023}, using
 their positives, peak calling, negative-set construction and fold assignments, over the 45
@@ -331,7 +331,7 @@ single-family headroom relation does not.
 \label{fig:external}
 \end{figure}
 
-\subsection{Evaluation of the reporting recommendation}
+\subsection{Reporting the baseline helps in sample but does not replicate out of sample}
 
 Reporting the composition-only AUROC alongside the headline AUROC is useful only if it improves
 something measurable. We tested it in the situation it is intended for, a reader holding two

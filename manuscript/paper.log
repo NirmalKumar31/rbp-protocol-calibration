@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  3 SEP 2026 10:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  3 SEP 2026 10:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -567,92 +567,103 @@ Package microtype Info: Loading generic protrusion settings for font family
 
 {/Users/nirmalkumar/Library/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap
 /pdftex.map}{/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-ec.e
-nc}]) (./sections/results.tex [2]
+nc}]) (./sections/methods.tex [2]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 11.
+(Font)              <10.95> on input line 12.
  [3{/usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/
 usr/local/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/local
-/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}]
-<figures/f10_three_protocols.pdf, id=119, 760.11162pt x 240.66498pt>
+/texlive/2026basic/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc}] [4] [5] [6])
+(./sections/results.tex [7] [8]
+<figures/f10_three_protocols.pdf, id=176, 760.11162pt x 240.66498pt>
 File: figures/f10_three_protocols.pdf Graphic file (type pdf)
 <use figures/f10_three_protocols.pdf>
 Package pdftex.def Info: figures/f10_three_protocols.pdf  used on input line 69
 .
 (pdftex.def)             Requested size: 469.75502pt x 148.73334pt.
- [4 <./figures/f10_three_protocols.pdf>]
-<figures/f11_scale_sweep.pdf, id=144, 470.87923pt x 240.67085pt>
+ [9 <./figures/f10_three_protocols.pdf>]
+<figures/f11_scale_sweep.pdf, id=202, 470.87923pt x 240.67085pt>
 File: figures/f11_scale_sweep.pdf Graphic file (type pdf)
 <use figures/f11_scale_sweep.pdf>
 Package pdftex.def Info: figures/f11_scale_sweep.pdf  used on input line 132.
 (pdftex.def)             Requested size: 338.22418pt x 172.8679pt.
- [5] [6 <./figures/f11_scale_sweep.pdf>]
-<figures/f12_protocol_or_baseline.pdf, id=174, 645.23206pt x 240.34001pt>
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 137.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 137.
+
+[10 <./figures/f11_scale_sweep.pdf>]
+<figures/f12_protocol_or_baseline.pdf, id=226, 645.23206pt x 240.34001pt>
 File: figures/f12_protocol_or_baseline.pdf Graphic file (type pdf)
 <use figures/f12_protocol_or_baseline.pdf>
 Package pdftex.def Info: figures/f12_protocol_or_baseline.pdf  used on input li
 ne 206.
 (pdftex.def)             Requested size: 469.75502pt x 174.97733pt.
- [7 <./figures/f12_protocol_or_baseline.pdf>] [8]
-<figures/f9_deep_contrast.pdf, id=209, 746.07896pt x 233.43797pt>
+ [11] [12 <./figures/f12_protocol_or_baseline.pdf>]
+<figures/f9_deep_contrast.pdf, id=259, 746.07896pt x 233.43797pt>
 File: figures/f9_deep_contrast.pdf Graphic file (type pdf)
 <use figures/f9_deep_contrast.pdf>
 Package pdftex.def Info: figures/f9_deep_contrast.pdf  used on input line 287.
 (pdftex.def)             Requested size: 469.75502pt x 146.9812pt.
-<figures/f14_external_validation.pdf, id=215, 662.92003pt x 247.89787pt>
+ [13]
+<figures/f14_external_validation.pdf, id=273, 662.92003pt x 247.89787pt>
 File: figures/f14_external_validation.pdf Graphic file (type pdf)
 <use figures/f14_external_validation.pdf>
 Package pdftex.def Info: figures/f14_external_validation.pdf  used on input lin
 e 329.
 (pdftex.def)             Requested size: 469.75502pt x 175.66449pt.
- [9 <./figures/f9_deep_contrast.pdf>]
-<figures/f15_recommendation.pdf, id=236, 659.68608pt x 240.5025pt>
+ [14 <./figures/f9_deep_contrast.pdf>]
+<figures/f15_recommendation.pdf, id=293, 659.68608pt x 240.5025pt>
 File: figures/f15_recommendation.pdf Graphic file (type pdf)
 <use figures/f15_recommendation.pdf>
 Package pdftex.def Info: figures/f15_recommendation.pdf  used on input line 363
 .
 (pdftex.def)             Requested size: 469.75502pt x 171.26437pt.
-) [10 <./figures/f14_external_validation.pdf>] (./sections/discussion.tex [11 <
-./figures/f15_recommendation.pdf>] [12] [13]) (./sections/methods.tex [14] [15]
- [16] [17] [18])
-(./sections/data-availability.tex)
-Overfull \hbox (2.35481pt too wide) in paragraph at lines 95--101
+) (./sections/discussion.tex [15 <./figures/f14_external_validation.pdf>] [16 <
+./figures/f15_recommendation.pdf>] [17] [18]) (./sections/conclusion.tex) (./se
+ctions/data-availability.tex [19])
+Overfull \hbox (2.35481pt too wide) in paragraph at lines 97--103
 \T1/lmr/m/n/10.95 (-20) All anal-y-sis code is avail-able at [][]$\T1/lmtt/m/n/
 10.95 https : / / github . com / NirmalKumar31 / rbp-[]protocol-[]calibration$[
 ][]
  []
 
-[19] (./sections/bibliography.tex [20]) [21] (./paper.aux)
+(./sections/bibliography.tex [20] [21]) [22] (./paper.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: 122F39B97C2C0BE8955F7AB5687F0676;3491.
+(rerunfilecheck)             Checksum: 7E552373A181C32708F28F93934C2CAD;4602.
  ) 
 Here is how much of TeX's memory you used:
- 13237 strings out of 469006
- 209647 string characters out of 5454814
- 662421 words of memory out of 5000000
- 41445 multiletter control sequences out of 15000+600000
- 696440 words of font info for 179 fonts, out of 8000000 for 9000
+ 13248 strings out of 469006
+ 209893 string characters out of 5454814
+ 665427 words of memory out of 5000000
+ 41451 multiletter control sequences out of 15000+600000
+ 696468 words of font info for 179 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 75i,9n,79p,1002b,609s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,9n,79p,1002b,619s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></u
 sr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></usr/lo
 cal/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></usr/local/t
-exlive/2026basic/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></usr/local/texlive
-/2026basic/texmf-dist/fonts/type1/public/lm/lmr10.pfb></usr/local/texlive/2026b
-asic/texmf-dist/fonts/type1/public/lm/lmr12.pfb></usr/local/texlive/2026basic/t
-exmf-dist/fonts/type1/public/lm/lmr8.pfb></usr/local/texlive/2026basic/texmf-di
-st/fonts/type1/public/lm/lmri10.pfb></usr/local/texlive/2026basic/texmf-dist/fo
-nts/type1/public/lm/lmss8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/ty
-pe1/public/lm/lmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/p
-ublic/lm/lmsy8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/
-lm/lmtt10.pfb>
-Output written on paper.pdf (21 pages, 413385 bytes).
+exlive/2026basic/texmf-dist/fonts/type1/public/lm/lmmi12.pfb></usr/local/texliv
+e/2026basic/texmf-dist/fonts/type1/public/lm/lmmi8.pfb></usr/local/texlive/2026
+basic/texmf-dist/fonts/type1/public/lm/lmr10.pfb></usr/local/texlive/2026basic/
+texmf-dist/fonts/type1/public/lm/lmr12.pfb></usr/local/texlive/2026basic/texmf-
+dist/fonts/type1/public/lm/lmr8.pfb></usr/local/texlive/2026basic/texmf-dist/fo
+nts/type1/public/lm/lmri10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/t
+ype1/public/lm/lmss8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/p
+ublic/lm/lmsy10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public
+/lm/lmsy8.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/public/lm/lm
+tt10.pfb>
+Output written on paper.pdf (22 pages, 418610 bytes).
 PDF statistics:
- 458 PDF objects out of 1000 (max. 8388607)
- 362 compressed objects within 4 object streams
- 86 named destinations out of 1000 (max. 500000)
- 37559 words of extra memory for PDF output out of 42996 (max. 10000000)
+ 471 PDF objects out of 1000 (max. 8388607)
+ 372 compressed objects within 4 object streams
+ 88 named destinations out of 1000 (max. 500000)
+ 37567 words of extra memory for PDF output out of 42996 (max. 10000000)
 
