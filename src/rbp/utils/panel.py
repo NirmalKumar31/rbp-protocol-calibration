@@ -27,7 +27,17 @@ ROOT = Path(__file__).resolve().parents[3]
 ARMS = {
     "gc": "data/processed",
     "dinuc": "data/processed_dinucmatch",
+    # The bias-aware arm, added 2026-09-02 when the neural sweep was extended to it. Its
+    # windows were built by scripts/build_neg2.py, which wrote them straight to processed/neg2
+    # without ever going through this map, so the arm existed in the analysis for weeks while
+    # every path helper here denied it. Adding it is what lets --arm neg2 reach the trainer.
+    "neg2": "data/processed_neg2",
 }
+
+# The two composition-matched arms, which is what "both arms" means everywhere in this project
+# that predates neg2. Stages written against that pairing should say so explicitly rather than
+# iterate ARMS and silently acquire a third arm they were never designed for.
+COMPOSITION_MATCHED_ARMS = ("dinuc", "gc")
 
 
 def check_arm(arm):

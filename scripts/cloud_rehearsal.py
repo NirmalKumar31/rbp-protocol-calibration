@@ -88,7 +88,12 @@ def do_manifest(a):
     #
     # The point is not tidiness. A pipeline whose sequencing lives in a shell loop on someone's
     # machine is not a cloud pipeline, it is a cloud-assisted manual process.
-    arms = [a.arm] if a.arm_only else sorted(panelmod.ARMS)
+    # PINNED to the two composition-matched arms rather than sorted(ARMS). This stage is the
+    # k-mer/composition rehearsal and its whole design is the paired two-arm contrast; when
+    # neg2 joined ARMS for the neural sweep, iterating ARMS here would have silently added a
+    # third arm to a job that has no paired interpretation for it. Pass --arm neg2 --arm-only
+    # to run it deliberately.
+    arms = [a.arm] if a.arm_only else sorted(panelmod.COMPOSITION_MATCHED_ARMS)
     rows = []
     skipped = 0
     for arm in arms:

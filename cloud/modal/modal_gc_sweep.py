@@ -51,9 +51,15 @@ if (REPO / "src").is_dir():
     sys.path.insert(0, str(REPO / "src"))
 import modal  # noqa: E402
 
-APP = "rbp-gc-sweep"
-VOLUME = "rbp-gc-store"
-ARM = "gc"
+# THE ARM IS A PARAMETER, not a copy of this file. Set RBP_ARM=neg2 to sweep the bias-aware
+# arm; everything downstream (app name, volume, manifest, output prefix) derives from it, so
+# the two arms cannot drift apart in the way two near-identical scripts would. Defaults to gc
+# so every existing invocation and the committed gc evidence path are unchanged.
+ARM = os.environ.get("RBP_ARM", "gc")
+if ARM not in ("gc", "dinuc", "neg2"):
+    sys.exit(f"RBP_ARM={ARM!r}; expected gc, dinuc or neg2")
+APP = f"rbp-{ARM}-sweep"
+VOLUME = f"rbp-{ARM}-store"
 STORE = REPO.parent / "rbp-store"
 
 # The dinucleotide SpliceBERT sweep: 475 runs over 458,336 pairs, billed ~$31.
@@ -73,7 +79,13 @@ image = (
         "huggingface_hub==1.28.0", "accelerate==1.14.0",
         "multimolecule==0.2.1", "peft==0.20.0",
     )
-    .env({"HF_HOME": "/opt/hf", "PYTHONUNBUFFERED": "1"})
+    # RBP_ARM MUST BE IN THE IMAGE. ARM is resolved at module scope, and Modal re-imports this
+    # module inside the container, where the local shell's RBP_ARM does not exist -- so the
+    # container silently defaulted to "gc" and every task looked for the GC manifest and the GC
+    # windows while the driver thought it was sweeping neg2. It failed loudly here only because
+    # the GC manifest for that model was absent from the neg2 volume; had it been present, 470
+    # containers would have trained the wrong arm and reported success.
+    .env({"HF_HOME": "/opt/hf", "PYTHONUNBUFFERED": "1", "RBP_ARM": ARM})
     .add_local_dir(f"{REPO}/config", "/app/config", copy=True)
     .add_local_dir(f"{REPO}/src", "/app/src", copy=True)
     .add_local_file(f"{REPO}/docker/bake_weights.py", "/app/docker/bake_weights.py",
@@ -91,12 +103,31 @@ app = modal.App(APP, image=image)
 
 # --- the local side: the store is the source of truth -----------------------------------
 
+def manifest_tag(model):
+    """The MANIFEST_TAG for this (model, arm). One definition, three consumers.
+
+    gc keeps the original untagged-by-arm form so its committed manifests and volume keep
+    working; every other arm carries the arm, because a neg2 sweep that reads
+    sweep_tasks_cnn.tsv is training on the GC task list and nothing would say so.
+    """
+    return f"_{model}" if ARM == "gc" else f"_{model}_{ARM}"
+
+
+def manifest_key(model):
+    return f"manifest/sweep_tasks{manifest_tag(model)}.tsv"
+
+
 def manifest_rows(model):
-    f = STORE / "manifest" / f"sweep_tasks_{model}.tsv"
+    # ARM-TAGGED FIRST. The gc sweep's manifests are named sweep_tasks_{model}.tsv with no
+    # arm in the name, so a second arm generated under the same tag would silently overwrite
+    # them and the two sweeps would train on each other's windows. New arms therefore carry
+    # the arm in the tag, and gc keeps its original untagged name so nothing already on disk
+    # has to move.
+    f = STORE / manifest_key(model)
     if not f.exists():
         sys.exit(f"no manifest at {f}. Run:\n"
                  f"  python scripts/cloud_train.py manifest --arm {ARM} "
-                 f"--models {model} --tag _{model} --store {STORE}")
+                 f"--models {model} --tag _{model}_{ARM} --store {STORE}")
     lines = f.read_text().strip().splitlines()
     head = lines[0].split("\t")
     return [dict(zip(head, ln.split("\t"), strict=True)) for ln in lines[1:]]
@@ -145,7 +176,7 @@ def task(idx: int, model: str, epochs: int = 0):
         "STORE_DIR": "/tmp/out",       # writable, container-local, thrown away
         "STORE_RO": "/vol",            # the inputs, read-only
         "ARM": ARM,
-        "MANIFEST_TAG": f"_{model}",
+        "MANIFEST_TAG": manifest_tag(model),
         "PLATFORM": "modal",
         # One BLAS thread, as on every other platform this study has run on: thread count
         # changes summation order inside BLAS, so this is reproducibility, not speed.
@@ -175,7 +206,7 @@ def upload(model: str = "splicebert"):
     rows = manifest_rows(model)
     want = {(r["cell_line"], r["protein"]) for r in rows}
     files = []
-    for key in ("manifest/study_panel.tsv", f"manifest/sweep_tasks_{model}.tsv"):
+    for key in ("manifest/study_panel.tsv", manifest_key(model)):
         files.append((STORE / key, key))
     for cell in ("K562", "HepG2"):
         key = f"panel/{ARM}/panel_final_{cell}_{ARM}.tsv"
