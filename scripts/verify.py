@@ -1826,6 +1826,87 @@ def verify_baseline_order_models(T, g):
                    f"{m['splicebert']:.2f}x", f"< {min(m['kmer'], m['cnn']):.2f}x")
 
 
+def verify_models_by_protocol(T, g):
+    """R1w: the floor and the recommendation generalise across models. R1n does not."""
+    print("\nR1w the 4-mer-only analyses, per model class  (what generalises?)")
+    d = T.get("models_by_protocol.csv")
+    if d is None:
+        return record(False, "models_by_protocol.csv present", "MISSING",
+                      "run scripts/models_by_protocol.py")
+    spec = g["r1w_models_by_protocol"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for label, key in (
+            ("minimum fold range over transforms, kmer", spec["floor_kmer"]),
+            ("minimum fold range over transforms, cnn", spec["floor_cnn"]),
+            ("minimum fold range over transforms, splicebert", spec["floor_splicebert"]),
+            ("equalising exponent, kmer", spec["exponent_kmer"]),
+            ("equalising exponent, cnn", spec["exponent_cnn"]),
+            ("equalising exponent, splicebert", spec["exponent_splicebert"]),
+            ("fold range at the equalising exponent, cnn", spec["argmin_range_cnn"]),
+            ("fold range at the equalising exponent, splicebert",
+             spec["argmin_range_splicebert"]),
+            ("incremental R2 of the protocol label, kmer", spec["inc_protocol_kmer"]),
+            ("incremental R2 of the baseline, kmer", spec["inc_baseline_kmer"]),
+            ("incremental R2 of the protocol label, cnn", spec["inc_protocol_cnn"]),
+            ("incremental R2 of the baseline, cnn", spec["inc_baseline_cnn"]),
+            ("incremental R2 of the protocol label, splicebert",
+             spec["inc_protocol_splicebert"]),
+            ("incremental R2 of the baseline, splicebert", spec["inc_baseline_splicebert"]),
+            ("within-arm spearman(baseline, gain), neg2, splicebert",
+             spec["gradient_neg2_splicebert"]),
+            ("within-arm spearman(baseline, gain), neg2, kmer", spec["gradient_neg2_kmer"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # 1. No model class reaches protocol independence among the fixed coordinates. Gated on
+    # the WEAKEST, because "no rescaling works" is a claim about all of them.
+    floors = [must(f"minimum fold range over transforms, {m}")
+              for m in ("kmer", "cnn", "splicebert")]
+    if all(f is not None for f in floors):
+        record(min(floors) >= spec["min_floor_over_models"],
+               "every model class stays above the equal-means null among fixed coordinates, "
+               "so the central negative result is not a 4-mer artefact",
+               f"{min(floors):.2f}x (weakest)", f">= {spec['min_floor_over_models']}x")
+
+    # 2. THE CNN REVERSAL MUST BE REPORTED. For the CNN the protocol LABEL beats the baseline,
+    # so R1n's headline is false for it and the pooled 4-mer figure would conceal that.
+    if spec["cnn_reversal_must_be_reported"]:
+        pc, bc = (must("incremental R2 of the protocol label, cnn"),
+                  must("incremental R2 of the baseline, cnn"))
+        if pc is not None and bc is not None:
+            record(pc > bc, "the CNN reversal is present and reported: for that model the "
+                            "protocol LABEL explains more than the baseline, so 'it is the "
+                            "baseline, not the label' is 4-mer-specific",
+                   f"protocol {pc:.4f} > baseline {bc:.4f}", "reversed")
+
+    # 3. AND THE TWO-FAMILY MECHANISM IS 4-MER-SPECIFIC. SpliceBERT's bias-aware gradient is
+    # strong, where the k-mer's is absent; the mechanism cannot be stated as general.
+    if spec["two_family_mechanism_is_kmer_specific"]:
+        gk, gs = (must("within-arm spearman(baseline, gain), neg2, kmer"),
+                  must("within-arm spearman(baseline, gain), neg2, splicebert"))
+        if gk is not None and gs is not None:
+            record(abs(gs) > abs(gk) + 0.2,
+                   "SpliceBERT's bias-aware gradient is strong where the 4-mer's is absent, so "
+                   "the two-family mechanism must be labelled a 4-mer result",
+                   f"splicebert {gs:+.3f} vs kmer {gk:+.3f}", "much stronger")
+
+    # 4. The recommendation does generalise, in all three protocol pairs for every model.
+    for m in ("kmer", "cnn", "splicebert"):
+        v = must(f"protocol pairs where rank agreement improves, {m}")
+        if v is not None:
+            record(int(v) == spec["recommendation_pairs_improved"],
+                   f"the recommendation improves rank agreement in every protocol pair, {m}",
+                   f"{int(v)}/3", "3/3")
+
+
 def verify_three_arm_models(T, g):
     """R1v: the three-protocol span holds for every model class, and is widest for the CNN."""
     print("\nR1v three protocols x three models  (is the span a k-mer artefact?)")
@@ -2952,7 +3033,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

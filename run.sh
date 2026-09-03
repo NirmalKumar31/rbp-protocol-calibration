@@ -307,6 +307,7 @@ s13b_local_analysis() {
   $PY scripts/score_scale_check.py --from-cache || die "score scale"
   $PY scripts/transport_check.py || die "transport check"
   $PY scripts/three_arm_models.py --from-cache || die "three arm x three models"
+  $PY scripts/models_by_protocol.py || die "per-model protocol analyses"
   # match_quality.py needs the 3 GB window store and so is NOT in the default path;
   # its table is committed. Regenerate with: $PY scripts/match_quality.py
   $PY scripts/table_s1.py || die "supplementary table s1"

@@ -1329,7 +1329,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 626
+  min_domain_checks: 648
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1840,3 +1840,63 @@ r1v_three_arm_models:
   # (easiest discrimination, least measured contribution) is the paper's title claim.
   neg2_lowest_for_all_models: true
   span_must_not_grow_with_capacity: true
+
+# --- R1w: the three 4-mer-only analyses, extended to every model class -------------------
+#
+# The transform sweep, the baseline decomposition and the recommendation test were 4-mer only
+# because the neural models had no bias-aware row. The neg2 sweep supplied it, so all three
+# extend at ZERO further compute. Two generalise. ONE DOES NOT, and that is the finding.
+#
+# 1. THE FLOOR GENERALISES BUT ITS VALUE IS MODEL-SPECIFIC. Minimum fold range over the eight
+#    transforms: k-mer 2.00x, CNN 2.91x, SpliceBERT 1.68x. All are above the equal-means null
+#    (95th percentile 1.175), so no model reaches protocol independence among fixed
+#    coordinates -- but "the floor is 2.00x" is the K-MER's floor and the paper must say so.
+#
+# 2. AND NO FITTED EXPONENT REACHES INDEPENDENCE FOR THE DEEP MODELS, which strengthens R1u.
+#    The argmin over g/(1-c)^p reaches 1.004x for the k-mer but only 1.213x (CNN) and 1.124x
+#    (SpliceBERT). The equalising exponent also differs 1.22x BETWEEN MODELS on the same
+#    benchmark, so it is not a property of the benchmark alone; it is fitted per measurement.
+#
+# 3. R1n DOES NOT GENERALISE, and this is the one that costs the paper a claim.
+#      incremental R2:   protocol | baseline    baseline | protocol
+#      k-mer                   1.00%                 11.05%
+#      CNN                     6.25%                  2.34%      <- REVERSES
+#      SpliceBERT              1.07%                 24.06%
+#    For the CNN the protocol LABEL explains almost three times what the baseline does. And the
+#    two-family mechanism is k-mer-specific: within-arm gradients are -0.462/-0.545/-0.122 for
+#    the k-mer (present for composition-matched, absent for bias-aware) but -0.583/-0.767/
+#    -0.568 for SpliceBERT, where the gradient is strong in ALL THREE arms including the
+#    bias-aware one. So "it is the baseline, not the protocol label" and the two-family
+#    mechanism are both properties of the 4-mer measurement, not of the quantity.
+#
+# 4. THE RECOMMENDATION GENERALISES: rank agreement improves in 3/3 protocol pairs for all
+#    three model classes, mean change +0.040 / +0.094 / +0.061.
+r1w_models_by_protocol:
+  n_datasets: 94
+  floor_kmer:       {value: 2.00, tol: 0.25}
+  floor_cnn:        {value: 2.91, tol: 0.35}
+  floor_splicebert: {value: 1.68, tol: 0.25}
+  exponent_kmer:       {value: 1.544, tol: 0.15}
+  exponent_cnn:        {value: 1.843, tol: 0.20}
+  exponent_splicebert: {value: 1.507, tol: 0.15}
+  argmin_range_cnn:        {value: 1.213, tol: 0.10}
+  argmin_range_splicebert: {value: 1.124, tol: 0.10}
+  inc_protocol_kmer:       {value: 0.0100, tol: 0.004}
+  inc_baseline_kmer:       {value: 0.1105, tol: 0.020}
+  inc_protocol_cnn:        {value: 0.0625, tol: 0.015}
+  inc_baseline_cnn:        {value: 0.0234, tol: 0.010}
+  inc_protocol_splicebert: {value: 0.0107, tol: 0.005}
+  inc_baseline_splicebert: {value: 0.2406, tol: 0.030}
+  gradient_neg2_splicebert: {value: -0.568, tol: 0.10}
+  gradient_neg2_kmer:       {value: -0.122, tol: 0.10}
+  # THE GATES, and two of them exist to stop a withdrawn claim returning.
+  #  * every model class must stay above the equal-means null among fixed coordinates, or the
+  #    paper's central negative result fails for that model;
+  #  * the CNN reversal must be REPORTED, because "it is the baseline, not the protocol label"
+  #    is false for it and the pooled 4-mer number would hide that;
+  #  * the two-family mechanism must be labelled 4-mer-specific while SpliceBERT's bias-aware
+  #    gradient is strong.
+  min_floor_over_models: 1.30
+  cnn_reversal_must_be_reported: true
+  two_family_mechanism_is_kmer_specific: true
+  recommendation_pairs_improved: 3

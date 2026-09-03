@@ -129,6 +129,18 @@ At $p=1.544$ the three protocols agree on the panel mean to within 0.5\%. A mono
 that equalises our three protocols therefore exists, and any claim that none does would be false
 on our own data.
 
+Extending both the sweep and the exponent family to the other two model classes, now that all
+three have a bias-aware row, sharpens this and costs the headline its universality. The floor
+over the eight transforms is 2.00 for the 4-mer but 2.91 for the convolutional network and 1.68
+for SpliceBERT, so no model class reaches protocol independence among fixed coordinates and all
+three sit above the equal-means null; but ``the floor is 2.00'' is the 4-mer's floor and we
+report it as such. The fitted exponent also does better for the 4-mer than for anything else:
+its argmin reaches 1.004, while the CNN's bottoms out at 1.213 and SpliceBERT's at 1.124, so a
+fitted rescaling does not reach protocol independence for either neural model even in sample.
+And the equalising exponent differs by a factor of 1.22 \emph{between model classes on the same
+benchmark} (1.544, 1.843, 1.507), so it is not a property of the benchmark either; it is fitted
+per measurement.
+
 The exponent is a property of the benchmark rather than of the quantity, and that is the result.
 Fitted to the two negative sets released by \citet{horlacher2023}, the equalising exponent is
 3.649, a factor of 2.4 from ours. Our exponent leaves their benchmark at 2.340 against the 2.381
@@ -191,6 +203,40 @@ absent otherwise: within-arm Spearman is $-0.545$ (GC), $-0.462$ (dinucleotide) 
 not significant (bias-aware). Inside the composition-matched family the baseline is essentially
 the whole story; across families it is not, and a residual of about 0.005 to 0.008 AUROC remains.
 This is why we do not name headroom as the general mechanism.
+
+\paragraph{This subsection does not generalise across model classes, and that limits it.}
+Everything above is measured with the 4-mer. Repeating it for the other two models on the same
+rows:
+
+\begin{table}[htbp]
+\centering
+\caption{The baseline-versus-label decomposition, per model class, $n=94$. The conclusion
+reverses for the convolutional network, and the two-family mechanism does not survive for
+SpliceBERT.}
+\label{tab:generalise}
+\begin{tabular}{lccccc}
+\toprule
+ & \multicolumn{2}{c}{incremental $R^2$} & \multicolumn{3}{c}{within-arm Spearman} \\
+model & protocol $\mid$ base & base $\mid$ protocol & dinuc & GC & bias-aware \\
+\midrule
+4-mer & 1.00\% & 11.05\% & $-0.462$ & $-0.545$ & $-0.122$ \\
+CNN & \textbf{6.25\%} & \textbf{2.34\%} & $-0.120$ & $-0.410$ & $+0.075$ \\
+SpliceBERT & 1.07\% & 24.06\% & $-0.583$ & $-0.767$ & $\mathbf{-0.568}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two things fail. For the convolutional network the ordering \emph{reverses}: the protocol label
+explains 6.25\% against the baseline's 2.34\%, so ``it is the baseline, not the protocol label''
+is false for that model. And the two-family mechanism is specific to the 4-mer: for SpliceBERT
+the gradient is strong in all three arms including the bias-aware one ($-0.568$), where the
+4-mer shows nothing ($-0.122$), so there is no two-family structure in that measurement.
+
+We therefore state this subsection as what it is, a property of the 4-mer measurement rather
+than of the quantity. The variance accounting, the natural experiment and the family mechanism
+are reported for the 4-mer and should not be read as general. What does generalise across model
+classes is the span itself (Table~\ref{tab:threemodels}), the absence of a protocol-independent
+fixed coordinate, and the recommendation below.
 
 \begin{figure}[htbp]
 \centering
@@ -367,6 +413,10 @@ and wanting to compare what the models contributed (Figure~\ref{fig:recommendati
 On our data, normalising by headroom improves rank agreement in 3 of 3 protocol pairs and reduces
 disagreement on a common scale in 3 of 3, by 58\%, 10\% and 48\%. Rank agreement is scale-free,
 so no normalisation can flatter it.
+
+This does generalise across model classes, which the baseline decomposition did not: rank
+agreement improves in all three protocol pairs for all three models, with mean changes of
+$+0.040$ (4-mer), $+0.094$ (CNN) and $+0.061$ (SpliceBERT).
 
 Two findings qualify this. First, only the GC-versus-dinucleotide rank improvement has an
 interval clear of zero ($+0.051$ $[+0.007, +0.115]$); the other two pairs are consistent in

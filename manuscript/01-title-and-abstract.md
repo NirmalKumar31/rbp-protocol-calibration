@@ -42,7 +42,8 @@ Correspondence: thirupallikrishnan.n@northeastern.edu
 > discriminations and yields the least, 0.012. Apparent difficulty and measured contribution
 > therefore move in opposite directions, spanning 5.4-fold, and that span is about three times
 > the gap between a k-mer model and a convolutional network on the same datasets. The
-> composition baseline each protocol leaves behind accounts for most of the variation. No
+> composition baseline each protocol leaves behind accounts for most of the variation for
+> the 4-mer, though not for every model class. No
 > rescaling supplies a
 > transportable remedy: an exponent that equalises our three protocols exists, but the exponent
 > fitted to an independent benchmark differs from it 2.4-fold. We recommend reporting the
