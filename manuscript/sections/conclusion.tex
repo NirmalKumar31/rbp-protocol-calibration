@@ -1,20 +1,18 @@
 How much a sequence model adds over sequence composition is a joint property of the model and
-of the negative set it was evaluated against. Across 94 ENCODE eCLIP datasets, varying only the
-construction of the negative windows changed the measured contribution of a 4-mer by a factor of
-5.4, and of three model classes by factors between 3.8 and 7.6, while moving in the opposite
-direction to apparent performance. The bias-aware protocol proposed to remove compositional and
-accessibility artefacts produced the easiest discrimination of the three and the smallest
-measured contribution, so a lower score on a more carefully constructed negative set should not
-be read as evidence of a more demanding evaluation.
+of the negative set it was evaluated against, and on this panel the two axes move against each
+other: the protocol that made the discrimination easiest by AUROC was also the one that left a
+sequence model least to add.
 
-Part of this dependence is arithmetic, and eight standard reparameterisations reduce it. None
-removes it, and the exponent that does close the span is fitted rather than chosen: it does not
-transport between benchmarks, and it differs between model classes measured on the same data.
-There is therefore no protocol-free summary of what a sequence model contributes that can be
-computed once and compared across studies.
+For a benchmark designer this has two operational consequences. Report the composition-only
+AUROC obtained under the same protocol alongside every headline AUROC; it costs one logistic
+regression on nineteen features and it is the only summary of a protocol's effect that a reader
+can act on. And do not compare contributions measured under different negative-set protocols.
+That restriction is one we can justify, where a normalisation that would remove the need for it
+is not: eight standard reparameterisations reduce the span without closing it, and the exponent
+that does close it is fitted rather than chosen, differing between benchmarks and between model
+classes measured on the same data.
 
-We recommend that the composition-only AUROC obtained under the same protocol be reported
-alongside every headline AUROC, and that contributions measured under different negative-set
-protocols not be compared. The first is the only summary of a protocol's effect that a reader
-can act on. The second is a restriction we are able to justify, where a normalisation that
-removes the need for it is not.
+One further consequence is for how protocols are compared to each other. The three here differ
+in what they hold fixed and not only in how tightly they match composition, and the one that
+frees transcript region pays for it in a baseline that a nineteen-feature model can read. A
+protocol is not made more stringent by being made less constrained.

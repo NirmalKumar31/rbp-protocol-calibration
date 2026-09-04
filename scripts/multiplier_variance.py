@@ -40,7 +40,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import spearmanr
+from scipy.stats import pearsonr, spearmanr
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -196,6 +196,28 @@ def main():
                                          f"in both lines, x {both.index.get_level_values(1).nunique()} models"},
                 {"check": "cross-cell-line spearman of the log multiplier", "value": float(rho),
                  "n": len(both), "note": f"p = {pv:.4f}"}]
+
+        # AND THE SAME TEST AT THE RIGHT CLUSTER LEVEL. Those rows are fifteen proteins by
+        # three models sharing windows, labels and folds, so the p-value over 40 rows is
+        # anti-conservative and contradicts this project's own rule of resampling proteins.
+        # Collapsing over models costs an order of magnitude in p and is reported as primary.
+        col = both.groupby(level=0).mean()
+        cr, cp = pearsonr(col[cells[0]], col[cells[1]])
+        csr, csp = spearmanr(col[cells[0]], col[cells[1]])
+        out += [{"check": "cross-cell-line correlation, collapsed over models",
+                 "value": float(cr), "n": len(col), "note": f"p = {cp:.4f}"},
+                {"check": "cross-cell-line spearman, collapsed over models",
+                 "value": float(csr), "n": len(col), "note": f"p = {csp:.4f}"}]
+        print(f"    collapsed over models: r = {cr:+.3f} (p={cp:.4f})  "
+              f"spearman {csr:+.3f} (p={csp:.4f})  over {len(col)} proteins")
+        for m in both.index.get_level_values(1).unique():
+            s = both.xs(m, level=1)
+            if len(s) < 4:
+                continue
+            mr, mp = pearsonr(s[cells[0]], s[cells[1]])
+            out.append({"check": f"cross-cell-line correlation, {m} only", "value": float(mr),
+                        "n": len(s), "note": f"p = {mp:.4f}"})
+            print(f"      {m:11s} r = {mr:+.3f} (p={mp:.3f}) over {len(s)} proteins")
         print(f"\n  THE DIRECT TEST: the same protein's log multiplier across cell lines")
         print(f"    r = {r:+.3f}  spearman {rho:+.3f} (p={pv:.4f})  over {len(both)} "
               f"protein x model pairs")

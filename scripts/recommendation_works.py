@@ -79,7 +79,11 @@ def main():
         # protein-clustered interval on the IMPROVEMENT, which is the claim
         drank = np.array([spearmanr(head[a][i], head[b][i])[0]
                           - spearmanr(raw[a][i], raw[b][i])[0] for i in draws])
-        lo, hi = np.percentile(drank[np.isfinite(drank)], [2.5, 97.5])
+        fin = drank[np.isfinite(drank)]
+        lo, hi = np.percentile(fin, [2.5, 97.5])
+        # AND THE SAME INTERVAL ADJUSTED FOR THE THREE PAIRS. Only one of the three excludes
+        # zero marginally, so whether it survives the family matters and is reported.
+        blo, bhi = np.percentile(fin, [100 * 0.05 / 6, 100 * (1 - 0.05 / 6)])
         better_rank += int(r2 > r1)
         better_dis += int(dh < dr)
         rows += [
@@ -87,6 +91,8 @@ def main():
             {"check": f"rank agreement, headroom, {a} vs {b}", "value": float(r2)},
             {"check": f"rank agreement gain, {a} vs {b}", "value": float(r2 - r1),
              "ci_low": float(lo), "ci_high": float(hi)},
+            {"check": f"rank agreement gain, {a} vs {b}, Bonferroni over 3 pairs",
+             "value": float(r2 - r1), "ci_low": float(blo), "ci_high": float(bhi)},
             {"check": f"scale-free disagreement, raw, {a} vs {b}", "value": dr},
             {"check": f"scale-free disagreement, headroom, {a} vs {b}", "value": dh},
         ]

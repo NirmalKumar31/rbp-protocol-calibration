@@ -7,8 +7,8 @@ index; nothing here is a summary of the science, which is in `manuscript/paper.p
 
 | bioRxiv asks for | file |
 |---|---|
-| Manuscript PDF | `manuscript/paper.pdf` (22 pages) |
-| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 212 words, no markup |
+| Manuscript PDF | `manuscript/paper.pdf` (28 pages) |
+| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 246 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 
@@ -55,10 +55,14 @@ embed TrueType fonts and rasters are 400 dpi.
 |---|---|
 | Table S1, panel and ENCODE accessions | `results/tables/supplementary_table_s1.csv` |
 | Table S2, achieved match quality | `results/tables/match_quality.csv`, `match_quality_per_dataset.csv` |
-| Table S3, fold integrity of retained scores | `results/tables/fold_integrity.csv`, `fold_integrity_per_dataset.csv` |
-| Table S9, positive-set overlap between arms | `results/tables/positive_set_overlap.csv` |
+| Table S3, fold integrity of retained scores, all three arms | `results/tables/fold_integrity.csv`, `fold_integrity_per_dataset.csv` |
+| Table S4, standalone model AUROCs by arm | `results/tables/standalone_auroc.csv`, `standalone_auroc_per_dataset.csv` |
+| Table S5, region asymmetry and the region-matched arm | `results/tables/region_asymmetry.csv`, `region_asymmetry_per_dataset.csv` |
+| Table S6, ENCODE peak thresholds across the panel | `results/tables/peak_thresholds.csv`, `peak_thresholds_per_dataset.csv` |
+| Table S7, design-effect components | `results/tables/design_effect.csv`, `design_effect_per_dataset.csv` |
+| Table S8, positive-set overlap between arms | `results/tables/positive_set_overlap.csv` |
 | Per-dataset results, three protocols by three models | `results/tables/three_arm_models_per_dataset.csv` |
-| Supplementary figures S1 to S8 | `results/figures/f0,f1,f2,f3,f4,f6,f13*` |
+| Supplementary figures S1 to S10 | `results/figures/f0,f1,f2,f3,f4,f5,f6,f7,f8,f13*` (every PDF in `results/figures/` that is not one of the six main figures) |
 | Legends for every display item | typeset in `manuscript/paper.pdf` as figure and table captions |
 
 ## Reproducing the numbers
@@ -67,7 +71,7 @@ embed TrueType fonts and rasters are 400 dpi.
 python scripts/verify.py --local results/tables
 ```
 
-649 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+674 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 
@@ -87,3 +91,23 @@ dollars of compute, and is not required to check any published value. `run.sh` d
    replace the placeholder and the manuscript then needs one rebuild.
 2. Nothing else. The reference list is verified, the figures are final, and the verifier and
    test suite pass on a clean clone.
+
+## What the last review round changed
+
+Four independent reviews were run against the manuscript and the repository. None broke a
+headline claim; all four returned major revision on presentation and disclosure. The
+substantive change is a new Results subsection: the bias-aware protocol matches fold only,
+while both composition-matched protocols also match transcript region, so region alone
+separates its classes at a median AUROC of 0.748 against exactly 0.5000 in the other two. That
+asymmetry was undisclosed. Rebuilding the arm with region matched lowers its composition
+baseline from 0.8248 to 0.8017 and its contribution from +0.0122 to +0.0062, and the arm still
+carries the highest baseline and the lowest contribution of the three, so the ordering is not a
+region artefact and the span widens rather than narrowing.
+
+The other changes worth naming: the Methods stated the paired-variance argument backwards; the
+design effect of 1.35 was an unsourced constant and is now measured at 1.15, so the published
+figure is conservative; the ENCODE peak files turn out to be pre-thresholded, so the Limitations
+conceded a flaw the study does not have; `\citet{demler2012}` on DeLong for nested models is now
+cited and answered; and the title no longer generalises the inference the paper exists to
+refute. Twenty-five new assertions gate the new evidence, including the bias-aware arm's fold
+integrity, which the manuscript had asserted was clean without ever measuring it.

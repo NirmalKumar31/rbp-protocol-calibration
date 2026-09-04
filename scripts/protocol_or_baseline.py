@@ -55,7 +55,8 @@ def main():
     rows = []
 
     print("=== 1. Does protocol add anything once the baseline is known? ===")
-    long = pd.concat([pd.DataFrame({"arm": a, "comp": d[f"comp_{a}"], "gain": d[f"gain_{a}"]})
+    long = pd.concat([pd.DataFrame({"dataset": d.dataset, "arm": a, "comp": d[f"comp_{a}"],
+                                    "gain": d[f"gain_{a}"]})
                       for a in ("gc", "dn", "neg2")], ignore_index=True)
     c, y = long.comp.values, long.gain.values
     def ols(X):
@@ -75,6 +76,36 @@ def main():
               "value": float(inc_baseline)}]
     print(f"  protocol given baseline: {100 * inc_protocol:5.2f}% of variance")
     print(f"  baseline given protocol: {100 * inc_baseline:5.2f}%   <- an order of magnitude more")
+
+    # IS THE COMPARISON IDENTIFIED? Two things a referee asks. First, whether the protocol
+    # nearly determines the baseline, which would make both increments meaningless; it does
+    # not. Second, that the protocol's real manipulation is WITHIN dataset, so the pooled
+    # "protocol given baseline" is estimated off between-dataset variation and shrinks under
+    # dataset fixed effects. Both are reported rather than argued.
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import cross_val_score
+    acc = float(cross_val_score(LogisticRegression(max_iter=3000),
+                                np.column_stack([c, c ** 2]), long.arm, cv=5).mean())
+    rows.append({"check": "arm recovered from the composition baseline alone", "value": acc,
+                 "n": len(long), "note": "5-fold accuracy; chance is 1/3"})
+    for j in range(D.shape[1]):
+        col = D[:, j]
+        b, *_ = np.linalg.lstsq(Xb, col, rcond=None)
+        r = col - Xb @ b
+        r2 = 1.0 - float(r @ r) / float((col - col.mean()) @ (col - col.mean()))
+        rows.append({"check": f"VIF of protocol dummy {j} on the baseline curve",
+                     "value": 1.0 / (1.0 - r2), "n": len(long)})
+    FE = pd.get_dummies(long.dataset, drop_first=True).values.astype(float)
+    Xbf = np.column_stack([Xb, FE])
+    Xdf = np.column_stack([Xd, FE])
+    inc_p_fe = (ols(Xbf) - ols(np.column_stack([Xbf, D]))) / tss
+    inc_b_fe = (ols(Xdf) - ols(np.column_stack([Xdf, c[:, None], (c ** 2)[:, None]]))) / tss
+    rows += [{"check": "incremental R2 of the protocol label, given baseline and dataset",
+              "value": float(inc_p_fe), "n": len(long)},
+             {"check": "incremental R2 of the baseline, given protocol and dataset",
+              "value": float(inc_b_fe), "n": len(long)}]
+    print(f"  arm recovered from the baseline alone: {100 * acc:.1f}% (chance 33.3%)")
+    print(f"  with dataset fixed effects: {100 * inc_p_fe:.2f}% and {100 * inc_b_fe:.2f}%")
 
     print("\n=== 2. The natural experiment: 27 datasets where neg2 LOWERS the baseline ===")
     hi = (d.comp_neg2 > d.comp_gc).values
@@ -157,12 +188,30 @@ def main():
 
     print("\n=== 2d. the gradient is a property of composition-matched negatives ===")
     from scipy.stats import spearmanr as _sp
+    # AND WHETHER THE PARTITION IS ROBUST, because the statistic correlates a difference with
+    # its own subtrahend and is not invariant to which term is on the x-axis. Reported for all
+    # three choices: the dinucleotide arm flips sign and stops looking like the GC arm, so the
+    # family split that survives every choice is GC against the other two.
     for a in ("gc", "dn", "neg2"):
-        r_, p_ = _sp(d[f"comp_{a}"], d[f"gain_{a}"])
-        rows.append({"check": f"within-arm spearman(baseline, gain), {a}", "value": float(r_),
-                     "note": f"p={p_:.3f}"})
-        print(f"  {a:5s} {r_:+.3f}  p={p_:.3f}")
-    print("  -> it dies for other-RBPs'-sites negatives, which is the mechanism")
+        comp, full = d[f"comp_{a}"], d[f"full_{a}"]
+        g_ = d[f"gain_{a}"]
+        r_, p_ = _sp(comp, g_)
+        rows += [{"check": f"within-arm spearman(baseline, gain), {a}", "value": float(r_),
+                  "note": f"p={p_:.3f}"},
+                 {"check": f"within-arm spearman(full, gain), {a}",
+                  "value": float(_sp(full, g_)[0]), "note": "x-axis sensitivity"},
+                 {"check": f"within-arm spearman(midpoint, gain), {a}",
+                  "value": float(_sp((comp + full) / 2, g_)[0]),
+                  "note": "x-axis sensitivity"},
+                 {"check": f"var(gain) over var(baseline), {a}",
+                  "value": float(g_.var() / comp.var()),
+                  "note": "why neither axis is uncontaminated in the dn arm"}]
+        print(f"  {a:5s} x=comp {r_:+.3f} (p={p_:.3f})   x=full "
+              f"{_sp(full, g_)[0]:+.3f}   x=mid {_sp((comp + full) / 2, g_)[0]:+.3f}   "
+              f"var ratio {g_.var() / comp.var():.3f}")
+    print("  -> on the baseline it dies for other-RBPs'-sites negatives, which is the")
+    print("     mechanism; on the other two axes the dn arm joins it, so the robust split")
+    print("     is GC against the other two rather than matched against bias-aware")
 
     print("\n=== 3. dn vs gc, matched on the composition baseline ===")
     rank = int((d.comp_dn < d.comp_gc).sum())

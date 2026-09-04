@@ -8,7 +8,12 @@ is a frozen chromosome-to-fold map, and chromosome grouping is the whole point: 
 never be tested on a chromosome it trained on. For **20 of the 94 dinucleotide-arm datasets**,
 the committed per-window CNN and SpliceBERT scores were produced under a DIFFERENT partition --
 a stratified random split that preserved fold SIZES (so it is invisible to any size check) but
-put **up to 23 chromosomes in every fold**. The GC arm is clean, 94 of 94.
+put **up to 23 chromosomes in every fold**. The GC and bias-aware arms are clean, 94 of 94.
+
+The bias-aware arm was added here late. The manuscript already asserted it was clean, on the
+grounds that its donors are sampled within fold, and that was the same kind of argument-from-
+construction that the dinucleotide arm's docstring made and got wrong. It is the denominator of
+every reported span, so it is the arm least safe to leave unmeasured.
 
 WHY IT MATTERED AND WAS INVISIBLE. `deep_model_contrast.py` asserted in its own docstring that
 "both arms use the same chromosome folds, the same seed ... the only difference is how the
@@ -41,7 +46,8 @@ sys.path.insert(0, str(ROOT / "src"))
 
 TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": ("processed/gc", "data/evidence/scores_gc"),
-        "dn": ("processed/dinuc", "data/evidence/scores")}
+        "dn": ("processed/dinuc", "data/evidence/scores"),
+        "neg2": ("processed/neg2", "data/evidence/scores_neg2")}
 MODELS = ("cnn", "splicebert")
 NEIGHBOUR_NT = 1000
 MAX_CHROMS_PER_FOLD = 5      # the frozen map's largest fold holds 5 chromosomes

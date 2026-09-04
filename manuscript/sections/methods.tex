@@ -9,22 +9,31 @@ protocols; datasets retaining at least 400 out-of-fold scored pairs were eligibl
 
 The study panel was then defined once by the dinucleotide arm, which is the stricter control:
 eligible datasets were sorted by pair count with a stable sort and every second one retained,
-giving 95 datasets over 79 proteins. Systematic sampling by rank rather than selection of the largest $N$ was used because AUROC
-correlates with dataset size at $r=0.53$ to $0.67$ in these data, so a size-truncated panel
-would confound panel membership with the measured quantity; the retained panel spans the 0th to
-99th percentile of the candidate size distribution. Of the 95, 94
-also cleared the floor in the GC arm and constitute the paired panel used for every
-three-protocol result, giving 282 protocol-dataset cells; the model ladder uses all 95. Panel membership was written once to a manifest that every downstream stage reads. Supplementary Table S1 lists every dataset with its ENCFF file and ENCSR
-experiment accession.
+giving 95 datasets over 79 proteins. Systematic sampling by rank rather than selection of the
+largest $N$ was used because AUROC correlates with dataset size in these data, negligibly for
+the composition baseline (Pearson $r$ on $\log_{10} n$ of $-0.04$ in the GC arm) but strongly
+for the models, reaching $0.70$ for SpliceBERT under dinucleotide matching, so a size-truncated
+panel would confound panel membership with the measured quantity; the retained panel spans the
+0th to 99th percentile of the candidate size distribution. Of the 95, 94 also cleared the floor
+in the GC arm and constitute the paired panel used for every three-protocol result, giving 282
+protocol-dataset cells. All 95 are used only for the comparison of standalone model AUROCs
+quoted in the Introduction, which needs no GC-arm counterpart. Panel membership was written once
+to a manifest that every downstream stage reads. Supplementary Table S1 lists every dataset with
+its ENCFF file and ENCSR experiment accession.
 
-Fifteen proteins are assayed in both cell lines and contribute two datasets each. All headline
-intervals therefore resample proteins rather than datasets.
+Sixteen proteins are assayed in both cell lines and contribute two datasets each, fifteen of
+them in the paired panel. All headline intervals therefore resample proteins rather than
+datasets.
 
 \subsection{Windows}
 
-Positive windows are 101~nt centred on the midpoint of each peak interval. Peak width and all significance columns are unused: no
-$p$-value, $q$-value or fold-change filter was applied, so the positive set comprises every
-called peak. Minus-strand windows are reverse-complemented
+Positive windows are 101~nt centred on the midpoint of each peak interval. Peak width and the
+significance columns are unused: we applied no further $p$-value, $q$-value or fold-change
+filter, because ENCODE's released \texttt{peaks} files are already thresholded and across our 95
+files the minimum log2 fold-enrichment is 3.0000 and the minimum $-\log_{10}p$ is 3.0003, which
+are the criteria of \citet{vannostrand2020}; 91.7\% of the 463{,}091 peaks carry ENCODE's IDR
+label. The positive set is therefore every peak ENCODE called and no weaker ones. Minus-strand
+windows are reverse-complemented
 and transcribed to RNA, so every sequence is the strand the protein sees. Windows containing an
 ambiguous base, falling outside the assembly, duplicating an existing window by start
 coordinate, or carrying no region annotation are dropped and counted. Analysis is restricted to
@@ -68,16 +77,30 @@ and a 3$'$UTR and so appear in two region pools. No maximum distance is imposed.
 \paragraph{Bias-aware (other RBPs' sites).} Following \citet{horlacher2023}, negatives for a
 target are the positive windows of the other panel proteins assayed in the same cell line,
 sampled 1:1 without replacement, excluding any donor window within 500~nt of any of the target's
-own positive windows. Two deviations from \citet{horlacher2023} should be noted: our donor pool
-is the study panel (40 to 48 donor proteins per dataset, median 45) rather than a full ENCODE
-survey, and exclusion is by distance from the target's 101~nt windows rather than from its full
-peak intervals. Sampling is performed within fold, so every pair stays inside one
-cross-validation fold. These negatives are transcribed, accessible to crosslinking and strand-correct by
-construction, and are not composition-matched in any respect.
+own positive windows. Our version deviates from \citet{horlacher2023} in two ways: our donor
+pool is the study panel (40 to 48 donor proteins per dataset, median 45) rather than a full
+ENCODE survey, and exclusion is by distance from the target's 101~nt windows rather than from
+its full peak intervals. Sampling is performed within fold, so every pair stays inside one
+cross-validation fold. These negatives are transcribed, accessible to crosslinking and
+strand-correct by construction, and are not composition-matched in any respect.
+
+\paragraph{What each protocol holds fixed.} The three protocols are not three settings of one
+knob, and the difference matters for how their results should be read. Both composition-matched
+protocols draw candidates of the same transcript region class as the positive, so the region
+label carries no information about the label: a classifier given only the five region dummies
+scores exactly 0.5000 in both arms, in all 94 datasets. The bias-aware protocol matches fold
+only. Its positive and negative region distributions differ at a median total variation distance
+of 0.419, and the region label alone separates its two classes at a median AUROC of 0.748
+(interquartile range 0.692 to 0.779, above 0.70 in 67 of 94 datasets). Only the bias-aware
+protocol's negatives are transcribed RNA, and conversely 67.6\% of GC-arm negatives lie in loci
+not transcribed on the strand the window is labelled with. Section~\ref{sec:region} bounds what
+the region asymmetry contributes, and the strand and transcription placebos below bound the
+other two.
 
 \subsection{Achieved match quality}
 
-Achieved matching was quantified over all 456{,}734 pairs per arm (Table~\ref{tab:match}).
+Achieved matching was quantified over every pair in each arm, 456{,}734 in the GC and
+bias-aware arms and 457{,}998 in the dinucleotide arm (Table~\ref{tab:match}).
 
 \begin{table}[htbp]
 \centering
@@ -95,12 +118,11 @@ bias-aware & 0.1387 & 0.3169 & 0.4555 & 0.6733 & 20.4\% & 0.700 \\
 \end{tabular}
 \end{table}
 
-The GC matcher holds its nominal tolerance for 94.8\% of pairs and its
-observed maximum, 0.1486, sits at the 0.15 fallback cap. And ``dinucleotide-matched'' means a
-median $L_1$ of 0.220 rather than zero: the matcher improves composition distance 2.27-fold
-relative to the GC arm but does not eliminate it, so statements about degrees of freedom
-controlled are exact for the design and approximate for the realisation. The bias-aware arm is
-not composition-matched at all, with a median GC gap 4.7 times the GC arm's.
+The GC matcher holds its nominal tolerance for 94.8\% of pairs and its observed maximum,
+0.1486, sits at the 0.15 fallback cap. ``Dinucleotide-matched'' likewise means a median $L_1$
+of 0.220 rather than zero: the matcher improves composition distance 2.27-fold relative to the
+GC arm but does not eliminate it. The bias-aware arm is not composition-matched at all, with a
+median GC gap 4.7 times the GC arm's.
 
 \subsection{Cross-validation}
 
@@ -122,7 +144,12 @@ fold.
 
 Leakage between folds was audited by exact 32-mer sharing rather than by clustered sequence
 identity. A 101~nt window contains 70 distinct 32-mers, and two unrelated sequences share one
-with negligible probability, so a shared 32-mer indicates common origin.
+with negligible probability, so a shared 32-mer indicates common origin. Over all 94 datasets,
+holding fold 0 out, a median of 2.0\% of held-out windows shared any 32-mer with a training
+window (maximum 24.3\%), a median of 0.08\% shared more than half of their 32-mers, and the
+median dataset contained no window sharing more than 90\%. Chromosome grouping therefore leaves
+a small residue of homologous sequence across folds, which is the quantity a sequence-identity
+clustering step would remove.
 
 \subsection{The composition baseline and the nested contribution}
 
@@ -130,7 +157,9 @@ The composition baseline is a 19-column design matrix: three mononucleotide freq
 dinucleotide frequencies and the Shannon entropy of the window's base composition. One level is
 dropped from each frequency family because frequencies sum to one and retaining all of them
 makes the design singular; dropping a level does not change the space the block spans. Every
-column is standardised. GC content is not a feature: it is the spanned combination C$+$G, and
+column is standardised over the whole dataset rather than within fold; the transform is
+label-free and identical in both terms of every comparison, so it cannot manufacture a
+contribution. GC content is not a feature: it is the spanned combination C$+$G, and
 because mononucleotide counts are marginals of dinucleotide counts the block occupies the fifteen
 degrees of freedom of the dinucleotide simplex. The GC-matched protocol therefore constrains one
 linear functional of that space and the dinucleotide-matched protocol constrains all fifteen. The
@@ -139,16 +168,29 @@ baseline is refit on each protocol's own windows and is never carried between pr
 The nested contribution of a model is
 \begin{equation*}
 \mathrm{AUROC}(\text{composition} + \text{standardised model score}) -
-\mathrm{AUROC}(\text{composition alone}),
+\mathrm{AUROC}(\text{composition alone}).
 \end{equation*}
 Both terms were fitted by $L_2$-penalised logistic regression ($C=1$, lbfgs, at most 3000
 iterations), once per fold on that fold's training rows, and evaluated as pooled out-of-fold
 linear predictors on identical rows and folds. The two were compared by DeLong's paired
-estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired estimator is
-necessary here because the two score vectors are fitted on overlapping training data and
-evaluated on identical rows, so they are strongly correlated and treating them as independent
-understates the variance of their difference. Confidence intervals on a single dataset's
-contribution are Wald intervals on the DeLong standard error.
+estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired
+estimator is necessary here because the two score vectors are fitted on overlapping training
+data and evaluated on identical rows, so they are strongly correlated and treating them as
+independent would overstate the variance of their difference: the median DeLong standard error
+of the difference is 0.26 times what independence gives. Confidence intervals on a single
+dataset's contribution are Wald intervals on the DeLong standard error.
+
+\citet{demler2012} show that DeLong's test is not valid for strictly nested models, because
+under the null the added predictor's contribution degenerates. Two things bound the exposure
+here. The panel-level intervals, which carry every headline, do not use the DeLong standard
+error at all; they are protein-clustered bootstrap intervals over per-dataset point estimates.
+And where the DeLong standard error is used, for the per-dataset significance counts, it is
+conservative relative to the recommended alternative: a penalised likelihood-ratio test on the
+same fits calls 89 of 94 datasets significant in the GC arm against DeLong's 80. A third
+feature of the design might have cut the other way and does not: negatives are matched 1:1 to
+positives, so the rows are paired, while DeLong treats the two classes as independent samples.
+Resampling matched pairs instead reproduces the DeLong standard error to within 1\% (median
+ratio 0.99 over 30 datasets), so the matching needs no correction.
 
 Both arms are evaluated out of fold. An in-sample composition AUROC compared against an
 out-of-fold model AUROC flatters composition sufficiently to reverse the comparison on
@@ -180,9 +222,13 @@ checkpoint restored before test scoring. Learning rate $10^{-3}$ for the head an
 $3\times10^{-5}$ for a fine-tuned encoder. Nominal epochs overstate the training
 performed: the median best epoch for SpliceBERT was 3 and most runs stopped by epoch 6 or 7,
 whereas the convolutional network typically ran the full 12. Initial weights were drawn before
-the seed was set, so initialisation is unseeded across the 940 committed fold-runs; the measured
+the seed was set, so initialisation is unseeded across all 2830 committed fold-runs, that is two
+models by five folds by 94 datasets in the GC and bias-aware arms and 95 in the dinucleotide
+arm; the measured
 cost is a per-dataset standard deviation of 0.006 to 0.010 in the nested contribution, inducing
-about 0.001 on a 94-dataset mean against a reported interval half-width of about 0.008.
+about 0.001 on a 94-dataset mean against a reported interval half-width of about 0.008. The
+convolutional and transformer arms were trained on different accelerators, which changes
+floating-point summation order and is covered by the same measurement.
 
 \subsection{Inference}
 
@@ -192,16 +238,25 @@ from a bootstrap that resamples \emph{proteins} and takes all datasets of each s
 4000 draws. Dataset-level intervals are 1.05 to 1.23 times narrower and are not reported as
 headline values.
 
-Per-dataset significance counts are additionally reported at a design effect of 1.35 applied to
-the DeLong standard error. That factor is the product of two quantities measured on these data:
-1.10 for DeLong conditioning on two score vectors as fixed when both are in fact fitted, and 1.23
-for treating spatially clustered windows as independent, estimated by a 10~kb block bootstrap. It
-moves the count of datasets where the 4-mer significantly helps from 80 of 94 to 72 of 94.
+Per-dataset significance counts are also reported at a design effect of 1.35 applied to the
+DeLong standard error, which is intended to cover two things the estimator does not: that it
+conditions on two score vectors as fixed when both are fitted, and that it treats spatially
+clustered windows as independent. We measured both components rather than assuming them
+(\texttt{scripts/design\_effect.py}). Resampling whole genomic blocks inflates the standard
+error of the contribution by a median factor of 1.100, and the factor is insensitive to block
+length, moving only to 1.104 at 100~kb and 1.138 at 1~Mb, so the objection that a 10~kb block
+is smaller than a gene does not bite. Permuting the model score within fold and refitting gives
+1.048. The measured product is therefore 1.15 rather than 1.35. We retain 1.35, because it is
+the more conservative of the two and because the count it produces was fixed before the
+components were measured; a reader who prefers the measured figure should read 75 of 94 rather
+than 72 of 94 below. This is one of two quantities in the paper that the verification harness cannot check
+from the released evidence, because the block bootstrap needs the genomic coordinates that the
+published per-window score files do not carry.
 
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 614 numeric assertions against a frozen expectations file, and the number of
+harness runs 674 numeric assertions against a frozen expectations file, and the number of
 assertions that ran is itself asserted, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example
 scores to a maximum absolute difference of $2.2\times10^{-16}$, and the headline contrast is

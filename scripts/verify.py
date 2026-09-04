@@ -2081,7 +2081,9 @@ def verify_fold_integrity(T, g):
             return None
         return float(q.loc[k, "value"])
 
-    total = (must("score sets audited, gc arm") or 0) + (must("score sets audited, dn arm") or 0)
+    total = ((must("score sets audited, gc arm") or 0)
+             + (must("score sets audited, dn arm") or 0)
+             + (must("score sets audited, neg2 arm") or 0))
     record(int(total) == spec["n_score_sets"], "(dataset, arm, model) score sets audited",
            int(total), spec["n_score_sets"])
 
@@ -2092,11 +2094,16 @@ def verify_fold_integrity(T, g):
              {"value": 94 - spec["grouped_gc"]["value"], "tol": 0}),
             ("datasets NOT chromosome-grouped, dn arm",
              {"value": 94 - spec["grouped_dn"]["value"], "tol": 0}),
+            ("datasets NOT chromosome-grouped, neg2 arm",
+             {"value": 94 - spec["grouped_neg2"]["value"], "tol": 0}),
             ("datasets aligned to folds.tsv, gc arm", spec["aligned_gc"]),
+            ("datasets aligned to folds.tsv, neg2 arm", spec["aligned_neg2"]),
             ("max chromosomes in any score fold, gc arm",
              spec["max_chroms_per_score_fold_gc"]),
             ("max chromosomes in any score fold, dn arm",
              spec["max_chroms_per_score_fold_dn"]),
+            ("max chromosomes in any score fold, neg2 arm",
+             spec["max_chroms_per_score_fold_neg2"]),
             ("leaky datasets", spec["leaky_datasets"]),
             ("kmer R1 contrast, chromosome-grouped only", spec["contrast_kmer_clean"]),
             ("cnn R1 contrast, chromosome-grouped only", spec["contrast_cnn_clean"]),
@@ -2121,6 +2128,20 @@ def verify_fold_integrity(T, g):
                     "chromosome grouping requires by construction",
                     nbr, spec["max_cross_fold_neighbours_gc"])
 
+    # 1b. AND THE BIAS-AWARE ARM, to the same standard. It is the denominator of every span,
+    # and until this gate existed the manuscript's claim that it was clean rested on an
+    # argument from construction rather than on a measurement.
+    if spec["neg2_must_be_fully_grouped"]:
+        n_bad2 = must("datasets NOT chromosome-grouped, neg2 arm")
+        if n_bad2 is not None:
+            record(int(n_bad2) == 0,
+                   "the bias-aware arm, the denominator of every span, is fully "
+                   "chromosome-grouped", f"{int(n_bad2)} leaky", "0")
+        nbr2 = must("max cross-fold 1kb neighbour fraction, neg2 arm")
+        if nbr2 is not None:
+            at_most("and its direct cross-fold neighbour fraction is exactly zero too",
+                    nbr2, spec["max_cross_fold_neighbours_neg2"])
+
     # 2. NO NEW DATASET MAY BECOME LEAKY, and the count is pinned two-sided: a floor would
     # pass a rerun that leaked more.
     nl = must("leaky datasets")
@@ -2139,6 +2160,96 @@ def verify_fold_integrity(T, g):
     at_most("every R1g contrast survives dropping the leaky datasets, so the defect is a "
             "disclosed limitation and not a correction to the claim",
             worst, spec["max_contrast_shift_from_leakage"])
+
+
+def verify_region_asymmetry(T, g):
+    """Region is matched in two arms and free in the third. How much does that buy?"""
+    print("\nregion asymmetry  (the bias-aware arm does not match transcript region)")
+    d = T.get("region_asymmetry.csv")
+    if d is None:
+        return record(False, "region_asymmetry.csv present", "MISSING",
+                      "run scripts/region_asymmetry.py")
+    spec = g["region_asymmetry"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for label, key in (
+            ("region-only AUROC, gc arm", spec["region_auroc_gc"]),
+            ("region-only AUROC, dn arm", spec["region_auroc_dn"]),
+            ("region-only AUROC, neg2 arm", spec["region_auroc_neg2"]),
+            ("region-only AUROC after matching, neg2 arm", spec["region_auroc_matched"]),
+            ("composition alone, neg2 arm region-matched", spec["comp_matched"]),
+            ("nested contribution, neg2 arm region-matched", spec["gain_matched"]),
+            ("spearman(region-only AUROC, baseline rise, neg2 over gc)",
+             spec["dose_baseline"]),
+            ("spearman(region-only AUROC, contribution deficit, neg2 minus gc)",
+             spec["dose_gain"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE TWO GATES THAT CARRY THE DEFENCE. The composition-matched arms must be EXACTLY
+    # uninformative on region -- 0.5 by construction, so anything else means a matcher
+    # silently stopped matching region. And the ordering must survive removing region:
+    # if it ever stops surviving, the bias-aware result is a region artefact and the
+    # Discussion's mechanism paragraph is wrong rather than merely narrower.
+    for arm in ("gc", "dn"):
+        v = must(f"region-only AUROC, {arm} arm")
+        if v is not None:
+            record(abs(v - 0.5) <= spec["matched_arms_exact_tol"],
+                   f"{arm} arm: region carries nothing, exactly, as its matcher requires",
+                   f"{v:.6f}", "0.500000")
+    for label in ("region-matched neg2 still has the highest baseline",
+                  "region-matched neg2 still has the lowest contribution"):
+        v = must(label)
+        if v is not None:
+            record(int(v) == 1, label, int(v), 1)
+
+
+def verify_peak_thresholds(T, g):
+    """Were the positives filtered? ENCODE did it upstream; an earlier draft denied it."""
+    print("\npeak thresholds  (ENCODE's released peaks are already filtered)")
+    d = T.get("peak_thresholds.csv")
+    if d is None:
+        return record(False, "peak_thresholds.csv present", "MISSING",
+                      "run scripts/peak_thresholds.py")
+    spec = g["peak_thresholds"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for label, key in (
+            ("peak files audited", spec["n_files"]),
+            ("peaks in the panel", spec["n_peaks"]),
+            ("minimum log2 fold-enrichment over the panel", spec["min_log2fc"]),
+            ("minimum -log10 p over the panel", spec["min_neglog10p"]),
+            ("fraction of peaks carrying ENCODE's IDR label", spec["idr_fraction"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE CLAIM THE LIMITATIONS NOW MAKES. Not "few peaks are weak" but "none is", so this
+    # is a floor at the published threshold and a hard zero on violations.
+    fc = must("minimum log2 fold-enrichment over the panel")
+    if fc is not None:
+        at_least("every peak clears ENCODE's fold-enrichment threshold", fc,
+                 spec["fold_enrichment_floor"])
+    pv = must("minimum -log10 p over the panel")
+    if pv is not None:
+        at_least("every peak clears ENCODE's significance threshold", pv,
+                 spec["significance_floor"])
+    bad = must("files below either threshold")
+    if bad is not None:
+        record(int(bad) == 0, "no peak file falls below either threshold", int(bad), 0)
 
 
 def verify_match_quality(T, g):
@@ -3034,7 +3145,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

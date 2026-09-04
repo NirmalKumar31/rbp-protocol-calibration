@@ -1,0 +1,19 @@
+check,value,n,note
+"region-only AUROC, dn arm",0.5,94,"mean 0.5000, max 0.5000, above 0.70 in 0"
+"region marginal TV distance, dn arm",0.0,94,
+"region-only AUROC, gc arm",0.5,94,"mean 0.5000, max 0.5000, above 0.70 in 0"
+"region marginal TV distance, gc arm",0.0,94,
+"region-only AUROC, neg2 arm",0.7484143527768692,94,"mean 0.7369, max 0.8952, above 0.70 in 67"
+"region marginal TV distance, neg2 arm",0.41916926978628644,94,
+rows retained under region matching,0.6984984311967728,94,
+"region-only AUROC after matching, neg2 arm",0.502598373471635,94,
+"composition alone, neg2 arm region-matched",0.8016884634378929,94,
+"nested contribution, neg2 arm region-matched",0.006164897194472077,94,
+region-matched neg2 still has the highest baseline,1.0,94,
+region-matched neg2 still has the lowest contribution,1.0,94,
+"span, dinuc over region-matched neg2",10.74860369294852,94,published dinuc over neg2 5.42
+"spearman(region-only AUROC, baseline rise, neg2 over gc)",0.2871292851208323,94,p=0.0050
+"spearman(region-only AUROC, contribution deficit, neg2 minus gc)",-0.2530578333273128,94,p=0.0139
+"composition alone, neg2 arm, least region-separable half",0.8184076430123071,47,
+"composition alone, gc arm, same least region-separable datasets",0.7962046787866793,47,
+"contribution ratio neg2 over gc, least region-separable half",0.6406928131693581,47,

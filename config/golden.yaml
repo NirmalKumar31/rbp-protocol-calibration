@@ -1329,7 +1329,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 648
+  min_domain_checks: 673
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1717,11 +1717,63 @@ match_quality:
 #
 # THE GC ARM IS CLEAN, 94 OF 94. So R1's headline, R1m, R1n, R1q and the GC arm of R1o/R1r are
 # untouched, and every k-mer number in the paper is untouched.
+# --- The region asymmetry, found by inspection after 649 assertions passed ---------------
+#
+# THE THIRD DEFECT THIS HARNESS DID NOT CATCH, and the pattern is now unmistakable: every one
+# was about what PRODUCED a number rather than the number itself. The two composition-matched
+# matchers draw candidates of the same region class; build_neg2.py matches fold only and says
+# so in its own docstring. So the arm carrying the paper's one non-tautological result was the
+# only arm in which transcript region was free to separate the classes, and it does, at a
+# median AUROC of 0.748 against exactly 0.5 in the other two.
+#
+# The result survives -- region-matching the arm leaves it with the highest baseline and the
+# lowest contribution -- but "survives" is a gate, not a hope, so it is asserted below.
+region_asymmetry:
+  # EXACT, not approximate. 0.5 is what a matcher that matches region produces by
+  # construction; any drift means it stopped.
+  matched_arms_exact_tol: 0.0005
+  region_auroc_gc:      {value: 0.5000, tol: 0.001}
+  region_auroc_dn:      {value: 0.5000, tol: 0.001}
+  region_auroc_neg2:    {value: 0.7484, tol: 0.02}
+  region_auroc_matched: {value: 0.5026, tol: 0.02}
+  comp_matched:         {value: 0.8017, tol: 0.01}
+  gain_matched:         {value: 0.0062, tol: 0.003}
+  # The dose-response, which is what makes region a candidate explanation rather than a
+  # coincidence. Signs are the claim; the magnitudes are loosely toleranced.
+  dose_baseline: {value: 0.287, tol: 0.08}
+  dose_gain:     {value: -0.253, tol: 0.08}
+
+# --- ENCODE filtered the peaks upstream; an earlier draft conceded a flaw we do not have --
+#
+# The Limitations used to say the positive set "includes weak peaks that a study applying
+# ENCODE's standard thresholds would exclude". Reading all 95 released files shows the minimum
+# log2 fold-enrichment in the panel is 3.0000 and the minimum -log10 p is 3.0003, which ARE
+# ENCODE's thresholds. There were no weak peaks to exclude. Gated as a floor, because the
+# claim is "none is below", not "few are".
+peak_thresholds:
+  n_files:      {value: 95, tol: 0}
+  n_peaks:      {value: 463091, tol: 0}
+  min_log2fc:   {value: 3.0000, tol: 0.001}
+  min_neglog10p: {value: 3.0003, tol: 0.001}
+  idr_fraction: {value: 0.917, tol: 0.005}
+  fold_enrichment_floor: 3.0
+  significance_floor: 3.0
+
 fold_integrity:
-  n_score_sets: 376
+  # 564, not 376: the bias-aware arm was added after three referees pointed out that the
+  # manuscript asserted it was clean on the strength of "donors are sampled within fold" --
+  # an argument from construction, which is exactly what the dinucleotide arm's docstring
+  # made before it turned out to be wrong. It is the denominator of every reported span.
+  n_score_sets: 564
   grouped_gc: {value: 94, tol: 0}
   aligned_gc: {value: 94, tol: 0}
   grouped_dn: {value: 74, tol: 0}
+  grouped_neg2: {value: 94, tol: 0}
+  aligned_neg2: {value: 94, tol: 0}
+  max_chroms_per_score_fold_neg2: {value: 5, tol: 0}
+  # Same standard the GC arm is held to, and for the same reason: zero, not small.
+  neg2_must_be_fully_grouped: true
+  max_cross_fold_neighbours_neg2: 0.0
   leaky_datasets: {value: 20, tol: 0}
   max_chroms_per_score_fold_gc: {value: 5, tol: 0}
   max_chroms_per_score_fold_dn: {value: 23, tol: 0}
