@@ -122,6 +122,49 @@ def main():
                     "value": rr, "n": int(k.sum()), "note": f"spearman {ss:+.4f}"})
         print(f"    within {arm:5s} {rr:+.4f}  (spearman {ss:+.4f})")
 
+    # B7. THE 3x3, because the apparent-AUROC side of the thesis existed for the 4-mer only.
+    # The neural models' own pooled AUROCs are already committed in deep_contrast_per_dataset
+    # as {model}_raw_{arm}; each model's figure is over every row that model covers, which is
+    # what a benchmark reports and differs between models by 0.06% of rows.
+    dc = TABLES / "deep_contrast_per_dataset.csv"
+    if dc.exists():
+        dd = pd.read_csv(dc).set_index("dataset")
+        ix = m.set_index("dataset").index.intersection(dd.index)
+        mm = m.set_index("dataset")
+        alone = {}
+        for label, col in (("kmer", None), ("cnn", "cnn"), ("splicebert", "splicebert")):
+            v = {}
+            for arm in DIRS:
+                v[arm] = float(mm.loc[ix, f"auroc_{arm}"].mean() if col is None
+                               else dd.loc[ix, f"{col}_raw_{arm}"].mean())
+                out.append({"check": f"model alone, {label}, {arm} arm", "value": v[arm],
+                            "n": len(ix)})
+            alone[label] = v
+        print(f"\n=== B7: model-alone AUROC, three models x three protocols, n={len(ix)} ===\n")
+        print(f"  {'model':12} {'dinuc':>9} {'GC':>9} {'bias-aware':>11}   easiest")
+        for label, v in alone.items():
+            print(f"  {label:12} " + "".join(f"{v[a]:9.4f}" for a in ("dn", "gc", "neg2"))
+                  + f"     {max(v, key=v.get)}")
+
+        # THE ORDERING IS THE CLAIM AND IT IS NOT UNIFORM. Dinucleotide matching is the
+        # hardest discrimination for every model. The bias-aware arm is the EASIEST for the
+        # 4-mer and the CNN but not for SpliceBERT, where GC matching is higher. Emitted as
+        # counts so the paper cannot say "easiest of the three" without qualification.
+        n_dn_hardest = sum(v["dn"] == min(v.values()) for v in alone.values())
+        n_neg2_easiest = sum(v["neg2"] == max(v.values()) for v in alone.values())
+        out += [{"check": "models for which dinucleotide matching is the hardest",
+                 "value": n_dn_hardest, "n": len(alone)},
+                {"check": "models for which the bias-aware arm is the easiest",
+                 "value": n_neg2_easiest, "n": len(alone),
+                 "note": "by the model's OWN AUROC; by the composition baseline it is all 3"},
+                {"check": "splicebert bias-aware minus GC, model alone",
+                 "value": alone["splicebert"]["neg2"] - alone["splicebert"]["gc"],
+                 "n": len(ix)}]
+        print(f"\n  dinucleotide hardest for {n_dn_hardest}/3 models;"
+              f" bias-aware easiest for {n_neg2_easiest}/3")
+        print(f"  SpliceBERT bias-aware minus GC: "
+              f"{alone['splicebert']['neg2'] - alone['splicebert']['gc']:+.4f}")
+
     drop = float(m.auroc_gc.mean() - m.auroc_dn.mean())
     out.append({"check": "model-alone AUROC drop, gc to dn", "value": drop, "n": len(m),
                 "note": f"lower in {int((m.auroc_dn < m.auroc_gc).sum())}/{len(m)} datasets"})

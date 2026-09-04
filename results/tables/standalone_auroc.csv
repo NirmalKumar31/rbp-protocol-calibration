@@ -9,4 +9,16 @@ check,value,n,ci_low,ci_high,note
 "pearson(model alone, composition alone), dn arm",0.6237768418046785,94,,,spearman +0.4716
 "pearson(model alone, composition alone), gc arm",0.9114070740446436,94,,,spearman +0.9132
 "pearson(model alone, composition alone), neg2 arm",0.9556466238285706,94,,,spearman +0.9491
+"model alone, kmer, dn arm",0.6879277902424243,94,,,
+"model alone, kmer, gc arm",0.7981320916803047,94,,,
+"model alone, kmer, neg2 arm",0.8169497448187933,94,,,
+"model alone, cnn, dn arm",0.7076292570439615,94,,,
+"model alone, cnn, gc arm",0.8084006397401599,94,,,
+"model alone, cnn, neg2 arm",0.8161779985333537,94,,,
+"model alone, splicebert, dn arm",0.8099258513523006,94,,,
+"model alone, splicebert, gc arm",0.8771133251937772,94,,,
+"model alone, splicebert, neg2 arm",0.8732350484653633,94,,,
+models for which dinucleotide matching is the hardest,3.0,3,,,
+models for which the bias-aware arm is the easiest,2.0,3,,,by the model's OWN AUROC; by the composition baseline it is all 3
+"splicebert bias-aware minus GC, model alone",-0.0038782767284138986,94,,,
 "model-alone AUROC drop, gc to dn",0.1102043014378804,94,,,lower in 94/94 datasets

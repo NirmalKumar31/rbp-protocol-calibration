@@ -1343,7 +1343,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 729
+  min_domain_checks: 738
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1834,6 +1834,21 @@ standalone_auroc:
   corr_alone_comp_dn:     {value: 0.6238, tol: 0.05}
   corr_alone_comp_neg2:   {value: 0.9556, tol: 0.03}
   corr_alone_comp_must_exclude_zero: true
+  # B7. THE 3x3, because the apparent-AUROC side of the thesis existed for the 4-mer only.
+  # Dinucleotide matching is the hardest discrimination for all three model classes. The
+  # bias-aware arm is the easiest for only TWO of them: SpliceBERT finds GC matching easier by
+  # 0.0039. So "the easiest protocol of the three" is unambiguous on the composition baseline
+  # and marginal on a strong model's own AUROC, and the counts below are gated so the
+  # unqualified phrasing cannot come back.
+  alone_kmer_dn:       {value: 0.6879, tol: 0.010}
+  alone_cnn_dn:        {value: 0.7076, tol: 0.010}
+  alone_splicebert_dn: {value: 0.8099, tol: 0.010}
+  alone_kmer_neg2:       {value: 0.8169, tol: 0.010}
+  alone_cnn_neg2:        {value: 0.8162, tol: 0.010}
+  alone_splicebert_neg2: {value: 0.8732, tol: 0.010}
+  models_dn_hardest: 3
+  models_neg2_easiest: 2
+  splicebert_neg2_minus_gc: {value: -0.0039, tol: 0.004}
 
 # --- 1b/1c: the nested fit's two specification choices, measured on the full panel ---------
 #

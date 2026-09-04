@@ -409,7 +409,40 @@ composition alone & 0.6274 & 0.7827 & 0.8248 & \\
 The span was present for every model class and was smallest, at 3.72-fold, for the largest
 model. The bias-aware protocol yielded the lowest contribution for all three model classes while
 carrying the highest composition baseline, so the inversion between apparent difficulty and
-measured contribution is not specific to a bag-of-$k$-mers measurement. Within a protocol the
+measured contribution is not specific to a bag-of-$k$-mers measurement.
+
+The apparent side of that inversion needs its own table, because until now it was reported for
+the 4-mer alone (Table~\ref{tab:alone}). Dinucleotide matching is the hardest discrimination for
+all three model classes, by 0.11, 0.10 and 0.07 AUROC against GC matching. The bias-aware arm is
+the easiest for two of the three, and for SpliceBERT it is not: there GC matching is higher by
+0.0039. So the ordering that makes the bias-aware protocol the easiest of the three is
+unambiguous on the composition baseline, where it leads by 0.042, and marginal on a strong
+model's own AUROC. The inversion itself survives either reading, because the bias-aware arm
+yields the smallest contribution for every model while never being the hardest for any of them;
+what does not survive is the shorter statement that it is simply the easiest protocol.
+
+\begin{table}[htbp]
+\centering
+\caption{Model-alone out-of-fold AUROC, three model classes under three protocols, $n=94$
+datasets, with the composition-only baseline for reference. Each model's figure is pooled over
+every row that model covers, which is what a benchmark reports and which differs between models
+by 0.06\% of rows. The rightmost column is the protocol each model finds easiest.}
+\label{tab:alone}
+\small
+\begin{tabular}{lcccl}
+\toprule
+ & dinucleotide & GC & bias-aware & easiest \\
+\midrule
+composition alone & 0.6274 & 0.7827 & 0.8248 & bias-aware \\
+\midrule
+4-mer & 0.6879 & 0.7981 & 0.8169 & bias-aware \\
+CNN & 0.7076 & 0.8084 & 0.8162 & bias-aware \\
+SpliceBERT & 0.8099 & 0.8771 & 0.8732 & GC \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Within a protocol the
 three model classes themselves span 2.62-fold (dinucleotide), 3.36-fold (GC) and 4.14-fold
 (bias-aware), which is the like-for-like comparison: the protocol effect is of the same order as
 the effect of changing model class, not larger than it. The two-arm contrast was

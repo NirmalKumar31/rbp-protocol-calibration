@@ -2391,6 +2391,32 @@ def verify_standalone_auroc(T, g):
                          "which is what licenses treating the baseline as the channel the "
                          "protocol acts through", f"clustered lower bound {lo:.4f}", "> 0.5")
 
+    # B7. THE 3x3. Values first, then the two orderings, which are what the text may say.
+    for label, key in (
+            ("model alone, kmer, dn arm", spec["alone_kmer_dn"]),
+            ("model alone, cnn, dn arm", spec["alone_cnn_dn"]),
+            ("model alone, splicebert, dn arm", spec["alone_splicebert_dn"]),
+            ("model alone, kmer, neg2 arm", spec["alone_kmer_neg2"]),
+            ("model alone, cnn, neg2 arm", spec["alone_cnn_neg2"]),
+            ("model alone, splicebert, neg2 arm", spec["alone_splicebert_neg2"]),
+            ("splicebert bias-aware minus GC, model alone",
+             spec["splicebert_neg2_minus_gc"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+    nh, ne = (must("models for which dinucleotide matching is the hardest"),
+              must("models for which the bias-aware arm is the easiest"))
+    if nh is not None:
+        record(int(nh) == spec["models_dn_hardest"],
+               "dinucleotide matching is the hardest discrimination for EVERY model class, so "
+               "that half of the inversion is not a property of one measurement",
+               f"{int(nh)}/3", f"{spec['models_dn_hardest']}/3")
+    if ne is not None:
+        record(int(ne) == spec["models_neg2_easiest"],
+               "the bias-aware arm is the easiest for only TWO of three model classes by their "
+               "own AUROC, so 'the easiest protocol' needs the qualification the text gives it",
+               f"{int(ne)}/3", f"{spec['models_neg2_easiest']}/3")
+
     # THE PROGRESSION IS THE CLAIM, and it is the sharpest form of the paper's point: the
     # easier a protocol looks, the more often nineteen composition features beat the model.
     if spec["comp_beats_model_must_increase_with_easiness"]:
