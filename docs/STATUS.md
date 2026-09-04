@@ -1,6 +1,7 @@
 # Where this stands
 
-Last updated 2026-09-04, after three review rounds.
+Last updated 2026-09-04, after three review rounds (four internal referees, then two
+separate external LLM reviews).
 
 ## The paper is ready to post
 
@@ -35,6 +36,20 @@ reviews and an internal adversarial referee all demand a retrain rather than a d
 So the paper is postable without it. It just leaves the most quotable reviewer objection
 standing. The full panel is primary and the 74 are the sensitivity, which is stated in both
 Results and Limitations.
+
+## Open asks from the third review that are NOT done
+
+These are real and unaddressed. None blocks posting; all would raise the ceiling.
+
+| ask | why it matters | effort |
+|---|---|---|
+| An estimand outside AUROC (delta deviance / McFadden, IDI, residualised-score AUROC) | the transform sweep never leaves the ROC, so "no protocol-free measure" is a claim about AUROC, not about measurement. The penalised LRT machinery already exists | ~2 h, free |
+| Bound co-binding label noise in the bias-aware arm | donor windows may be sub-threshold TRUE target sites; that alone could explain the smallest contribution. Section 3.2 set the standard for this and it has not been applied here | ~3 h, free |
+| A dinucleotide-SHUFFLED arm | shuffling is what the field actually does and what Tourne indicts; matching and shuffling have opposite consequences for a composition model | ~2 h, free |
+| An anchored negative set (eCLIP size-matched input, or RBNS) | without ground truth the paper can only report a spread, never say which protocol is closer to right | large |
+| Promote the order-three collapse to Results | "most of what is reported as contribution is one further order of composition" is more disruptive than anything in the abstract, and it is a Discussion paragraph on 30 datasets | ~2 h, free |
+| Report the design effect as measured (1.15, 75/94) primary | retaining 1.35 because it was fixed first is pre-registration applied to a fudge factor | ~30 min, free |
+| A 3x3 table of standalone AUROCs by model and protocol | the apparent-AUROC side of the thesis exists only for the 4-mer | ~1 h, free |
 
 ## Free work that was offered and not run
 
