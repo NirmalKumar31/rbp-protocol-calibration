@@ -319,6 +319,7 @@ s13b_local_analysis() {
   "$PY" scripts/device_portability.py --from-cache || die "device portability"
   "$PY" scripts/matching_robustness.py --from-cache || die "matching robustness"
   "$PY" scripts/region_matched_neural.py --from-cache || die "region-matched neural"
+  "$PY" scripts/negative_set_survey.py || die "negative-set survey"
   "$PY" scripts/shuffled_arm.py --from-cache || die "shuffled fourth arm"
   "$PY" scripts/multiplier_variance.py || die "multiplier variance"
   "$PY" scripts/score_scale_check.py --from-cache || die "score scale"

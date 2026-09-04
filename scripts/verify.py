@@ -2028,6 +2028,63 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_negative_set_survey(T, g):
+    """F5: what this literature actually does, and whether it reports a baseline."""
+    print("\nnegative-set survey  (seven methods and benchmarks, read from source)")
+    d = T.get("negative_set_survey.csv")
+    if d is None:
+        return record(False, "negative_set_survey.csv present", "MISSING",
+                      "run scripts/negative_set_survey.py")
+    spec = g["negative_set_survey"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("methods and benchmarks surveyed")
+    if n is not None:
+        record(int(n) == spec["n_sources"], "sources surveyed", int(n), spec["n_sources"])
+
+    # THE NUMBER THE RECOMMENDATION RESTS ON. If any surveyed source already reported a
+    # composition-only AUROC beside its headline, the recommendation would be describing
+    # current practice rather than proposing a change, and the paper would have to say so.
+    v = get("surveyed sources reporting a composition-only baseline")
+    if v is not None:
+        record(int(v) == spec["n_with_baseline"],
+               "no surveyed source reports a composition-only AUROC beside its headline, which "
+               "is what makes the recommendation a change rather than a description",
+               int(v), spec["n_with_baseline"])
+
+    # THE CORRECTION THIS SURVEY FORCED, gated so it cannot regress. The paper claimed
+    # sequence-level dinucleotide shuffling was "what most published predictors use" and named
+    # three methods. None of the seven uses it as its primary construction; five relocate
+    # genomic INTERVALS, which leaves composition unconstrained.
+    seq = get("surveyed sources whose negatives permute the positive's own sequence")
+    coord = get("surveyed sources whose negatives are relocated genomic intervals")
+    if None not in (seq, coord):
+        record(int(seq) == spec["n_sequence_shuffle"],
+               "no surveyed source permutes the positive's own sequence as its primary "
+               "construction, so the shuffled arm is a limiting case and NOT common practice",
+               int(seq), spec["n_sequence_shuffle"])
+        record(int(coord) >= spec["min_coordinate"],
+               "most surveyed sources relocate genomic intervals instead, leaving composition "
+               "unconstrained, which is why the baseline is free to vary across protocols",
+               int(coord), f">= {spec['min_coordinate']}")
+
+    # EVERY ENTRY MUST CARRY ITS SOURCE. A survey with no quotable provenance is an assertion
+    # about the literature, and this one already corrected a claim made without checking.
+    per = T.get("negative_set_survey_per_method.csv")
+    if per is not None:
+        ok = int((per["url"].astype(str).str.startswith("http")
+                  & (per["quote"].astype(str).str.len() > 20)).sum())
+        record(ok == len(per),
+               "every surveyed entry carries a source URL and the sentence it was read from",
+               f"{ok}/{len(per)}", f"{len(per)}/{len(per)}")
+
+
 def verify_region_matched_neural(T, g):
     """F3: the region-matched bias-aware arm, for all three model classes."""
     print("\nregion-matched neural  (does removing the region confound change the answer?)")
@@ -4488,7 +4545,7 @@ def main():
                verify_order_profile, verify_region_annotation,
                verify_gene_clustered_cv, verify_window_centring,
                verify_device_portability, verify_matching_robustness,
-               verify_region_matched_neural,
+               verify_region_matched_neural, verify_negative_set_survey,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

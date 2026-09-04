@@ -455,13 +455,52 @@ abolished where the baseline falls.}
 \label{fig:baseline}
 \end{figure}
 
-\subsection{Shuffling, the construction most widely used, removes the baseline entirely}
+\subsection{Shuffling removes the baseline entirely, and the constructions in use leave it free}
 \label{sec:shuffled}
 
-The three protocols compared so far all draw negatives from the genome and match them to the
-positives on some summary of composition. Most published RBP predictors do something else: they
-generate each negative by shuffling its own positive, preserving dinucleotide counts. That is
-the construction \citet{tourne2026} indicts, and it is not a matching procedure at all. Because
+Before adding a fourth arm it is worth asking what this literature actually does, because we
+assumed an answer and it was wrong. Across seven widely used methods and benchmarks
+(Table~\ref{tab:survey}), five construct negatives by relocating genomic intervals: GraphProt
+shuffles the coordinates of bound sites within genes carrying at least one site, the RBP-24
+dataset behind several later models does the same with BedTools, DeepCLIP and RNAProt sample
+unbound regions of the same gene or transcript, and RBPsuite 2.0 shuffles to non-peak regions of
+the same transcript. Two draw negatives from other proteins' binding sites. None of the seven
+permutes the positive's own sequence as its primary construction; sequence shuffling appears
+only as an option for FASTA input in RNAProt and as an alternative in DeepCLIP. The dominant
+construction is therefore positional, and it leaves composition entirely unconstrained, which is
+why the composition baseline is free to vary across protocols in the first place.
+
+None of the seven reports a composition-only AUROC beside its headline. DeepCLIP comes closest,
+observing a significant relationship between GC content and its own AUROC
+($p=7.89\times10^{-6}$) and attributing it to crosslinking bias rather than treating it as a
+baseline to report.
+
+\begin{table}[htbp]
+\centering
+\caption{Negative-set construction and baseline reporting in seven widely used methods and
+benchmarks. Coordinate: negatives are genomic intervals relocated within genes or transcripts
+that carry a positive. Other RBPs: negatives are binding sites of different proteins. The
+composition-baseline column records whether a composition-only AUROC is reported alongside the
+method's headline AUROC.}
+\label{tab:survey}
+\begin{tabular}{llll}
+\toprule
+source & year & negatives & composition baseline \\
+\midrule
+GraphProt & 2014 & coordinate & no \\
+RBP-24 dataset & 2018 & coordinate & no \\
+pysster & 2018 & other RBPs & no \\
+DeepCLIP & 2020 & coordinate & no \\
+RNAProt & 2021 & coordinate & no \\
+Horlacher et al.\ benchmark & 2023 & other RBPs & no \\
+RBPsuite 2.0 & 2025 & coordinate & no \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A sequence-permuting arm is still worth building, as the limiting case rather than as common
+practice. Dinucleotide-preserving shuffling is the construction \citet{tourne2026} indicts, and
+it is not a matching procedure at all. Because
 each negative is a permutation of its positive with dinucleotide counts held exactly,
 mononucleotide frequencies, dinucleotide frequencies, GC content and sequence entropy are
 identical between the two members of every pair. The nineteen-feature composition baseline takes
@@ -498,8 +537,8 @@ Two consequences follow, and they point in opposite directions for the paper's o
 
 The first widens the headline. Across the three matched protocols the contribution spans
 5.42-fold; adding the shuffled arm makes it 20.62-fold. The measured quantity is therefore not
-comparable across the four constructions this literature actually uses, and the widest part of
-that incomparability involves the construction in widest use.
+comparable across these four constructions, and the widest part of that incomparability involves
+the one that constrains composition most tightly.
 
 The second is a boundary on the inversion this paper is named for. Across the three matched
 protocols a lower composition baseline goes with a \emph{larger} contribution, which is the

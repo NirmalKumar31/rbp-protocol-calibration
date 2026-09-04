@@ -1,0 +1,7 @@
+check,value,n,note
+methods and benchmarks surveyed,7,7,
+methods whose negatives are coordinate,5,7,
+methods whose negatives are other_rbp,2,7,
+surveyed sources reporting a composition-only baseline,0,7,
+surveyed sources whose negatives permute the positive's own sequence,0,7,the construction this paper's shuffled arm implements
+surveyed sources whose negatives are relocated genomic intervals,5,7,

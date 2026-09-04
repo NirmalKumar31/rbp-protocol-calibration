@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 916
+  min_domain_checks: 921
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2474,3 +2474,24 @@ region_matched_neural:
   published_span_kmer:       {value: 5.42, tol: 0.05}
   published_span_cnn:        {value: 7.42, tol: 0.05}
   published_span_splicebert: {value: 3.72, tol: 0.05}
+
+# F5: WHAT THIS LITERATURE ACTUALLY DOES. The recommendation to report a composition-only AUROC
+# is only worth making if the field does not already do it, and only aimed correctly if we know
+# what the field constructs. Both were assumed until this survey and one assumption was WRONG.
+#
+# The paper claimed sequence-level dinucleotide shuffling is "what most published predictors
+# use" and named GraphProt, iDeepS and RBPsuite. None of the seven surveyed sources uses it as
+# its primary construction. GraphProt shuffles genomic COORDINATES within bound genes; the
+# RBP-24 dataset does the same with BedTools; RBPsuite 2.0 uses pybedtools shuffle to non-peak
+# regions of the same transcript. Sequence shuffling appears only as a FASTA-input option in
+# RNAProt and as an alternative in DeepCLIP.
+#
+# Five of seven relocate genomic INTERVALS, which leaves composition entirely unconstrained --
+# a stronger motivation for reporting the baseline than the claim the paper originally made.
+# And 0 of 7 report a composition-only AUROC beside their headline, which is what makes the
+# recommendation a change rather than a description of practice.
+negative_set_survey:
+  n_sources: 7
+  n_with_baseline: 0
+  n_sequence_shuffle: 0
+  min_coordinate: 4
