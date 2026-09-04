@@ -166,6 +166,10 @@ s1_terraform() {
 
 s2_images() {
   gate_preflight; say "stage 2: build container images"
+  # THE TEST STEP RUNS INSIDE THE IMAGE, so run it against the image's file set here first.
+  # Two tests that assume a developer checkout failed every GPU build for weeks, and the
+  # symptom was not a red build but a stale PUBLISHED image. Under a minute, before any spend.
+  bash scripts/check_image_tree.sh || die "the suite fails against the container's file set"
   confirm "Cloud Build, CPU + GPU images" "~\$0.50"
   # Substitutions are passed EXPLICITLY, not left to the defaults in the yaml. Cloud Build
   # does not expand $PROJECT_ID inside a user-defined substitution's default, so the default

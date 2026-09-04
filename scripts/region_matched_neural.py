@@ -47,7 +47,7 @@ def log(m):
     print(m, flush=True)
 
 
-def build(store, limit):
+def build(store, limit, models):
     store = Path(store)
     dataroot = store / "processed" / "neg2_rm"
     scoreroot = EVIDENCE_RM if EVIDENCE_RM.exists() else store / "runs" / "neg2_rm"
@@ -65,7 +65,7 @@ def build(store, limit):
         d = pd.read_csv(f, sep="\t")
         ids, got = set(d.id), {}
         ok = True
-        for model in MODELS:
+        for model in models:
             if model == "kmer":
                 continue
             s = oof(scoreroot, cell, protein, model)
@@ -86,7 +86,7 @@ def build(store, limit):
 
         rec = {"dataset": ds, "protein": protein, "cell": cell, "n": len(dd),
                "coverage": len(ids) / len(d)}
-        for model in MODELS:
+        for model in models:
             m = dd.merge(got[model], on="id", how="inner")
             # gain_over_composition IS the published estimator, imported rather than
             # reimplemented, so this column is comparable with deep_contrast_per_dataset.csv
@@ -102,7 +102,7 @@ def build(store, limit):
         rows.append(rec)
         log(f"[{i:3d}/{len(datasets)}] {ds:18s} " + "  ".join(
             f"{m[:4]} {rec[f'gain_{m}']:+.4f} (neg2 {rec[f'published_neg2_{m}']:+.4f})"
-            for m in MODELS))
+            for m in models))
     t = pd.DataFrame(rows)
     if t.empty:
         sys.exit("no dataset could be built; refusing to overwrite the committed table")
@@ -116,8 +116,16 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--store", default=str(ROOT.parent / "rbp-store"))
     p.add_argument("--n", type=int, default=0)
+    p.add_argument("--models", default=",".join(MODELS),
+                   help="comma separated; lets the analysis be exercised against a finished "
+                        "arm before a slower sweep lands, instead of first running end to end "
+                        "at the very end")
     p.add_argument("--from-cache", action="store_true")
     a = p.parse_args()
+    models = [m.strip() for m in a.models.split(",") if m.strip()]
+    for m in models:
+        if m not in MODELS:
+            sys.exit(f"unknown model {m!r}; expected some of {MODELS}")
     warnings.filterwarnings("ignore")
 
     per = TABLES / "region_matched_neural_per_dataset.csv"
@@ -126,7 +134,7 @@ def main():
         if t.empty:
             sys.exit(f"{per} is empty; regenerate it without --from-cache")
     else:
-        t = build(a.store, a.n)
+        t = build(a.store, a.n, models)
         t.to_csv(per, index=False)
 
     out = []
@@ -154,9 +162,14 @@ def main():
     # was computed by region_asymmetry.py from a different code path on the same windows. If
     # this script's 4-mer column does not land on that number, the neural columns beside it are
     # measuring something else.
+    # THE MODEL SET COMES OFF THE TABLE, so a partial run reports what it has instead of
+    # raising, and a full run is not silently reported as partial.
+    models = [m for m in MODELS if f"gain_{m}" in t.columns]
+    out.append({"check": "model classes measured on the region-matched arm",
+                "value": len(models), "n": len(t), "note": ",".join(models)})
     log(f"  {'model':12s} {'baseline':>10s} {'contribution':>13s} "
         f"{'published neg2':>15s} {'change':>9s}")
-    for model in MODELS:
+    for model in models:
         c = add(f"composition AUROC, region-matched arm, {model} rows", t[f"comp_{model}"])
         g = add(f"{model} contribution, region-matched arm", t[f"gain_{model}"])
         p_ = add(f"{model} contribution, published bias-aware arm",
@@ -165,11 +178,29 @@ def main():
                 - t[f"published_neg2_{model}"])
         log(f"  {model:12s} {c:10.4f} {g:+13.4f} {p_:+15.4f} {d:+9.4f}")
 
+    # THE 4-MER IS A CROSS-TABLE CONTROL, and a real one. region_asymmetry.py computed this
+    # arm's 4-mer contribution independently, from a different script on the same windows, as
+    # +0.0092 with a composition baseline of 0.8052. If this script's 4-mer column does not
+    # land there, the neural columns beside it are measuring a different arm and nothing below
+    # is interpretable. Reported as a difference so the check is a number rather than a hope.
+    ra = TABLES / "region_asymmetry.csv"
+    if ra.exists() and "kmer" in models and len(t) > 50:
+        rq = pd.read_csv(ra).set_index("check")
+        for here, there, label in (
+                (f"gain_kmer", "nested contribution, pipeline region-matched arm",
+                 "contribution"),
+                (f"comp_kmer", "composition alone, pipeline region-matched arm", "baseline")):
+            if there in rq.index:
+                d = float(t[here].mean()) - float(rq.loc[there, "value"])
+                out.append({"check": f"4-mer {label} minus region_asymmetry.py's, "
+                                     f"region-matched arm", "value": d, "n": len(t)})
+                log(f"  4-mer {label} agrees with region_asymmetry.py to {abs(d):.2e}")
+
     # THE ORDERING IS THE CLAIM. The region-matched arm must still give the SMALLEST
     # contribution of the three for every model class, or the span is partly a region artefact.
     log("\n  is the region-matched arm still the smallest of the three, per model?")
     n_ok = 0
-    for model in MODELS:
+    for model in models:
         rm = float(t[f"gain_{model}"].mean())
         gc = float(t[f"published_gc_{model}"].mean())
         dn = float(t[f"published_dn_{model}"].mean())
@@ -187,11 +218,11 @@ def main():
         log(f"    {model:12s} {'YES' if ok else 'NO':4s}  rm {rm:+.4f}  gc {gc:+.4f}  "
             f"dn {dn:+.4f}   span {span:.2f}x")
     out.append({"check": "model classes for which the region-matched arm stays smallest",
-                "value": n_ok, "n": len(MODELS)})
+                "value": n_ok, "n": len(models)})
 
     # AND THE CONTRAST AGAINST THE DINUCLEOTIDE ARM, which is the paper's headline pair, with
     # the bias-aware arm replaced by its region-matched rebuild.
-    for model in MODELS:
+    for model in models:
         add(f"dinucleotide minus region-matched contrast, {model}",
             t[f"published_dn_{model}"] - t[f"gain_{model}"])
 

@@ -58,9 +58,14 @@ def _tracked():
         out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True,
                              text=True)
     except FileNotFoundError:
-        pats = [ln.strip().strip("/") for ln in
-                (ROOT / ".gitignore").read_text().splitlines()
-                if ln.strip() and not ln.startswith("#") and "*" not in ln]
+        # .gitignore IS ITSELF ABSENT IN THE IMAGE, which is the second way this fallback
+        # failed a build. Treat it as optional: where it exists there are ignored trees to
+        # exclude, and where it does not there is nothing to exclude either, because the image
+        # contains only what the Dockerfile copies.
+        gi = ROOT / ".gitignore"
+        pats = [ln.strip().strip("/") for ln in gi.read_text().splitlines()
+                if ln.strip() and not ln.startswith("#") and "*" not in ln] \
+            if gi.exists() else []
         for d in SEARCH:
             for p in (ROOT / d).rglob("*"):
                 s = str(p.relative_to(ROOT))
