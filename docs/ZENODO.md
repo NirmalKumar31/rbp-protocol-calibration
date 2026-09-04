@@ -101,6 +101,24 @@ after the release is cut. This is normal and nobody objects to it. If it bothers
 `v1.0.1` after wiring the DOI in; the concept DOI will then resolve to a snapshot that does
 contain it.
 
+## 8. Changing the repo after the DOI exists
+
+Nothing here is one-shot. Zenodo's GitHub integration mints a **new version** each time you cut
+a new GitHub release, and every version sits under the same concept DOI. So the loop is:
+
+```
+commit -> git tag v1.0.1 -> push the tag -> cut a GitHub release -> Zenodo archives it
+```
+
+The concept DOI printed in the paper keeps resolving, now to the newer snapshot. You do not
+need to touch the manuscript again.
+
+Two limits. **You cannot swap the files of a version already published**: file changes require a
+new version, though metadata (title, description, authors) is editable in place on an existing
+record. And **you cannot delete a published record yourself**; withdrawal is a support request
+to Zenodo, and the DOI stays registered as a tombstone. So the thing to get right first time is
+the *authorship and licence metadata*, not the code, because the code you can always supersede.
+
 ## What this is not
 
 Zenodo archives the **code and data**. The **preprint** goes to bioRxiv separately and gets its

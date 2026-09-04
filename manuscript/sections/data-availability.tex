@@ -12,3 +12,13 @@ Derived data supporting every number in this paper, including per-window out-of-
 for all three model classes and all per-dataset result tables, are released with the code under
 CC BY 4.0. Intermediate window tables containing genomic sequence are not redistributed; they are
 regenerated from the accessions above by the pipeline in one command.
+
+Supplementary Table S1 lists all 95 panel datasets. One of them, NCBP2 in K562, did not clear
+the out-of-fold pair floor in the GC arm, so it carries no three-protocol results; its
+\texttt{in\_three\_arm\_panel} field is false and its result columns are empty.
+
+% ZENODO. Uncomment the sentence below and insert the CONCEPT DOI once it is minted, per
+% docs/ZENODO.md. The concept DOI resolves to the latest version and stays stable across
+% releases; the per-version DOI does not. This is the only edit the manuscript needs.
+% A permanently archived snapshot of the code and derived data is deposited at
+% \doi{10.5281/zenodo.XXXXXXX}.

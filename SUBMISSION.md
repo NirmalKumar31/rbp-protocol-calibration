@@ -46,7 +46,7 @@ on the `working-notes` branch.
 | Figure 5 | `results/figures/f14_external_validation.pdf` | independent benchmark |
 | Figure 6 | `results/figures/f15_recommendation.pdf` | the recommendation, in and out of sample |
 
-Tables 1 to 6 are typeset in the manuscript from the committed tables below. All figure PDFs
+Tables 1 to 7 are typeset in the manuscript from the committed tables below. All figure PDFs
 embed TrueType fonts and rasters are 400 dpi.
 
 ## Supplementary material
@@ -86,9 +86,11 @@ dollars of compute, and is not required to check any published value. `run.sh` d
 
 ## Still outstanding
 
-1. **Zenodo DOI.** `manuscript/sections/data-availability.tex` and the Code availability section
-   currently give the GitHub URL only. See `docs/ZENODO.md` for the procedure; the DOI has to
-   replace the placeholder and the manuscript then needs one rebuild.
+1. **Zenodo DOI.** The manuscript currently gives the GitHub URL only. `docs/ZENODO.md` has the
+   procedure. When the DOI exists, uncomment the two-line sentence at the end of
+   `manuscript/sections/data-availability.tex`, insert the **concept** DOI (it resolves to the
+   latest version and survives future releases; the per-version DOI does not), and run
+   `cd manuscript && ./build.sh`. That is the only manuscript edit required.
 2. Nothing else. The reference list is verified, the figures are final, and the verifier and
    test suite pass on a clean clone.
 
