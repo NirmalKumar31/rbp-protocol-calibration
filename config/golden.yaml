@@ -1363,7 +1363,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 826
+  min_domain_checks: 841
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2297,3 +2297,32 @@ order_profile:
   max_baseline_fell_early: 5
   min_baseline_fell_late: 25
   max_floor_size_rho: -0.70
+
+# B17: THE REGION LABEL MEANS TWO DIFFERENT THINGS BY CLASS, which is what the anchor found.
+# Recomputing annotation.classify from the same GENCODE index reproduces the committed label
+# for every one of 2,251,282 POSITIVES in all three arms, and differs for ~10% of the two
+# matched arms' NEGATIVES: for a matched negative the column records the region POOL the
+# matcher drew from, and merged per-region intervals overlap, so a window drawn from the CDS
+# pool can have a midpoint the priority rule calls a 3' UTR of another isoform. The bias-aware
+# arm is at exactly 0%, because its negatives are other proteins' positives.
+#
+# So "region-only AUROC is exactly 0.5000 in both matched arms" is exact for the label the
+# matcher ENFORCED and becomes ~0.546 under a common re-annotation. Both are gated; gating only
+# the first would let the unqualified sentence come back.
+#
+# The ASYMMETRY is the claim, and it survives all five annotations, from +0.2484 on the
+# enforced labels to +0.1055 under a reversed priority. The bias-aware arm's own figure is not
+# rule-invariant either (0.6622 to 0.7617), so the gate is on the smallest gap, not on any one
+# value.
+region_annotation:
+  min_positives_checked: 2200000
+  neg_reclass_gc: {value: 0.1033, tol: 0.005}
+  neg_reclass_dn: {value: 0.1017, tol: 0.005}
+  max_stored_deviation: 1.0e-9
+  min_reannotated_excess: 0.02
+  neg2_auroc: {value: 0.7484, tol: 0.010}
+  n_rules: 5
+  min_asymmetry: 0.08
+  changed_reversed:     {value: 0.4122, tol: 0.02}
+  changed_coding_first: {value: 0.1080, tol: 0.01}
+  changed_majority:     {value: 0.1119, tol: 0.01}

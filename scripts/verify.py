@@ -1939,6 +1939,94 @@ def verify_baseline_order_models(T, g):
                        "full panel higher")
 
 
+def verify_region_annotation(T, g):
+    """B17: is the transcript-region finding a finding, or one annotation rule?"""
+    print("\nregion annotation  (four rules over the same GENCODE index)")
+    d = T.get("region_annotation.csv")
+    if d is None:
+        return record(False, "region_annotation.csv present", "MISSING",
+                      "run scripts/region_annotation.py")
+    spec = g["region_annotation"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    # THE ANCHOR IS ON POSITIVES, an exact zero. That is where the committed column is a
+    # classification of the window it labels, so one disagreement means the recomputation is
+    # not the paper's rule and every comparison below is against the wrong annotation.
+    v = get("positives where the recomputed published rule differs from the committed "
+            "region column")
+    n = get("positives checked against the committed region column")
+    if v is not None:
+        record(int(v) == 0,
+               "the annotation rule recomputed from the GENCODE index reproduces the "
+               "committed region label for every POSITIVE in all three arms", int(v), 0)
+    if n is not None:
+        record(int(n) >= spec["min_positives_checked"], "positives checked", int(n),
+               f">= {spec['min_positives_checked']}")
+
+    # THE COLUMN MEANS TWO DIFFERENT THINGS BY CLASS, and this is the finding rather than a
+    # defect: for a matched negative it records the region POOL drawn from, and merged region
+    # intervals overlap. The bias-aware arm is the control, at exactly zero, because its
+    # negatives are other proteins' positives and carry genuine classifications.
+    for arm, key in (("gc", "neg_reclass_gc"), ("dn", "neg_reclass_dn")):
+        v = get(f"fraction of negatives whose committed region differs from a classification "
+                f"of their own midpoint, {arm} arm")
+        if v is not None:
+            near(f"negatives reclassified, {arm} arm", v, spec[key])
+    v = get("fraction of negatives whose committed region differs from a classification of "
+            "their own midpoint, neg2 arm")
+    if v is not None:
+        record(v == 0.0,
+               "the bias-aware arm's negatives carry genuine classifications, which is why "
+               "its region figure is the one unaffected by re-annotation", v, 0.0)
+
+    # THE PAPER'S OWN NUMBER, both readings. Exactly a half on the enforced label, and near
+    # 0.545 under a common re-annotation. Gating only the first would let the manuscript keep
+    # saying "region carries nothing" without its qualifier.
+    for arm in ("gc", "dn"):
+        v = get(f"median region-only AUROC, {arm} arm, committed labels")
+        if v is not None:
+            record(abs(v - 0.5) <= spec["max_stored_deviation"],
+                   f"region-only AUROC on the ENFORCED label is exactly a half, {arm} arm",
+                   f"{v:.6f}", "0.5")
+        v = get(f"median region-only AUROC, {arm} arm, published rule")
+        if v is not None:
+            record(v > 0.5 + spec["min_reannotated_excess"],
+                   f"and is NOT a half under a common re-annotation, {arm} arm, so the exact "
+                   f"0.5000 is a statement about the matcher and not about the annotation",
+                   f"{v:.4f}", f"> {0.5 + spec['min_reannotated_excess']}")
+    v = get("median region-only AUROC, neg2 arm, published rule")
+    if v is not None:
+        near("median region-only AUROC, bias-aware arm", v, spec["neg2_auroc"])
+
+    # THE ASYMMETRY IS THE CLAIM. Every rule must keep it, and the gate is on the SMALLEST of
+    # them, because a mean over rules would let one rule collapse it unnoticed.
+    n_ok = get("annotation rules under which the asymmetry holds")
+    if n_ok is not None:
+        record(int(n_ok) == spec["n_rules"],
+               "region separates the bias-aware classes more than the composition-matched "
+               "ones under EVERY annotation rule tried", f"{int(n_ok)}/{spec['n_rules']}",
+               f"{spec['n_rules']}/{spec['n_rules']}")
+    v = get("smallest region asymmetry over all annotation rules")
+    if v is not None:
+        record(v >= spec["min_asymmetry"],
+               "and the least favourable rule still leaves a large gap, so the finding is not "
+               "an annotation artefact even though its magnitude is annotation-dependent",
+               f"{v:+.4f}", f">= {spec['min_asymmetry']}")
+
+    for rule, key in (("reversed", "changed_reversed"),
+                      ("coding_first", "changed_coding_first"),
+                      ("majority", "changed_majority")):
+        v = get(f"fraction of windows changed under the {rule} rule")
+        if v is not None:
+            near(f"labels changed by the {rule} rule", v, spec[key])
+
+
 def verify_order_profile(T, g):
     """B3: the contribution as a function of where the baseline stops, and where it breaks."""
     print("\norder profile  (orders 1-4, and the estimator's own noise floor)")
@@ -3970,7 +4058,7 @@ def main():
                verify_positional_signal,
                verify_cobinding_noise,
                verify_estimands, verify_nested_scale, verify_shuffled_arm,
-               verify_order_profile,
+               verify_order_profile, verify_region_annotation,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

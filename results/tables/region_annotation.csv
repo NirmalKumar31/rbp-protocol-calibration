@@ -1,0 +1,49 @@
+check,value,n
+positives where the recomputed published rule differs from the committed region column,0.0,468
+positives checked against the committed region column,2251282.0,468
+"fraction of negatives whose committed region differs from a classification of their own midpoint, gc arm",0.1033297062023939,187
+"fraction of negatives whose committed region differs from a classification of their own midpoint, dn arm",0.10172583228253478,187
+"fraction of negatives whose committed region differs from a classification of their own midpoint, neg2 arm",0.0,94
+fraction of windows unchanged under the published rule,0.9591368384769211,468
+fraction of windows changed under the published rule,0.040863161523078895,468
+fraction of windows unchanged under the reversed rule,0.5878408391307708,468
+fraction of windows changed under the reversed rule,0.4121591608692292,468
+fraction of windows unchanged under the coding_first rule,0.8919946501593314,468
+fraction of windows changed under the coding_first rule,0.10800534984066856,468
+fraction of windows unchanged under the majority rule,0.8880526739875324,468
+fraction of windows changed under the majority rule,0.1119473260124676,468
+"median region-only AUROC, gc arm, committed labels",0.5,187
+"median region-only AUROC, gc arm, published rule",0.548280232256689,187
+"median region-only AUROC, gc arm, reversed rule",0.5601441572396029,187
+"median region-only AUROC, gc arm, coding_first rule",0.5516977859402102,187
+"median region-only AUROC, gc arm, majority rule",0.5700573217848034,187
+"range of median region-only AUROC across rules, gc arm",0.0700573217848034,187
+"median region-only AUROC, dn arm, committed labels",0.5,187
+"median region-only AUROC, dn arm, published rule",0.5451791410014089,187
+"median region-only AUROC, dn arm, reversed rule",0.5547746993979333,187
+"median region-only AUROC, dn arm, coding_first rule",0.5497881539302766,187
+"median region-only AUROC, dn arm, majority rule",0.5692506067961165,187
+"range of median region-only AUROC across rules, dn arm",0.0692506067961165,187
+"median region-only AUROC, neg2 arm, committed labels",0.7484143527768692,94
+"median region-only AUROC, neg2 arm, published rule",0.7484143527768692,94
+"median region-only AUROC, neg2 arm, reversed rule",0.6622248323094324,94
+"median region-only AUROC, neg2 arm, coding_first rule",0.7616871056275578,94
+"median region-only AUROC, neg2 arm, majority rule",0.7073898650971473,94
+"range of median region-only AUROC across rules, neg2 arm",0.0994622733181254,94
+"median region-only AUROC, composition-matched arms, stored",0.5,468
+"region asymmetry, bias-aware minus composition-matched, stored",0.24841435277686919,468
+"median region-only AUROC, composition-matched arms, published",0.5463471489524205,468
+"region asymmetry, bias-aware minus composition-matched, published",0.20206720382444865,468
+"median region-only AUROC, composition-matched arms, reversed",0.5567326126112827,468
+"region asymmetry, bias-aware minus composition-matched, reversed",0.1054922196981497,468
+"median region-only AUROC, composition-matched arms, coding_first",0.5506617999864499,468
+"region asymmetry, bias-aware minus composition-matched, coding_first",0.21102530564110789,468
+"median region-only AUROC, composition-matched arms, majority",0.5700286608924017,468
+"region asymmetry, bias-aware minus composition-matched, majority",0.13736120420474562,468
+smallest region asymmetry over all annotation rules,0.1054922196981497,468
+annotation rules under which the asymmetry holds,5.0,5
+fraction of windows where midpoint and majority overlap disagree,0.1119473260124676,468
+windows with no region under the published rule,0.0,468
+windows with no region under the reversed rule,0.0,468
+windows with no region under the coding_first rule,0.0,468
+windows with no region under the majority rule,0.0,468

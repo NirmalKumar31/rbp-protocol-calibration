@@ -62,10 +62,14 @@ import modal  # noqa: E402
 # the two arms cannot drift apart in the way two near-identical scripts would. Defaults to gc
 # so every existing invocation and the committed gc evidence path are unchanged.
 ARM = os.environ.get("RBP_ARM", "gc")
-if ARM not in ("gc", "dinuc", "neg2"):
-    sys.exit(f"RBP_ARM={ARM!r}; expected gc, dinuc or neg2")
-APP = f"rbp-{ARM}-sweep"
-VOLUME = f"rbp-{ARM}-store"
+if ARM not in ("gc", "dinuc", "neg2", "neg2_rm"):
+    sys.exit(f"RBP_ARM={ARM!r}; expected gc, dinuc, neg2 or neg2_rm")
+# Underscores are stripped from the app and volume names only. The arm name itself is used
+# verbatim in every store path and manifest tag, so neg2 and neg2_rm cannot collide there;
+# it is the Modal resource names that want a single naming convention.
+_SLUG = ARM.replace("_", "-")
+APP = f"rbp-{_SLUG}-sweep"
+VOLUME = f"rbp-{_SLUG}-store"
 STORE = REPO.parent / "rbp-store"
 
 # Dollars per pair trained, PER MODEL, from the bias-aware arm's 940 recorded runs: A10G

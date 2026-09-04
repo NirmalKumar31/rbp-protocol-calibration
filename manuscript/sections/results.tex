@@ -129,6 +129,34 @@ a dataset, the more its bias-aware baseline exceeds its GC baseline (Spearman $+
 $p=0.005$) and the larger its contribution deficit against that arm (Spearman $-0.253$,
 $p=0.014$).
 
+Both statements rest on region labels, and the label a matched negative carries is the region
+\emph{pool} the matcher drew it from rather than a classification of the window drawn. Merged
+per-region intervals overlap, because a position can be a coding exon of one isoform and a
+3' UTR of another, so the two need not agree. Recomputing the annotation rule from the same
+GENCODE index reproduces the committed label for every one of the 2{,}251{,}282 positives across
+all three arms and differs for 10.33\% and 10.17\% of the GC and dinucleotide arms' negatives.
+It differs for 0.00\% of the bias-aware arm's, whose negatives are other proteins' positives and
+so carry genuine classifications.
+
+That distinction matters for the exact 0.5000 above, so both readings are reported. For the
+region the matcher enforced it is exact, and that is the right quantity for what the matcher
+did. If instead both classes are re-annotated by one rule applied afresh, the composition-matched
+arms sit at a median 0.5483 and 0.5452 rather than at a half, so they are close to
+uninformative on region but not exactly so. The bias-aware arm's 0.7484 is unchanged by that
+re-annotation, since its labels were already classifications.
+
+The asymmetry itself does not depend on the annotation rule, and we checked this against three
+alternatives a careful analyst could have chosen instead: the priority order reversed, coding
+classes first, and majority overlap, which ignores the midpoint and takes the region covering
+most of the window. These change a fraction 0.4122, 0.1080 and 0.1119 of all labels. The gap between the
+bias-aware arm and the composition-matched arms is positive under all five annotations,
+ranging from $+0.2484$ on the enforced labels to $+0.1055$ under the reversed priority, which is
+the least favourable and also the least defensible of the four rules, since it prefers the
+intron call over the more specific exonic one. The bias-aware arm's own figure is not
+rule-invariant either, running from 0.6622 to 0.7617. So region separates the bias-aware classes
+and does close to nothing in the matched arms under every rule tried, while the magnitude of
+that difference is annotation-dependent by roughly a factor of two.
+
 We therefore rebuilt the arm with region matched, stratifying the donor draw on region class
 instead of drawing uniformly within the fold. Every other element of the construction is
 unchanged, and the rebuild keeps all 456{,}734 pairs, so no pair is lost to subsampling. It achieves the match exactly, at a region-only AUROC of 0.5000
