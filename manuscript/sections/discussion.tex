@@ -1,18 +1,40 @@
-How much a sequence model adds over sequence composition is not a property of the model alone.
-Holding the model, the positives, the folds and the estimator fixed, and varying only how the
-negative windows were assembled, the measured contribution of a 4-mer varied 5.4-fold, and
-between 3.8 and 7.6-fold across three model classes. The direction of that variation is opposite
-to the direction of apparent performance: the protocol that made the discrimination hardest by
-AUROC produced the largest contribution, and the protocol that made it easiest produced the
-smallest.
+A negative-set protocol is a choice of question, not a setting on a difficulty dial. That is the
+single reading these results support, and it is worth stating before the numbers because the
+dial is the intuition they contradict. On a dial, a harder protocol is a more stringent test and
+a model that survives it has shown more. Here the protocol that made the discrimination hardest
+by AUROC produced the largest measured contribution, and the one that made it easiest produced
+the smallest, so difficulty and stringency came apart. The three protocols were not three
+settings of one control. They asked three different questions, and each answer is only
+interpretable against the question it answers.
 
-This has consequences for reporting practice. The composition-only AUROC obtained under the same
-protocol should be given alongside every headline AUROC, which costs one additional logistic
-regression on nineteen features. And contributions measured under different negative-set
-protocols should not be compared, which withdraws a comparison instead of
-offering one, and is the more consequential of the two, because cross-study comparison of this
-kind is
-what a benchmark is normally used for.
+How much a sequence model adds over sequence composition is therefore not a property of the
+model alone. Holding the model, the positives, the folds and the estimator fixed, and varying
+only how the negative windows were assembled, the measured contribution of a 4-mer varied
+5.4-fold, and between 3.8 and 7.6-fold across three model classes.
+
+This has consequences for reporting practice, and they are specific enough to state as a
+checklist. A paper reporting a sequence model's performance on RBP binding should give three
+things alongside its headline AUROC.
+
+\begin{enumerate}\setlength{\itemsep}{2pt}
+\item \textbf{How the negatives were drawn}, in enough detail to rebuild the set: the candidate
+  pool, the statistic matched on and its tolerance, the achieved match quality rather than the
+  nominal one, and which covariates were left free. The two arms here differ in achieved GC
+  matching in opposite directions at the median and in the tail, so a nominal tolerance does not
+  determine what was actually held fixed.
+\item \textbf{The composition-only AUROC under that same protocol}, refit on those windows and
+  those folds. It costs one logistic regression on nineteen features, and it is the only summary
+  of the protocol's effect a reader can act on. It is also frequently not small: on the
+  bias-aware arm nineteen composition features beat the 4-mer outright in 53 of 94 datasets.
+\item \textbf{The order of that baseline}, because the contribution is an increment over
+  whatever the baseline captures and nothing fixes the stopping point. Ours stops at order two;
+  at order three the protocol span does not shrink but grows, so the baseline's order is part of
+  the measurement and not a detail of it.
+\end{enumerate}
+
+\noindent Contributions measured under different negative-set protocols should not be compared.
+That withdraws a comparison instead of offering one, and it is the more consequential half,
+because cross-study comparison is what a benchmark is normally used for.
 
 Apparent difficulty is therefore not a proxy for the stringency of an evaluation. The
 bias-aware protocol is well motivated as a means of removing compositional and accessibility
@@ -44,9 +66,8 @@ What defeats it is that the grouping is not stable. The statistic correlates a d
 its own subtrahend, so it depends on which term is placed on the horizontal axis, and under two
 of the three defensible choices the dinucleotide arm groups with the bias-aware arm instead of
 with the GC arm. The GC and dinucleotide protocols draw their negatives from the same kind of
-object, so a partition that separates them cannot be a partition by kind of object, and the only
-statement that survives every choice of axis is the weaker one that the GC arm is the outlier of
-the three. Two further qualifications point the same way: the pattern was recovered from the
+object, so a partition separating them cannot be a partition by kind of object. The only statement
+surviving every choice of axis is the weaker one that the GC arm is the outlier of the three. Two further qualifications point the same way: the pattern was recovered from the
 4-mer and reproduced for neither neural model, and on \citet{horlacher2023}'s benchmark the
 pooled relation is null. What we take from this subsection is therefore the gradient itself, for
 which the evidence is strong, and not a taxonomy of protocols built on top of it.
@@ -145,14 +166,14 @@ parameters was tested, and no published RBP-specific method: the three classes a
 ladder, not a survey of the methods a benchmark would rank.
 
 Three design parameters were fixed once and never varied, so nothing here speaks to their
-influence. The class ratio is 1:1 in every arm, one negative per positive, where a genome-wide
-screen faces a far smaller positive fraction; AUROC is invariant to prevalence so the reported
-quantities are not biased by this, but the nested fit is estimated at a balance no application
-sees, and a precision-based estimand would move. The window is 101~nt throughout, and window
-length is precisely the resource the composition baseline spends: a longer window gives
-mononucleotide and dinucleotide frequencies more sequence to estimate from, which would be
-expected to raise the baseline and shrink the contribution in every arm, though not necessarily
-by the same amount in each. And cross-validation uses a single frozen chromosome partition, so
+influence. The class ratio is 1:1 in every arm, one negative per positive, where a genome-wide screen
+faces a far smaller positive fraction. AUROC is invariant to prevalence, so the reported
+quantities are not biased by this. The nested fit is nonetheless estimated at a balance no
+application sees, and a precision-based estimand would move. The window is 101~nt throughout, and window
+length is precisely the resource the composition baseline spends. A longer window gives
+mononucleotide and dinucleotide frequencies more sequence to estimate from, which should raise
+the baseline and shrink the contribution in every arm, though not necessarily by the same
+amount in each. And cross-validation uses a single frozen chromosome partition, so
 the fold-to-fold spans quoted throughout describe variability within one partition and not
 across the choice of partition.
 
@@ -207,6 +228,14 @@ wrong line passes. And its power is bounded by how densely the sourced values fi
 searches, which is about a quarter of both the four-decimal grid over $[0.5, 1.0]$ and the
 integer range the paper's counts occupy, so a fabricated value would escape roughly one time in
 four. The audit reports that occupancy on every run for exactly this reason.
+
+That density is also why AUROCs are quoted here to four decimal places, which is finer than the
+measurement warrants. A single dataset's AUROC carries a DeLong standard error in the third
+decimal, so the fourth digit of any per-dataset value is not a claim about binding. It is a
+traceability device: the three-decimal grid over the range these values occupy is now about 88\%
+full, so a three-decimal number matches some committed table almost by chance and the audit
+protects it hardly at all, while at four decimals the same check has real power. Panel-level
+quantities, which average over 94 datasets, do support the precision they are given.
 
 Confidence intervals on a single dataset's contribution are Wald intervals on the DeLong
 standard error and not bootstrap intervals, and the Firth \citep{firth1993} coefficient

@@ -12,12 +12,12 @@ the 189 eligible datasets were sorted by pair count with a stable sort and every
 retained, giving 95 datasets over 79 proteins. The set was halved rather than taken whole
 because the sweep trains three model classes over five folds and three protocols, and the full
 eligible set did not fit the compute budget the retained panel already consumes. Given that a
-reduction was necessary, we sampled systematically by rank instead of taking the largest $N$,
-because AUROC correlates with dataset size in these data, negligibly for
-the composition baseline (Pearson $r$ on $\log_{10} n$ of $-0.04$ in the GC arm) but strongly
-for the models, reaching $0.70$ for SpliceBERT under dinucleotide matching, so a size-truncated
-panel would confound panel membership with the measured quantity; the retained panel spans the
-0th to 99th percentile of the candidate size distribution. Of the 95, 94 also cleared the floor
+reduction was necessary, we sampled systematically by rank rather than taking the largest $N$.
+AUROC correlates with dataset size in these data: negligibly for the composition baseline
+(Pearson $r$ on $\log_{10} n$ of $-0.04$ in the GC arm) but strongly for the models, reaching
+$0.70$ for SpliceBERT under dinucleotide matching. A size-truncated panel would therefore
+confound panel membership with the measured quantity. The retained panel spans the 0th to 99th
+percentile of the candidate size distribution. Of the 95, 94 also cleared the floor
 in the GC arm and constitute the paired panel used for every three-protocol result, giving 282
 protocol-dataset cells. All 95 are used only for the comparison of standalone model AUROCs
 quoted in the Introduction, which needs no GC-arm counterpart. Panel membership was written once
@@ -140,13 +140,13 @@ The dinucleotide arm matches GC better than the GC arm does at the median, 0.019
 0.0297, and worse in the tail, a maximum of 0.4159 against 0.1486 and 85.0\% within 0.05
 against 94.8\%. Both follow from the two matchers' objectives and neither is an error. GC
 content is very nearly a linear functional of the sixteen dinucleotide counts, so a
-nearest-neighbour search that minimises $L_1$ over all sixteen pins GC incidentally and tightly
-for a typical pair, whereas the GC matcher performs a tolerance test and accepts the first
-candidate inside it, leaving the achieved gap spread over the whole acceptance interval rather
-than driven to zero. The tails invert for the complementary reason: the GC matcher imposes a
-hard cap and so cannot exceed 0.15, while the dinucleotide matcher imposes no maximum distance
-and assigns greedily, so a positive reached late in its group, once the nearby candidates are
-used, takes the nearest remaining one however far away that is. The two arms therefore differ
+nearest-neighbour search minimising $L_1$ over all sixteen pins GC incidentally and tightly for
+a typical pair. The GC matcher instead performs a tolerance test and accepts the first candidate
+inside it, which leaves the achieved gap spread over the acceptance interval rather than driven
+toward zero. The tails invert for the complementary reason. The GC matcher imposes a hard
+fallback cap and so cannot exceed 0.15, whereas the dinucleotide matcher imposes no maximum
+distance and assigns greedily: a positive reached late in its group, once the nearby candidates
+are used, takes the nearest remaining one however far off it is. The two arms therefore differ
 in which moment of the GC distribution they control, and the asymmetry the design rests on is
 in the degrees of freedom each protocol constrains, not in which achieves the smaller GC gap.
 

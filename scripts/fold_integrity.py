@@ -206,23 +206,34 @@ def main():
 
     # And the difference-in-differences, which isolates the leakage from dataset selection:
     # the deep-minus-kmer gap in the dn arm relative to the same datasets' gc arm.
-    log("\n  difference-in-differences (deep minus k-mer gap, dn vs gc), leaky vs clean:")
-    for model in MODELS:
-        gap = ((d[f"{model}_gain_dn"] - d["kmer_gain_dn"])
-               - (d[f"{model}_gain_gc"] - d["kmer_gain_gc"]))
-        did = float(gap[~d.clean].mean() - gap[d.clean].mean())
-        out.append({"check": f"{model} difference-in-differences, leaky minus clean",
-                    "value": did, "n": len(d),
-                    "note": "leaky datasets are also the largest; size-confounded"})
-        log(f"    {model:11s} leaky {gap[~d.clean].mean():+.4f}  "
-            f"clean {gap[d.clean].mean():+.4f}  DiD {did:+.4f}")
-    # WINDOWS, not pairs: n_dn is len() of the scored frame, which holds one row per window
-    # and so two per pair. Reported as pairs for two drafts, and quoted that way in the
-    # manuscript, where every other size is in pairs.
-    log("\n  NOTE: the leaky datasets are the panel's largest (median "
-        f"{d.loc[~d.clean, 'n_dn'].median()/2:.0f} vs "
-        f"{d.loc[d.clean, 'n_dn'].median()/2:.0f} "
-        "pairs), so the DiD confounds leakage with size and is an UPPER bound.")
+    #
+    # ONLY MEANINGFUL WHILE THERE IS SOMETHING LEAKY TO COMPARE AGAINST. After the 20 stale
+    # datasets were retrained the leaky set is empty, and a mean over an empty selection is
+    # NaN: the block printed "leaky +nan ... DiD +nan" and a median of nan pairs, which reads
+    # as a broken pipeline rather than as a repaired one. Say what happened instead.
+    if not leaky:
+        log("\n  no datasets are off-partition, so the leaky-versus-clean sensitivity has "
+            "nothing to compare and is not computed.")
+        log("  the 20 datasets that were off-partition were retrained on the study folds; "
+            "see cloud/modal/retrain_dinuc_20.txt for the frozen list.")
+    else:
+        log("\n  difference-in-differences (deep minus k-mer gap, dn vs gc), leaky vs clean:")
+        for model in MODELS:
+            gap = ((d[f"{model}_gain_dn"] - d["kmer_gain_dn"])
+                   - (d[f"{model}_gain_gc"] - d["kmer_gain_gc"]))
+            did = float(gap[~d.clean].mean() - gap[d.clean].mean())
+            out.append({"check": f"{model} difference-in-differences, leaky minus clean",
+                        "value": did, "n": len(d),
+                        "note": "leaky datasets are also the largest; size-confounded"})
+            log(f"    {model:11s} leaky {gap[~d.clean].mean():+.4f}  "
+                f"clean {gap[d.clean].mean():+.4f}  DiD {did:+.4f}")
+        # WINDOWS, not pairs: n_dn is len() of the scored frame, which holds one row per
+        # window and so two per pair. Reported as pairs for two drafts, and quoted that way in
+        # the manuscript, where every other size is in pairs.
+        log("\n  NOTE: the leaky datasets are the panel's largest (median "
+            f"{d.loc[~d.clean, 'n_dn'].median()/2:.0f} vs "
+            f"{d.loc[d.clean, 'n_dn'].median()/2:.0f} "
+            "pairs), so the DiD confounds leakage with size and is an UPPER bound.")
 
     pd.DataFrame(out).to_csv(TABLES / "fold_integrity.csv", index=False)
     log("\nwrote fold_integrity.csv and fold_integrity_per_dataset.csv")
