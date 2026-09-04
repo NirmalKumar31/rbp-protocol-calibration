@@ -232,3 +232,68 @@ D9 confirm Supplementary S1 ships.
 * **F5** survey of negative-set reporting in recent RBP papers.
 * Zenodo DOI - the user's action. Placeholder is a commented two-line sentence at the end of
   `manuscript/sections/data-availability.tex`. Use the CONCEPT DOI.
+
+---
+
+# BUDGET REVISION, 2026-09-04: $50 available, not $20
+
+The user raised the cap to **$50** explicitly to buy speed. Revised allocation, and an honest
+note on what money can and cannot compress.
+
+## What money DOES buy
+
+| item | cost | effect |
+|---|---|---|
+| 1a retrain, 20 datasets | ~$7 | unchanged; the blocker all five reviews agree on |
+| **Phase 2 fan-out onto Modal CPU** | ~$10-15 | **the real win. See below.** |
+| **F3 region-matched arm, CNN + SpliceBERT** | ~$19 | now affordable; closes review item N9 |
+| headroom | ~$9 | keep |
+
+**THE FAN-OUT IS THE ONLY REAL TIME PURCHASE.** Phase 2 is ~30 hours and most of that is
+WAITING on serial single-threaded sklearn loops over 94 datasets on one laptop, on a disk at
+98%. Nearly every Phase 2 analysis is embarrassingly parallel per dataset:
+
+* B1 non-AUROC estimands: 94 x 3 arms x 3 models
+* B2 order-three, full panel: 94 x 3 x 3
+* B3 order profile: 1,128 fits
+* B4 co-binding strata, B6 partitions (282), B9 rank-normalised, B10 gene-clustered,
+  B11 matching robustness, B16 summit windows, B17 transcript-aware regions
+
+Modal CPU containers are ~$0.05-0.10/core-hour, so all of Phase 2 fanned out is **$10-15**
+and turns hours of serial waiting into minutes of wall clock. **Estimated saving: Phase 2
+drops from ~30 h to ~15 h.** It also sidesteps the local disk problem.
+
+Practical route: the GPU driver `cloud/modal/modal_gc_sweep.py` already has the manifest +
+resume + return-artefacts pattern. Clone that shape into a CPU-only driver
+(`@app.function(cpu=..., no gpu=)`), reusing `stratified()`/`done()` and the read-only volume.
+Do NOT bend the GPU driver with flags -- `submit_cpu_sweep.sh` documents why two honest files
+beat one flagged file.
+
+## What money does NOT buy
+
+The other ~70 hours are manuscript fixes (30 items), the reframe, the 35-40% length cut, and
+verification of every change. Those are working time, not compute. **No amount of money
+compresses them.** Revised total: **~70-85 h** against the earlier 80-95 h.
+
+## F1 and F2 are still out, and it is TIME not money
+
+* **F1 anchored negative set** (eCLIP SMInput / RBNS): ~25 h plus new data acquisition onto a
+  disk with 4.7 GB free. The reviewer's own words: this makes it "a Genome Biology /
+  Nature Methods-shaped claim" -- i.e. the next paper, not this revision.
+* **F2 published RBP method** (RBPNet / GraphProt): ~20 h of third-party model integration
+  with real failure risk (GraphProt is Perl/C++ era).
+
+Compute for both is now affordable; the weeks of engineering are not. Hold as follow-up.
+
+## Revised deliverable
+
+**A1-E5 + F3 + F4 + F5, in ~70-85 h, for ~$36 of $50.**
+F1 and F2 deferred to a follow-up.
+
+## DISK: unresolved blocker
+
+4.7 GB free, 98% used. Needs ~4 GB headroom for B16 window re-extraction, the E2 3 GB
+staging, and Phase 1 evidence backups. Awaiting user approval to delete:
+`rna-binding-proteins/data/raw/GRCh38.primary_assembly.genome.fa.gz` (0.8 GB, redundant with
+the uncompressed copy beside it) and `rbp-repo/` (3.0 GB, superseded by rbp-repro).
+**Do not delete without asking again.**
