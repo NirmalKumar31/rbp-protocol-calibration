@@ -34,6 +34,9 @@ increment over an explicit composition baseline is less exposed to compositional
 than its apparent AUROC. We define the nested contribution as the difference between the
 pooled out-of-fold AUROC of a logistic model on composition features together with the model's
 score, and that of the composition features alone, fitted on the same rows and the same folds.
+Every contribution reported here is therefore an increment over an order-two baseline, the
+mono- and dinucleotide frequencies plus entropy. That choice is not innocuous, and the
+Discussion measures what a third order costs.
 
 We assembled 94 ENCODE eCLIP datasets and constructed negatives three ways: matched on GC
 content, matched on all sixteen dinucleotide frequencies, and drawn from the binding sites of

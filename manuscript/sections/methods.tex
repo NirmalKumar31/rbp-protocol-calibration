@@ -160,10 +160,17 @@ makes the design singular; dropping a level does not change the space the block 
 column is standardised over the whole dataset, not within fold; the transform is
 label-free and identical in both terms of every comparison, so it cannot manufacture a
 contribution. GC content is not a feature: it is the spanned combination C$+$G, and
-because mononucleotide counts are marginals of dinucleotide counts the block occupies the fifteen
-degrees of freedom of the dinucleotide simplex. The GC-matched protocol therefore constrains one
-linear functional of that space and the dinucleotide-matched protocol constrains all fifteen. The
-baseline is refit on each protocol's own windows and is never carried between protocols.
+mononucleotide counts are almost, but not exactly, marginals of dinucleotide counts: over a
+window of length $L$ the dinucleotide counts sum to $L-1$ and recover each base's count only up
+to whether the terminal base is that base. The linear block therefore has rank 18 and not 15,
+with a median 0.14\% of each mononucleotide column's variance lying outside the span of the
+dinucleotide columns (maximum 0.25\% over 25 datasets), and the entropy column adds a
+nineteenth, nonlinear direction. What the two protocols constrain is nonetheless asymmetric by
+construction, and that asymmetry is what the design argument rests on: GC matching fixes a
+single linear functional of local composition, whereas dinucleotide matching fixes all fifteen
+degrees of freedom of the dinucleotide simplex, so it leaves the baseline strictly less
+compositional variation to exploit. The baseline is refit on each protocol's own windows and is
+never carried between protocols.
 
 The nested contribution of a model is
 \begin{equation*}

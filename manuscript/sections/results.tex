@@ -51,12 +51,13 @@ Benjamini-Hochberg control within the panel, and 72 of 94 once the design effect
 (Methods).
 
 The direction of the GC-versus-dinucleotide contrast is implied by the design. The composition
-baseline spans the fifteen degrees of freedom of the dinucleotide simplex; GC matching
-constrains one linear functional of that space and dinucleotide matching constrains all fifteen,
-so the arm that constrains more must leave the baseline weaker. Only the magnitude of that
+baseline reads local composition, and the two protocols constrain it asymmetrically: GC
+matching fixes a single linear functional of that composition, whereas dinucleotide matching
+fixes all fifteen degrees of freedom of the dinucleotide simplex, so the arm that constrains
+more must leave the baseline weaker. Only the magnitude of that
 contrast is informative. The position of the bias-aware arm is not implied by the same argument.
 That protocol
-constrains none of the fifteen degrees of freedom, and its negatives are not
+constrains none of those degrees of freedom, and its negatives are not
 composition-matched in any respect (median absolute GC difference 0.1387, against 0.0297 for
 the GC arm). It nonetheless has the highest composition baseline of the three.
 
@@ -178,8 +179,11 @@ AUROC is compressive near unity, so a contribution measured against a baseline o
 arithmetically smaller than the same contribution measured against 0.63, and part of the
 5.42-fold span comes from the scale itself (Figure~\ref{fig:scale}).
 
-Across eight monotone reparameterisations of the same 282 protocol-dataset cells the span was
-reduced but not eliminated. Somers' $D$ \citep{somers1962}, an affine map of AUROC, returns
+We compared eight rescalings of the same 282 protocol-dataset cells. Seven are monotone
+transformations of the contribution itself; the eighth, division by the baseline's headroom, is
+not a transformation of the contribution at all but a normalisation by a second quantity, and it
+is kept in the same comparison because it is what a reader would reach for. The span was reduced
+but not eliminated by any of them. Somers' $D$ \citep{somers1962}, an affine map of AUROC, returns
 5.42 by construction and serves as an internal control. Links that stretch the upper tail
 reduced the span in proportion to how far they stretch it: arcsine 3.99, complementary log-log
 3.94, binormal $d'$ 3.18, logit 2.72. The smallest span, 2.00 (CI 1.67 to 2.46), was obtained by
@@ -193,7 +197,8 @@ any sampling. Simulating equal true arm means while preserving the observed betw
 pairing gave a null distribution with median 1.064 and 95th percentile 1.175, so the residual
 span lies outside what sampling alone produces.
 
-Division by headroom is not a distinct coordinate but the $p=1$ member of the family
+Division by headroom belongs to a family of baseline-dependent normalisations, the $p=1$ member
+of
 $g/(1-c)^{p}$, where $g$ is the contribution and $c$ the composition AUROC, and the minimum of
 the sweep above falls on the $p=1$ member. Over the family the span falls to 1.004 at $p=1.544$
 (Table~\ref{tab:exponent}), so a monotone rescaling that equalises these three protocols does
@@ -339,7 +344,7 @@ abolished where the baseline falls.}
 \label{fig:baseline}
 \end{figure}
 
-\subsection{The span holds for three model classes and does not grow with capacity}
+\subsection{The span holds for three model classes}
 
 Both neural models were trained on all three arms under the same folds, seed and code path,
 with per-window out-of-fold scores retained (Figure~\ref{fig:models},
@@ -374,8 +379,10 @@ the effect of changing model class, not larger than it. The two-arm contrast was
 $+0.0398$ (CI $+0.0325$ to $+0.0477$) for the 4-mer, $+0.0530$ (CI $+0.0440$ to $+0.0627$) for
 the convolutional network and $+0.0864$ (CI $+0.0778$ to $+0.0951$) for SpliceBERT. On the ratio
 scale the ordering reverses, with multipliers of 3.08, 3.51 and 2.38 (geometric mean over the 77
-datasets positive in both arms for all three models), so the contrast does not increase with
-model capacity.
+datasets positive in both arms for all three models), so the contrast does not increase along this ladder. The three classes differ in
+architecture, receptive field, pretraining and parameter count at once, so this is evidence
+that the effect is not specific to a bag-of-$k$-mers measurement, and not a controlled
+experiment on capacity.
 
 Decomposing the log multiplier over the 262 dataset-by-model cells in which that model was
 positive in both arms, a looser rule than the 77-dataset intersection above, RBP identity
@@ -456,11 +463,17 @@ dataset, SpliceBERT against the 4-mer; it is larger for SpliceBERT in all 94.}
 \label{fig:models}
 \end{figure}
 
-\subsection{One structural feature of the calibration replicates on an independent benchmark}
+\subsection{One structural feature of the calibration replicates on an externally constructed
+benchmark}
 
 We applied the same decomposition to the negative sets released by \citet{horlacher2023}, using
 their positives, peak calling, negative-set construction and fold assignments, over the 45
-datasets shared with our panel (Table~\ref{tab:external}, Figure~\ref{fig:external}).
+datasets shared with our panel (Table~\ref{tab:external}, Figure~\ref{fig:external}). The
+benchmark is external in its construction and not in its biology: the underlying experiments
+overlap ours, so this tests whether the same measurement behaves the same way when somebody
+else builds the negatives, not whether it behaves the same way on new proteins. Their released
+sets also carry no model-only AUROC, so difficulty there can only be read from the composition
+baseline, which is a weaker proxy than the one we use internally.
 
 \begin{table}[htbp]
 \centering
