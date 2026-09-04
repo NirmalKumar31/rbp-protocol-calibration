@@ -1,0 +1,50 @@
+check,value,n,note
+"gain, dn arm, kmer, pooled",0.06626403675115061,94,
+"gain, dn arm, kmer, fold-averaged",0.06643133461974257,94,
+"gain, dn arm, kmer, rank-pooled",0.06641183774919482,94,
+"fold-averaged minus pooled, dn arm, kmer",0.00016729786859195905,94,max |delta| 0.0159
+"rank-pooled minus pooled, dn arm, kmer",0.00014780099804420632,94,max |delta| 0.0032
+"gain, dn arm, cnn, pooled",0.08365362130760698,94,
+"gain, dn arm, cnn, fold-averaged",0.09196889213064625,94,
+"gain, dn arm, cnn, rank-pooled",0.0914988348839266,94,
+"fold-averaged minus pooled, dn arm, cnn",0.008315270823039275,94,max |delta| 0.0259
+"rank-pooled minus pooled, dn arm, cnn",0.00784521357631962,94,max |delta| 0.0230
+"gain, dn arm, splicebert, pooled",0.17353101379994132,94,
+"gain, dn arm, splicebert, fold-averaged",0.18175952479062848,94,
+"gain, dn arm, splicebert, rank-pooled",0.18113816324762627,94,
+"fold-averaged minus pooled, dn arm, splicebert",0.008228510990687166,94,max |delta| 0.0356
+"rank-pooled minus pooled, dn arm, splicebert",0.007607149447684952,94,max |delta| 0.0327
+"gain, gc arm, kmer, pooled",0.026513098340627535,94,
+"gain, gc arm, kmer, fold-averaged",0.026829522963835076,94,
+"gain, gc arm, kmer, rank-pooled",0.026648655149168355,94,
+"fold-averaged minus pooled, gc arm, kmer",0.0003164246232075403,94,max |delta| 0.0168
+"rank-pooled minus pooled, gc arm, kmer",0.00013555680854081958,94,max |delta| 0.0021
+"gain, gc arm, cnn, pooled",0.033004539403900766,94,
+"gain, gc arm, cnn, fold-averaged",0.0370543117542651,94,
+"gain, gc arm, cnn, rank-pooled",0.0370008884795123,94,
+"fold-averaged minus pooled, gc arm, cnn",0.004049772350364335,94,max |delta| 0.0176
+"rank-pooled minus pooled, gc arm, cnn",0.003996349075611534,94,max |delta| 0.0177
+"gain, gc arm, splicebert, pooled",0.0890265623764879,94,
+"gain, gc arm, splicebert, fold-averaged",0.09359722557435798,94,
+"gain, gc arm, splicebert, rank-pooled",0.09332221648962598,94,
+"fold-averaged minus pooled, gc arm, splicebert",0.004570663197870084,94,max |delta| 0.0235
+"rank-pooled minus pooled, gc arm, splicebert",0.004295654113138078,94,max |delta| 0.0194
+"gain, neg2 arm, kmer, pooled",0.012231944163197703,94,
+"gain, neg2 arm, kmer, fold-averaged",0.01255894016017788,94,
+"gain, neg2 arm, kmer, rank-pooled",0.01245564742950755,94,
+"fold-averaged minus pooled, neg2 arm, kmer",0.0003269959969801773,94,max |delta| 0.0062
+"rank-pooled minus pooled, neg2 arm, kmer",0.00022370326630984615,94,max |delta| 0.0032
+"gain, neg2 arm, cnn, pooled",0.011268725158253817,94,
+"gain, neg2 arm, cnn, fold-averaged",0.013583138908034167,94,
+"gain, neg2 arm, cnn, rank-pooled",0.013581792485596864,94,
+"fold-averaged minus pooled, neg2 arm, cnn",0.00231441374978035,94,max |delta| 0.0168
+"rank-pooled minus pooled, neg2 arm, cnn",0.002313067327343047,94,max |delta| 0.0166
+"gain, neg2 arm, splicebert, pooled",0.046614027889664844,94,
+"gain, neg2 arm, splicebert, fold-averaged",0.04961095293399556,94,
+"gain, neg2 arm, splicebert, rank-pooled",0.049377484450985415,94,
+"fold-averaged minus pooled, neg2 arm, splicebert",0.002996925044330717,94,max |delta| 0.0143
+"rank-pooled minus pooled, neg2 arm, splicebert",0.002763456561320571,94,max |delta| 0.0153
+"protocol ordering holds for every model, pooled",1.0,3,
+"protocol ordering holds for every model, fold_averaged",1.0,3,
+"protocol ordering holds for every model, rank_pooled",1.0,3,
+aggregations on which the ordering holds for every model,3.0,3,

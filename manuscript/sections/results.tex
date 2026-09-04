@@ -610,6 +610,20 @@ every case, which is what the ceiling objection predicts, so the five-fold figur
 reports is a property of the AUROC scale and roughly a two-fold effect on scales without a
 ceiling. What is scale-free is the ordering, not the size.
 
+Two choices in how the AUROC is aggregated across folds are open in the same way, and neither
+changes the ordering. Every AUROC here pools the five folds' out-of-fold scores into one ranking;
+computing an AUROC per fold and averaging instead, or rank-normalising each fold's scores to
+$[0,1]$ before pooling, leaves dinucleotide $>$ GC $>$ bias-aware for all three model classes in
+all three aggregations. What the choice does affect is the level, and only for the neural models:
+pooling costs the convolutional network 0.0083 of contribution in the dinucleotide arm and
+SpliceBERT 0.0083, against 0.0001 for the 4-mer. The two alternatives agree with each other to
+within 0.0007, which is what one would expect if the cause is the five independently trained fold
+models not sharing a scale, since averaging within fold and rank-normalising within fold are two
+different repairs for exactly that. The 4-mer, whose fold predictors are linear scores from the
+same estimator, barely moves. Pooling is retained because it weights each row once rather than
+weighting a small fold as heavily as a large one, and the cost of retaining it is the figure
+above.
+
 One diagnostic is not an increment and answers a sharper question. Regressing each model's score
 on the composition block and taking the AUROC of the residual asks whether the part of the score
 orthogonal to composition discriminates at all. It does, in every arm: 0.63, 0.60 and 0.58 for

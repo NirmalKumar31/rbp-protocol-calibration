@@ -1343,7 +1343,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 759
+  min_domain_checks: 767
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1915,6 +1915,48 @@ standalone_auroc:
 #
 # Gated as a floor on the offset and a ceiling on how many datasets are centred, because both
 # have to hold for position-invariance to be the right architecture.
+# --- B6: does the headline survive a different chromosome partition? ----------------------
+#
+# Every number in this paper uses one balanced chromosome-to-fold assignment, chosen once and
+# frozen. The fold-to-fold spreads reported throughout therefore describe variability WITHIN
+# that partition and say nothing about variability ACROSS the choice of it, which the
+# Limitations had to carry as an untested design parameter.
+#
+# MEASURED over three alternatives built under the same objective and the same minimum of three
+# chromosomes per fold: contrasts +0.0392, +0.0396, +0.0393 against +0.0398 frozen. Range
+# 0.0006, an eighth of the protein-clustered half-width.
+#
+# THE GATE HAS TWO HALVES because a range this small could hide either failure. The range must
+# stay SMALL, so the partition is not carrying the result; and the contrast must stay POSITIVE
+# under every partition, since a small range around a sign flip would be worthless. Note the
+# frozen partition gives the LARGEST of the four, which the text discloses rather than rounds
+# away.
+#
+# 4-mer only, and not as a shortcut: the neural sweeps trained on the frozen assignment, so
+# re-partitioning them would compare their old folds against new ones.
+# --- B9: two choices in how the AUROC is aggregated across folds --------------------------
+#
+# Pooled versus fold-averaged, and raw versus rank-normalised within fold. The ordering holds
+# under all three aggregations for all three model classes, so the headline is not a property of
+# pooling. What the choice affects is the LEVEL, and only for the neural models: pooling costs
+# the CNN and SpliceBERT about 0.008 of contribution in the dinucleotide arm against 0.0001 for
+# the 4-mer, and the two alternatives agree with each other to within 0.0007 -- which is the
+# signature of five independently trained fold models not sharing a scale, since averaging
+# within fold and rank-normalising within fold are two different repairs for that one cause.
+# Pooling is retained because it weights each row once instead of weighting a small fold as
+# heavily as a large one.
+auroc_aggregation:
+  n_aggregations_ordered: 3
+  fold_avg_minus_pooled_cnn_dn:        {value: 0.0083, tol: 0.003}
+  fold_avg_minus_pooled_kmer_dn:       {value: 0.0001, tol: 0.0008}
+  max_disagreement_between_alternatives: 0.002
+
+partition_sensitivity:
+  n_partitions: 4
+  contrast_frozen: {value: 0.0398, tol: 0.002}
+  max_contrast_range: 0.004
+  contrast_must_be_positive_under_every_partition: true
+
 positional_signal:
   median_abs_offset: {value: 23.0, tol: 3.0}
   min_median_abs_offset: 10.0

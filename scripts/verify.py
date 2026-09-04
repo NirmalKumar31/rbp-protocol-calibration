@@ -2253,6 +2253,89 @@ def verify_fold_integrity(T, g):
                "than disclosed", int(nl), spec["leaky_datasets"]["value"])
 
 
+def verify_auroc_aggregation(T, g):
+    """B9: is the ordering a property of pooling the folds?"""
+    print("\nAUROC aggregation  (pooled, fold-averaged, or rank-normalised within fold?)")
+    d = T.get("auroc_aggregation.csv")
+    if d is None:
+        return record(False, "auroc_aggregation.csv present", "MISSING",
+                      "run scripts/auroc_aggregation.py --store ../rbp-store")
+    spec = g["auroc_aggregation"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("aggregations on which the ordering holds for every model")
+    if n is not None:
+        record(int(n) == spec["n_aggregations_ordered"],
+               "the protocol ordering holds under pooled, fold-averaged AND rank-normalised "
+               "aggregation for every model class, so it is not a property of pooling",
+               f"{int(n)}/3", f"{spec['n_aggregations_ordered']}/3")
+
+    # THE COST OF POOLING FALLS ON THE NEURAL MODELS ONLY, which is the diagnostic: it is
+    # per-fold scale drift between independently trained models, not a property of the estimand.
+    for label, key in (
+            ("fold-averaged minus pooled, dn arm, cnn", spec["fold_avg_minus_pooled_cnn_dn"]),
+            ("fold-averaged minus pooled, dn arm, kmer",
+             spec["fold_avg_minus_pooled_kmer_dn"])):
+        v = get(label)
+        if v is not None:
+            near(label, v, key)
+
+    # AND THE TWO REPAIRS MUST AGREE. Averaging within fold and rank-normalising within fold
+    # address the same cause; if they disagreed, the diagnosis would be wrong.
+    worst = 0.0
+    for k in q.index:
+        if str(k).startswith("gain, ") and str(k).endswith(", fold-averaged"):
+            rk = str(k).replace(", fold-averaged", ", rank-pooled")
+            if rk in q.index:
+                worst = max(worst, abs(float(q.loc[k, "value"]) - float(q.loc[rk, "value"])))
+    if worst:
+        at_most("fold-averaging and rank-normalising agree with each other, which is what "
+                "makes per-fold scale drift the right diagnosis rather than a guess",
+                worst, spec["max_disagreement_between_alternatives"])
+
+
+def verify_partition_sensitivity(T, g):
+    """B6: is the headline contrast a property of the one partition we froze?"""
+    print("\npartition sensitivity  (does the headline survive a different fold assignment?)")
+    d = T.get("partition_sensitivity.csv")
+    if d is None:
+        return record(False, "partition_sensitivity.csv present", "MISSING",
+                      "run scripts/partition_sensitivity.py --store ../rbp-store")
+    spec = g["partition_sensitivity"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("partitions compared")
+    if n is not None:
+        record(int(n) == spec["n_partitions"],
+               "the frozen partition is compared against alternatives meeting the same "
+               "criteria, not against a re-shuffle", int(n), spec["n_partitions"])
+    fr = get("4-mer contrast under frozen (config/folds.tsv)")
+    if fr is not None:
+        near("4-mer contrast under the frozen partition", fr, spec["contrast_frozen"])
+    rng = get("range of the 4-mer contrast over partitions")
+    if rng is not None:
+        at_most("the headline contrast barely moves across chromosome partitions, so the one "
+                "we froze is not carrying the result", rng, spec["max_contrast_range"])
+    # A SMALL RANGE AROUND A SIGN FLIP WOULD BE WORTHLESS, so the sign is gated separately.
+    pos = get("contrast is positive under every partition")
+    if pos is not None and spec["contrast_must_be_positive_under_every_partition"]:
+        record(int(pos) == 1,
+               "and it is positive under every partition, so the small range is around a "
+               "stable sign rather than around zero", int(pos), 1)
+
+
 def verify_positional_signal(T, g):
     """B14: is the discriminative signal off centre, as the CNN's design assumes?"""
     print("\npositional signal  (does the architecture's premise hold?)")
@@ -3596,7 +3679,9 @@ def main():
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
                verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_design_effect, verify_standalone_auroc, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
-               verify_positional_signal, verify_cobinding_noise,
+               verify_auroc_aggregation, verify_partition_sensitivity,
+               verify_positional_signal,
+               verify_cobinding_noise,
                verify_estimands, verify_nested_scale,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

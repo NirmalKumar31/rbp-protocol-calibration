@@ -185,9 +185,16 @@ application sees, and a precision-based estimand would move. The window is 101~n
 length is precisely the resource the composition baseline spends. A longer window gives
 mononucleotide and dinucleotide frequencies more sequence to estimate from, which should raise
 the baseline and shrink the contribution in every arm, though not necessarily by the same
-amount in each. And cross-validation uses a single frozen chromosome partition, so
-the fold-to-fold spans quoted throughout describe variability within one partition and not
-across the choice of partition.
+amount in each. The third is the chromosome partition, which is frozen, and that one we
+measured rather than left open: rebuilding three alternative assignments under the same
+balanced-mass objective and the same minimum of three chromosomes per fold, and refitting the
+4-mer on each, gives contrasts of $+0.0392$, $+0.0396$ and $+0.0393$ against $+0.0398$ on the
+partition we use. The range over the four is 0.0006, an eighth of the protein-clustered
+half-width, so the choice of partition is not carrying the result. It is worth saying that our
+partition gives the largest of the four, by 0.0006, so the headline sits at the top of that
+narrow range and not in the middle of it. Only the 4-mer can be re-partitioned this way: the
+neural sweeps trained on the frozen assignment, so re-partitioning them would compare their old
+folds against new ones.
 
 One limitation concerns the provenance of the neural scores. Initialisation was unseeded across
 all 2830 committed fold-runs, at the cost quantified in Methods. A second, that 20 of the 94
@@ -216,7 +223,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 760 assertions compare each published value against a frozen
+credit than it earns. Its 768 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -229,7 +236,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 760 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 768 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit

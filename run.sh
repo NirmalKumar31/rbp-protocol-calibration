@@ -329,6 +329,7 @@ s13b_local_analysis() {
   #   "$PY" scripts/cobinding_noise.py --store ../rbp-store   # B4, needs the peak BEDs too
   #   "$PY" scripts/positional_signal.py --store ../rbp-store       # B14
   #   "$PY" scripts/partition_sensitivity.py --store ../rbp-store   # B6
+  #   "$PY" scripts/auroc_aggregation.py --store ../rbp-store       # B9
   # peak_thresholds.py fetches 95 narrowPeak files from ENCODE and so is NOT in the default
   # path; its table is committed. Regenerate with: "$PY" scripts/peak_thresholds.py
   "$PY" scripts/recompute.py         || die "recompute from per-example evidence"
