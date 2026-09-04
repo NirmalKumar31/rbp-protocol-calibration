@@ -1,0 +1,163 @@
+check,value,n,ci_low,ci_high,note
+max |order-2 gain - deep_contrast_per_dataset.csv|,9.367506770274758e-17,4,,,
+max |order-3 gain - baseline_order_models_per_dataset.csv|,9.194034422677078e-17,4,,,
+composition columns at order 1,4.0,4,,,
+composition columns at order 2,19.0,4,,,
+composition columns at order 3,82.0,4,,,
+composition columns at order 4,337.0,4,,,
+"composition AUROC at order 1, gc arm",0.7532859717091862,4,0.6523023815226179,0.8551600739517964,
+"kmer gain at order 1, gc arm",0.056130291989907516,4,0.016477875148704385,0.10708731364182822,
+"cnn gain at order 1, gc arm",0.07357014956390184,4,0.013160625956470884,0.15973708820970028,
+"splicebert gain at order 1, gc arm",0.12407921249389336,4,0.033311294798440666,0.25531640657896726,
+"kmer gain positive at order 1, gc arm",4.0,4,,,
+"cnn gain positive at order 1, gc arm",3.0,4,,,
+"splicebert gain positive at order 1, gc arm",4.0,4,,,
+"composition AUROC at order 2, gc arm",0.7778078268779193,4,0.6778371740635245,0.8777784796923143,
+"kmer gain at order 2, gc arm",0.03239543236224826,4,0.004443224460097456,0.08023250340127341,
+"cnn gain at order 2, gc arm",0.05623301278132556,4,0.002940472950561601,0.13440659410416583,
+"splicebert gain at order 2, gc arm",0.09928189175477545,4,0.018472170220498185,0.2226295620456563,
+"kmer gain positive at order 2, gc arm",4.0,4,,,
+"cnn gain positive at order 2, gc arm",3.0,4,,,
+"splicebert gain positive at order 2, gc arm",4.0,4,,,
+"composition AUROC at order 3, gc arm",0.7956675470324688,4,0.7117385977715835,0.8795964962933539,
+"kmer gain at order 3, gc arm",0.009579511073009556,4,-0.0005076960126705887,0.029271187751637284,
+"cnn gain at order 3, gc arm",0.039431366065477036,4,0.0011641327685896763,0.09053857769267037,
+"splicebert gain at order 3, gc arm",0.07833401956648336,4,0.012075693624777839,0.17335452871355697,
+"kmer gain positive at order 3, gc arm",2.0,4,,,
+"cnn gain positive at order 3, gc arm",3.0,4,,,
+"splicebert gain positive at order 3, gc arm",4.0,4,,,
+"composition AUROC at order 4, gc arm",0.7900557424211491,4,0.7319141136487526,0.8481973711935454,
+"kmer gain at order 4, gc arm",0.08931773671421242,4,0.06046127262732803,0.11817420080109681,
+"cnn gain at order 4, gc arm",0.02811651375166055,4,0.0009195079667562722,0.05862816271942878,
+"splicebert gain at order 4, gc arm",0.06461507875560735,4,0.010401617549617603,0.1367108184377555,
+"kmer gain positive at order 4, gc arm",4.0,4,,,
+"cnn gain positive at order 4, gc arm",4.0,4,,,
+"splicebert gain positive at order 4, gc arm",4.0,4,,,
+"composition AUROC at order 1, dn arm",0.6044825919322457,4,0.5723824857857669,0.643833602605502,
+"kmer gain at order 1, dn arm",0.07823109720784283,4,0.04111158365181988,0.12691630318071817,
+"cnn gain at order 1, dn arm",0.09644541143830376,4,0.02138335396367136,0.18682035886117337,
+"splicebert gain at order 1, dn arm",0.1794089727004619,4,0.08731031473502843,0.29540606743481057,
+"kmer gain positive at order 1, dn arm",4.0,4,,,
+"cnn gain positive at order 1, dn arm",4.0,4,,,
+"splicebert gain positive at order 1, dn arm",4.0,4,,,
+"composition AUROC at order 2, dn arm",0.6258213318099672,4,0.5921004137617019,0.6613115999125025,
+"kmer gain at order 2, dn arm",0.05689421562313743,4,0.021997033940020477,0.10894722071296353,
+"cnn gain at order 2, dn arm",0.08178515706565376,4,0.010378208282980972,0.17402046912162222,
+"splicebert gain at order 2, dn arm",0.15662055334357988,4,0.06598107358026337,0.27594325899565886,
+"kmer gain positive at order 2, dn arm",4.0,4,,,
+"cnn gain positive at order 2, dn arm",3.0,4,,,
+"splicebert gain positive at order 2, dn arm",4.0,4,,,
+"composition AUROC at order 3, dn arm",0.6618935814324307,4,0.6320484619716474,0.6867817353742202,
+"kmer gain at order 3, dn arm",0.010574327175850884,4,-0.0016552475088175977,0.03385386958090433,
+"cnn gain at order 3, dn arm",0.05553169475127953,4,0.00817042793473241,0.11187009955912414,
+"splicebert gain at order 3, dn arm",0.1173690587745217,4,0.04920738623529264,0.1991265171340206,
+"kmer gain positive at order 3, dn arm",1.0,4,,,
+"cnn gain positive at order 3, dn arm",3.0,4,,,
+"splicebert gain positive at order 3, dn arm",4.0,4,,,
+"composition AUROC at order 4, dn arm",0.6703575722481216,4,0.6292582805864557,0.7135444719186969,
+"kmer gain at order 4, dn arm",0.1633371991491127,4,0.07374345558355655,0.25293094271466887,
+"cnn gain at order 4, dn arm",0.0384461818615274,4,0.0022272965835704595,0.07466506713948434,
+"splicebert gain at order 4, dn arm",0.09280076941173188,4,0.03168890640621752,0.15391263241724623,
+"kmer gain positive at order 4, dn arm",4.0,4,,,
+"cnn gain positive at order 4, dn arm",3.0,4,,,
+"splicebert gain positive at order 4, dn arm",4.0,4,,,
+"composition AUROC at order 1, neg2 arm",0.755516885613851,4,0.6889012196694084,0.8249482204998206,
+"kmer gain at order 1, neg2 arm",0.03627458421275165,4,0.00897596709133655,0.06427210863962066,
+"cnn gain at order 1, neg2 arm",0.03873263685595191,4,0.008176095010810763,0.07832851634232182,
+"splicebert gain at order 1, neg2 arm",0.12193836908200908,4,0.05892139545277844,0.19995412402978663,
+"kmer gain positive at order 1, neg2 arm",3.0,4,,,
+"cnn gain positive at order 1, neg2 arm",3.0,4,,,
+"splicebert gain positive at order 1, neg2 arm",4.0,4,,,
+"composition AUROC at order 2, neg2 arm",0.7698230248301674,4,0.695223262443786,0.8395339706435532,
+"kmer gain at order 2, neg2 arm",0.02459902603954231,4,0.0058979150897893184,0.0433001369892953,
+"cnn gain at order 2, neg2 arm",0.028984728130474036,4,0.0035485929598822463,0.07036266583773465,
+"splicebert gain at order 2, neg2 arm",0.10587179465086666,4,0.04342554619641317,0.19110294221422744,
+"kmer gain positive at order 2, neg2 arm",3.0,4,,,
+"cnn gain positive at order 2, neg2 arm",4.0,4,,,
+"splicebert gain positive at order 2, neg2 arm",4.0,4,,,
+"composition AUROC at order 3, neg2 arm",0.789146569426163,4,0.7204978457683595,0.8382403269781049,
+"kmer gain at order 3, neg2 arm",0.0045729545998589305,4,0.0016779237250588719,0.008043216932312774,
+"cnn gain at order 3, neg2 arm",0.018680715123309266,4,-0.0009551885516386194,0.05090353918243837,
+"splicebert gain at order 3, neg2 arm",0.08343677512888592,4,0.03658964880939303,0.16149061696229827,
+"kmer gain positive at order 3, neg2 arm",4.0,4,,,
+"cnn gain positive at order 3, neg2 arm",2.0,4,,,
+"splicebert gain positive at order 3, neg2 arm",4.0,4,,,
+"composition AUROC at order 4, neg2 arm",0.7736335642574014,4,0.7331179021544731,0.8067107159366731,
+"kmer gain at order 4, neg2 arm",0.10955724962749788,4,0.04968538871480482,0.16942911054019094,
+"cnn gain at order 4, neg2 arm",0.01397547377904984,4,-0.0014322021728803702,0.03823091359752029,
+"splicebert gain at order 4, neg2 arm",0.07270309151092003,4,0.03045362541267077,0.14189759744194447,
+"kmer gain positive at order 4, neg2 arm",4.0,4,,,
+"cnn gain positive at order 4, neg2 arm",2.0,4,,,
+"splicebert gain positive at order 4, neg2 arm",4.0,4,,,
+"baseline AUROC fell from order 1 to 2, gc arm",0.0,4,,,
+"baseline AUROC fell from order 2 to 3, gc arm",1.0,4,,,
+"baseline AUROC fell from order 3 to 4, gc arm",3.0,4,,,
+"baseline AUROC fell from order 1 to 2, dn arm",0.0,4,,,
+"baseline AUROC fell from order 2 to 3, dn arm",1.0,4,,,
+"baseline AUROC fell from order 3 to 4, dn arm",3.0,4,,,
+"baseline AUROC fell from order 1 to 2, neg2 arm",0.0,4,,,
+"baseline AUROC fell from order 2 to 3, neg2 arm",1.0,4,,,
+"baseline AUROC fell from order 3 to 4, neg2 arm",2.0,4,,,
+"kmer gain at order 4 positive in, gc arm",4.0,4,,,"the estimator's noise floor, not a contribution"
+"kmer noise-floor gain at order 4, gc arm",0.08931773671421242,4,0.06046127262732803,0.11817420080109681,true value is zero by construction
+"noise floor as a fraction of the order-2 gain, gc arm",2.75710895645579,4,,,
+"kmer gain at order 4 positive in, dn arm",4.0,4,,,"the estimator's noise floor, not a contribution"
+"kmer noise-floor gain at order 4, dn arm",0.1633371991491127,4,0.07374345558355655,0.25293094271466887,true value is zero by construction
+"noise floor as a fraction of the order-2 gain, dn arm",2.8708928906067497,4,,,
+"kmer gain at order 4 positive in, neg2 arm",4.0,4,,,"the estimator's noise floor, not a contribution"
+"kmer noise-floor gain at order 4, neg2 arm",0.10955724962749788,4,0.04968538871480482,0.16942911054019094,true value is zero by construction
+"noise floor as a fraction of the order-2 gain, neg2 arm",4.453723064132189,4,,,
+"spearman(rows, order-4 noise floor), gc arm",-0.7999999999999999,4,,,p = 2.00e-01
+"spearman(rows, order-4 noise floor), dn arm",-1.0,4,,,p = 0.00e+00
+"spearman(rows, order-4 noise floor), neg2 arm",-0.7999999999999999,4,,,p = 2.00e-01
+"kmer share of order-1 gain surviving order 2, gc arm",0.5771470486573116,4,0.2523806095373742,0.775270638489922,"ratio of means, protein-clustered"
+"kmer share of order-1 gain surviving order 3, gc arm",0.1706656198177625,4,-0.02856812542097822,0.2871571510370219,"ratio of means, protein-clustered"
+"kmer share of order-1 gain surviving order 4, gc arm",1.5912572970450993,4,0.5464002181739895,7.162168919255515,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 2, gc arm",0.7643455003782814,4,0.22342956636616623,0.8708612771646245,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 3, gc arm",0.5359696330537916,4,0.08845572941895591,0.586856256553242,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 4, gc arm",0.38217285024327696,4,0.06986810276331605,0.543676470814128,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 2, gc arm",0.800149273671943,4,0.46412430287314455,0.9055323448523634,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 3, gc arm",0.6313226687374295,4,0.3034090103333043,0.7216801336899583,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 4, gc arm",0.5207566800021995,4,0.261346849684841,0.6132949788167971,"ratio of means, protein-clustered"
+"kmer share of order-1 gain surviving order 2, dn arm",0.7272583110010845,4,0.5208600483864436,0.8584178547797112,"ratio of means, protein-clustered"
+"kmer share of order-1 gain surviving order 3, dn arm",0.1351678239633687,4,-0.04326165512790059,0.26771325963862147,"ratio of means, protein-clustered"
+"kmer share of order-1 gain surviving order 4, dn arm",2.087880714687686,4,0.6404157531900104,6.49261671184751,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 2, dn arm",0.8479942782759738,4,0.3370012577151579,0.9360207878770557,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 3, dn arm",0.5757836886496484,4,0.2579437948867104,0.7105859405676723,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 4, dn arm",0.3986315293612643,4,0.10416030092166373,0.5035458383875662,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 2, dn arm",0.8729806039582582,4,0.7344200984497338,0.9385490854670253,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 3, dn arm",0.6541983770816135,4,0.458016650878289,0.7770336946203841,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 4, dn arm",0.5172582397351465,4,0.3377821838677787,0.613459186121511,"ratio of means, protein-clustered"
+"kmer share of order-1 gain surviving order 2, neg2 arm",0.678133921405362,4,0.38079035532500827,0.8835684886698663,"ratio of means, protein-clustered"
+"kmer share of order-1 gain surviving order 3, neg2 arm",0.12606497632166916,4,0.031345676482816456,0.5925682056378988,"ratio of means, protein-clustered"
+"kmer share of order-1 gain surviving order 4, neg2 arm",3.0202206863334657,4,1.3966111971466866,17.764819645063366,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 2, neg2 arm",0.7483282958056613,4,0.2817495024181178,0.9624185749798227,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 3, neg2 arm",0.4822990800441377,4,-0.07583960803117697,0.7097896611408204,"ratio of means, protein-clustered"
+"cnn share of order-1 gain surviving order 4, neg2 arm",0.3608190640628248,4,-0.11371330950974484,0.513531059459013,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 2, neg2 arm",0.8682402056703176,4,0.737008108221331,0.9557339371793069,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 3, neg2 arm",0.6842536582785596,4,0.43925463616595134,0.8371978700262184,"ratio of means, protein-clustered"
+"splicebert share of order-1 gain surviving order 4, neg2 arm",0.5962281770557707,4,0.3580276723237094,0.7404800736120767,"ratio of means, protein-clustered"
+kmer two-arm contrast (dn-gc) at order 1,0.02210080521793531,4,0.019152744653867737,0.025048865782002883,
+kmer three-arm span at order 1,2.1566366343171524,4,1.4407655177379841,5.002996209465763,smallest arm neg2 at +0.0363
+cnn two-arm contrast (dn-gc) at order 1,0.02287526187440192,4,-0.006105436395289099,0.03964283840464755,
+cnn three-arm span at order 1,2.4900295788533007,4,1.4310237262750134,4.7268968699534035,smallest arm neg2 at +0.0387
+splicebert two-arm contrast (dn-gc) at order 1,0.055329760206568546,4,0.038758920585862555,0.07190059982727454,
+splicebert three-arm span at order 1,1.471308613122431,4,1.4238812134956114,2.6210423600560704,smallest arm neg2 at +0.1219
+kmer two-arm contrast (dn-gc) at order 2,0.024498783260889168,4,0.017315600906012057,0.03115444592796973,
+kmer three-arm span at order 2,2.3128645634864333,4,1.8020329118979344,5.9685110974919,smallest arm neg2 at +0.0246
+cnn two-arm contrast (dn-gc) at order 2,0.0255521442843282,4,-0.004821286451393181,0.04366655323623703,
+cnn three-arm span at order 2,2.821663763672369,4,1.6310815494912243,10.425052925086984,smallest arm neg2 at +0.0290
+splicebert two-arm contrast (dn-gc) at order 2,0.057338661588804435,4,0.0362998002517404,0.07837752292586847,
+splicebert three-arm span at order 2,1.5775339346920376,4,1.3954023222417522,3.7298996197832555,smallest arm gc at +0.0993
+kmer two-arm contrast (dn-gc) at order 3,0.0009948161028413283,4,-0.0013001386643489155,0.004554836817683011,
+kmer three-arm span at order 3,2.3123621599429587,4,-4.130319102234337,4.224326847295873,smallest arm neg2 at +0.0046
+cnn two-arm contrast (dn-gc) at order 3,0.016100328685802495,4,-0.003021141919242132,0.029059594852281212,
+cnn three-arm span at order 3,2.9726749958297183,4,-10.695748393135604,16.843703520348477,smallest arm neg2 at +0.0187
+splicebert two-arm contrast (dn-gc) at order 3,0.03903503920803833,4,0.026404644591485033,0.05356878042211516,
+splicebert three-arm span at order 3,1.4983152840115481,4,1.2282373054757905,4.074911782651154,smallest arm gc at +0.0783
+kmer two-arm contrast (dn-gc) at order 4,0.07401946243490029,4,0.013282182956228517,0.13475674191357206,
+kmer three-arm span at order 4,1.8287207575773936,4,1.3670279200762367,2.2204568788728842,smallest arm gc at +0.0893
+cnn two-arm contrast (dn-gc) at order 4,0.010329668109866852,4,-0.002839201704198435,0.021004538000134965,
+cnn three-arm span at order 4,2.7509752062331345,4,-1.5551551490045827,29.4048223984894,smallest arm neg2 at +0.0140
+splicebert two-arm contrast (dn-gc) at order 4,0.02818569065612453,4,0.016032366278982885,0.047237416832790785,
+splicebert three-arm span at order 4,1.436209182112597,4,1.1182563609202478,3.0465363925423796,smallest arm gc at +0.0646

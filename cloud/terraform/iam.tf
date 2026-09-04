@@ -72,7 +72,7 @@ resource "google_storage_bucket_iam_member" "prep_derived_write" {
   condition {
     title       = "preprocessing-outputs-only"
     description = "Processed datasets, panels, manifests and interim scratch"
-    expression = <<-EOT
+    expression  = <<-EOT
       resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/processed/") ||
       resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/panel/") ||
       resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/manifest/") ||
@@ -327,7 +327,7 @@ resource "google_storage_bucket_iam_member" "analysis_derived_write" {
   condition {
     title       = "analysis-outputs-only"
     description = "Result tables, figures and variant scores"
-    expression = <<-EOT
+    expression  = <<-EOT
       resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/results/") ||
       resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/variants/") ||
       resource.name.startsWith("projects/_/buckets/${google_storage_bucket.derived.name}/objects/driver/")

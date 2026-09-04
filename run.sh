@@ -308,6 +308,8 @@ s13b_local_analysis() {
   "$PY" scripts/protocol_or_baseline.py || die "protocol or baseline"
   "$PY" scripts/baseline_order.py --from-cache || die "baseline order"
   "$PY" scripts/baseline_order_models.py --from-cache || die "baseline order, model classes"
+  "$PY" scripts/order_profile.py --from-cache || die "composition-order profile"
+  "$PY" scripts/shuffled_arm.py --from-cache || die "shuffled fourth arm"
   "$PY" scripts/multiplier_variance.py || die "multiplier variance"
   "$PY" scripts/score_scale_check.py --from-cache || die "score scale"
   "$PY" scripts/transport_check.py || die "transport check"
@@ -330,6 +332,8 @@ s13b_local_analysis() {
   #   "$PY" scripts/positional_signal.py --store ../rbp-store       # B14
   #   "$PY" scripts/partition_sensitivity.py --store ../rbp-store   # B6
   #   "$PY" scripts/auroc_aggregation.py --store ../rbp-store       # B9
+  #   "$PY" scripts/order_profile.py   --store ../rbp-store   # B3, orders 1-4, ~80 min
+  #   "$PY" scripts/shuffled_arm.py    --store ../rbp-store   # B5, the shuffled fourth arm
   # peak_thresholds.py fetches 95 narrowPeak files from ENCODE and so is NOT in the default
   # path; its table is committed. Regenerate with: "$PY" scripts/peak_thresholds.py
   "$PY" scripts/recompute.py         || die "recompute from per-example evidence"

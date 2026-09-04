@@ -401,6 +401,69 @@ abolished where the baseline falls.}
 \label{fig:baseline}
 \end{figure}
 
+\subsection{Shuffling, the construction most widely used, removes the baseline entirely}
+\label{sec:shuffled}
+
+The three protocols compared so far all draw negatives from the genome and match them to the
+positives on some summary of composition. Most published RBP predictors do something else: they
+generate each negative by shuffling its own positive, preserving dinucleotide counts. That is
+the construction \citet{tourne2026} indicts, and it is not a matching procedure at all. Because
+each negative is a permutation of its positive with dinucleotide counts held exactly,
+mononucleotide frequencies, dinucleotide frequencies, GC content and sequence entropy are
+identical between the two members of every pair. The nineteen-feature composition baseline takes
+the same value on both.
+
+We built that fourth arm on the same 94 datasets, the same positives and the same folds
+(Table~\ref{tab:shuffled}). The construction held: dinucleotide counts were preserved for every
+pair on the panel, and the composition feature vector was identical to nine decimal places in
+100.00\% of pairs. The composition baseline is therefore not approximately uninformative but
+exactly so, at 0.5000 in every dataset, since no threshold on a tied feature separates the
+classes. The 4-mer's nested contribution over it is $+0.2523$, and it equals the model's own
+standalone AUROC less a half to within $0.0006$: with an uninformative baseline the increment
+is not an increment over anything, it is the model's apparent performance relabelled.
+
+\begin{table}[htbp]
+\centering
+\caption{Four negative-set constructions, the 4-mer logistic regression, $n=94$ datasets with
+identical positives and folds. The three matched arms are Table~\ref{tab:threemodels}'s first
+row; the shuffled arm generates each negative from its own positive.}
+\label{tab:shuffled}
+\begin{tabular}{lccc}
+\toprule
+construction & composition alone & contribution & standalone AUROC \\
+\midrule
+dinucleotide-shuffled & 0.5000 & $+0.2523$ & 0.7528 \\
+dinucleotide-matched & 0.6274 & $+0.0663$ & \\
+GC-matched & 0.7827 & $+0.0265$ & \\
+bias-aware & 0.8248 & $+0.0122$ & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two consequences follow, and they point in opposite directions for the paper's own claims.
+
+The first widens the headline. Across the three matched protocols the contribution spans
+5.42-fold; adding the shuffled arm makes it 20.62-fold. The measured quantity is therefore not
+comparable across the four constructions this literature actually uses, and the widest part of
+that incomparability involves the construction in widest use.
+
+The second is a boundary on the inversion this paper is named for. Across the three matched
+protocols a lower composition baseline goes with a \emph{larger} contribution, which is the
+relation the title describes. The shuffled arm has the lowest baseline of the four, by $0.1274$,
+and the largest contribution, by $+0.1860$, so it falls on the same side of that relation rather
+than contradicting it. But it does not extend the relation either, because shuffling is a
+different operation from matching. Matching makes negatives compositionally similar to positives
+in distribution, which raises the baseline; shuffling makes them identical pairwise, which
+removes the baseline. The two look alike, are described in similar language in method sections,
+and act on the measurement in opposite ways. This is the clearest case of the mechanism
+Section~\ref{sec:families} identifies: what a negative-set protocol moves is the baseline, and
+the contribution follows.
+
+No dataset was lost to the construction. Dinucleotide-preserving shuffling can return a near
+copy of a low-complexity window, which then has to be discarded as a negative; on this panel no
+positive was discarded either for a failed shuffle or for coming back more than 90\% identical
+to its source.
+
 \subsection{The span holds for three model classes}
 \label{sec:models}
 

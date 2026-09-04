@@ -1939,6 +1939,94 @@ def verify_baseline_order_models(T, g):
                        "full panel higher")
 
 
+def verify_shuffled_arm(T, g):
+    """B5: the fourth arm, where the baseline is removed rather than raised."""
+    print("\nshuffled arm  (dinucleotide shuffling, the construction in widest use)")
+    d = T.get("shuffled_arm.csv")
+    if d is None:
+        return record(False, "shuffled_arm.csv present", "MISSING",
+                      "run scripts/shuffled_arm.py --store ../rbp-store")
+    spec = g["shuffled_arm"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+
+    # THE CONSTRUCTION IS THE CLAIM. Everything else in this section is a consequence of the
+    # negatives being exact dinucleotide permutations of the positives, so if a single pair
+    # violated that, the baseline of 0.5 would be a coincidence and the section would say
+    # nothing. Gated as an exact zero, not a tolerance.
+    v = get("pairs whose dinucleotide counts differ from their source")
+    if v is not None:
+        record(int(v) == 0,
+               "every shuffled negative preserves its source's dinucleotide counts exactly, "
+               "which is what makes the composition baseline uninformative BY CONSTRUCTION",
+               int(v), 0)
+    tied = get("fraction of pairs with an identical composition feature vector")
+    if tied is not None:
+        record(tied >= spec["min_fraction_tied"],
+               "the composition feature vector is identical within the pair", f"{tied:.4f}",
+               f">= {spec['min_fraction_tied']}")
+
+    # AND THE BASELINE IS EXACTLY A HALF, not approximately. A tolerance here would hide the
+    # thing worth reporting: there is no dataset on which composition does anything at all.
+    mx = get("max |composition AUROC - 0.5|, shuffled arm")
+    if mx is not None:
+        at_most("composition AUROC is 0.5 on EVERY dataset in the shuffled arm, since every "
+                "pair is a tie", mx, spec["max_deviation_from_half"])
+
+    for label, key in (
+            ("4-mer nested contribution, shuffled arm", spec["contribution"]),
+            ("4-mer standalone AUROC, shuffled arm", spec["standalone"]),
+            ("four-protocol span of the 4-mer contribution", spec["four_protocol_span"]),
+            ("three-protocol span, same datasets, for comparison",
+             spec["three_protocol_span"])):
+        v = get(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE POINT OF THE ARM. With an uninformative baseline the "increment over composition" is
+    # arithmetically the model's own AUROC less a half. Gating the residual rather than the two
+    # numbers separately is what makes that an identity instead of a coincidence.
+    r = get("contribution minus (standalone AUROC - 0.5), shuffled arm")
+    if r is not None:
+        at_most("the nested contribution IS the standalone AUROC less a half once the baseline "
+                "is uninformative, so shuffling relabels apparent performance as contribution",
+                abs(r), spec["max_identity_residual"])
+
+    # THE SPAN MUST WIDEN, and two-sidedly: the four-protocol span above the three-protocol
+    # one, with the interval clear of the three-protocol value.
+    a, b = (get("four-protocol span of the 4-mer contribution"),
+            get("three-protocol span, same datasets, for comparison"))
+    if None not in (a, b):
+        record(a > b, "adding the construction in widest use WIDENS the protocol span",
+               f"{a:.2f}x vs {b:.2f}x", "four-protocol span larger")
+    k = "four-protocol span of the 4-mer contribution"
+    if k in q.index and not pd.isna(q.loc[k, "ci_low"]):
+        record(float(q.loc[k, "ci_low"]) > spec["min_four_protocol_span_ci_low"],
+               "and the four-protocol span's interval clears the three-protocol point estimate",
+               f"CI low {float(q.loc[k, 'ci_low']):.2f}x",
+               f"> {spec['min_four_protocol_span_ci_low']}")
+
+    # THE BOUNDARY ON THE INVERSION. The shuffled arm has the LOWEST baseline and the LARGEST
+    # contribution, so it lies on the same side of the title relation. It must not be presented
+    # as a fourth point on the matching axis: it is a different operation.
+    lo = get("shuffled baseline below the lowest matched baseline")
+    hi = get("shuffled contribution above the largest matched contribution")
+    if None not in (lo, hi):
+        record(lo > 0 and hi > 0,
+               "the shuffled arm has the lowest baseline AND the largest contribution of the "
+               "four, so it falls on the same side of the inversion rather than against it",
+               f"baseline {lo:+.4f} below, contribution {hi:+.4f} above", "both positive")
+
+
 def verify_models_by_protocol(T, g):
     """R1w: the floor and the recommendation generalise across models. R1n does not."""
     print("\nR1w the 4-mer-only analyses, per model class  (what generalises?)")
@@ -3770,7 +3858,7 @@ def main():
                verify_auroc_aggregation, verify_partition_sensitivity,
                verify_positional_signal,
                verify_cobinding_noise,
-               verify_estimands, verify_nested_scale,
+               verify_estimands, verify_nested_scale, verify_shuffled_arm,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

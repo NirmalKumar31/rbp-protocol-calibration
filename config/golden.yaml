@@ -1363,7 +1363,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 782
+  min_domain_checks: 794
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2237,3 +2237,26 @@ r1w_models_by_protocol:
   cnn_reversal_must_be_reported: true
   two_family_mechanism_is_kmer_specific: true
   recommendation_pairs_improved: 3
+
+# B5: THE SHUFFLED FOURTH ARM. Dinucleotide-preserving shuffling is what GraphProt, iDeepS and
+# RBPsuite do and what Tourne indicts, and it is not a matching protocol: each negative is a
+# permutation of its own positive, so the 19-feature composition block takes the SAME VALUE on
+# both members of every pair. The baseline is therefore exactly uninformative, and the "nested
+# contribution" is the model's own AUROC less a half wearing a different name.
+#
+# The construction is gated as an exact zero and the baseline as an exact half, deliberately.
+# A tolerance on either would hide the result: there is no dataset on which composition does
+# anything at all, and that is stronger than "composition does little".
+shuffled_arm:
+  n_datasets: 94
+  min_fraction_tied: 0.9999
+  max_deviation_from_half: 1.0e-9
+  contribution: {value: 0.2523, tol: 0.010}
+  standalone:   {value: 0.7528, tol: 0.010}
+  max_identity_residual: 0.002
+  # The headline widens from 5.42x across three matched protocols to 20.62x across the four
+  # constructions in use. The three-protocol figure must reproduce exactly, on these same rows,
+  # or the fourth point is being added to a different span.
+  three_protocol_span: {value: 5.42, tol: 0.05}
+  four_protocol_span:  {value: 20.62, tol: 2.50}
+  min_four_protocol_span_ci_low: 5.42
