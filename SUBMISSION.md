@@ -8,7 +8,7 @@ index; nothing here is a summary of the science, which is in `manuscript/paper.p
 | bioRxiv asks for | file |
 |---|---|
 | Manuscript PDF | `manuscript/paper.pdf` (28 pages) |
-| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 246 words, no markup |
+| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 255 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 

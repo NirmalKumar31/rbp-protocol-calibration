@@ -96,7 +96,14 @@ arm.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f10_three_protocols}
-\caption{Nested contribution of a 4-mer model under three negative-set protocols, $n=94$ datasets. (a) Composition-only AUROC, apparent AUROC and nested contribution by protocol. (b) Nested contribution per dataset, dinucleotide-matched against GC-matched; points above the diagonal are the 88 of 94 datasets in which the contribution is greater under dinucleotide matching. (c) The same comparison for the bias-aware arm against GC matching, lower in 64 of 94. Apparent AUROC falls in all 94 datasets under dinucleotide matching while the contribution rises.}
+\caption{Nested contribution of a 4-mer model under three negative-set protocols, $n=94$
+datasets. (a) Panel means by protocol, $+0.0663$, $+0.0265$ and $+0.0122$, a 5.4-fold span for
+one model on one set of positives; bars are standard errors over datasets. (b) The same
+contributions against the composition-only AUROC each protocol leaves, one point per
+protocol-dataset cell, coloured by protocol (pooled Spearman $-0.60$): the contribution tracks
+the headroom. (c) Per dataset, the contribution under each of the other two protocols against
+its value under GC matching. Dinucleotide matching lies above the diagonal in 88 of 94 datasets
+and the bias-aware protocol below it in 64 of 94.}
 \label{fig:three}
 \end{figure}
 
@@ -118,8 +125,7 @@ $p=0.014$).
 
 We therefore rebuilt the arm with region matched, stratifying the donor draw on region class
 instead of drawing uniformly within the fold. Every other element of the construction is
-unchanged, and the rebuild keeps all 456{,}734 pairs, so the rebuild replaces every pair and
-drops none. It achieves the match exactly, at a region-only AUROC of 0.5000
+unchanged, and the rebuild keeps all 456{,}734 pairs, so no pair is lost to subsampling. It achieves the match exactly, at a region-only AUROC of 0.5000
 and a total variation distance of 0.0000. The composition baseline falls from 0.8248 to 0.8052
 and the contribution from $+0.0122$ to $+0.0092$, so 46\% of the arm's baseline excess over the
 GC arm is region mix and the rest is not. The ordering is unchanged: the region-matched arm
@@ -326,7 +332,10 @@ SpliceBERT & 1.07\% & 24.06\% & $-0.583$ & $-0.767$ & $-0.568$ \\
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f12_protocol_or_baseline}
-\caption{(a) All 282 protocol-dataset cells: nested contribution against the composition-only AUROC left by the protocol, by protocol (pooled Spearman $-0.600$, $p=6\times10^{-29}$). (b) Datasets partitioned by whether the bias-aware protocol raised or lowered the composition baseline relative to GC matching ($n=67$ and $27$); points are stratum means and bars are 95\% percentile intervals from a bootstrap over datasets (4000 draws). The contribution deficit reverses where the baseline falls.}
+\caption{(a) All 282 protocol-dataset cells: nested contribution against the composition-only AUROC left by the protocol, by protocol (pooled Spearman $-0.600$, $p=6\times10^{-29}$). (b) Datasets partitioned by whether the bias-aware protocol raised or lowered the composition
+baseline relative to GC matching ($n=67$ and $27$); points are stratum means and bars are 95\%
+percentile intervals from a bootstrap over datasets (4000 draws). The contribution deficit is
+abolished where the baseline falls.}
 \label{fig:baseline}
 \end{figure}
 
@@ -433,7 +442,17 @@ transforms.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f9_deep_contrast}
-\caption{Nested contribution in each composition-matched arm for a 4-mer logistic regression, a 7089-parameter convolutional network and a fully fine-tuned 19.78~M-parameter SpliceBERT, on identical rows and folds, $n=94$ datasets. Intervals are 95\% percentile intervals from a bootstrap over the 79 proteins, taking all datasets of each sampled protein (4000 draws).}
+\caption{Three model classes on identical rows and folds, $n=94$ datasets: a 4-mer logistic
+regression, a 7089-parameter convolutional network and a fully fine-tuned 19.78~M-parameter
+SpliceBERT. (a) Nested contribution in each composition-matched arm, per model; bars are
+standard errors over datasets. (b) The two-arm contrast per model, with 95\% percentile
+intervals from a bootstrap over the 79 proteins taking all datasets of each sampled protein
+(4000 draws). The hatched band spans the protocol effect obtained by transplanting a
+discriminability increment in either direction, $+0.0188$ to $+0.0314$ for the 4-mer, $+0.0213$
+to $+0.0412$ for the convolutional network and $+0.0253$ to $+0.0543$ for SpliceBERT: every
+member keeps the sign, so the contrast is not an artefact of AUROC compression, but its width is
+why we report the raw contrast and decline the decomposition in the text. (c) The contrast per
+dataset, SpliceBERT against the 4-mer; it is larger for SpliceBERT in all 94.}
 \label{fig:models}
 \end{figure}
 

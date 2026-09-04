@@ -28,8 +28,10 @@ generally \citep{whalen2022,krutzfeldt2020,cohendavidi2024}. That a difference i
 two models depends on how strong the baseline model is has also been characterised outside
 genomics \citep{pencina2012}.
 
-A model's increment over an explicit composition baseline is less exposed to compositional
-confounding than its raw AUROC. We define the nested contribution as the difference between the
+We call a model's own AUROC on a given protocol its \emph{apparent} AUROC, since it is the
+number a benchmark reports and it depends on the protocol as much as on the model. A model's
+increment over an explicit composition baseline is less exposed to compositional confounding
+than its apparent AUROC. We define the nested contribution as the difference between the
 pooled out-of-fold AUROC of a logistic model on composition features together with the model's
 score, and that of the composition features alone, fitted on the same rows and the same folds.
 
