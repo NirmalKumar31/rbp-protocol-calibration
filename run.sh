@@ -32,10 +32,15 @@
 set -uo pipefail
 cd "$(dirname "$0")" || exit 1
 
+# QUOTED AT EVERY CALL SITE, and it has to be. This project lives under a path containing a
+# space ("Deep Learning Project"), and the venv that runs it is inside that path, so the
+# obvious `PY=/path/with space/.venv/bin/python ./run.sh` split on the space and stage 13b died
+# with "/Users/nirmalkumar/Deep: No such file or directory". If you need to pass interpreter
+# flags, wrap them in a script and point PY at that.
 PY="${PY:-python3}"
 export PYTHONPATH="$PWD/src:${PYTHONPATH:-}"
 
-PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-$($PY -c 'import sys;sys.path.insert(0,"src");from rbp.utils import cloud;print(cloud.project())' 2>/dev/null)}"
+PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-$("$PY" -c 'import sys;sys.path.insert(0,"src");from rbp.utils import cloud;print(cloud.project())' 2>/dev/null)}"
 DERIVED="${DERIVED_BUCKET:-${PROJECT_ID}-derived}"
 RAW="${RAW_BUCKET:-${PROJECT_ID}-raw}"
 REGION="${REGION:-us-central1}"
@@ -85,7 +90,7 @@ gate_modal() {
 
 s0_preflight() {
   say "stage 0: preflight (GCP only -- Modal is gated separately, see gate_modal)"
-  $PY scripts/preflight.py --skip-modal ${PREFLIGHT_ARGS:-} \
+  "$PY" scripts/preflight.py --skip-modal ${PREFLIGHT_ARGS:-} \
     || die "preflight failed; fix and rerun"
   touch .preflight-ok
   say "GCP preflight recorded. GCP stages may run. Modal stages need ./run.sh preflight-modal"
@@ -93,7 +98,7 @@ s0_preflight() {
 
 preflight_modal() {
   say "verifying Modal: secret, auth, and a human-confirmed balance"
-  $PY scripts/preflight.py --modal-credit-ok ${PREFLIGHT_ARGS:-} \
+  "$PY" scripts/preflight.py --modal-credit-ok ${PREFLIGHT_ARGS:-} \
     || die "Modal preflight failed"
   touch .preflight-modal-ok
   say "Modal verified. Stages 9, 10 and 12 may run."
@@ -196,16 +201,16 @@ s5_prep() {
   # set, so nothing is saved by trying to invert this.
   gate_preflight; say "stage 5: preprocess ALL candidates, both arms, then finalize"
   confirm "preprocessing, both negative arms, full candidate set" "~\$2"
-  $PY scripts/cloud_prep.py index    || die "prep index"
-  $PY scripts/cloud_prep.py manifest || die "prep manifest"
+  "$PY" scripts/cloud_prep.py index    || die "prep index"
+  "$PY" scripts/cloud_prep.py manifest || die "prep manifest"
   ./cloud/submit.sh prep             || die "prep"     # one job, both arms
-  for arm in dinuc gc; do $PY scripts/cloud_prep.py finalize --arm "$arm" || die "finalize $arm"; done
+  for arm in dinuc gc; do "$PY" scripts/cloud_prep.py finalize --arm "$arm" || die "finalize $arm"; done
 }
 
 s6_select() {
   gate_preflight; say "stage 6: define THE study panel (every=$EVERY)"
-  $PY scripts/select_panel.py --every "$EVERY" || die "select_panel"
-  $PY scripts/select_panel.py --show
+  "$PY" scripts/select_panel.py --every "$EVERY" || die "select_panel"
+  "$PY" scripts/select_panel.py --show
   say "every later stage reads manifest/study_panel.tsv. Nothing else decides membership."
 }
 
@@ -216,19 +221,19 @@ s7_rehearsal() {
   # a shell loop on one machine, which is not a cloud pipeline.
   gate_preflight; say "stage 7: composition + k-mer, ALL arms in one job  -> R1"
   confirm "rehearsal, both negative arms, single job" "~\$0.60"
-  $PY scripts/cloud_rehearsal.py manifest || die "rehearsal manifest"
+  "$PY" scripts/cloud_rehearsal.py manifest || die "rehearsal manifest"
   ./cloud/submit.sh rehearsal            || die "rehearsal"
   for arm in dinuc gc; do
-    $PY scripts/cloud_rehearsal.py aggregate --arm "$arm" || say "aggregate $arm FAILED"
+    "$PY" scripts/cloud_rehearsal.py aggregate --arm "$arm" || say "aggregate $arm FAILED"
   done
 }
 
 s8_cnn() {
   gate_preflight; say "stage 8: CNN sweep  -> R2"
   confirm "CNN, 5 folds per dataset, Batch CPU" "~\$3"
-  $PY scripts/cloud_train.py manifest --arm dinuc --models cnn --tag _cnn || die "cnn manifest"
+  "$PY" scripts/cloud_train.py manifest --arm dinuc --models cnn --tag _cnn || die "cnn manifest"
   MODELS=cnn MANIFEST_TAG=_cnn ARM=dinuc ./cloud/submit.sh sweep || die "cnn"
-  $PY scripts/cloud_train.py aggregate --arm dinuc --models cnn
+  "$PY" scripts/cloud_train.py aggregate --arm dinuc --models cnn
 }
 
 s9_splicebert() {
@@ -242,14 +247,14 @@ s9_splicebert() {
   # cost limit anywhere near being hit. Same disease as sequencing Batch jobs from a shell
   # loop: the laptop becomes a dependency of the pipeline.
   modal run --detach cloud/modal/modal_sweep.py::sweep || die "splicebert"
-  $PY scripts/cloud_train.py aggregate --arm dinuc --models splicebert
+  "$PY" scripts/cloud_train.py aggregate --arm dinuc --models splicebert
 }
 
 s10_locality() {
   gate_preflight; gate_modal; say "stage 10: ISM locality probe on Modal  -> R3"
   confirm "locality probe, Modal T4" "~\$0.30"
   modal run --detach cloud/modal/modal_variants.py::locality_sweep || die "locality"
-  $PY scripts/locality_probe.py --gather
+  "$PY" scripts/locality_probe.py --gather
 }
 
 s11_variants() {
@@ -261,11 +266,11 @@ s11_variants() {
 s12_clinvar() {
   gate_preflight; gate_modal; say "stage 12: ClinVar scoring + mismatched-head control on Modal  -> R4"
   confirm "ClinVar scoring, matched and mismatched, Modal T4" "~\$0.60"
-  $PY scripts/variant_splicebert.py --what tables || die "variant tables"
+  "$PY" scripts/variant_splicebert.py --what tables || die "variant tables"
   modal run --detach cloud/modal/modal_variants.py::sweep || die "clinvar matched"
   modal run --detach cloud/modal/modal_variants.py::mismatch_sweep || die "clinvar mismatched"
-  $PY scripts/variant_splicebert.py --what gather
-  $PY scripts/variant_splicebert.py --what test
+  "$PY" scripts/variant_splicebert.py --what gather
+  "$PY" scripts/variant_splicebert.py --what test
 }
 
 s13_analysis() {
@@ -280,48 +285,48 @@ s13b_local_analysis() {
   # tables were produced by hand and committed, so `run.sh all` could not have reproduced the
   # numbers it then verified. They need no GPU and no bucket -- only results/tables and
   # data/evidence, both of which are in the repo -- so they belong in the pipeline.
-  $PY scripts/scale_check.py       || die "scale check"
-  $PY scripts/incremental_value.py || die "incremental value"
-  $PY scripts/unconditional_refit.py || die "unconditional refit"
-  $PY scripts/strand_contrast.py    || die "strand contrast"
-  $PY scripts/strand_placebo.py --from-cache || die "strand placebo"
-  $PY scripts/strand_asymmetry.py --from-cache || die "strand asymmetry"
-  $PY scripts/r1_robustness.py     || die "replication and efficiency"
-  $PY scripts/k_sweep.py --from-cache || die "k sweep"
-  $PY scripts/region_heterogeneity.py --from-cache || die "region heterogeneity"
+  "$PY" scripts/scale_check.py       || die "scale check"
+  "$PY" scripts/incremental_value.py || die "incremental value"
+  "$PY" scripts/unconditional_refit.py || die "unconditional refit"
+  "$PY" scripts/strand_contrast.py    || die "strand contrast"
+  "$PY" scripts/strand_placebo.py --from-cache || die "strand placebo"
+  "$PY" scripts/strand_asymmetry.py --from-cache || die "strand asymmetry"
+  "$PY" scripts/r1_robustness.py     || die "replication and efficiency"
+  "$PY" scripts/k_sweep.py --from-cache || die "k sweep"
+  "$PY" scripts/region_heterogeneity.py --from-cache || die "region heterogeneity"
   # R1g needs both arms' per-window model scores. The dinucleotide arm's are committed under
   # data/evidence/scores; the GC arm's are produced by cloud/modal/modal_gc_sweep.py into the
   # local store, which is not in the repo. --from-cache is therefore the default path here,
   # rebuilding the summary from the committed per-dataset table, exactly as the four above do.
-  $PY scripts/deep_model_contrast.py --from-cache || die "deep model contrast"
-  $PY scripts/protocol_identification.py || die "protocol identification"
-  $PY scripts/cluster_intervals.py || die "clustered intervals"
-  $PY scripts/expression_control.py --from-cache || die "expression control"
-  $PY scripts/three_arm_contrast.py --from-cache || die "three-arm contrast"
-  $PY scripts/baseline_confounding.py || die "baseline confounding"
-  $PY scripts/scale_sweep.py || die "scale sweep"
-  $PY scripts/protocol_or_baseline.py || die "protocol or baseline"
-  $PY scripts/baseline_order.py --from-cache || die "baseline order"
-  $PY scripts/baseline_order_models.py --from-cache || die "baseline order, model classes"
-  $PY scripts/multiplier_variance.py || die "multiplier variance"
-  $PY scripts/score_scale_check.py --from-cache || die "score scale"
-  $PY scripts/transport_check.py || die "transport check"
-  $PY scripts/three_arm_models.py --from-cache || die "three arm x three models"
-  $PY scripts/models_by_protocol.py || die "per-model protocol analyses"
+  "$PY" scripts/deep_model_contrast.py --from-cache || die "deep model contrast"
+  "$PY" scripts/protocol_identification.py || die "protocol identification"
+  "$PY" scripts/cluster_intervals.py || die "clustered intervals"
+  "$PY" scripts/expression_control.py --from-cache || die "expression control"
+  "$PY" scripts/three_arm_contrast.py --from-cache || die "three-arm contrast"
+  "$PY" scripts/baseline_confounding.py || die "baseline confounding"
+  "$PY" scripts/scale_sweep.py || die "scale sweep"
+  "$PY" scripts/protocol_or_baseline.py || die "protocol or baseline"
+  "$PY" scripts/baseline_order.py --from-cache || die "baseline order"
+  "$PY" scripts/baseline_order_models.py --from-cache || die "baseline order, model classes"
+  "$PY" scripts/multiplier_variance.py || die "multiplier variance"
+  "$PY" scripts/score_scale_check.py --from-cache || die "score scale"
+  "$PY" scripts/transport_check.py || die "transport check"
+  "$PY" scripts/three_arm_models.py --from-cache || die "three arm x three models"
+  "$PY" scripts/models_by_protocol.py || die "per-model protocol analyses"
   # match_quality.py needs the 3 GB window store and so is NOT in the default path;
-  # its table is committed. Regenerate with: $PY scripts/match_quality.py
-  $PY scripts/table_s1.py || die "supplementary table s1"
-  $PY scripts/horlacher_arm.py --from-cache || die "horlacher arm"
-  $PY scripts/recommendation_works.py || die "recommendation test"
-  $PY scripts/fold_integrity.py --from-cache   || die "fold integrity"
-  $PY scripts/region_asymmetry.py --from-cache || die "region asymmetry"
-  $PY scripts/standalone_auroc.py --from-cache || die "standalone auroc"
-  $PY scripts/design_effect.py --from-cache    || die "design effect"
+  # its table is committed. Regenerate with: "$PY" scripts/match_quality.py
+  "$PY" scripts/table_s1.py || die "supplementary table s1"
+  "$PY" scripts/horlacher_arm.py --from-cache || die "horlacher arm"
+  "$PY" scripts/recommendation_works.py || die "recommendation test"
+  "$PY" scripts/fold_integrity.py --from-cache   || die "fold integrity"
+  "$PY" scripts/region_asymmetry.py --from-cache || die "region asymmetry"
+  "$PY" scripts/standalone_auroc.py --from-cache || die "standalone auroc"
+  "$PY" scripts/design_effect.py --from-cache    || die "design effect"
   # peak_thresholds.py fetches 95 narrowPeak files from ENCODE and so is NOT in the default
-  # path; its table is committed. Regenerate with: $PY scripts/peak_thresholds.py
-  $PY scripts/recompute.py         || die "recompute from per-example evidence"
+  # path; its table is committed. Regenerate with: "$PY" scripts/peak_thresholds.py
+  "$PY" scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
-  $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"
+  "$PY" scripts/audit_manuscript.py  || die "manuscript orphan audit"
   # --from-cache REBUILDS THE SUMMARY FROM THE COMMITTED PER-DATASET TABLE. Four of these
   # need window tables or a GENCODE GTF to do their per-dataset work, and neither is in the
   # repo -- so without this flag the verifier would again be asserting tables that no stage
@@ -347,9 +352,31 @@ s14_verify() {
   # with no cloud access at all. Until 2026-08-27 this line ran the GCS path only, so a cloner
   # hit a bucket they have no credentials for and could check nothing -- in a repo whose whole
   # pitch is that verification is a stage.
-  $PY scripts/verify.py --local results/tables || die "THE SCIENCE DID NOT REPRODUCE (local tables) -- see the failed claims above"
-  $PY scripts/verify.py || die "THE SCIENCE DID NOT REPRODUCE (GCS artefacts) -- local tables passed, so suspect the upload"
-  say "reproduction verified"
+  #
+  # THE GCS PASS IS CONDITIONAL, and it has to be. The bucket this study was built against
+  # belongs to a project whose billing account was closed, so every object returns 403 and the
+  # unconditional second line made `run.sh all` end in "THE SCIENCE DID NOT REPRODUCE (GCS
+  # artefacts)" on a repository whose local tables had just passed in full. That reads as a
+  # failed reproduction and is a dead bucket. It is skipped loudly rather than silently: a
+  # cloner is told the cross-check did not run, which is the honest state, and anyone who
+  # points DERIVED_BUCKET at a live bucket gets the comparison back.
+  "$PY" scripts/verify.py --local results/tables || die "THE SCIENCE DID NOT REPRODUCE (local tables) -- see the failed claims above"
+  if "$PY" -c "
+import sys
+from rbp.utils import cloud
+b = cloud.bucket()
+# Reachable AND populated. A bucket that exists but holds no result tables makes verify.py
+# report every table MISSING and 138 checks, which looks like a catastrophic failure of the
+# science and is an empty prefix.
+sys.exit(0 if b.exists() and any(
+    b.client.list_blobs(b.name, prefix='results/tables/', max_results=1)) else 1)" \
+     >/dev/null 2>&1; then
+    "$PY" scripts/verify.py || die "THE SCIENCE DID NOT REPRODUCE (GCS artefacts) -- local tables passed, so suspect the upload"
+    say "reproduction verified against both the local tables and the bucket"
+  else
+    say "SKIPPED the bucket cross-check: no reachable DERIVED_BUCKET. Local tables passed."
+    say "  the upload-vs-local disagreement this stage exists to catch was NOT tested"
+  fi
 }
 
 STAGES=(s0_preflight s1_terraform s2_images s3_ingest s4_panel s5_prep s6_select \

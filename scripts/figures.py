@@ -32,8 +32,20 @@ FIGS = ROOT / "results" / "figures"
 
 # One hue per model, fixed, so a model is the same colour in every figure. Assigned by
 # identity and never by rank, or a figure that drops a model would repaint the survivors.
+# COLOUR IS CHECKED, NOT CHOSEN. tests/unit/test_palette_cvd.py measures OKLab separation for
+# every pair that shares a panel, under normal vision and under simulated protanopia and
+# deuteranopia, and fails below the thresholds. Three pairs failed the first time it ran, all
+# of them at NORMAL vision, meaning full-colour readers could not tell them apart either:
+# k-mer against SpliceBERT at 14.8, the dinucleotide arm against Horlacher's first arm at 9.5,
+# and the two greys of Figure 5b -- which are ADJACENT bars -- at 8.7. Do not edit these values
+# without rerunning that test.
+#
+# "neg2" also used to be COLOR["cnn"], so one orange meant the bias-aware ARM in Figure 1 and
+# the convolutional MODEL in Figure 4. Colour follows the entity, so the arm has its own now.
 COLOR = {"composition": "#8c8c8c", "kmer": "#4878a8", "cnn": "#e08214",
-         "splicebert": "#2b6a4d", "gc": "#b2182b", "dinuc": "#2166ac"}
+         "splicebert": "#276419", "gc": "#b2182b", "dinuc": "#2166ac",
+         "neg2": "#e7298a", "theirs": "#762a83",
+         "grey_mid": "#969696", "grey_light": "#d9d9d9"}
 LABEL = {"composition": "composition (19 feat)", "kmer": "k-mer LR", "cnn": "CNN",
          "splicebert": "SpliceBERT"}
 
@@ -137,7 +149,10 @@ def f0():
     # (b) how the panel splits across the two cell lines, and how many proteins appear in both.
     by = d.groupby("cell").size()
     n_both = int((d.protein.value_counts() == 2).sum())
-    ax[1].bar(by.index, by.values, color=["#8c8c8c", "#2b6a4d"], width=0.6)
+    # From the palette rather than a literal: #2b6a4d was SpliceBERT's old green and became an
+    # orphan when the CVD test moved it, leaving one figure on a hex nothing else referenced.
+    ax[1].bar(by.index, by.values,
+              color=[COLOR["composition"], COLOR["splicebert"]], width=0.6)
     for i, v in enumerate(by.values):
         ax[1].text(i, v + 0.8, str(v), ha="center", fontsize=8)
     ax[1].set_ylabel("datasets")
@@ -634,7 +649,7 @@ def f10():
     q = s.set_index("check")
     arms = [("dn", "dinucleotide\nmatched"), ("gc", "GC\nmatched"),
             ("neg2", "other RBPs'\nsites (neg2)")]
-    col = {"dn": COLOR["dinuc"], "gc": COLOR["gc"], "neg2": COLOR["cnn"]}
+    col = {"dn": COLOR["dinuc"], "gc": COLOR["gc"], "neg2": COLOR["neg2"]}
     fig, ax = plt.subplots(1, 3, figsize=(10.6, 3.4))
 
     # a. composition baseline and nested contribution, per protocol
@@ -670,7 +685,7 @@ def f10():
     ax[2].plot(lim, lim, color="#999999", lw=0.8, ls="--", zorder=2)
     ax[2].scatter(d.gain_gc, d.gain_dn, s=12, color=COLOR["dinuc"], alpha=0.7,
                   edgecolor="white", linewidth=0.25, zorder=3, label="dinuc vs GC")
-    ax[2].scatter(d.gain_gc, d.gain_neg2, s=12, color=COLOR["cnn"], alpha=0.7,
+    ax[2].scatter(d.gain_gc, d.gain_neg2, s=12, color=COLOR["neg2"], alpha=0.7,
                   edgecolor="white", linewidth=0.25, zorder=3, label="neg2 vs GC")
     ax[2].set_xlim(lim)
     ax[2].set_ylim(lim)
@@ -878,9 +893,9 @@ def f14():
     bars = [
         ("ours\nGC", *clustered(d, "comp_gc", "gain_gc"), COLOR["gc"]),
         ("ours\ndinuc", *clustered(d, "comp_dn", "gain_dn"), COLOR["dinuc"]),
-        ("theirs\nneg-1", *clustered(h, "comp_n1", "gain_n1"), "#6a51a3"),
-        ("ours\nneg2", *clustered(d, "comp_neg2", "gain_neg2"), "#bdbdbd"),
-        ("theirs\nneg-2", *clustered(h, "comp_n2", "gain_n2"), "#d9d9d9"),
+        ("theirs\nneg-1", *clustered(h, "comp_n1", "gain_n1"), COLOR["theirs"]),
+        ("ours\nneg2", *clustered(d, "comp_neg2", "gain_neg2"), COLOR["grey_mid"]),
+        ("theirs\nneg-2", *clustered(h, "comp_n2", "gain_n2"), COLOR["grey_light"]),
     ]
     x = np.arange(len(bars))
     vals = [b[1] for b in bars]
@@ -931,7 +946,7 @@ def f15():
         v1, v2 = float(r.loc[k1, "value"]), float(r.loc[k2, "value"])
         sig = i == 0          # only the first pair's improvement clears zero
         ax[0].plot([i - 0.16, i + 0.16], [v1, v2], color="#404040", linewidth=1.0, zorder=2)
-        ax[0].scatter([i - 0.16], [v1], s=40, color="#bdbdbd", zorder=3,
+        ax[0].scatter([i - 0.16], [v1], s=40, color=COLOR["grey_light"], zorder=3,
                       edgecolor="white", linewidth=0.5, label="raw" if i == 0 else None)
         ax[0].scatter([i + 0.16], [v2], s=40, color=COLOR["splicebert"], zorder=3,
                       edgecolor="white", linewidth=0.5,
@@ -959,7 +974,7 @@ def f15():
         worse = v2 < v1 if i == 0 else v2 > v1
         col = COLOR["gc"] if worse else COLOR["splicebert"]
         ax[1].plot([i - 0.16, i + 0.16], [v1, v2], color="#404040", linewidth=1.0, zorder=2)
-        ax[1].scatter([i - 0.16], [v1], s=40, color="#bdbdbd", zorder=3,
+        ax[1].scatter([i - 0.16], [v1], s=40, color=COLOR["grey_light"], zorder=3,
                       edgecolor="white", linewidth=0.5)
         ax[1].scatter([i + 0.16], [v2], s=40, color=col, zorder=3, edgecolor="white",
                       linewidth=0.5)

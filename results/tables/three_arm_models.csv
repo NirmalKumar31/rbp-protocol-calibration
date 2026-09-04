@@ -1,25 +1,25 @@
 check,value,ci_low,ci_high,n,note
-"composition AUROC, dn arm",0.627428716941948,0.6126221878595406,0.6432130415762741,94,
+"composition AUROC, dn arm",0.6274272695414447,0.6126206062264972,0.6432075289728194,94,
 "composition AUROC, gc arm",0.7827305897323874,0.7616371578698241,0.8036019509043207,94,
 "composition AUROC, neg2 arm",0.8247778749636611,0.8069812354792615,0.8428201097584287,94,
-"kmer nested contribution, dn arm",0.06626325416626831,0.054067448355396217,0.07990277660326649,94,
+"kmer nested contribution, dn arm",0.06626403675115053,0.054073753103355875,0.07990446807174477,94,
 "kmer nested contribution, gc arm",0.026513098340627504,0.020384564412688,0.03309605285808229,94,
 "kmer nested contribution, neg2 arm",0.012231944163197651,0.009754584941553283,0.015055647482416442,94,
-kmer three-protocol span,5.417229941715651,4.427971262392065,6.582647728308446,94,0.0% non-finite draws
-"cnn nested contribution, dn arm",0.08600314190115597,0.0718399700135992,0.1008791878209562,94,
+kmer three-protocol span,5.417293920497092,4.427867828708473,6.582629896953713,94,0.0% non-finite draws
+"cnn nested contribution, dn arm",0.08365362130760695,0.0695854164280546,0.09894643295783674,94,
 "cnn nested contribution, gc arm",0.03300453940390074,0.025404421225719787,0.041717830134952526,94,
 "cnn nested contribution, neg2 arm",0.011268725158253787,0.008250424264324829,0.01456724550100678,94,
-cnn three-protocol span,7.632020542994866,6.229658911566297,9.62634596233049,94,0.0% non-finite draws
-"splicebert nested contribution, dn arm",0.17537926379280305,0.15721063217435796,0.19333473765687859,94,
+cnn three-protocol span,7.423521306341808,6.074553618916362,9.307196705712041,94,0.0% non-finite draws
+"splicebert nested contribution, dn arm",0.1735310137999413,0.15512269759104252,0.19193865124247003,94,
 "splicebert nested contribution, gc arm",0.08902656237648787,0.07429980136741429,0.10453614003191132,94,
 "splicebert nested contribution, neg2 arm",0.0466140278896648,0.03981278581482799,0.05421855862030952,94,
-splicebert three-protocol span,3.762370937090547,3.2735332587796218,4.337597464696122,94,0.0% non-finite draws
-minimum three-protocol span over model classes,3.762370937090547,,,94,splicebert
-model class with the widest span,7.632020542994866,,,94,cnn
+splicebert three-protocol span,3.722720855848124,3.2343199533078386,4.298885191340058,94,0.0% non-finite draws
+minimum three-protocol span over model classes,3.722720855848124,,,94,splicebert
+model class with the widest span,7.423521306341808,,,94,cnn
 model classes whose lowest contribution is the bias-aware arm,3.0,,,3,
-"protocol range of panel means, within kmer",0.05403131000307066,,,94,fold 5.42
-"protocol range of panel means, within cnn",0.07473441674290218,,,94,fold 7.63
-"protocol range of panel means, within splicebert",0.12876523590313826,,,94,fold 3.76
-"model-class range of panel means, within dn arm",0.10911600962653474,,,94,fold 2.65
+"protocol range of panel means, within kmer",0.05403209258795288,,,94,fold 5.42
+"protocol range of panel means, within cnn",0.07238489614935316,,,94,fold 7.42
+"protocol range of panel means, within splicebert",0.1269169859102765,,,94,fold 3.72
+"model-class range of panel means, within dn arm",0.10726697704879076,,,94,fold 2.62
 "model-class range of panel means, within gc arm",0.06251346403586036,,,94,fold 3.36
 "model-class range of panel means, within neg2 arm",0.03534530273141102,,,94,fold 4.14

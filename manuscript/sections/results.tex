@@ -31,7 +31,7 @@ contribution from $+0.0265$ to $+0.0663$. The contrast in contribution was $+0.0
 $+0.0325$ to $+0.0477$, protein-clustered; positive in 88 of 94 datasets). Evaluated by its own
 AUROC the model appears to have deteriorated; evaluated by contribution it appears to have
 improved by a factor of 2.50 in panel means, or 2.94 as the geometric mean of the 88
-per-dataset ratios that are defined. Across the three arms the contribution spanned 5.42-fold ($95\%$ CI
+per-dataset ratios in which both arms are positive. Across the three arms the contribution spanned 5.42-fold ($95\%$ CI
 4.43 to 6.58, protein-clustered).
 
 The bias-aware protocol did not behave as we predicted. Because both classes are genuine
@@ -397,23 +397,23 @@ protein-clustered percentile intervals.}
 model & dinucleotide & GC & bias-aware & span \\
 \midrule
 4-mer & $+0.0663$ & $+0.0265$ & $+0.0122$ & 5.42 (4.43--6.58) \\
-CNN & $+0.0860$ & $+0.0330$ & $+0.0113$ & 7.63 (6.23--9.63) \\
-SpliceBERT & $+0.1754$ & $+0.0890$ & $+0.0466$ & 3.76 (3.27--4.34) \\
+CNN & $+0.0837$ & $+0.0330$ & $+0.0113$ & 7.42 (6.07--9.31) \\
+SpliceBERT & $+0.1735$ & $+0.0890$ & $+0.0466$ & 3.72 (3.23--4.30) \\
 \midrule
 composition alone & 0.6274 & 0.7827 & 0.8248 & \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The span was present for every model class and was smallest, at 3.76-fold, for the largest
+The span was present for every model class and was smallest, at 3.72-fold, for the largest
 model. The bias-aware protocol yielded the lowest contribution for all three model classes while
 carrying the highest composition baseline, so the inversion between apparent difficulty and
 measured contribution is not specific to a bag-of-$k$-mers measurement. Within a protocol the
-three model classes themselves span 2.65-fold (dinucleotide), 3.36-fold (GC) and 4.14-fold
+three model classes themselves span 2.62-fold (dinucleotide), 3.36-fold (GC) and 4.14-fold
 (bias-aware), which is the like-for-like comparison: the protocol effect is of the same order as
 the effect of changing model class, not larger than it. The two-arm contrast was
-$+0.0398$ (CI $+0.0325$ to $+0.0477$) for the 4-mer, $+0.0530$ (CI $+0.0440$ to $+0.0627$) for
-the convolutional network and $+0.0864$ (CI $+0.0778$ to $+0.0951$) for SpliceBERT. The bias-aware arm also reorders two of the three model classes: the 4-mer's $+0.0122$ there
+$+0.0398$ (CI $+0.0325$ to $+0.0477$) for the 4-mer, $+0.0506$ (CI $+0.0417$ to $+0.0603$) for
+the convolutional network and $+0.0845$ (CI $+0.0757$ to $+0.0935$) for SpliceBERT. The bias-aware arm also reorders two of the three model classes: the 4-mer's $+0.0122$ there
 exceeds the convolutional network's $+0.0113$, where the network is ahead of it in both other
 arms. The difference is $+0.0010$ with a protein-clustered interval of $-0.0016$ to $+0.0034$,
 so what the protocol does is not so much reverse the ranking as destroy it, leaving two model
@@ -427,24 +427,24 @@ experiment on capacity.
 
 Decomposing the log multiplier over the 262 dataset-by-model cells in which that model was
 positive in both arms, a looser rule than the 77-dataset intersection above, RBP identity
-accounted for 64.8\% of variance, cell line for 0.2\% and model class for 2.8\%, with 32.8\%
+accounted for 64.7\% of variance, cell line for 0.1\% and model class for 2.5\%, with 33.3\%
 residual. These shares are not directly comparable, and with type-II sums of squares they do not
 sum to one: a 79-level factor absorbs 29.7\% of the variance of relabelled data whereas a
 three-level factor absorbs 0.8\%. Against a stricter null that permutes protein labels between
 datasets while preserving
-dataset-by-model blocks, and which therefore absorbs 57.6\% by itself, the excess attributable
-to protein identity was $+7.2$ points ($p=0.003$).
+dataset-by-model blocks, and which therefore absorbs 57.4\% by itself, the excess attributable
+to protein identity was $+7.3$ points ($p=0.003$).
 
 That excess and the direct test below are one line of evidence and not two, because the
 protein factor is nearly the dataset factor at 79 levels against 94, so both rest on the fifteen
 proteins measured in both cell lines. The direct test is that the same protein's log multiplier
-agreed between cell lines at $r=0.586$ (Spearman 0.594) over 40 protein-by-model pairs. Those
+agreed between cell lines at $r=0.582$ (Spearman 0.605) over 40 protein-by-model pairs. Those
 rows are not independent, since they come from fifteen proteins by three models sharing windows,
 labels and folds, so we report the protein-collapsed version as primary: averaging over models
-gives $r=0.607$ ($p=0.017$, Spearman 0.546, $p=0.035$, $n=15$), an order of magnitude weaker in
+gives $r=0.598$ ($p=0.018$, Spearman 0.564, $p=0.028$, $n=15$), an order of magnitude weaker in
 $p$ than the uncollapsed 0.0001 and the figure consistent with this paper's own standard of
-resampling proteins. Per model the agreement is $r=0.753$ for the 4-mer and $0.772$ for
-SpliceBERT but only $0.316$ ($p=0.32$) for the convolutional network, so it is not a property of
+resampling proteins. Per model the agreement is $r=0.754$ for the 4-mer and $0.766$ for
+SpliceBERT but only $0.300$ ($p=0.34$) for the convolutional network, so it is not a property of
 all three. Cell line was not detectable, although with fifteen proteins measured in both lines
 the design has little power. Model class was small but detectable ($p=0.023$), consistent with
 SpliceBERT's lower multiplier, and robust to the censoring induced by requiring both arms
@@ -456,36 +456,35 @@ its central assumption, that the increment is invariant to the baseline against 
 measured, is violated in these data. Two grids show it, and they are different grids. The first varies
 the transformation: six links, arcsine, complementary log-log, log, log-error, logit and probit,
 by the two transplant directions, twelve specifications in all. The residual is positive in
-every one of the twelve for all three models, from $+0.0127$ to $+0.1022$. The second varies
+every one of the twelve for all three models, from $+0.0127$ to $+0.1003$. The second varies
 the slope the transplant requires, over its three defensible sources, the GC arm's, the
 dinucleotide arm's and their mean, by the same two directions, so six specifications. There the
 residual's bootstrap interval excludes zero in 4 of 6 for the 4-mer, 6 of 6 for the
-convolutional network and 1 of 6 for SpliceBERT, and the point estimates span zero for two of
-the three models. The log-odds link reverses the sign entirely, which is the behaviour
+convolutional network and none of the 6 for SpliceBERT, and the point estimates span zero for
+two of the three models. The log-odds link reverses the sign entirely, which is the behaviour
 \citet{mood2010} describes for odds ratios under unobserved heterogeneity. With three arms the residual's sign follows the direction
 of transplant, $+0.0452$ carrying an increment from a high-baseline arm to a low-baseline one and
 $-0.0259$ in reverse. We report the raw contrast, which requires no transplant, link or
 transportability assumption.
 
-This subsection carries two provenance limitations. For 20 of the 94 datasets in the
-dinucleotide arm the retained neural scores were produced under a partition that is not
-chromosome-grouped. Fold sizes were preserved, so count-based checks do not detect it. Up to 23
-chromosomes appear in a single fold, and up to 44.5\% of rows have a same-strand neighbour
-within 1~kb assigned to a different fold. All 564 score sets across the three arms are now
-audited: the GC and bias-aware arms are clean, 94 of 94 each, with at most five chromosomes per
-fold and no cross-fold neighbour at all. The 4-mer is refit on the study folds for every dataset
-and is unaffected. Restricted to the 74 correctly partitioned datasets the contrasts were
-$+0.0436$, $+0.0506$ and $+0.0878$, and the spans 6.02, 8.33 and 3.92, every one of them inside
-the protein-clustered interval reported for the full panel. We report the full panel as primary
-throughout and these as a sensitivity, because the defect is conservative: dropping the affected
-datasets widens the span instead of narrowing it. On the affected datasets themselves the
-defect is not small. The difference in differences, comparing each neural model's margin over
-the 4-mer between arms, is $+0.0294$ for the convolutional network and $+0.0110$ for SpliceBERT
-between leaky and clean datasets, which for the convolutional network is as large as its whole
-GC-arm contribution; the leaky datasets are also the panel's largest, with a median of 7{,}798
-pairs against 2{,}184, so that figure confounds the defect with size and is an upper bound.
+All 564 score sets, across three arms and three model classes, are audited against the frozen
+fold assignment: every one is chromosome-grouped, with at most five chromosomes in a fold and no
+row having a same-strand neighbour within 1~kb assigned to a different fold.
 
-The second limitation is one of scale. The 4-mer entered the nested fit as a
+That was not true of an earlier version of this analysis, and the history is worth stating
+because the defect is of a kind that ordinary checks miss. For 20 of the 94 dinucleotide-arm
+datasets the neural scores had been produced under a stratified random partition. Fold sizes
+were preserved, so no count-based check detected it, while up to 23 chromosomes appeared in a
+single fold and up to 44.5\% of rows sat within 1~kb of a same-strand neighbour in another fold.
+Those 200 fold-runs were retrained on the study partition and their scores replaced. The
+retraining lowered both neural models' dinucleotide-arm contribution slightly, well inside their
+protein-clustered intervals; the 4-mer, which is refit on the study folds for every dataset, is
+unchanged, and the GC arm is unchanged to the last decimal place. The audit is
+\texttt{scripts/fold\_integrity.py} and it runs inside the verification harness, so the property
+is asserted rather than remembered.
+
+This subsection carries one remaining provenance limitation, and it is one of scale. The 4-mer
+entered the nested fit as a
 log odds and the neural models as probabilities; logistic regression is not invariant to a
 nonlinear transform of a covariate. Refitting the neural arms on the logit scale increased their
 contributions by $+0.0008$ (CNN) and $+0.0030$ (SpliceBERT) on the GC arm and moved the contrasts

@@ -56,16 +56,16 @@ reduced apparent AUROC in all 94 datasets while raising the nested contribution 
 2.50 in panel means,
 and the bias-aware protocol gave both the easiest discrimination of the three and the smallest
 contribution. The contribution spanned 5.4-fold across protocols for the 4-mer, and between 3.8
-and 7.6-fold across the three model classes.
+and 7.4-fold across the three model classes.
 
 For scale, the two comparisons a benchmark exists to support can be put in the same units.
 Changing protocol while holding the model fixed moves the panel-mean contribution by 0.0540 for
-the 4-mer, 0.0747 for the convolutional network and 0.1288 for SpliceBERT. Changing model class
-while holding the protocol fixed moves it by 0.0625 in the GC arm, 0.1091 in the dinucleotide
+the 4-mer, 0.0724 for the convolutional network and 0.1269 for SpliceBERT. Changing model class
+while holding the protocol fixed moves it by 0.0625 in the GC arm, 0.1073 in the dinucleotide
 arm and 0.0353 in the bias-aware arm. The two are comparable and neither dominates. In absolute
 AUROC, which is larger depends on the arm and the model one starts from. As a fold change the
-protocol range reaches higher but still overlaps the other, 3.8 to 7.6-fold across protocols
-against 2.7 to 4.1-fold across model classes, and SpliceBERT's protocol span falls below the
+protocol range reaches higher but still overlaps the other, 3.7 to 7.4-fold across protocols
+against 2.6 to 4.1-fold across model classes, and SpliceBERT's protocol span falls below the
 bias-aware arm's model-class span. The claim is not that the protocol matters more than the
 model. It is that it matters as much, and is usually not reported. Of eight standard coordinates five reduced the span
 without closing it, two are controls and one increased it, and an exponent fitted to close it

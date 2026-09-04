@@ -10,7 +10,7 @@ interpretable against the question it answers.
 How much a sequence model adds over sequence composition is therefore not a property of the
 model alone. Holding the model, the positives, the folds and the estimator fixed, and varying
 only how the negative windows were assembled, the measured contribution of a 4-mer varied
-5.4-fold, and between 3.8 and 7.6-fold across three model classes.
+5.4-fold, and between 3.7 and 7.4-fold across three model classes.
 
 This has consequences for reporting practice, and they are specific enough to state as a
 checklist. A paper reporting a sequence model's performance on RBP binding should give three
@@ -101,12 +101,12 @@ increment over a composition baseline is reporting a quantity indexed by the ord
 baseline, and few state which order was used.
 
 The collapse is bounded in two ways. Protocol dependence is not an artefact of where the baseline
-stops: at an order-three baseline the two-arm contrast remained $+0.0067$, $+0.0309$ and
-$+0.0545$ for the three model classes at $n=94$, all with intervals excluding zero. The collapse
+stops: at an order-three baseline the two-arm contrast remained $+0.0067$, $+0.0277$ and
+$+0.0520$ for the three model classes at $n=94$, all with intervals excluding zero. The collapse
 is also specific to models whose features are nested within the span of the baseline. Over a
 trinucleotide baseline the 4-mer's contribution was positive in 65 of 94 datasets against 94 of
 94 for SpliceBERT, and after accounting for the reduced headroom the raised baseline leaves, the
-4-mer lost 1.41 times what SpliceBERT lost in the dinucleotide arm and 1.29 times in the GC arm.
+4-mer lost 1.37 times what SpliceBERT lost in the dinucleotide arm and 1.29 times in the GC arm.
 A benchmark meant to separate model classes, instead of ranking them by how much short-range
 composition they absorb, could therefore raise the order of its baseline. That recommendation
 carries a circularity worth stating: trinucleotide counts are linear aggregates of 4-mer counts,
@@ -127,11 +127,11 @@ does not contest that and depends on
 it, since their released negative sets provide our only external validation. What we add is a
 calibration of it. What the protocol moves is not just apparent AUROC but the increment over
 an explicit baseline, and it moves that increment in the opposite direction, by a factor of
-between 3.8 and 7.6
+between 3.7 and 7.4
 depending on the model class, and no reparameterisation renders that increment comparable across
 benchmarks. On this panel the protocol effect is of the same order as the effect of changing
 model class, which is what these benchmarks exist to resolve: within a protocol the three model
-classes span 2.65 to 4.14-fold, against 3.8 to 7.6-fold across protocols within a model. The
+classes span 2.62 to 4.14-fold, against 3.7 to 7.4-fold across protocols within a model. The
 same dependence has since been reported for transcription factor binding sites
 \citep{tourne2026}, on a different assay, a different class of model, and against a motif
 rather than a composition baseline, which suggests the problem is not specific to eCLIP. The circularity we cite in the
@@ -177,13 +177,11 @@ amount in each. And cross-validation uses a single frozen chromosome partition, 
 the fold-to-fold spans quoted throughout describe variability within one partition and not
 across the choice of partition.
 
-Two limitations concern the provenance of the neural scores. For 20 of 94 datasets in the
-dinucleotide arm
-the retained scores came from a partition that is not chromosome-grouped, and we report the full
-panel as primary with the 74 correctly partitioned datasets as a sensitivity; every restricted
-value lies inside the interval reported for the full panel, and the restriction widens the spans
-instead of narrowing them. Initialisation was unseeded across all 2830 fold-runs, at the cost
-quantified in Methods.
+One limitation concerns the provenance of the neural scores. Initialisation was unseeded across
+all 2830 committed fold-runs, at the cost quantified in Methods. A second, that 20 of the 94
+dinucleotide-arm datasets carried scores from a partition that was not chromosome-grouped, has
+been removed rather than bounded: those 200 fold-runs were retrained on the study partition and
+all 564 score sets now pass the audit.
 
 Positive sets differ slightly between arms. Window construction is identical, but a positive is
 dropped when its matcher finds no acceptable negative and the matchers fail on different
@@ -206,7 +204,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 718 assertions compare each published value against a frozen
+credit than it earns. Its 717 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -219,7 +217,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 718 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 717 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit

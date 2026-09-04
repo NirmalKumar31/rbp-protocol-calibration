@@ -66,26 +66,29 @@ five-fold: a three-protocol calibration across 94 ENCODE eCLIP datasets}
 \begin{abstract}
 \noindent
 Sequence models for RNA-binding proteins are evaluated against constructed negative windows,
-and how those windows are chosen is usually treated as a detail. Across 94 paired
-ENCODE eCLIP datasets we held the model, the positives, the chromosome-blocked folds and the
-estimator fixed, varied only how the negative windows were built, and measured each model's
-nested contribution over a 19-feature mono- and dinucleotide composition baseline refit under
-each protocol. Replacing GC-matched with dinucleotide-matched negatives lowered the
-model's own AUROC from 0.798 to 0.689 in 94 of 94 datasets while raising its measured
-contribution from 0.027 to 0.066. A bias-aware protocol drawing negatives from other proteins' binding sites gave the easiest
-discrimination of the three and the smallest contribution, 0.012.
-Apparent difficulty and measured contribution therefore move in opposite directions
-throughout this panel, spanning 5.4-fold for a 4-mer and between 3.8 and 7.6-fold across three model
-classes measured on identical rows; on the one externally constructed benchmark we tested they
-move together, so the direction is a property of these three protocols and not a general law.
-Of eight standard coordinates, five reduced the 4-mer's span without closing it, reaching a
-floor of 2.0, two are controls that return the raw span by construction, and one increased it
-more than threefold; an exponent fitted to close the span survived neither a change of
-aggregation nor transport to that benchmark. Dividing by the baseline's headroom improved cross-protocol agreement on our own
-data but failed, out of sample, the falsification test we had specified for it in advance. We
-therefore recommend reporting the composition-only AUROC obtained under the same protocol
-alongside every headline AUROC, and not comparing contributions measured under different
-protocols.
+and how those windows are chosen is usually treated as a detail. Across 94 paired ENCODE
+eCLIP datasets we held the model, the positives, the chromosome-blocked folds and the estimator
+fixed, varied only how the negatives were built, and measured each model's nested contribution
+over a 19-feature composition baseline refit under each protocol. Replacing GC-matched with dinucleotide-matched negatives lowered the 4-mer's own AUROC from a
+panel mean of 0.798 to 0.689 and raised its measured contribution from 0.027 to 0.066.
+Both changes held in every one of the 94 datasets individually, not only in the panel mean.
+The direction is implied by the design,
+since dinucleotide matching constrains fifteen degrees of freedom of composition against GC
+matching's one, so only the magnitude is informative. A bias-aware protocol
+drawing negatives from other proteins' binding sites gave the easiest discrimination of the
+three and the smallest contribution, 0.012, and there nineteen composition features beat the
+4-mer outright in 53 of 94 datasets. Apparent difficulty and measured contribution therefore
+move in opposite directions throughout this panel, spanning 5.4-fold for a 4-mer and 3.7 to
+7.4-fold across three model classes on identical rows. On the one externally constructed
+benchmark we tested they move together, so the relation is a property of these three protocols
+and not a general law. No standard rescaling closed the span: of eight
+coordinates five reduced it to a floor of 2.0, two are controls and one widened it, and an
+exponent fitted to close it survived neither a change of aggregation nor transport to that
+benchmark. At an order-three baseline most of the 4-mer's contribution disappears and the
+span widens, so the quantity is indexed by the baseline's order as well as the protocol. Dividing by the baseline's headroom improved cross-protocol agreement
+on our data but failed, out of sample, a falsification test specified in advance. We therefore
+recommend reporting the composition-only AUROC obtained under the same protocol alongside every
+headline AUROC, and not comparing contributions measured under different protocols.
 \end{abstract}
 
 \noindent\textbf{Keywords:} RNA-binding proteins; eCLIP; benchmarking; negative-set
@@ -114,7 +117,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 reproducible offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 718 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 717 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. One quantity is an exception and is marked as such in the text: the design effect, whose
 block bootstrap needs the genomic coordinates that the published per-window score files do not

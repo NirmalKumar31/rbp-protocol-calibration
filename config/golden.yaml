@@ -405,15 +405,15 @@ r1g_deep_contrast:
     positive_datasets: {value: 88, tol: 3}
   cnn:
     nested_gc:      {value: 0.0330, tol: 0.0025}
-    nested_dn:      {value: 0.0860, tol: 0.0040}
-    contrast_auroc: {value: 0.0530, tol: 0.0035}
+    nested_dn:      {value: 0.0837, tol: 0.0040}
+    contrast_auroc: {value: 0.0506, tol: 0.0035}
     protocol_min:   {value: 0.0213, tol: 0.0025}
     protocol_max:   {value: 0.0412, tol: 0.0030}
     positive_datasets: {value: 89, tol: 3}
   splicebert:
     nested_gc:      {value: 0.0890, tol: 0.0045}
-    nested_dn:      {value: 0.1754, tol: 0.0060}
-    contrast_auroc: {value: 0.0864, tol: 0.0040}
+    nested_dn:      {value: 0.1735, tol: 0.0060}
+    contrast_auroc: {value: 0.0845, tol: 0.0040}
     protocol_min:   {value: 0.0253, tol: 0.0025}
     protocol_max:   {value: 0.0543, tol: 0.0035}
     positive_datasets: {value: 94, tol: 3}
@@ -563,11 +563,15 @@ r1h_protocol_identification:
   # identified. What is reported is the span and how many specifications keep the sign.
   spec_span_min_kmer:       {value: -0.0044, tol: 0.0040}
   spec_span_max_kmer:       {value: 0.0200, tol: 0.0040}
-  spec_span_min_splicebert: {value: -0.0103, tol: 0.0040}
-  spec_span_max_splicebert: {value: 0.0044, tol: 0.0040}
+  spec_span_min_splicebert: {value: -0.0260, tol: 0.0050}
+  spec_span_max_splicebert: {value: 0.0031, tol: 0.0040}
   spec_excluding_zero_kmer:       4
   spec_excluding_zero_cnn:        6
-  spec_excluding_zero_splicebert: 1
+  # WAS 1, NOW 0, and the change came from the dinucleotide retrain rather than from any
+  # analysis choice. SpliceBERT's transplant residual now keeps its sign in NONE of the six
+  # specifications, which strengthens the paper's refusal to decompose the span: the one
+  # model that had a single surviving specification no longer has it.
+  spec_excluding_zero_splicebert: 0
   spec_total: 6
   # THE CLAIM, AND IT IS NOT A CAPACITY CLAIM. The CNN -- the MIDDLE rung -- is the only
   # model whose protocol effect survives every specification. Any ordering by parameter count
@@ -1339,7 +1343,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 717
+  min_domain_checks: 716
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1717,15 +1721,15 @@ match_quality:
 # for those 20. None of the 549 assertions checked it: the harness gated the VALUES the scores
 # produced and never what produced them, now at the level of the evidence files.
 #
-# WHAT MOVES, AND IT IS LESS THAN THE DEFECT SUGGESTS. The k-mer is refit in-script on the
-# study folds for every dataset, so it is a clean internal control. Dropping the 20:
-#   k-mer      +0.0398 -> +0.0436   (+0.0038)
+# RESOLVED 2026-09-04 BY RETRAINING, not by bounding. The 200 affected fold-runs were rerun on
+# config/folds.tsv and their scores replaced, so all three arms are 94/94 and the gates above
+# are set to zero rather than to a disclosed 20. What it moved, measured:
+#   k-mer      +0.0398 -> +0.0398   (unchanged; it is refit in-script on the study folds)
 #   CNN        +0.0530 -> +0.0506   (-0.0024)
-#   SpliceBERT +0.0864 -> +0.0878   (+0.0015)
-# all inside the protein-clustered half-widths of ~0.009. The affected quantity is the CNN's
-# dinucleotide-arm deep gain: difference-in-differences against the k-mer is +0.0294, though the
-# leaky datasets are also the panel's largest (median 7,798 vs 2,184 pairs) so that is an upper
-# bound confounded with size.
+#   SpliceBERT +0.0864 -> +0.0845   (-0.0019)
+# Both inside the protein-clustered half-widths of ~0.009, and the CNN shift is exactly the
+# -0.0024 the drop-the-20 sensitivity had predicted. Only the 20 moved; the GC arm is
+# bit-identical; the k-mer moved at most 0.000183 from two extra rows entering the paired set.
 #
 # THE GC ARM IS CLEAN, 94 OF 94. So R1's headline, R1m, R1n, R1q and the GC arm of R1o/R1r are
 # untouched, and every k-mer number in the paper is untouched.
@@ -1826,30 +1830,33 @@ fold_integrity:
   n_score_sets: 564
   grouped_gc: {value: 94, tol: 0}
   aligned_gc: {value: 94, tol: 0}
-  grouped_dn: {value: 74, tol: 0}
+  # THE DINUCLEOTIDE ARM IS NOW CLEAN, and these three keys are the record of it. It was
+  # 74/94 grouped, 20 leaky, 23 chromosomes in a single fold. Those 200 fold-runs were
+  # retrained on the study partition on 2026-09-04 and their scores replaced, so the arm is
+  # held to exactly the standard the other two are: 94, zero, five. Raising any of these back
+  # would mean the retrain has been reverted.
+  grouped_dn: {value: 94, tol: 0}
   grouped_neg2: {value: 94, tol: 0}
+  aligned_dn: {value: 94, tol: 0}
   aligned_neg2: {value: 94, tol: 0}
   max_chroms_per_score_fold_neg2: {value: 5, tol: 0}
   # Same standard the GC arm is held to, and for the same reason: zero, not small.
   neg2_must_be_fully_grouped: true
   max_cross_fold_neighbours_neg2: 0.0
-  leaky_datasets: {value: 20, tol: 0}
+  leaky_datasets: {value: 0, tol: 0}
   max_chroms_per_score_fold_gc: {value: 5, tol: 0}
-  max_chroms_per_score_fold_dn: {value: 23, tol: 0}
-  contrast_kmer_clean:      {value: 0.0436, tol: 0.006}
-  contrast_cnn_clean:       {value: 0.0506, tol: 0.006}
-  contrast_splicebert_clean: {value: 0.0878, tol: 0.008}
+  max_chroms_per_score_fold_dn: {value: 5, tol: 0}
+  dn_must_be_fully_grouped: true
+  max_cross_fold_neighbours_dn: 0.0
   # THE GATES THAT MATTER.
   #  1. The GC arm must stay perfectly chromosome-grouped with ZERO cross-fold neighbours. It
   #     carries the headline; if it ever leaks, the paper stops.
-  #  2. No NEW dataset may become leaky. The count is pinned at exactly 20, two-sided, because
-  #     a one-sided floor would pass a rerun that leaked more.
-  #  3. The conclusion must survive dropping them. If a contrast shift ever exceeds this bound
-  #     the leaky datasets are load-bearing and the dinucleotide deep sweep must be rerun
-  #     rather than caveated.
+  #  2. NO dataset in ANY arm may be leaky. The count is pinned at exactly 0, two-sided. It was
+  #     pinned at 20 with a bound on how far the conclusion could move when they were dropped;
+  #     that bound existed because the sweep had not been rerun, and it has been, so the
+  #     tolerance for the defect is now zero in all three arms rather than a disclosed 20.
   gc_must_be_fully_grouped: true
   max_cross_fold_neighbours_gc: 0.0
-  max_contrast_shift_from_leakage: 0.006
 
 # --- R1u: a protocol-free coordinate EXISTS in sample. It does not TRANSPORT. --------------
 #
@@ -1932,8 +1939,8 @@ r1u_transport:
 #
 # THE SPAN IS NOT AN ARTEFACT OF THE CHEAP MODEL:
 #   4-mer       +0.0663 / +0.0265 / +0.0122   5.42x [4.43, 6.58]
-#   CNN         +0.0860 / +0.0330 / +0.0113   7.63x [6.23, 9.63]
-#   SpliceBERT  +0.1754 / +0.0890 / +0.0466   3.76x [3.27, 4.34]
+#   CNN         +0.0837 / +0.0330 / +0.0113   7.42x [6.07, 9.31]
+#   SpliceBERT  +0.1735 / +0.0890 / +0.0466   3.72x [3.23, 4.30]
 #
 # Two things follow. It is present for every model class, so "a five-fold span measured with a
 # bag of k-mers is an artefact of a weak model" is answered directly rather than by analogy.
@@ -1951,8 +1958,8 @@ r1v_three_arm_models:
   cnn_neg2:        {value: 0.0113, tol: 0.004}
   splicebert_neg2: {value: 0.0466, tol: 0.008}
   span_kmer:       {value: 5.42, tol: 0.60}
-  span_cnn:        {value: 7.63, tol: 1.00}
-  span_splicebert: {value: 3.76, tol: 0.60}
+  span_cnn:        {value: 7.42, tol: 1.00}
+  span_splicebert: {value: 3.72, tol: 0.60}
   # A5. THE TWO EFFECTS IN THE SAME UNITS. The Introduction compared a protocol-driven
   # contribution range against gaps in APPARENT AUROC between model classes, which are
   # different quantities, and concluded the protocol effect was "nearly three times" one and
@@ -1961,10 +1968,10 @@ r1v_three_arm_models:
   # effect reliably the bigger of the two. Gated as the ORDERING of the fold ranges, because
   # that is the surviving claim; the absolute ranges are gated as values.
   range_protocol_kmer:       {value: 0.0540, tol: 0.008}
-  range_protocol_cnn:        {value: 0.0747, tol: 0.012}
-  range_protocol_splicebert: {value: 0.1288, tol: 0.020}
+  range_protocol_cnn:        {value: 0.0724, tol: 0.012}
+  range_protocol_splicebert: {value: 0.1269, tol: 0.020}
   range_modelclass_gc:       {value: 0.0625, tol: 0.010}
-  range_modelclass_dn:       {value: 0.1091, tol: 0.018}
+  range_modelclass_dn:       {value: 0.1073, tol: 0.018}
   range_modelclass_neg2:     {value: 0.0353, tol: 0.008}
   # Not "protocol dominates": the ranges overlap. See the note in verify.py, where the first
   # version of this gate asserted dominance and correctly failed.
@@ -2020,8 +2027,13 @@ r1w_models_by_protocol:
   argmin_range_splicebert: {value: 1.124, tol: 0.10}
   inc_protocol_kmer:       {value: 0.0100, tol: 0.004}
   inc_baseline_kmer:       {value: 0.1105, tol: 0.020}
-  inc_protocol_cnn:        {value: 0.0625, tol: 0.015}
-  inc_baseline_cnn:        {value: 0.0234, tol: 0.010}
+  # Both recentred after the retrain, and they moved in opposite directions: the CNN's
+  # protocol-label increment fell from 0.0625 to 0.0460 while its baseline increment rose from
+  # 0.0234 to 0.0347, so the baseline now carries less than the label for this model rather
+  # than more. The paper's claim is about the 4-mer, where the ordering is unchanged and much
+  # wider (0.0100 against 0.1104), and it says so.
+  inc_protocol_cnn:        {value: 0.0460, tol: 0.015}
+  inc_baseline_cnn:        {value: 0.0347, tol: 0.012}
   inc_protocol_splicebert: {value: 0.0107, tol: 0.005}
   inc_baseline_splicebert: {value: 0.2406, tol: 0.030}
   gradient_neg2_splicebert: {value: -0.568, tol: 0.10}

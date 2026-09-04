@@ -2194,10 +2194,7 @@ def verify_fold_integrity(T, g):
             ("max chromosomes in any score fold, neg2 arm",
              spec["max_chroms_per_score_fold_neg2"]),
             ("leaky datasets", spec["leaky_datasets"]),
-            ("kmer R1 contrast, chromosome-grouped only", spec["contrast_kmer_clean"]),
-            ("cnn R1 contrast, chromosome-grouped only", spec["contrast_cnn_clean"]),
-            ("splicebert R1 contrast, chromosome-grouped only",
-             spec["contrast_splicebert_clean"])):
+            ("datasets aligned to folds.tsv, dn arm", spec["aligned_dn"])):
         v = must(label)
         if v is not None:
             near(label, v, key)
@@ -2231,24 +2228,29 @@ def verify_fold_integrity(T, g):
             at_most("and its direct cross-fold neighbour fraction is exactly zero too",
                     nbr2, spec["max_cross_fold_neighbours_neg2"])
 
-    # 2. NO NEW DATASET MAY BECOME LEAKY, and the count is pinned two-sided: a floor would
-    # pass a rerun that leaked more.
+    # 1c. AND THE DINUCLEOTIDE ARM, which is where the defect was. It used to be held to a
+    # weaker standard -- 74 of 94 grouped, 20 leaky, with a bound on how far the conclusion
+    # could move when the 20 were dropped -- because the sweep had not been rerun. It has been,
+    # so the arm is held to the same zero as the other two and the tolerance is gone.
+    if spec["dn_must_be_fully_grouped"]:
+        n_bad3 = must("datasets NOT chromosome-grouped, dn arm")
+        if n_bad3 is not None:
+            record(int(n_bad3) == 0,
+                   "the dinucleotide arm, where the partition defect was, is fully "
+                   "chromosome-grouped after the retrain", f"{int(n_bad3)} leaky", "0")
+        nbr3 = must("max cross-fold 1kb neighbour fraction, dn arm")
+        if nbr3 is not None:
+            at_most("and its direct cross-fold neighbour fraction is exactly zero, which it "
+                    "was not before: it reached 44.5%",
+                    nbr3, spec["max_cross_fold_neighbours_dn"])
+
+    # 2. NO DATASET IN ANY ARM MAY BE LEAKY. Pinned two-sided at zero: a floor would pass a
+    # rerun that leaked more, and the whole point of the retrain is that zero is now reachable.
     nl = must("leaky datasets")
     if nl is not None:
         record(int(nl) == spec["leaky_datasets"]["value"],
-               "exactly the known dinucleotide-arm datasets are affected, no more and no "
-               "fewer", int(nl), spec["leaky_datasets"]["value"])
-
-    # 3. AND THE CONCLUSION MUST SURVIVE DROPPING THEM, or the leaky sets are load-bearing and
-    # the sweep has to be rerun rather than caveated.
-    worst = 0.0
-    for model in ("kmer", "cnn", "splicebert"):
-        v = must(f"{model} R1 contrast shift when leaky sets are dropped")
-        if v is not None:
-            worst = max(worst, abs(v))
-    at_most("every R1g contrast survives dropping the leaky datasets, so the defect is a "
-            "disclosed limitation and not a correction to the claim",
-            worst, spec["max_contrast_shift_from_leakage"])
+               "no dataset in any arm is off-partition, so the defect is corrected rather "
+               "than disclosed", int(nl), spec["leaky_datasets"]["value"])
 
 
 def verify_design_effect(T, g):
