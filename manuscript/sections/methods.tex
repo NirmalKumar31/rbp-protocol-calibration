@@ -255,11 +255,11 @@ most favourable order available.
 convolution (4 to 16 channels, width 12), ReLU, max-pool 4, convolution (16 to 32, width 8),
 ReLU, global max-pool over position, dense 32 to 64, ReLU, dropout 0.5, dense 64 to 1. 7089
 parameters, all trained from scratch. Global max-pooling makes the model position-invariant,
-which is necessary here because the discriminative signal is not at the window centre. Taking
-the mutual information in bits between the base at each of the 101 positions and the label, over
-every window of a dataset and with no model fitted, the position carrying the most information
-sits a median of 23~nt from the midpoint, with an interquartile range of 11 to 29~nt and a
-maximum of 48; it lies within 5~nt of the midpoint in only 13 of 94 datasets. The midpoint
+which is necessary here because the discriminative signal is not at the window centre. The
+mutual information in bits between the base at each of the 101 positions and the label, over
+every window and with no model fitted, puts the most informative position a median of 23~nt from
+the midpoint, interquartile range 11 to 29~nt and maximum 48. It lies within 5~nt of the midpoint
+in only 13 of 94 datasets. The midpoint
 itself carries 0.0058 bits against 0.0136 at the peak, so less than half. A position-sensitive
 architecture would therefore be fitting a location that moves from protein to protein.
 
@@ -275,9 +275,7 @@ checkpoint restored before test scoring. Learning rate $10^{-3}$ for the head an
 $3\times10^{-5}$ for a fine-tuned encoder. Nominal epochs overstate the training
 performed: the median best epoch for SpliceBERT was 3 and most runs stopped by epoch 6 or 7,
 whereas the convolutional network typically ran the full 12. Initial weights were drawn before
-the seed was set, so initialisation is unseeded across all 2830 committed fold-runs, that is two
-models by five folds by 94 datasets in the GC and bias-aware arms and 95 in the dinucleotide
-arm; the measured
+the seed was set, so initialisation is unseeded across all 2830 committed fold-runs. The measured
 cost is a per-dataset standard deviation of 0.006 to 0.010 in the nested contribution, inducing
 about 0.001 on a 94-dataset mean against a reported interval half-width of about 0.008. The
 convolutional and transformer arms were trained on different accelerators, which changes

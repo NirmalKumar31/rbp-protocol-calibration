@@ -283,27 +283,31 @@ classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
 credit than it earns. Its 918 assertions compare each published value against a frozen
-expectations file that was generated from the same run those values come from. They are
-therefore regression coverage: they detect drift, corruption and silently skipped checks, and
-they cannot independently confirm that the original run was correct. The two assertions that do
-more are the end-to-end rebuilds, the 285 AUROCs recomputed from committed per-example scores
-and the headline contrast recomputed from raw sequence, because each re-derives a value along a
-different path instead of comparing it against a record of itself. Those two, and not the count,
-are the reproducibility claim worth making. A second asymmetry is worth naming: everything
-downstream of the neural scores is bit-reproducible, while the scores themselves are not,
-because initialisation was unseeded, so a reader who reruns the sweep will obtain slightly
-different scores and then identical numbers from every step after them. The harness also asserts
-values and not the provenance of the code that produced them, and the fold-partition defect
-above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 918 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
-manuscript audit traces every number in this text,
-decimal values and bare counts alike, to a committed table, a configuration value or a
-constructed object, and no unsourced number remains. Two limits are worth stating. The audit
-cannot tell whether a number is attached to the right claim, so a real value printed on the
-wrong line passes. And its power is bounded by how densely the sourced values fill the space it
-searches, which is about a quarter of both the four-decimal grid over $[0.5, 1.0]$ and the
-integer range the paper's counts occupy, so a fabricated value would escape roughly one time in
-four. The audit reports that occupancy on every run for exactly this reason.
+expectations file generated from the same run those values come from, so they are regression
+coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
+original run was correct. Two assertions do more, and they are the reproducibility claim worth
+making rather than the count: the 285 AUROCs recomputed from committed per-example scores, and
+the headline contrast recomputed from raw sequence. Each re-derives a value along a different
+path instead of comparing it against a record of itself.
+
+Everything downstream of the neural scores is bit-reproducible; the scores themselves are not,
+because initialisation was unseeded, so a rerun gives slightly different scores and then
+identical numbers from every step after them. The harness asserts values, not the provenance of
+the code producing them, and the fold-partition defect above is exactly the class that
+distinction permits: it was found by inspection and by none of the 918 assertions, as was the
+region asymmetry of Section~\ref{sec:region}.
+
+The manuscript audit traces every number here, decimals and bare counts alike, to a committed
+table, a configuration value or a constructed object, and no unsourced number remains. Three
+limits bound it. It cannot tell whether a number is attached to the right claim, so a real value
+on the wrong line passes. Its power is set by how densely sourced values fill the space it
+searches, about a quarter of both the four-decimal grid over $[0.5, 1.0]$ and the integer range
+the paper's counts occupy, so a fabrication escapes roughly one time in four; the audit reports
+that occupancy on every run. And because it matches values against tables rather than claims
+against runs, it passed a stale statement of this section's own coverage: the count above was
+quoted from an earlier run while a larger number of assertions were executing. That one is now
+checked against the live total on every run, which is the only class of number here that goes
+stale whenever the harness grows.
 
 That density is also why AUROCs are quoted here to four decimal places, which is finer than the
 measurement warrants. A single dataset's AUROC carries a DeLong standard error in the third
