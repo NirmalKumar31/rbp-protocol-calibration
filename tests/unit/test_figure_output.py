@@ -28,6 +28,13 @@ def _figures():
 
 
 def test_the_submission_package_carries_figures():
+    # SKIP ONLY WHERE THE MANUSCRIPT IS ABSENT ENTIRELY, and fail where it is present but
+    # unbuilt. The container image copies config, src, scripts and tests and deliberately not
+    # manuscript/, so an unconditional assertion here failed the image build -- on a test about
+    # figures, in a build that has no reason to carry any. Skipping whenever the directory is
+    # missing would instead certify nothing in the checkout that matters.
+    if not FIGDIR.parent.exists():
+        pytest.skip("no manuscript/ in this checkout (the container image does not carry it)")
     assert _figures(), f"no figure PDFs under {FIGDIR}; run manuscript/build.sh"
 
 

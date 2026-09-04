@@ -247,16 +247,24 @@ def main():
     # THE CONTROL. The published centring rebuilt through this path must return the published
     # per-dataset gain, or the three centrings are being compared with each other and not with
     # the paper.
+    # REPORTED PER ARM, because the two matchers are not the same kind of thing. The
+    # dinucleotide matcher is a deterministic nearest-neighbour assignment, so its rebuild has
+    # to reproduce the published gain to numerical precision. The GC matcher SAMPLES candidate
+    # windows from an RNG whose state depends on the call sequence, so a rebuild is a different
+    # legitimate draw from the same construction and can only agree to within sampling noise.
+    # One combined figure would let a real drift in the deterministic arm hide behind the
+    # expected scatter in the stochastic one.
     pub = pd.read_csv(TABLES / "three_arm_per_dataset.csv").set_index("dataset")
-    worst = 0.0
     for arm, col in (("gc", "gain_gc"), ("dn", "gain_dn")):
         s = t[(t.centre == "midpoint") & (t.arm == arm)].set_index("dataset")
         if s.empty:
             continue
-        worst = max(worst, float((s.gain - pub.loc[s.index, col]).abs().max()))
-    out.append({"check": "max |midpoint rebuild gain - published gain|", "value": worst,
-                "n": len(t)})
-    log(f"  the midpoint rebuild reproduces the published per-dataset gain to {worst:.2e}")
+        w = float((s.gain - pub.loc[s.index, col]).abs().max())
+        kind = "deterministic" if arm == "dn" else "stochastic draw"
+        out.append({"check": f"max |midpoint rebuild gain - published gain|, {arm} arm",
+                    "value": w, "n": len(s), "note": kind})
+        log(f"  the midpoint rebuild reproduces the published gain to {w:.2e}, {arm} arm "
+            f"({kind})")
 
     log(f"\n  {'centre':12s} {'arm':4s} {'positives':>10s} {'pairs':>8s} "
         f"{'composition':>12s} {'contribution':>13s}")

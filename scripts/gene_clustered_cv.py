@@ -157,11 +157,17 @@ def build(store, gtf, cache, limit):
             intergenic += int(sum(str(x).startswith("__intergenic_") for x in g))
             win_total += len(d)
 
-            # THE STRUCTURAL CHECK: does any gene appear in more than one FROZEN fold?
-            spanning = sum(1 for _, s in pd.DataFrame({"g": g, "f": d.fold}).groupby("g")
-                           if s.f.nunique() > 1)
-            span_total += spanning
-            rec[f"genes_spanning_folds_{arm}"] = spanning
+            # THE STRUCTURAL CHECK: does any gene group appear in more than one FROZEN fold?
+            # It should not, and 22 do. Every one is a gene NAME shared across chromosomes,
+            # not a locus: the index keys on gene_name, and GENCODE reuses a name for
+            # pseudo-autosomal chrX/chrY pairs and for multi-copy small-RNA families. So the
+            # windows in those groups are recorded too, because the count of groups says
+            # nothing about how much sequence is involved.
+            gf_frozen = pd.DataFrame({"g": g, "f": d.fold}).groupby("g").f.nunique()
+            span_names = set(gf_frozen[gf_frozen > 1].index)
+            span_total += len(span_names)
+            rec[f"genes_spanning_folds_{arm}"] = len(span_names)
+            rec[f"windows_in_spanning_groups_{arm}"] = int(sum(x in span_names for x in g))
             rec[f"n_genes_{arm}"] = int(len(set(g)))
 
             gf, load = balanced_gene_folds(g, np.ones(len(g)))
@@ -232,12 +238,44 @@ def main():
     # THE STRUCTURAL FACT, VERIFIED. A gene lies on one chromosome, so chromosome-grouped
     # folds cannot split one. Asserted as an exact zero over every window in both arms.
     span = int(sum(t[f"genes_spanning_folds_{arm}"].sum() for arm in ARM_DIR))
-    out.append({"check": "genes spanning a frozen fold boundary", "value": span, "n": len(t)})
-    out.append({"check": "distinct gene groups, dinucleotide arm",
-                "value": int(t.n_genes_dn.sum()), "n": len(t)})
-    log(f"  {span} genes span a frozen fold boundary, over "
-        f"{int(t.n_genes_dn.sum() + t.n_genes_gc.sum())} gene groups: chromosome grouping is "
-        f"strictly coarser than gene grouping, so the leakage it is asked about cannot occur")
+    wins = int(sum(t[f"windows_in_spanning_groups_{arm}"].sum() for arm in ARM_DIR))
+    groups = int(t.n_genes_dn.sum() + t.n_genes_gc.sum())
+    out.append({"check": "gene groups spanning a frozen fold boundary", "value": span,
+                "n": len(t)})
+    out.append({"check": "gene groups examined, summed over datasets and both arms",
+                "value": groups, "n": len(t)})
+    out.append({"check": "windows inside a gene group that spans a frozen fold boundary",
+                "value": wins, "n": len(t)})
+    log(f"  {span} of {groups} gene groups span a frozen fold boundary, holding {wins} windows")
+    log("  A LOCUS CANNOT SPAN ONE: chromosome grouping is strictly coarser than grouping by")
+    log("  locus, so the leakage the objection describes is impossible by construction. What")
+    log("  spans is a gene NAME shared across chromosomes, which the index keys on: GENCODE")
+    log("  reuses a name for pseudo-autosomal chrX/chrY pairs and for multi-copy small-RNA")
+    log("  families. Those are the one leakage channel chromosome grouping does NOT close,")
+    log("  because near-identical sequence really does sit on both sides of the split.")
+
+    # THE CENSUS BEHIND THAT, straight from the gene index, so the explanation is a
+    # measurement and not a plausible story. Two distinct causes and they are worth
+    # separating: the pseudo-autosomal region puts one name on chrX and chrY, and multi-copy
+    # small-RNA families put one name on up to two dozen chromosomes.
+    cache = Path(a.gene_cache)
+    if cache.exists():
+        gidx = pickle.loads(cache.read_bytes())
+        where = defaultdict(set)
+        for chrom, (_s, _e, names) in gidx.items():
+            for nm in names:
+                where[nm].add(chrom)
+        multi = {nm: c for nm, c in where.items() if len(c) > 1}
+        xy = sum(1 for c in multi.values() if c == {"chrX", "chrY"})
+        out.append({"check": "gene names appearing on more than one chromosome",
+                    "value": len(multi), "n": len(t)})
+        out.append({"check": "of those, pseudo-autosomal chrX/chrY name pairs", "value": xy,
+                    "n": len(t)})
+        out.append({"check": "largest number of chromosomes sharing one gene name",
+                    "value": max((len(c) for c in multi.values()), default=0), "n": len(t)})
+        log(f"  {len(multi)} gene names sit on more than one chromosome: {xy} are chrX/chrY "
+            f"pseudo-autosomal pairs and the widest spans "
+            f"{max((len(c) for c in multi.values()), default=0)} chromosomes")
 
     # HOW MUCH FINER THE GENE GROUPING IS. Without this the agreement below could mean the
     # two designs are nearly the same design, which would make it uninformative.
