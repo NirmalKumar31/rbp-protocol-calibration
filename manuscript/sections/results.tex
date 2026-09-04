@@ -178,6 +178,26 @@ composition baseline reads through the base composition characteristic of each r
 also occupy compositionally distinct sites within a region. Both contribute, and only the second
 is about binding-site composition.
 
+One alternative explanation for the arm's deficit is not compositional at all and has to be
+excluded rather than argued away. Many RBPs co-bind the same transcripts, so a negative drawn
+from another protein's binding site may be a site the target also binds, which is a mislabelled
+positive rather than a hard negative, and label noise of that kind depresses any model's
+measured contribution on its own. The construction excludes a donor window within 500~nt of the
+target's own positive windows, which is not the same as excluding it from the target's peaks,
+because a positive is one 101~nt window on a peak midpoint and a wide peak extends beyond it. We
+measured the residual directly: the fraction of bias-aware negatives whose midpoint falls inside
+a called peak of the target protein has median 0.0000, mean 0.0001 and maximum 0.0029 across the
+94 datasets. At three negatives in a thousand at worst, there is not enough mislabelling present
+to account for a deficit of 0.021.
+
+The direction is wrong for it as well. Sorting datasets by that residual, the third with the
+most overlap has the \emph{smallest} deficit, $-0.0078$ against $-0.0190$ for the third with the
+least, a difference of $+0.0112$ in the opposite direction to what co-binding predicts. The
+across-dataset correlation is $+0.228$ ($p=0.027$), also the wrong sign, though with a residual
+this near zero throughout we would not read much into its size either. The claim we make is the
+negative one: co-binding is too rare here to be the explanation, and what variation it has does
+not point the way the explanation requires.
+
 \subsection{No standard reparameterisation removes the protocol dependence}
 
 AUROC is compressive near unity, so a contribution measured against a baseline of 0.82 is

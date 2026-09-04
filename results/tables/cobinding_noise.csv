@@ -1,0 +1,10 @@
+check,value,n,note
+window exclusion margin applied at construction (nt),500.0,94,
+median fraction of bias-aware negatives inside a target peak,0.0,94,
+mean fraction of bias-aware negatives inside a target peak,9.879616274966816e-05,94,
+max fraction of bias-aware negatives inside a target peak,0.0028763183125599234,94,
+"spearman(residual co-binding, bias-aware deficit)",0.22794893189335688,94,p=0.027
+"bias-aware deficit, lowest third by residual co-binding",-0.019018067864204725,31,mean overlap 0.0000
+"bias-aware deficit, middle third by residual co-binding",-0.01625956575122118,31,mean overlap 0.0000
+"bias-aware deficit, highest third by residual co-binding",-0.007775682831256348,32,mean overlap 0.0003
+deficit in the highest overlap third minus the lowest,0.011242385032948377,94,

@@ -322,9 +322,11 @@ s13b_local_analysis() {
   "$PY" scripts/region_asymmetry.py --from-cache || die "region asymmetry"
   "$PY" scripts/standalone_auroc.py --from-cache || die "standalone auroc"
   "$PY" scripts/design_effect.py --from-cache    || die "design effect"
-  # nested_scale.py needs the window store for its sequences, like match_quality.py, so it is
-  # NOT in the default offline path; its table is committed and gated. Regenerate with:
-  #   "$PY" scripts/nested_scale.py --store ../rbp-store
+  # THREE MORE THAT NEED THE WINDOW STORE and so are not in the default offline path, like
+  # match_quality.py. Their tables are committed and gated. Regenerate with:
+  #   "$PY" scripts/nested_scale.py    --store ../rbp-store   # 1b/1c, the 2x2
+  #   "$PY" scripts/estimands.py       --store ../rbp-store   # B1, five estimands
+  #   "$PY" scripts/cobinding_noise.py --store ../rbp-store   # B4, needs the peak BEDs too
   # peak_thresholds.py fetches 95 narrowPeak files from ENCODE and so is NOT in the default
   # path; its table is committed. Regenerate with: "$PY" scripts/peak_thresholds.py
   "$PY" scripts/recompute.py         || die "recompute from per-example evidence"

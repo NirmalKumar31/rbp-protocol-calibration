@@ -2253,6 +2253,48 @@ def verify_fold_integrity(T, g):
                "than disclosed", int(nl), spec["leaky_datasets"]["value"])
 
 
+def verify_cobinding_noise(T, g):
+    """B4: co-binding label noise as an alternative explanation for the bias-aware deficit."""
+    print("\nco-binding noise  (is the bias-aware deficit mislabelled positives?)")
+    d = T.get("cobinding_noise.csv")
+    if d is None:
+        return record(False, "cobinding_noise.csv present", "MISSING",
+                      "run scripts/cobinding_noise.py --store ../rbp-store")
+    spec = g["cobinding_noise"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    mx = get("max fraction of bias-aware negatives inside a target peak")
+    if mx is not None:
+        at_most("residual co-binding is far too rare to account for the bias-aware deficit: "
+                "the WORST dataset has this fraction of its negatives inside a target peak",
+                mx, spec["max_overlap_fraction"])
+    med = get("median fraction of bias-aware negatives inside a target peak")
+    if med is not None:
+        near("median residual co-binding", med, spec["median_overlap"])
+
+    lo = get("bias-aware deficit, lowest third by residual co-binding")
+    hi = get("bias-aware deficit, highest third by residual co-binding")
+    if lo is not None:
+        near("bias-aware deficit, lowest overlap third", lo, spec["deficit_lowest_third"])
+    if hi is not None:
+        near("bias-aware deficit, highest overlap third", hi, spec["deficit_highest_third"])
+
+    # THE SIGN. Co-binding predicts that MORE overlap means a LARGER deficit. It is smaller.
+    # Gated separately from the magnitude, because either finding alone could be argued around
+    # and together they close the explanation.
+    if None not in (lo, hi) and spec["overlap_must_not_explain_deficit"]:
+        record(hi > lo,
+               "the datasets with the MOST residual co-binding have the SMALLEST deficit, so "
+               "the effect runs opposite to what a label-noise explanation requires",
+               f"highest {hi:+.4f} vs lowest {lo:+.4f}", "highest above lowest")
+
+
 def verify_estimands(T, g):
     """B1: is the protocol ordering a property of AUROC, or of the comparison?"""
     print("\nestimands  (does the ordering survive leaving the ROC?)")
@@ -3515,7 +3557,7 @@ def main():
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
                verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_design_effect, verify_standalone_auroc, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
-               verify_estimands, verify_nested_scale,
+               verify_cobinding_noise, verify_estimands, verify_nested_scale,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
