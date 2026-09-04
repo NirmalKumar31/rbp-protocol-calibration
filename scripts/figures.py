@@ -69,6 +69,31 @@ def need(*names):
     return out
 
 
+def clustered_mean_err(frame, col, n_boot=4000, seed=7):
+    """Mean of `col` with an asymmetric error bar clustered on protein.
+
+    WHY THIS EXISTS. Two panels drew `.sem()` over the 94 datasets, which treats them as 94
+    independent observations. They are 79 proteins, fifteen of which contribute two datasets
+    each at a within-protein correlation of 0.92 for the primary contrast, and EVERY headline
+    interval in the paper resamples proteins. An error bar narrower than the inference it
+    illustrates makes a figure look stronger than the text it belongs to, which is the one
+    direction a figure must never err in.
+
+    Returns (mean, [[lower], [upper]]) shaped for matplotlib's yerr.
+    """
+    rng = np.random.default_rng(seed)
+    g = frame[["protein", col]].dropna()
+    groups = [v.to_numpy() for _, v in g.groupby("protein")[col]]
+    m = float(np.concatenate(groups).mean())
+    draws = np.empty(n_boot)
+    idx = np.arange(len(groups))
+    for b in range(n_boot):
+        pick = rng.choice(idx, len(idx), replace=True)
+        draws[b] = np.concatenate([groups[i] for i in pick]).mean()
+    lo, hi = np.percentile(draws, [2.5, 97.5])
+    return m, [[max(m - lo, 0.0)], [max(hi - m, 0.0)]]
+
+
 # --- f0: what the panel actually is ------------------------------------------------------
 #
 # The paper needs this before any result. A reader's first question about a 95-dataset panel
@@ -545,10 +570,10 @@ def f9():
     w = 0.34
     for i, m in enumerate(models):
         for j, (arm, key) in enumerate((("gc", "gc"), ("dinuc", "dn"))):
-            v = d[f"{m}_gain_{key}"]
-            ax[0].bar(i + (j - 0.5) * w, v.mean(), w * 0.9, color=COLOR[arm],
+            mu, err = clustered_mean_err(d, f"{m}_gain_{key}")
+            ax[0].bar(i + (j - 0.5) * w, mu, w * 0.9, color=COLOR[arm],
                       zorder=3, label=f"{arm}-matched" if i == 0 else None)
-            ax[0].errorbar(i + (j - 0.5) * w, v.mean(), yerr=v.sem(), color="black",
+            ax[0].errorbar(i + (j - 0.5) * w, mu, yerr=err, color="black",
                            lw=1, capsize=2, zorder=4)
     ax[0].set_xticks(range(len(models)), [LABEL[m] for m in models], fontsize=8)
     ax[0].set_ylabel("nested contribution over composition")
@@ -614,15 +639,18 @@ def f10():
 
     # a. composition baseline and nested contribution, per protocol
     x = np.arange(len(arms))
+    top = 0.0
     for i, (a, _) in enumerate(arms):
-        g = d[f"gain_{a}"]
-        ax[0].bar(i, g.mean(), 0.6, color=col[a], zorder=3)
-        ax[0].errorbar(i, g.mean(), yerr=g.sem(), color="black", lw=1, capsize=3, zorder=4)
-        ax[0].text(i, g.mean() + g.sem() + 0.004, f"{g.mean():+.4f}", ha="center",
-                   fontsize=7.5)
+        m, err = clustered_mean_err(d, f"gain_{a}")
+        ax[0].bar(i, m, 0.6, color=col[a], zorder=3)
+        ax[0].errorbar(i, m, yerr=err, color="black", lw=1, capsize=3, zorder=4)
+        ax[0].text(i, m + err[1][0] + 0.004, f"{m:+.4f}", ha="center", fontsize=7.5)
+        top = max(top, m + err[1][0])
     ax[0].set_xticks(x, [lbl for _, lbl in arms], fontsize=7.5)
     ax[0].set_ylabel("nested contribution over composition")
-    ax[0].set_ylim(0, 0.082)
+    # From the whiskers, not a literal: the clustered interval is wider than the .sem() this
+    # panel used to draw, and a hardcoded 0.082 put the tallest value label into the title.
+    ax[0].set_ylim(0, top * 1.16)
     ax[0].set_title("a  same model, same positives: 5.4x", loc="left")
 
     # b. the mechanism: gain falls as the composition baseline rises
@@ -823,31 +851,56 @@ def f14():
     ax[0].set_title(f"a  {below}/{len(h)} below the diagonal, {h.gain_n1.mean() / h.gain_n2.mean():.2f}x",
                     loc="left", fontsize=9)
 
-    # (b) THE MECHANISM, which is what actually replicates: the within-arm baseline gradient is
-    # present for the composition-matched family and absent for other-RBPs'-sites, in their
-    # data and ours. Four bars, two benchmarks, two families.
+    # (b) THE WITHIN-ARM GRADIENT, in their data and ours, WITH PROTEIN-CLUSTERED INTERVALS.
+    #
+    # This panel used to be five bare bars under a title asserting that the gradient is a
+    # property of composition-matched negatives. That is the grouping the Results section
+    # declines to endorse, because the statistic is not invariant to which term goes on the
+    # horizontal axis and the dinucleotide arm changes family under two of the three choices.
+    # Bars alone cannot show what the claim rests on. The intervals can: the three
+    # composition-matched arms exclude zero and the two other-RBPs'-sites arms do not, in both
+    # benchmarks independently, which is a statement about detectability and not a taxonomy.
     from scipy.stats import spearmanr
+    rng = np.random.default_rng(7)
+
+    def clustered(frame, cx, cy, n_boot=4000):
+        """Spearman with a percentile interval over resampled proteins."""
+        by = {q: g for q, g in frame.groupby("protein")}
+        names = frame.protein.unique()
+        draws = []
+        for _ in range(n_boot):
+            b = pd.concat([by[q] for q in rng.choice(names, len(names), replace=True)],
+                          ignore_index=True)
+            draws.append(spearmanr(b[cx], b[cy])[0])
+        lo, hi = np.percentile(draws, [2.5, 97.5])
+        return spearmanr(frame[cx], frame[cy])[0], lo, hi
+
     bars = [
-        ("ours\nGC", spearmanr(d.comp_gc, d.gain_gc)[0], COLOR["gc"], "matched"),
-        ("ours\ndinuc", spearmanr(d.comp_dn, d.gain_dn)[0], COLOR["dinuc"], "matched"),
-        ("theirs\nneg-1", spearmanr(h.comp_n1, h.gain_n1)[0], "#6a51a3", "matched"),
-        ("ours\nneg2", spearmanr(d.comp_neg2, d.gain_neg2)[0], "#bdbdbd", "other sites"),
-        ("theirs\nneg-2", spearmanr(h.comp_n2, h.gain_n2)[0], "#d9d9d9", "other sites"),
+        ("ours\nGC", *clustered(d, "comp_gc", "gain_gc"), COLOR["gc"]),
+        ("ours\ndinuc", *clustered(d, "comp_dn", "gain_dn"), COLOR["dinuc"]),
+        ("theirs\nneg-1", *clustered(h, "comp_n1", "gain_n1"), "#6a51a3"),
+        ("ours\nneg2", *clustered(d, "comp_neg2", "gain_neg2"), "#bdbdbd"),
+        ("theirs\nneg-2", *clustered(h, "comp_n2", "gain_n2"), "#d9d9d9"),
     ]
     x = np.arange(len(bars))
-    ax[1].bar(x, [b[1] for b in bars], color=[b[2] for b in bars], width=0.68,
+    vals = [b[1] for b in bars]
+    err = np.array([[b[1] - b[2] for b in bars], [b[3] - b[1] for b in bars]])
+    ax[1].bar(x, vals, color=[b[4] for b in bars], width=0.68,
               edgecolor="white", linewidth=0.6)
+    ax[1].errorbar(x, vals, yerr=np.abs(err), fmt="none", ecolor="#404040",
+                   elinewidth=1.0, capsize=3.0, zorder=4)
     for i, b in enumerate(bars):
-        # Labels INSIDE the bar for the deep ones, so they cannot collide with the tick labels.
-        ax[1].text(i, b[1] + 0.035, f"{b[1]:+.2f}", ha="center", fontsize=7.5,
-                   color="white" if b[1] < -0.3 else "#404040")
+        # OUTSIDE the bar, past the far whisker: a label placed at the near whisker lands on
+        # the coloured fill, where dark grey text on dark red or purple is unreadable.
+        ax[1].text(i, b[2] - 0.055, f"{b[1]:+.2f}", ha="center", va="top", fontsize=7.5,
+                   color="#404040")
     ax[1].axhline(0, color="#404040", linewidth=0.9)
-    ax[1].set_ylim(min(b[1] for b in bars) * 1.15, 0.02)
+    ax[1].set_ylim(min(b[2] for b in bars) - 0.15, max(0.12, max(b[3] for b in bars) + 0.05))
     ax[1].set_xticks(x)
     ax[1].set_xticklabels([b[0] for b in bars], fontsize=7.5)
     ax[1].set_ylabel("within-arm Spearman(baseline, contribution)")
     ax[1].grid(axis="x", visible=False)
-    ax[1].set_title("b  the gradient is a property of composition-matched negatives",
+    ax[1].set_title("b  gradient detectable in composition-matched arms, not in the others",
                     loc="left", fontsize=9)
     fig.tight_layout()
     save(fig, "f14_external_validation")

@@ -101,7 +101,9 @@ arm.
 \includegraphics[width=\textwidth]{figures/f10_three_protocols}
 \caption{Nested contribution of a 4-mer model under three negative-set protocols, $n=94$
 datasets. (a) Panel means by protocol, $+0.0663$, $+0.0265$ and $+0.0122$, a 5.4-fold span for
-one model on one set of positives; bars are standard errors over datasets. (b) The same
+one model on one set of positives; bars are 95\% percentile intervals from a bootstrap over
+the 79 proteins, taking all datasets of each sampled protein (4000 draws), as everywhere else
+in this paper. (b) The same
 contributions against the composition-only AUROC each protocol leaves, one point per
 protocol-dataset cell, coloured by protocol (pooled Spearman $-0.60$): the contribution tracks
 the headroom. (c) Per dataset, the contribution under each of the other two protocols against
@@ -246,6 +248,7 @@ differs by a factor of 1.22 between model classes measured on the same benchmark
 
 \subsection{The composition baseline explains more of the dependence than the protocol label,
 for a $k$-mer model}
+\label{sec:families}
 
 Pooled over all 282 protocol-dataset cells the contribution was inversely related to the
 composition baseline (Spearman $-0.600$, protein-clustered interval $-0.698$ to $-0.495$), so
@@ -423,10 +426,16 @@ positive.
 We do not decompose the span into a compression term and a residual protocol effect. That
 decomposition requires transplanting a model's discriminability increment across baselines, and
 its central assumption, that the increment is invariant to the baseline against which it is
-measured, is violated in these data. Across a grid of twelve specifications, 4 of 6 sign tests
-held for the 4-mer, 6 of 6 for the convolutional network and 1 of 6 for SpliceBERT; the log-odds
-link reverses the sign entirely, which is the behaviour \citet{mood2010} describes for odds
-ratios under unobserved heterogeneity. With three arms the residual's sign follows the direction
+measured, is violated in these data. Two grids show it, and they are different grids. The first varies
+the transformation: six links, arcsine, complementary log-log, log, log-error, logit and probit,
+by the two transplant directions, twelve specifications in all. The residual is positive in
+every one of the twelve for all three models, from $+0.0127$ to $+0.1022$. The second varies
+the slope the transplant requires, over its three defensible sources, the GC arm's, the
+dinucleotide arm's and their mean, by the same two directions, so six specifications. There the
+residual's bootstrap interval excludes zero in 4 of 6 for the 4-mer, 6 of 6 for the
+convolutional network and 1 of 6 for SpliceBERT, and the point estimates span zero for two of
+the three models. The log-odds link reverses the sign entirely, which is the behaviour
+\citet{mood2010} describes for odds ratios under unobserved heterogeneity. With three arms the residual's sign follows the direction
 of transplant, $+0.0452$ carrying an increment from a high-baseline arm to a low-baseline one and
 $-0.0259$ in reverse. We report the raw contrast, which requires no transplant, link or
 transportability assumption.
@@ -462,8 +471,8 @@ transforms.
 \includegraphics[width=\textwidth]{figures/f9_deep_contrast}
 \caption{Three model classes on identical rows and folds, $n=94$ datasets: a 4-mer logistic
 regression, a 7089-parameter convolutional network and a fully fine-tuned 19.78~M-parameter
-SpliceBERT. (a) Nested contribution in each composition-matched arm, per model; bars are
-standard errors over datasets. (b) The two-arm contrast per model, with 95\% percentile
+SpliceBERT. (a) Nested contribution in each composition-matched arm, per model; bars are 95\%
+protein-clustered percentile intervals, as in panel (b). (b) The two-arm contrast per model, with 95\% percentile
 intervals from a bootstrap over the 79 proteins taking all datasets of each sampled protein
 (4000 draws). The hatched band spans the protocol effect obtained by transplanting a
 discriminability increment in either direction, $+0.0188$ to $+0.0314$ for the 4-mer, $+0.0213$
@@ -524,7 +533,7 @@ and we do not present it as a confirmation.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f14_external_validation}
-\caption{Replication using the released negative sets, peak calling and fold assignments of \citet{horlacher2023}, over the 45 datasets shared with our panel; only the measurement is ours. (a) Nested contribution under their negative-2 against their negative-1, paired by dataset; 36 of 45 lie below the diagonal. (b) Within-arm Spearman correlation between the composition baseline and the contribution, for the composition-matched arms of both benchmarks and the other-RBPs'-sites arms of both. The relation is present in one group and not detectable in the other, independently in each benchmark.}
+\caption{Replication using the released negative sets, peak calling and fold assignments of \citet{horlacher2023}, over the 45 datasets shared with our panel; only the measurement is ours. (a) Nested contribution under their negative-2 against their negative-1, paired by dataset; 36 of 45 lie below the diagonal. (b) Within-arm Spearman correlation between the composition baseline and the contribution, for the composition-matched arms of both benchmarks and the other-RBPs'-sites arms of both, with percentile intervals over resampled proteins. The three composition-matched arms exclude zero and the two other-RBPs'-sites arms do not, independently in each benchmark. The grouping this invites is not stable to which term is placed on the horizontal axis and is not endorsed in Section~\ref{sec:families}; what the panel supports is the narrower statement about where the gradient is detectable.}
 \label{fig:external}
 \end{figure}
 
