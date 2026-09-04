@@ -1952,6 +1952,14 @@ def verify_three_arm_models(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
     for label, key in (
+            ("protocol range of panel means, within kmer", spec["range_protocol_kmer"]),
+            ("protocol range of panel means, within cnn", spec["range_protocol_cnn"]),
+            ("protocol range of panel means, within splicebert",
+             spec["range_protocol_splicebert"]),
+            ("model-class range of panel means, within gc arm", spec["range_modelclass_gc"]),
+            ("model-class range of panel means, within dn arm", spec["range_modelclass_dn"]),
+            ("model-class range of panel means, within neg2 arm",
+             spec["range_modelclass_neg2"]),
             ("composition AUROC, dn arm", spec["comp_dn"]),
             ("composition AUROC, gc arm", spec["comp_gc"]),
             ("composition AUROC, neg2 arm", spec["comp_neg2"]),
@@ -1993,6 +2001,34 @@ def verify_three_arm_models(T, g):
                    "SpliceBERT has the NARROWEST span of the three, so the span does not grow "
                    "with capacity and the withdrawn claim stays withdrawn",
                    f"splicebert {s:.2f}x vs cnn {c:.2f}x, kmer {k:.2f}x", "splicebert lowest")
+
+    # A5's SURVIVING CLAIM. In absolute AUROC neither effect dominates -- which is larger
+    # depends on the arm and the model -- so the only ordering the paper may assert is the one
+    # in fold terms: the protocol span within a model exceeds the model-class span within an
+    # arm. Read off the note column, where each range carries its own fold, so a reader cannot
+    # mix an AUROC difference with a fold change the way the Introduction once did.
+    folds = {}
+    for r in q.index:
+        if str(r).startswith(("protocol range of panel means",
+                              "model-class range of panel means")):
+            note = str(q.loc[r, "note"])
+            if note.startswith("fold "):
+                folds[str(r)] = float(note.split()[1])
+    prot = [v for k_, v in folds.items() if k_.startswith("protocol")]
+    mcls = [v for k_, v in folds.items() if k_.startswith("model-class")]
+    if len(prot) == 3 and len(mcls) == 3 and spec["fold_ranges_must_overlap"]:
+        # THE FIRST VERSION OF THIS GATE ASSERTED THAT THE PROTOCOL SPAN DOMINATES, AND FAILED.
+        # It should have: protocol folds run 3.76 to 7.63 and model-class folds 2.65 to 4.14,
+        # so SpliceBERT's protocol span sits BELOW the bias-aware arm's model-class span and
+        # the two ranges overlap. What is true is that the protocol range reaches higher while
+        # still overlapping, i.e. the effects are comparable and neither dominates. That is
+        # what the paper may say, so it is what is gated.
+        record(max(prot) > max(mcls) and min(prot) < max(mcls),
+               "the protocol and model-class fold ranges OVERLAP while the protocol range "
+               "reaches higher, so the two effects are comparable and neither dominates",
+               f"protocol {min(prot):.2f}-{max(prot):.2f}x, "
+               f"model class {min(mcls):.2f}-{max(mcls):.2f}x",
+               "overlapping, protocol reaching higher")
 
 
 def verify_transport(T, g):
@@ -2281,6 +2317,23 @@ def verify_standalone_auroc(T, g):
         v = must(label)
         if v is not None:
             near(label, v, key)
+
+    for label, key in (
+            ("pearson(model alone, composition alone), pooled over arms",
+             spec["corr_alone_comp_pooled"]),
+            ("pearson(model alone, composition alone), gc arm", spec["corr_alone_comp_gc"]),
+            ("pearson(model alone, composition alone), dn arm", spec["corr_alone_comp_dn"]),
+            ("pearson(model alone, composition alone), neg2 arm",
+             spec["corr_alone_comp_neg2"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+    k = "pearson(model alone, composition alone), pooled over arms"
+    if k in q.index and spec["corr_alone_comp_must_exclude_zero"]:
+        lo = float(q.loc[k, "ci_low"])
+        record(lo > 0.5, "apparent difficulty and composition difficulty are the SAME axis, "
+                         "which is what licenses treating the baseline as the channel the "
+                         "protocol acts through", f"clustered lower bound {lo:.4f}", "> 0.5")
 
     # THE PROGRESSION IS THE CLAIM, and it is the sharpest form of the paper's point: the
     # easier a protocol looks, the more often nineteen composition features beat the model.

@@ -56,10 +56,18 @@ reduced apparent AUROC in all 94 datasets while raising the nested contribution 
 2.50 in panel means,
 and the bias-aware protocol gave both the easiest discrimination of the three and the smallest
 contribution. The contribution spanned 5.4-fold across protocols for the 4-mer, and between 3.8
-and 7.6-fold across the three model classes. For scale, on the dinucleotide arm of this panel
-0.019 AUROC separates the 4-mer from the convolutional network and 0.122 separates it from
-SpliceBERT, so the protocol moves the measured quantity by nearly three times the smaller of
-those two steps and by about half the larger. Eight standard monotone reparameterisations
-reduced the span without closing it, and an exponent fitted to close it did not transport to an
-independent benchmark. On that basis we recommend reporting the composition-only AUROC alongside
+and 7.6-fold across the three model classes.
+
+For scale, the two comparisons a benchmark exists to support can be put in the same units.
+Changing protocol while holding the model fixed moves the panel-mean contribution by 0.0540 for
+the 4-mer, 0.0747 for the convolutional network and 0.1288 for SpliceBERT. Changing model class
+while holding the protocol fixed moves it by 0.0625 in the GC arm, 0.1091 in the dinucleotide
+arm and 0.0353 in the bias-aware arm. The two are comparable, and neither dominates: in
+absolute AUROC which is larger depends on the arm and the model one starts from, and as a fold
+change the protocol range reaches higher but still overlaps, 3.8 to 7.6-fold across protocols
+against 2.7 to 4.1-fold across model classes, with SpliceBERT's protocol span falling below the
+bias-aware arm's model-class span. The claim is not that the protocol matters more than the
+model. It is that it matters as much, and is usually not reported. Of eight standard coordinates five reduced the span
+without closing it, two are controls and one increased it, and an exponent fitted to close it
+survived neither a change of aggregation nor transport to an externally constructed benchmark. On that basis we recommend reporting the composition-only AUROC alongside
 every headline AUROC, and we report where that helps and where it does not.

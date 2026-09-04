@@ -17,3 +17,9 @@ splicebert three-protocol span,3.762370937090547,3.2735332587796218,4.3375974646
 minimum three-protocol span over model classes,3.762370937090547,,,94,splicebert
 model class with the widest span,7.632020542994866,,,94,cnn
 model classes whose lowest contribution is the bias-aware arm,3.0,,,3,
+"protocol range of panel means, within kmer",0.05403131000307066,,,94,fold 5.42
+"protocol range of panel means, within cnn",0.07473441674290218,,,94,fold 7.63
+"protocol range of panel means, within splicebert",0.12876523590313826,,,94,fold 3.76
+"model-class range of panel means, within dn arm",0.10911600962653474,,,94,fold 2.65
+"model-class range of panel means, within gc arm",0.06251346403586036,,,94,fold 3.36
+"model-class range of panel means, within neg2 arm",0.03534530273141102,,,94,fold 4.14

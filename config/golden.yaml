@@ -1339,7 +1339,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 705
+  min_domain_checks: 717
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1808,6 +1808,15 @@ standalone_auroc:
   comp_beats_model_gc:   {value: 29, tol: 3}
   comp_beats_model_neg2: {value: 53, tol: 4}
   comp_beats_model_must_increase_with_easiness: true
+  # A7. THE PREMISE OF SECTION 3.4, which was argued and never quantified: a protocol that is
+  # hard for the model is hard for composition. Correlated on the MODEL ALONE and not on
+  # comp+model, which is a superset of the composition column and returns +0.94 for free -- the
+  # same wrong-quantity trap standalone_auroc.py was written to fix.
+  corr_alone_comp_pooled: {value: 0.8937, tol: 0.02}
+  corr_alone_comp_gc:     {value: 0.9114, tol: 0.03}
+  corr_alone_comp_dn:     {value: 0.6238, tol: 0.05}
+  corr_alone_comp_neg2:   {value: 0.9556, tol: 0.03}
+  corr_alone_comp_must_exclude_zero: true
 
 fold_integrity:
   # 564, not 376: the bias-aware arm was added after three referees pointed out that the
@@ -1944,6 +1953,22 @@ r1v_three_arm_models:
   span_kmer:       {value: 5.42, tol: 0.60}
   span_cnn:        {value: 7.63, tol: 1.00}
   span_splicebert: {value: 3.76, tol: 0.60}
+  # A5. THE TWO EFFECTS IN THE SAME UNITS. The Introduction compared a protocol-driven
+  # contribution range against gaps in APPARENT AUROC between model classes, which are
+  # different quantities, and concluded the protocol effect was "nearly three times" one and
+  # "about half" the other. In matching units neither dominates: as absolute AUROC the larger
+  # depends on which arm and model you start from, and only as a fold change is the protocol
+  # effect reliably the bigger of the two. Gated as the ORDERING of the fold ranges, because
+  # that is the surviving claim; the absolute ranges are gated as values.
+  range_protocol_kmer:       {value: 0.0540, tol: 0.008}
+  range_protocol_cnn:        {value: 0.0747, tol: 0.012}
+  range_protocol_splicebert: {value: 0.1288, tol: 0.020}
+  range_modelclass_gc:       {value: 0.0625, tol: 0.010}
+  range_modelclass_dn:       {value: 0.1091, tol: 0.018}
+  range_modelclass_neg2:     {value: 0.0353, tol: 0.008}
+  # Not "protocol dominates": the ranges overlap. See the note in verify.py, where the first
+  # version of this gate asserted dominance and correctly failed.
+  fold_ranges_must_overlap: true
   # THE CLAIM, gated as the sentence the paper makes rather than as three loose numbers: the
   # span survives for the WEAKEST-spanning model class. If it ever falls toward 1 for any
   # model, the headline stops being a property of the benchmark and becomes one of the 4-mer.

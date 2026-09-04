@@ -21,6 +21,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import roc_auc_score
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,6 +29,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 TABLES = ROOT / "results" / "tables"
 DIRS = {"dn": "dinuc", "gc": "gc", "neg2": "neg2"}
+N_BOOT = 4000
 
 
 def main():
@@ -84,6 +86,42 @@ def main():
                  "value": beats, "n": len(m)}]
         print(f"  {arm:6s} {comp.mean():12.4f} {k.mean():12.4f} {full.mean():11.4f}"
               f" {gain.mean():+13.4f} {beats:14d}/{len(m)}")
+    # HOW HARD A PROTOCOL LOOKS AND HOW HARD IT IS FOR COMPOSITION ARE NEARLY THE SAME THING,
+    # and this is the number that says so. Section 3.4 argues that a protocol acts on measured
+    # contribution through the composition baseline it leaves; the premise is that the model's
+    # own AUROC and the composition-only AUROC move together, and it was never quantified.
+    # Protein-clustered because 94 datasets are 79 proteins.
+    #
+    # CORRELATE THE MODEL ALONE, NOT comp+model. The nested column is a superset of the
+    # composition column by construction and correlating them gives +0.94 for free, which is
+    # the same wrong-quantity trap this script exists to fix.
+    long = pd.concat([pd.DataFrame({"arm": a, "alone": m[f"auroc_{a}"],
+                                    "comp": m[f"comp_{a}"], "protein": m.protein})
+                      for a in DIRS], ignore_index=True)
+    r_p = float(pearsonr(long.alone, long.comp)[0])
+    r_s = float(spearmanr(long.alone, long.comp)[0])
+    rng = np.random.default_rng(7)
+    by = {q: gg for q, gg in long.groupby("protein")}
+    names = long.protein.unique()
+    draws = np.empty(N_BOOT)
+    for b in range(N_BOOT):
+        bb = pd.concat([by[q] for q in rng.choice(names, len(names), replace=True)],
+                       ignore_index=True)
+        draws[b] = pearsonr(bb.alone, bb.comp)[0]
+    lo, hi = np.percentile(draws, [2.5, 97.5])
+    out.append({"check": "pearson(model alone, composition alone), pooled over arms",
+                "value": r_p, "ci_low": float(lo), "ci_high": float(hi), "n": len(long),
+                "note": f"spearman {r_s:+.4f}; {N_BOOT} protein draws"})
+    print(f"\n  pearson(model alone, composition alone), pooled: {r_p:+.4f} "
+          f"[{lo:+.4f}, {hi:+.4f}]   spearman {r_s:+.4f}")
+    for arm in DIRS:
+        k = long.arm == arm
+        rr = float(pearsonr(long.alone[k], long.comp[k])[0])
+        ss = float(spearmanr(long.alone[k], long.comp[k])[0])
+        out.append({"check": f"pearson(model alone, composition alone), {arm} arm",
+                    "value": rr, "n": int(k.sum()), "note": f"spearman {ss:+.4f}"})
+        print(f"    within {arm:5s} {rr:+.4f}  (spearman {ss:+.4f})")
+
     drop = float(m.auroc_gc.mean() - m.auroc_dn.mean())
     out.append({"check": "model-alone AUROC drop, gc to dn", "value": drop, "n": len(m),
                 "note": f"lower in {int((m.auroc_dn < m.auroc_gc).sum())}/{len(m)} datasets"})

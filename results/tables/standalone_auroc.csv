@@ -1,8 +1,12 @@
-check,value,n,note
-"model alone, dn arm",0.6879277902424243,94,
-"datasets where composition beats the model, dn arm",14.0,94,
-"model alone, gc arm",0.7981320916803047,94,
-"datasets where composition beats the model, gc arm",29.0,94,
-"model alone, neg2 arm",0.8169497448187933,94,
-"datasets where composition beats the model, neg2 arm",53.0,94,
-"model-alone AUROC drop, gc to dn",0.1102043014378804,94,lower in 94/94 datasets
+check,value,n,ci_low,ci_high,note
+"model alone, dn arm",0.6879277902424243,94,,,
+"datasets where composition beats the model, dn arm",14.0,94,,,
+"model alone, gc arm",0.7981320916803047,94,,,
+"datasets where composition beats the model, gc arm",29.0,94,,,
+"model alone, neg2 arm",0.8169497448187933,94,,,
+"datasets where composition beats the model, neg2 arm",53.0,94,,,
+"pearson(model alone, composition alone), pooled over arms",0.8937115833057092,282,0.8542368389109198,0.9262692767907308,spearman +0.8924; 4000 protein draws
+"pearson(model alone, composition alone), dn arm",0.6237768418046785,94,,,spearman +0.4716
+"pearson(model alone, composition alone), gc arm",0.9114070740446436,94,,,spearman +0.9132
+"pearson(model alone, composition alone), neg2 arm",0.9556466238285706,94,,,spearman +0.9491
+"model-alone AUROC drop, gc to dn",0.1102043014378804,94,,,lower in 94/94 datasets

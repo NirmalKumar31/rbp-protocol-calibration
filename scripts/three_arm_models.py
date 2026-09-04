@@ -130,6 +130,27 @@ def main():
     log(f"\n  the bias-aware arm yields the least for {sum(x == 'neg2' for x in lowest)}"
         f"/{len(MODELS)} model classes, and has the highest composition baseline of the three")
 
+    # THE TWO EFFECTS IN THE SAME UNITS, because the Introduction compares them and a fold
+    # change and an AUROC difference are not comparable. Ranges of panel means: protocol range
+    # holding the model fixed, model-class range holding the protocol fixed. These are
+    # DIFFERENCES of means, which no column aggregate reproduces, so they are emitted here
+    # rather than left for audit_manuscript.py to fail on.
+    log("\n  the two effects in absolute AUROC, as ranges of panel means:")
+    for m in MODELS:
+        v = [t[f"{m}_gain_{arm}"].mean() for arm in ARMS]
+        out.append({"check": f"protocol range of panel means, within {m}",
+                    "value": float(max(v) - min(v)), "n": len(t),
+                    "note": f"fold {max(v) / min(v):.2f}"})
+        log(f"    protocol range within {m:12s} {max(v) - min(v):.4f}  "
+            f"(fold {max(v) / min(v):.2f})")
+    for arm in ARMS:
+        v = [t[f"{m}_gain_{arm}"].mean() for m in MODELS]
+        out.append({"check": f"model-class range of panel means, within {arm} arm",
+                    "value": float(max(v) - min(v)), "n": len(t),
+                    "note": f"fold {max(v) / min(v):.2f}"})
+        log(f"    model-class range within {arm:5s} arm  {max(v) - min(v):.4f}  "
+            f"(fold {max(v) / min(v):.2f})")
+
     pd.DataFrame(out).to_csv(TABLES / "three_arm_models.csv", index=False)
     log("\nwrote three_arm_models.csv")
 

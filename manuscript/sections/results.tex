@@ -269,7 +269,15 @@ differs by a factor of 1.22 between model classes measured on the same benchmark
 for a $k$-mer model}
 \label{sec:families}
 
-Pooled over all 282 protocol-dataset cells the contribution was inversely related to the
+How difficult a protocol looks and how difficult it is for composition alone are close to the
+same thing on this panel. Pooled over the 282 protocol-dataset cells, the 4-mer's own AUROC and
+the composition-only AUROC correlate at Pearson $+0.894$ (protein-clustered interval $+0.854$ to
+$+0.926$; Spearman $+0.892$), and within arms at $+0.911$, $+0.624$ and $+0.956$ for the GC,
+dinucleotide and bias-aware protocols. A protocol that is hard for a 4-mer is hard for
+composition, which is why the composition baseline is a candidate for the thing through which
+the protocol acts.
+
+Pooled over the same 282 cells the contribution was inversely related to the
 composition baseline (Spearman $-0.600$, protein-clustered interval $-0.698$ to $-0.495$), so
 much of what a protocol does is set how much room the baseline leaves
 (Figure~\ref{fig:baseline}). We quote an interval and not the nominal $p$, which treats the 282
