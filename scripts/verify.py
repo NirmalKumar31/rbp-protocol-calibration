@@ -2028,6 +2028,71 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_device_portability(T, g):
+    """E3: same code, same inputs, two devices and two clouds."""
+    print("\ndevice portability  (Modal A10G vs GCP Batch CPU on identical inputs)")
+    d = T.get("device_portability.csv")
+    if d is None:
+        return record(False, "device_portability.csv present", "MISSING",
+                      "run scripts/device_portability.py")
+    spec = g["device_portability"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("folds compared across devices")
+    if n is not None:
+        record(int(n) == spec["n_folds"], "folds compared", int(n), spec["n_folds"])
+
+    # THE INPUTS WERE IDENTICAL. Agreement between two runs given different rows is not
+    # agreement, so all three of these are required before any correlation below is read.
+    for label in ("identical row sets", "identical labels", "identical fold assignment"):
+        v = get(f"folds with {label} across devices")
+        if v is not None and n is not None:
+            record(int(v) == int(n), f"every fold has {label} across the two devices",
+                   f"{int(v)}/{int(n)}", f"{int(n)}/{int(n)}")
+    w = get("windows compared across devices")
+    if w is not None:
+        record(int(w) >= spec["min_windows"], "windows compared", int(w),
+               f">= {spec['min_windows']}")
+
+    # THE AGREEMENT. Gated on the WORST fold as well as the mean, because a mean over five
+    # folds would absorb one fold that disagreed badly.
+    for label, key in (
+            ("Pearson correlation between CPU and GPU per-window scores", "min_pearson"),
+            ("lowest Pearson correlation over folds", "min_pearson_worst"),
+            ("Spearman correlation between CPU and GPU per-window scores", "min_spearman")):
+        v = get(label)
+        if v is not None:
+            record(v >= spec[key], label, f"{v:.4f}", f">= {spec[key]}")
+    v = get("max |AUROC difference| between devices, per fold")
+    if v is not None:
+        at_most("the AUROC agrees between an A10G and one vCPU on every fold", v,
+                spec["max_auroc_difference"])
+
+    # THE CAVEAT IS PART OF THE CLAIM. Initialisation is unseeded, so the two runs differ in
+    # seed as well as device and this bounds the two jointly. Gated so the number can never be
+    # quoted as a pure device effect.
+    v = get("initialisation seeded across the two runs")
+    if v is not None:
+        record(int(v) == 0,
+               "initialisation is unseeded across the two runs, so this bounds device and "
+               "initialisation TOGETHER and not the device alone", int(v), 0)
+
+    # AND THE PRACTICAL FINDING: a 7,089-parameter network does not fill an A10G, so the
+    # accelerator buys very little for the CNN. Gated as a bound on the ratio, since the
+    # conclusion only holds while the CPU is within a small factor.
+    r = get("CPU wall time per fold as a multiple of A10G")
+    if r is not None:
+        at_most("a CPU fold is within a small factor of an A10G fold for a model this small, "
+                "so the sweep was paying for accelerator time it could not use", r,
+                spec["max_cpu_slowdown"])
+
+
 def verify_window_centring(T, g):
     """B16: the window centre is a free parameter, and no summit exists to compare against."""
     print("\nwindow centring  (three centres the peak interval actually provides)")
@@ -4246,6 +4311,7 @@ def main():
                verify_estimands, verify_nested_scale, verify_shuffled_arm,
                verify_order_profile, verify_region_annotation,
                verify_gene_clustered_cv, verify_window_centring,
+               verify_device_portability,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
@@ -4267,18 +4333,6 @@ def main():
            "" if n_ran >= floor else "gates were SKIPPED, not passed -- look for missing rows")
 
     bad = [c for c in checks if not c[0]]
-
-    # RECORD WHAT RAN, so the manuscript's claim about coverage is auditable. The paper says
-    # "696 numeric assertions"; that integer lived in prose and in no table, so
-    # audit_manuscript.py could not source it and it was checked by hand. Written on every
-    # run, pass or fail, because a claim of 696 against a run of 690 is the interesting case.
-    try:
-        pd.DataFrame([{"name": "assertions", "value": len(checks)},
-                      {"name": "assertions_passed", "value": len(checks) - len(bad)},
-                      {"name": "domain_checks", "value": n_ran}]).to_csv(
-            ROOT / "results" / "tables" / "verify_summary.csv", index=False)
-    except OSError:
-        pass                                     # a read-only checkout still verifies
 
     # AND CHECK THE MANUSCRIPT'S CLAIM AGAINST WHAT RAN. Writing the count to a table made it
     # sourceable; it did not make it TRUE. The paper said "768 numeric assertions" in four
@@ -4305,6 +4359,23 @@ def main():
                        "" if not wrong else "stale coverage claim; update the manuscript"))
         if wrong:
             bad = [c for c in checks if not c[0]]
+
+    # RECORD WHAT RAN, so the manuscript's claim about coverage is auditable. The paper says
+    # "885 numeric assertions"; that integer lives in prose and in no other table, so
+    # audit_manuscript.py could not source it and it was checked by hand.
+    #
+    # WRITTEN AFTER THE COVERAGE CHECK IS APPENDED, and that ordering is the whole point. It
+    # used to be written before, so the table recorded one fewer than the summary line printed,
+    # and the manuscript's correct number then showed up as an ORPHAN: the audit could not
+    # source a value the table was under-reporting by exactly one. Written on every run, pass
+    # or fail, because a claim of 885 against a run of 879 is the interesting case.
+    try:
+        pd.DataFrame([{"name": "assertions", "value": len(checks)},
+                      {"name": "assertions_passed", "value": len(checks) - len(bad)},
+                      {"name": "domain_checks", "value": n_ran}]).to_csv(
+            ROOT / "results" / "tables" / "verify_summary.csv", index=False)
+    except OSError:
+        pass                                     # a read-only checkout still verifies
 
     print("\n" + "=" * 78)
     print(f"{len(checks) - len(bad)}/{len(checks)} checks passed")

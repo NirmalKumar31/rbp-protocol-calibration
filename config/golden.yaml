@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 872
+  min_domain_checks: 883
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2388,3 +2388,26 @@ window_centring:
   contrast_five_prime: {value: 0.0430, tol: 0.006}
   contrast_shift25:    {value: 0.0407, tol: 0.006}
   max_contrast_range: 0.015
+
+# E3: DEVICE PORTABILITY. cloud/submit_cpu_sweep.sh had never been run against a dataset whose
+# results were not already committed, so the GCP CPU path was infrastructure the repo described
+# rather than infrastructure it had used. Running it on the region-matched arm, which exists in
+# no GCS prefix, means nothing can be overwritten and the results must be produced from scratch.
+#
+# The same dataset, folds and commit trained on a Modal A10G and on one vCPU of a GCP
+# e2-standard-4 agree to 0.0007 AUROC on every fold, with per-window scores correlating at
+# Pearson 0.9903. Initialisation is unseeded, so this bounds DEVICE AND SEED JOINTLY -- which is
+# also exactly what a reader reproducing this work would experience, since that is what the
+# released code does.
+#
+# AND THE PRACTICAL FINDING: a 7,089-parameter network is only 1.7x slower on one vCPU than on
+# an A10G, because a model that small never fills the device. The CNN sweep's $6.73 of A10G time
+# extrapolates to about $0.09 of spot CPU.
+device_portability:
+  n_folds: 5
+  min_windows: 20000
+  min_pearson: 0.97
+  min_pearson_worst: 0.95
+  min_spearman: 0.97
+  max_auroc_difference: 0.005
+  max_cpu_slowdown: 4.0

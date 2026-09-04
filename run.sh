@@ -316,6 +316,7 @@ s13b_local_analysis() {
   "$PY" scripts/region_annotation.py --from-cache || die "region annotation rules"
   "$PY" scripts/gene_clustered_cv.py --from-cache || die "gene-clustered CV"
   "$PY" scripts/window_centring.py --from-cache || die "window centring"
+  "$PY" scripts/device_portability.py --from-cache || die "device portability"
   "$PY" scripts/shuffled_arm.py --from-cache || die "shuffled fourth arm"
   "$PY" scripts/multiplier_variance.py || die "multiplier variance"
   "$PY" scripts/score_scale_check.py --from-cache || die "score scale"
@@ -344,6 +345,7 @@ s13b_local_analysis() {
   #   "$PY" scripts/region_annotation.py --store ../rbp-store   # B17, needs the GTF index
   #   "$PY" scripts/gene_clustered_cv.py --store ../rbp-store  # B10, needs the GENCODE GTF
   #   "$PY" scripts/window_centring.py --store ../rbp-store    # B16, needs the genome FASTA
+  #   "$PY" scripts/device_portability.py  # E3, reads the CPU sweep results from GCS
   # peak_thresholds.py fetches 95 narrowPeak files from ENCODE and so is NOT in the default
   # path; its table is committed. Regenerate with: "$PY" scripts/peak_thresholds.py
   "$PY" scripts/recompute.py         || die "recompute from per-example evidence"

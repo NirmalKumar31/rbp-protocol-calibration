@@ -225,6 +225,17 @@ dinucleotide-arm datasets carried scores from a partition that was not chromosom
 been removed rather than bounded: those 200 fold-runs were retrained on the study partition and
 all 564 score sets now pass the audit.
 
+Two runs of the same code on different hardware bound what a reader reproducing this work should
+expect. The region-matched arm's convolutional network was trained twice on one dataset, once on
+a Modal A10G and once on a single vCPU of a GCP Batch instance, with the same commit, the same
+26{,}288 windows and the same five chromosome-grouped folds; the row sets, labels and fold
+assignments were identical on all five folds before anything was compared. Per-window scores
+correlate at Pearson 0.9903, lowest fold 0.9814, and the fold AUROCs differ by at most 0.0007.
+Initialisation is unseeded, so this bounds the device and the initialisation together rather
+than the device alone, which is also what a reader rerunning the released code would encounter.
+A practical consequence is worth recording: a 7089-parameter network runs only 1.65 times slower
+on one vCPU than on the accelerator, because a model that small never fills the device.
+
 Positive sets differ slightly between arms. Window construction is identical, but a positive is
 dropped when its matcher finds no acceptable negative and the matchers fail on different
 windows, so the two composition-matched arms' positive sets have a Jaccard similarity with
@@ -246,7 +257,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 874 assertions compare each published value against a frozen
+credit than it earns. Its 885 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -259,7 +270,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 874 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 885 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit
