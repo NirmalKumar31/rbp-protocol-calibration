@@ -417,3 +417,75 @@ providers. Then macOS reclaimed purgeable space and free space went 3.6 -> 21 GB
 recoverable by clone. The auto-mode classifier blocks recursive deletes, so it needs the user:
 `rm -rf "/Users/nirmalkumar/Deep Learning Project/rbp-repo"`.
 Do NOT delete `GRCh38.primary_assembly.genome.fa` (2.9 GB): B16 needs it.
+
+---
+
+# EXECUTION LOG, 2026-09-04 SESSION 3. Supersedes the section above where they disagree.
+
+**PHASE 2 IS COMPLETE (B1-B17). C2, E3, E5, F3 and F4 are done. 918/918 on BOTH artefacts,
+0 orphans, 694 tests, 44-page PDF builds clean.** Total Modal spend this session **$18.97**
+against a $18.91 estimate; cycle usage ~$55, ~$25 cash after the $30 credits.
+
+## WHAT LANDED IN SESSION 3
+
+* **B2** order-three on the full panel x 3 arms. The neg2 columns had been computed and
+  summarised NOWHERE because every loop read ("gc","dn"). Span grows for 4-mer and CNN, FALLS
+  for SpliceBERT. Compression-corrected the 4-mer loses 1.29x/1.37x SpliceBERT in gc/dn but
+  **0.91x in neg2**. Concentration caveat: raw top-3 share fell 51%->21% but that is panel size;
+  over-representation ROSE 3.07x -> 4.66x.
+* **B3** order profile 1-4 + Figure 16. **THE ESTIMATOR'S ZERO IS NOT AT ZERO**: at order 4 the
+  baseline spans the 4-mer's feature space so truth is 0, and it reports +0.0986/+0.1444/+0.0899,
+  positive in 94/94, i.e. 2-7x the paper's headline. Cause measured: baseline's own AUROC FALLS
+  3->4 on 52/34/64 of 94, floor shrinks with n at rho -0.83 to -0.95. Order 4 is a calibration,
+  not a baseline. **This qualifies B2's own recommendation.**
+* **B5** the dinucleotide-SHUFFLED fourth arm. Baseline EXACTLY 0.5000 on all 94, 100% of pairs
+  tied, contribution +0.2523 = standalone AUROC less a half to 0.0006. **Span 5.42x -> 20.62x**
+  across the four constructions in use. Now in the abstract.
+* **B10** gene-clustered CV. I claimed 0 genes could span a fold; **22 do**, holding 176 windows.
+  All are gene NAMES shared across chromosomes (72 genome-wide, 36 PAR chrX/chrY, widest 24
+  chromosomes). Headline +0.0398 -> +0.0394.
+* **B11** matcher robustness. **pool_min=1500 makes pool_multiple INERT** (binds in 92.3% of
+  buckets); the floor had to be scaled or the section tested nothing. Exact assignment improves
+  L1 ~2% and moves the contribution <=0.0020, so greedy is vindicated. **r = -0.926 (p=0.008)
+  between baseline and contribution across the six settings** -- the paper's mechanism measured
+  on its own code.
+* **B16** window centring. **NO SUMMIT EXISTS**: narrowPeak col 10 is -1 in every row of every
+  file, so the requested comparison is impossible. Three available centres give contrast range
+  **0.0077**, an order of magnitude above the partition (0.0006) and fold grouping (0.0003), so
+  the centring is the largest open design parameter.
+* **B17** region annotation. **The `region` column means two things**: a classification for
+  positives, the POOL DRAWN FROM for matched negatives (10.33%/10.17% differ; neg2 0.00%). So
+  "exactly 0.5000" is exact for the enforced label and 0.5483/0.5452 under re-annotation. The
+  asymmetry survives all 5 rules (+0.2484 down to +0.1055).
+* **C2** done by sharpening the abstract, not restructuring: it now carries the shuffled arm and
+  names the mechanism.
+* **E3** GCP CPU path RUNS. Same code, two devices: Pearson 0.9903, AUROC differs <=0.0007.
+  **A 7089-param CNN is only 1.65x slower on one vCPU than an A10G**, so $6.73 of A10G
+  extrapolates to ~$0.09 of spot CPU.
+* **E5** terraform plan clean. The drift was real: the deployed killswitch predated the commit
+  that scrubbed a billing id out of its source.
+* **F3** region-matched arm for all 3 model classes, 940 fold-runs, $18.97. Still smallest in
+  3/3, and the correction **WIDENS** the span (5.42->7.20, 7.42->8.40, 3.72->4.93). SpliceBERT
+  loses most (-0.0114). 4-mer cross-check to 1.14e-16.
+* **F4** declined, with the cost stated in the paper.
+
+## INFRASTRUCTURE DEFECTS FOUND BY TRYING
+
+1. Seven `cloud/*.sh` resolved the project id via a `.venv` that does not exist here, failing
+   SILENTLY to an empty string.
+2. **The published container image had been unbuildable for weeks**, so a Batch job died on an
+   arm the image had never heard of. Two of my own tests assumed a developer checkout (git,
+   manuscript/). `scripts/check_image_tree.sh` now mirrors the Dockerfile's copy set, hides git,
+   and runs the suite; run.sh calls it before the paid build.
+3. The paper claimed **768 assertions while 859 ran**. audit_manuscript.py cannot catch that: it
+   matches values against tables, and 768 was still a value some table held. verify.py now
+   compares the manuscript's stated coverage against the LIVE run.
+4. `min_domain_checks` is TWO below the printed total, not equal to it.
+
+## STILL OPEN
+
+* **D1**: NOT achievable as specified. Prose 17,749 words; only THREE sentence pairs exceed 0.62
+  cross-section overlap. Real slack ~1000 words, not 7000. A 35-40% cut means deleting findings.
+  **The right instrument is relocation to a supplementary note, which needs a target venue.**
+* **F5** a survey of negative-set reporting in recent RBP papers. Needs web access; not faked.
+* **Zenodo** the user's action. Placeholder at the end of data-availability.tex; use the CONCEPT DOI.
