@@ -49,8 +49,8 @@ is that the 19-feature composition baseline beat the 4-mer outright in 14 of 94 
 dinucleotide matching, 29 of 94 under GC matching, and 53 of 94 under the bias-aware protocol,
 where it also beat the model on the panel mean. Under GC matching the contribution was
 significantly positive in 80 of 94 datasets on unadjusted marginal intervals, 79 of 94 after
-Benjamini-Hochberg control within the panel, and 72 of 94 once the design effect is applied
-(Methods).
+Benjamini-Hochberg control within the panel, and 75 of 94 once the measured design effect of
+1.15 is applied, or 72 of 94 at the more conservative 1.35 fixed in advance (Methods).
 
 The direction of the GC-versus-dinucleotide contrast is implied by the design. The composition
 baseline reads local composition, and the two protocols constrain it asymmetrically: GC
@@ -77,8 +77,10 @@ untranscribed loci and 67.6\% are not transcribed on the strand the window is la
 both fractions are balanced between the two arms, the first to within $1.2\times10^{-5}$
 ($p=0.64$), and a confound present equally in both arms cannot produce a difference between
 them. Counting all negatives, 42.8\% of GC-matched negatives carry the strand of their own gene
-against 47.4\% in the dinucleotide arm, which is the higher of the two in 37 of 40 datasets
-($p=5.0\times10^{-9}$), so the spurious directional cue is stronger
+against 47.4\% in the dinucleotide arm, which is the higher of the two in 37 of 40 datasets. On
+the paired per-dataset fractions a two-sided Wilcoxon signed-rank test gives
+$p=5.0\times10^{-9}$; the count and the test are separate statements, and the $p$ belongs to the
+second. So the spurious directional cue is stronger
 in the arm with the smaller contribution and acts against the reported direction.
 
 The strand test admits a stronger reading, which we report here so that it is not left to be
@@ -103,12 +105,11 @@ arm.
 datasets. (a) Panel means by protocol, $+0.0663$, $+0.0265$ and $+0.0122$, a 5.4-fold span for
 one model on one set of positives; bars are 95\% percentile intervals from a bootstrap over
 the 79 proteins, taking all datasets of each sampled protein (4000 draws), as everywhere else
-in this paper. (b) The same
-contributions against the composition-only AUROC each protocol leaves, one point per
-protocol-dataset cell, coloured by protocol (pooled Spearman $-0.60$): the contribution tracks
-the headroom. (c) Per dataset, the contribution under each of the other two protocols against
+in this paper. (b) Per dataset, the contribution under each of the other two protocols against
 its value under GC matching. Dinucleotide matching lies above the diagonal in 88 of 94 datasets
-and the bias-aware protocol below it in 64 of 94.}
+and the bias-aware protocol below it in 64 of 94. The same contributions plotted against the
+composition-only AUROC each protocol leaves are Figure~\ref{fig:baseline}a, where that gradient
+is the subject.}
 \label{fig:three}
 \end{figure}
 

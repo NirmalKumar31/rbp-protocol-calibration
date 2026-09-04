@@ -642,15 +642,21 @@ def f9():
 # artefact -- the reordering happens dataset by dataset.
 
 def f10():
+    # three_arm_contrast.csv was needed only by the panel that moved to Figure 3, but it stays
+    # in the gate: if it is missing the run is incomplete and this figure should not be drawn
+    # from a half-built results directory.
     t = need("three_arm_per_dataset.csv", "three_arm_contrast.csv")
     if t is None:
         return
-    d, s = t
-    q = s.set_index("check")
+    d = t[0]
     arms = [("dn", "dinucleotide\nmatched"), ("gc", "GC\nmatched"),
             ("neg2", "other RBPs'\nsites (neg2)")]
     col = {"dn": COLOR["dinuc"], "gc": COLOR["gc"], "neg2": COLOR["neg2"]}
-    fig, ax = plt.subplots(1, 3, figsize=(10.6, 3.4))
+    # TWO PANELS, NOT THREE. The old panel b -- contribution against the composition baseline
+    # over all 282 cells -- is the same plot as Figure 3a, which belongs to the subsection that
+    # argues from the gradient. Duplicating it here spent a third of this figure restating a
+    # later one. Kept in Figure 3; the pointer below sends the reader there.
+    fig, ax = plt.subplots(1, 2, figsize=(7.4, 3.4))
 
     # a. composition baseline and nested contribution, per protocol
     x = np.arange(len(arms))
@@ -668,33 +674,21 @@ def f10():
     ax[0].set_ylim(0, top * 1.16)
     ax[0].set_title("a  same model, same positives: 5.4x", loc="left")
 
-    # b. the mechanism: gain falls as the composition baseline rises
-    for a, _ in arms:
-        ax[1].scatter(d[f"comp_{a}"], d[f"gain_{a}"], s=11, color=col[a], alpha=0.65,
-                      edgecolor="white", linewidth=0.25, zorder=3,
-                      label={"dn": "dinuc", "gc": "GC", "neg2": "neg2"}[a])
-    rho = float(q.loc["spearman(composition baseline, nested gain), all arms pooled", "value"])
-    ax[1].axhline(0, color="#cccccc", lw=0.6, zorder=1)
-    ax[1].set_xlabel("composition alone (AUROC)")
-    ax[1].set_ylabel("nested contribution")
-    ax[1].legend(fontsize=7, frameon=False, loc="upper right")
-    ax[1].set_title(f"b  it tracks the headroom, rho = {rho:+.2f}", loc="left")
-
-    # c. per dataset, so it is not an averaging artefact
+    # b. per dataset, so it is not an averaging artefact
     lim = [-0.02, max(d.gain_dn.max(), d.gain_gc.max()) + 0.01]
-    ax[2].plot(lim, lim, color="#999999", lw=0.8, ls="--", zorder=2)
-    ax[2].scatter(d.gain_gc, d.gain_dn, s=12, color=COLOR["dinuc"], alpha=0.7,
+    ax[1].plot(lim, lim, color="#999999", lw=0.8, ls="--", zorder=2)
+    ax[1].scatter(d.gain_gc, d.gain_dn, s=12, color=COLOR["dinuc"], alpha=0.7,
                   edgecolor="white", linewidth=0.25, zorder=3, label="dinuc vs GC")
-    ax[2].scatter(d.gain_gc, d.gain_neg2, s=12, color=COLOR["neg2"], alpha=0.7,
+    ax[1].scatter(d.gain_gc, d.gain_neg2, s=12, color=COLOR["neg2"], alpha=0.7,
                   edgecolor="white", linewidth=0.25, zorder=3, label="neg2 vs GC")
-    ax[2].set_xlim(lim)
-    ax[2].set_ylim(lim)
-    ax[2].set_xlabel("nested contribution, GC-matched")
-    ax[2].set_ylabel("nested contribution, other protocol")
-    ax[2].legend(fontsize=7, frameon=False, loc="upper left")
+    ax[1].set_xlim(lim)
+    ax[1].set_ylim(lim)
+    ax[1].set_xlabel("nested contribution, GC-matched")
+    ax[1].set_ylabel("nested contribution, other protocol")
+    ax[1].legend(fontsize=7, frameon=False, loc="upper left")
     up = int((d.gain_dn > d.gain_gc).sum())
     dn_ = int((d.gain_neg2 < d.gain_gc).sum())
-    ax[2].set_title(f"c  above in {up}/94, below in {dn_}/94", loc="left")
+    ax[1].set_title(f"b  above in {up}/94, below in {dn_}/94", loc="left")
 
     fig.tight_layout()
     save(fig, "f10_three_protocols")
@@ -759,7 +753,7 @@ def f12():
     # (a) every arm-dataset cell: the gain falls as the baseline the protocol leaves rises.
     for key, col, lab in (("dn", COLOR["dinuc"], "dinucleotide-matched"),
                           ("gc", COLOR["gc"], "GC-matched"),
-                          ("neg2", "#7a5195", "neg2")):
+                          ("neg2", COLOR["neg2"], "neg2")):
         ax[0].scatter(d[f"comp_{key}"], d[f"gain_{key}"], s=13, color=col, alpha=0.7,
                       edgecolor="white", linewidth=0.25, label=lab, zorder=3)
     ax[0].axhline(0, color="#404040", linewidth=0.8)

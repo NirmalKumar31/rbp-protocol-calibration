@@ -291,7 +291,7 @@ with intervals rather than as decisions, and none of which is adjusted for the n
 analyses performed. Readers should treat an exploratory interval that just excludes zero
 accordingly.
 
-Per-dataset significance counts are also reported at a design effect of 1.35 applied to the
+Per-dataset significance counts are also reported at a design effect applied to the
 DeLong standard error, which is intended to cover two things the estimator does not: that it
 conditions on two score vectors as fixed when both are fitted, and that it treats spatially
 clustered windows as independent. We measured both components instead of assuming them
@@ -299,10 +299,12 @@ clustered windows as independent. We measured both components instead of assumin
 error of the contribution by a median factor of 1.100, and the factor is insensitive to block
 length, moving only to 1.104 at 100~kb and 1.138 at 1~Mb, so the objection that a 10~kb block
 is smaller than a gene does not bite. Permuting the model score within fold and refitting gives
-1.048. The measured product is therefore 1.15 rather than 1.35. We retain 1.35, because it is
-the more conservative of the two and because the count it produces was fixed before the
-components were measured; a reader who prefers the measured figure should read 75 of 94 rather
-than 72 of 94 below. This is one of two quantities in the paper that the verification harness
+1.048. The measured product is therefore 1.15. We report the counts at that measured value as
+primary, on the same principle applied everywhere else here, that a measurement supersedes a
+figure chosen before it was taken. The value fixed in advance was 1.35, and it is retained as a
+conservative sensitivity: 75 of 94 datasets are significant at 1.15 and 72 of 94 at 1.35,
+against 80 of 94 with no inflation at all. The choice between the two moves three datasets and
+no conclusion. This is one of two quantities in the paper that the verification harness
 cannot check
 from the released evidence, because the block bootstrap needs the genomic coordinates that the
 published per-window score files do not carry.
