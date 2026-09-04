@@ -195,6 +195,30 @@ two-arm contrast of $+0.0394$ against $+0.0398$. The finer grouping changes the 
 $0.0003$, so the coarser choice costs almost nothing and the grouping variable is not carrying
 the result.
 
+The window centre is a fourth such parameter and the largest of them. Every window is centred on
+its peak's midpoint, peaks are not points, and Section~\ref{sec:models} shows the discriminative
+signal sits a median 23~nt off that centre, so the choice is demonstrably not aligned with the
+signal. The comparison usually asked for, summit-centred against midpoint-centred windows,
+cannot be made here: narrowPeak reserves column 10 for a point-source summit and it is $-1$ in
+every row of every ENCODE eCLIP file in this panel, so no summit exists to centre on. We
+therefore compared the three centres the interval does provide, on ten size-stratified datasets
+rebuilt from the genome in both composition-matched arms: the midpoint, the peak's 5' boundary
+in transcript orientation, which is where the crosslink sits, and the midpoint displaced 25~nt
+downstream, which has no rationale and is included as a bound on arbitrariness. The two-arm
+contrast is $+0.0484$, $+0.0430$ and $+0.0407$, a range of $0.0077$. That is an order of
+magnitude larger than the chromosome partition's $0.0006$ or the fold grouping's $0.0003$, so
+of the design parameters left open the window centre is the one that matters most, and as with
+the partition the published choice gives the largest of the three rather than the middle.
+
+Rebuilding the published centring also measures something we had not intended to measure. Both
+matchers sample their candidate windows, so a rebuild is a fresh draw of the same construction
+rather than the same negatives, and the spread between draws is the arm's own run-to-run
+variability: at most $5.29\times10^{-5}$ per dataset in the GC arm and $7.90\times10^{-3}$ in
+the dinucleotide arm. The arm constraining fifteen degrees of freedom is the less stable of the
+two by two orders of magnitude, because matching sixteen frequencies well depends on which
+candidates the pool happened to contain, while a five-point GC tolerance is met by a large
+fraction of any pool.
+
 One limitation concerns the provenance of the neural scores. Initialisation was unseeded across
 all 2830 committed fold-runs, at the cost quantified in Methods. A second, that 20 of the 94
 dinucleotide-arm datasets carried scores from a partition that was not chromosome-grouped, has
@@ -222,7 +246,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 860 assertions compare each published value against a frozen
+credit than it earns. Its 874 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -235,7 +259,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 860 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 874 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit

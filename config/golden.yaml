@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 858
+  min_domain_checks: 872
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2361,3 +2361,30 @@ gene_clustered_cv:
   contrast_gene:   {value: 0.0394, tol: 0.003}
   max_contrast_change: 0.003
   max_multiplier_deviation: 0.08
+
+# B16: WINDOW CENTRING. The comparison asked for is summit- versus midpoint-centred windows, and
+# it CANNOT BE RUN: narrowPeak column 10 is -1 in every row of every ENCODE eCLIP file here, so
+# no summit exists. Gated as an exact zero, so substituting three other centres is never
+# mistaken for the comparison that was requested.
+#
+# Rebuilding the published midpoint centring is NOT a reproduction control, which is how it was
+# written. Both matchers sample their candidate windows from an RNG, so a rebuild is a fresh
+# draw of the same construction. That makes it a measurement of run-to-run variability instead,
+# and the arm constraining fifteen degrees of freedom is the more variable by two orders of
+# magnitude: matching sixteen frequencies depends on which candidates were sampled, while a
+# five-point GC tolerance is met by a large fraction of any pool.
+#
+# The centring moves the contrast by 0.0077, an order of magnitude more than the fold design
+# (0.0003) or the chromosome partition (0.0006), so it is the largest of the three open design
+# parameters and the gate says so rather than listing three reassurances.
+window_centring:
+  min_datasets: 10
+  min_files_checked: 10
+  redraw_gc: 0.001
+  redraw_dn: 0.020
+  gain_midpoint_gc: {value: 0.0295, tol: 0.004}
+  gain_midpoint_dn: {value: 0.0779, tol: 0.008}
+  contrast_midpoint:   {value: 0.0484, tol: 0.006}
+  contrast_five_prime: {value: 0.0430, tol: 0.006}
+  contrast_shift25:    {value: 0.0407, tol: 0.006}
+  max_contrast_range: 0.015

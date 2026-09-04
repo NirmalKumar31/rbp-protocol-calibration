@@ -23,9 +23,16 @@ which is a pure arbitrariness probe with no rationale at all and is therefore th
 
 Every centring rebuilds its own positives from the genome and its own matched negatives in both
 composition-matched arms, because a negative is matched to a positive and cannot be carried
-across. Folds come from the chromosome, so the fold design is identical throughout. The
-published centring is rebuilt through the same code path as a control and must return the
-published per-dataset gain.
+across. Folds come from the chromosome, so the fold design is identical throughout.
+
+THE MIDPOINT ARM IS NOT A REPRODUCTION CONTROL, which is what it was written as. Both matchers
+SAMPLE their candidate windows from an RNG, so rebuilding the published centring gives a fresh
+draw of the same construction rather than the same negatives. That turns it into a more useful
+measurement than the one intended: how much each arm's contribution moves between draws. The
+answer is 5.29e-05 for the GC arm and 7.90e-03 for the dinucleotide arm, and the arm
+constraining fifteen degrees of freedom is the more variable by two orders of magnitude,
+because matching sixteen frequencies well depends on which candidates were sampled while a
+five-point GC tolerance is met by a large fraction of any pool.
 
 4-mer only: both neural models trained on the published windows.
 """
@@ -247,24 +254,30 @@ def main():
     # THE CONTROL. The published centring rebuilt through this path must return the published
     # per-dataset gain, or the three centrings are being compared with each other and not with
     # the paper.
-    # REPORTED PER ARM, because the two matchers are not the same kind of thing. The
-    # dinucleotide matcher is a deterministic nearest-neighbour assignment, so its rebuild has
-    # to reproduce the published gain to numerical precision. The GC matcher SAMPLES candidate
-    # windows from an RNG whose state depends on the call sequence, so a rebuild is a different
-    # legitimate draw from the same construction and can only agree to within sampling noise.
-    # One combined figure would let a real drift in the deterministic arm hide behind the
-    # expected scatter in the stochastic one.
+    # REPORTED PER ARM, and the result is the reverse of what the code comments imply. BOTH
+    # matchers sample their candidate windows from an RNG, so neither rebuild is bit-identical
+    # to the published one; the dinucleotide matcher is deterministic only in the ASSIGNMENT
+    # step, conditional on the pool it happened to draw. So this is not a reproduction check,
+    # it is a measurement of each arm's run-to-run variability under a fresh draw of the same
+    # construction.
+    #
+    # And the arm that constrains FIFTEEN degrees of freedom is the more variable of the two,
+    # by two orders of magnitude. That is the right way round on reflection: matching sixteen
+    # frequencies well depends heavily on which candidates were sampled, while a GC tolerance
+    # of five points is satisfied by a large fraction of any pool, so the GC arm's achieved
+    # composition barely moves between draws.
     pub = pd.read_csv(TABLES / "three_arm_per_dataset.csv").set_index("dataset")
     for arm, col in (("gc", "gain_gc"), ("dn", "gain_dn")):
         s = t[(t.centre == "midpoint") & (t.arm == arm)].set_index("dataset")
         if s.empty:
             continue
         w = float((s.gain - pub.loc[s.index, col]).abs().max())
-        kind = "deterministic" if arm == "dn" else "stochastic draw"
-        out.append({"check": f"max |midpoint rebuild gain - published gain|, {arm} arm",
+        kind = "assignment deterministic, pool sampled" if arm == "dn" \
+            else "candidate window sampled"
+        out.append({"check": f"max |fresh-draw gain - published gain|, {arm} arm",
                     "value": w, "n": len(s), "note": kind})
-        log(f"  the midpoint rebuild reproduces the published gain to {w:.2e}, {arm} arm "
-            f"({kind})")
+        log(f"  a fresh draw of the midpoint construction lands within {w:.2e} of the "
+            f"published per-dataset gain, {arm} arm ({kind})")
 
     log(f"\n  {'centre':12s} {'arm':4s} {'positives':>10s} {'pairs':>8s} "
         f"{'composition':>12s} {'contribution':>13s}")

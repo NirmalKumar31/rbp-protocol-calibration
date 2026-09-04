@@ -2028,6 +2028,99 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_window_centring(T, g):
+    """B16: the window centre is a free parameter, and no summit exists to compare against."""
+    print("\nwindow centring  (three centres the peak interval actually provides)")
+    d = T.get("window_centring.csv")
+    if d is None:
+        return record(False, "window_centring.csv present", "MISSING",
+                      "run scripts/window_centring.py")
+    spec = g["window_centring"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    v = get("datasets rebuilt under every centring")
+    if v is not None:
+        record(int(v) >= spec["min_datasets"], "datasets rebuilt", int(v),
+               f">= {spec['min_datasets']}")
+
+    # THE FACT THAT SHAPES THE SECTION. The comparison a reviewer asks for -- summit-centred
+    # against midpoint-centred -- cannot be run, because narrowPeak column 10 is -1 in every
+    # row of every ENCODE eCLIP file here. Gated as an exact zero so the substitution of three
+    # other centres is never mistaken for the comparison that was requested.
+    n_sum = get("peaks carrying a summit in column 10")
+    n_files = get("narrowPeak files checked for a point-source summit")
+    if None not in (n_sum, n_files):
+        record(int(n_sum) == 0 and int(n_files) >= spec["min_files_checked"],
+               "no peak in any checked narrowPeak carries a point-source summit, so a "
+               "summit-centred arm cannot be built from this data at all",
+               f"{int(n_sum)} summits in {int(n_files)} files",
+               f"0 in >= {spec['min_files_checked']}")
+
+    # RUN-TO-RUN VARIABILITY OF THE MATCHERS, which is what rebuilding the published centring
+    # actually measures: both matchers SAMPLE their candidate windows, so a rebuild is a fresh
+    # draw and not a reproduction. Gated per arm because the two differ by two orders of
+    # magnitude, and the more constrained matcher is the more variable one.
+    for arm, key in (("gc", "redraw_gc"), ("dn", "redraw_dn")):
+        v = get(f"max |fresh-draw gain - published gain|, {arm} arm")
+        if v is not None:
+            at_most(f"a fresh draw of the published construction lands near the published "
+                    f"per-dataset gain, {arm} arm", v, spec[key])
+    a, b = (get("max |fresh-draw gain - published gain|, gc arm"),
+            get("max |fresh-draw gain - published gain|, dn arm"))
+    if None not in (a, b):
+        record(b > a,
+               "the arm constraining fifteen degrees of freedom is the more variable between "
+               "draws, because matching sixteen frequencies depends on which candidates were "
+               "sampled", f"dn {b:.2e} vs gc {a:.2e}", "dn larger")
+
+    for label, key in (
+            ("4-mer contribution, midpoint centring, gc arm", spec["gain_midpoint_gc"]),
+            ("4-mer contribution, midpoint centring, dn arm", spec["gain_midpoint_dn"]),
+            ("two-arm contrast, midpoint centring", spec["contrast_midpoint"]),
+            ("two-arm contrast, five_prime centring", spec["contrast_five_prime"]),
+            ("two-arm contrast, shift25 centring", spec["contrast_shift25"])):
+        v = get(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE HEADLINE, TWO-SIDEDLY: a bounded range AND a preserved sign under every centring.
+    rng_c = get("range of the two-arm contrast over window centrings")
+    lo = get("smallest two-arm contrast over window centrings")
+    if None not in (rng_c, lo):
+        at_most("moving the window centre moves the two-arm contrast by a bounded amount",
+                rng_c, spec["max_contrast_range"])
+        record(lo > 0, "and the contrast keeps its sign under every centring tried",
+               f"{lo:+.4f}", "> 0")
+        # AND IT MATTERS MORE THAN THE FOLD DESIGN, which is the comparison a reader needs to
+        # rank these robustness checks rather than read them as a list of reassurances.
+        gc = T.get("gene_clustered_cv.csv")
+        if gc is not None:
+            gq = gc.set_index("check")
+            k = "contrast change from gene-clustered folds"
+            if k in gq.index:
+                record(rng_c > abs(float(gq.loc[k, "value"])),
+                       "the window centre moves the contrast MORE than the fold design does, "
+                       "so the centring is the larger of the two open design parameters",
+                       f"centring {rng_c:.4f} vs folds "
+                       f"{abs(float(gq.loc[k, 'value'])):.4f}", "centring larger")
+
+    # THE PUBLISHED CHOICE SITS AT THE TOP OF THE RANGE, as it did for the chromosome
+    # partition. Saying so is the difference between reporting a range and rounding it away.
+    mids = get("two-arm contrast, midpoint centring")
+    others = [get(f"two-arm contrast, {c} centring") for c in ("five_prime", "shift25")]
+    if mids is not None and all(x is not None for x in others):
+        record(mids >= max(others),
+               "the published midpoint centring gives the LARGEST contrast of the three, so "
+               "the headline sits at the top of that range rather than in the middle",
+               f"{mids:+.4f} vs {max(others):+.4f}", "midpoint largest")
+
+
 def verify_gene_clustered_cv(T, g):
     """B10: chromosome folds already imply gene folds. What does the finer design cost?"""
     print("\ngene-clustered CV  (is the fold design carrying the result?)")
@@ -4152,7 +4245,7 @@ def main():
                verify_cobinding_noise,
                verify_estimands, verify_nested_scale, verify_shuffled_arm,
                verify_order_profile, verify_region_annotation,
-               verify_gene_clustered_cv,
+               verify_gene_clustered_cv, verify_window_centring,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
