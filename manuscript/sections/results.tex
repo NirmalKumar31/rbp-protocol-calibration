@@ -402,6 +402,7 @@ abolished where the baseline falls.}
 \end{figure}
 
 \subsection{The span holds for three model classes}
+\label{sec:models}
 
 Both neural models were trained on all three arms under the same folds, seed and code path,
 with per-window out-of-fold scores retained (Figure~\ref{fig:models},
@@ -665,6 +666,82 @@ IDI & 4-mer & 0.0669 & 0.0448 & 0.0279 & 2.40 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{The span survives raising the baseline one order, but the magnitudes do not}
+\label{sec:orderthree}
+
+The composition baseline stops at order two because that is what a dinucleotide-preserving
+shuffle holds fixed. It is a defensible stopping point and it is a choice, so the same nested
+comparison was refit with the 63 trinucleotide frequencies added, on the full panel, in all
+three arms, for all three model classes, from the same out-of-fold model scores with nothing
+retrained (Table~\ref{tab:orderthree}). At order two this recomputation returns spans of
+5.42, 7.42 and 3.72, which are Table~\ref{tab:threemodels}'s spans to four decimal places, so
+what follows is the paper's own quantity measured one order up rather than a different
+quantity.
+
+\begin{table}[htbp]
+\centering
+\caption{Nested contribution over an order-three composition baseline, $n=94$ datasets,
+identical rows, folds and model scores to Table~\ref{tab:threemodels}. Surviving is the
+order-three contribution as a fraction of the order-two one, as a ratio of panel means;
+the range is over the three arms.
+Spans are ratios of panel means with protein-clustered percentile intervals.}
+\label{tab:orderthree}
+\begin{tabular}{lccccc}
+\toprule
+model & dinucleotide & GC & bias-aware & span & surviving \\
+\midrule
+4-mer & $+0.0124$ & $+0.0058$ & $+0.0019$ & 6.60 (4.71--10.05) & 0.154--0.217 \\
+CNN & $+0.0477$ & $+0.0200$ & $+0.0057$ & 8.43 (6.49--11.64) & 0.502--0.605 \\
+SpliceBERT & $+0.1188$ & $+0.0668$ & $+0.0335$ & 3.54 (3.05--4.11) & 0.685--0.750 \\
+\midrule
+composition alone & 0.6791 & 0.8023 & 0.8361 & & \\
+rise from order two & $+0.0516$ & $+0.0196$ & $+0.0113$ & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Every contribution shrinks, and by an amount that depends on the model class rather than on the
+protocol. The 4-mer retains between 0.154 and 0.217 of what it measured over an order-two baseline,
+depending on the arm; SpliceBERT retains between 0.685 and 0.750. For a bag of 4-mer counts this is close to
+tautological, since trinucleotide counts are linear aggregates of 4-mer counts and the only
+information a 4-mer model holds beyond a trinucleotide baseline is order four. The point is
+that most of what such a model is credited with contributing over a composition baseline is one
+further order of composition, not motif recognition and not any positional feature.
+
+What does not shrink is the protocol dependence. The span across the three protocols is 6.60,
+8.43 and 3.54 at order three against 5.42, 7.42 and 3.72 at order two, and the two-arm contrast
+remains $+0.0067$, $+0.0277$ and $+0.0520$ with every interval excluding zero. The direction of
+the movement is not uniform: for the 4-mer and the convolutional network the span grows, for
+SpliceBERT it falls slightly. Raising the baseline therefore removes much of the magnitude of
+what these benchmarks report and none of its protocol dependence, which is the same
+dissociation Section~\ref{sec:estimands} found on the estimand axis.
+
+Two features of the order-three numbers are cautions rather than results, and both are stated
+here on the full panel because the smaller panel misstated them in opposite directions. First,
+the spans of 6.60 and 8.43 have a near-zero denominator: the bias-aware arm's 4-mer
+contribution is $+0.0019$ and is positive in only 60 of 94 datasets, against 71 of 94 for the
+convolutional network and 92 of 94 for SpliceBERT. The 4-mer span's interval runs to 10.05 for
+that reason and the ratio should not be read as a magnitude; the absolute differences in
+Table~\ref{tab:orderthree} are the honest form. This is the same pathology that disqualifies
+normalising by the excess over chance in Section~\ref{sec:families}. Second, the surviving
+contribution is concentrated in a few datasets. On a 30-dataset subsample the three largest
+datasets held 51\% of the GC arm's positive mass; on the full panel they hold 21\%. That fall
+is panel size and not dispersion, and reporting it alone would understate the caution: as a
+multiple of the share three datasets would hold if the mass were spread evenly, concentration
+is 4.66-fold on the full panel against 3.07-fold on the subsample. The mass is more
+concentrated here, not less.
+
+Correcting for the headroom the raised baseline removes changes which model looks fragile, and
+does so inconsistently across arms. A nested increment is bounded above by $1-c$, and the
+order-three baseline raises $c$, so part of every drop above is arithmetic. Transplanting each
+model's order-two discriminability increment onto its order-three baseline and taking the
+residual, the 4-mer loses 1.29 times what SpliceBERT loses in the GC arm and 1.37 times in the
+dinucleotide arm, but 0.91 times in the bias-aware arm, where SpliceBERT loses marginally more.
+The reading that a $k$-mer model is the more fragile of the two under a raised baseline
+therefore holds in two of the three arms and reverses in the third, which is the same
+two-of-three pattern the apparent-difficulty ordering shows in
+Section~\ref{sec:models}.
 
 \subsection{One structural feature of the calibration replicates on an externally constructed
 benchmark}

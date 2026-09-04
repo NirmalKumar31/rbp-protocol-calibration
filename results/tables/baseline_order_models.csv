@@ -24,6 +24,18 @@ max |order-2 gain - R1g published gain|,0.0,94,,,
 "splicebert gain over order-2 baseline, dn arm",0.1735310137999413,94,0.15454649191290887,0.19141423802990135,
 "splicebert gain over order-3 baseline, dn arm",0.1187911381338351,94,0.10646637454643938,0.130874958962803,
 "splicebert fraction surviving order 3, dn arm",0.6845527812727807,94,0.6605630838352642,0.709054416647049,"ratio of means, protein-clustered"
+"composition AUROC, order-2 baseline, neg2 arm",0.8247778749636611,94,0.8067505940753091,0.8425545798152412,
+"composition AUROC, order-3 baseline, neg2 arm",0.8360646801751775,94,0.8181222117053717,0.8536204818189628,
+"composition rise from order 3, neg2 arm",0.011286805211516525,94,0.008459972157856264,0.014050115905526822,
+"kmer gain over order-2 baseline, neg2 arm",0.012231944163197651,94,0.009724558412330499,0.01516973823385593,
+"kmer gain over order-3 baseline, neg2 arm",0.0018844034781022622,94,0.00109868920377248,0.0027741027980764475,
+"kmer fraction surviving order 3, neg2 arm",0.15405592544902896,94,0.0962645918988683,0.22104025146217596,"ratio of means, protein-clustered"
+"cnn gain over order-2 baseline, neg2 arm",0.011268725158253787,94,0.008249174374945264,0.014479881179682285,
+"cnn gain over order-3 baseline, neg2 arm",0.005657102890561265,94,0.003686606749141228,0.007806531019232792,
+"cnn fraction surviving order 3, neg2 arm",0.5020180021355579,94,0.4295168518523394,0.5674952218807362,"ratio of means, protein-clustered"
+"splicebert gain over order-2 baseline, neg2 arm",0.0466140278896648,94,0.03967103181598678,0.05434659336085332,
+"splicebert gain over order-3 baseline, neg2 arm",0.03353733676254842,94,0.027911510957668428,0.040161843022067795,
+"splicebert fraction surviving order 3, neg2 arm",0.7194687582444312,94,0.6842269567358493,0.7536831227065324,"ratio of means, protein-clustered"
 "kmer absolute absorbed by order 3, gc arm",0.020758796767615023,94,0.01629376018479245,0.02522837713298028,
 "cnn absolute absorbed by order 3, gc arm",0.01304078204255888,94,0.009814900234859225,0.016495703061879686,
 "splicebert absolute absorbed by order 3, gc arm",0.022221431233265518,94,0.018164069110657186,0.026332668554903696,
@@ -32,6 +44,10 @@ max |order-2 gain - R1g published gain|,0.0,94,,,
 "cnn absolute absorbed by order 3, dn arm",0.03597401303171541,94,0.028705443059715268,0.0440567995115112,
 "splicebert absolute absorbed by order 3, dn arm",0.05473987566610617,94,0.046568585562316286,0.06305245259753313,
 "splicebert minus kmer, absolute absorbed, dn arm",0.000921531539415464,94,-0.0014767258538791474,0.0036678672599043437,
+"kmer absolute absorbed by order 3, neg2 arm",0.010347540685095392,94,0.0080520363564391,0.012770601862924096,
+"cnn absolute absorbed by order 3, neg2 arm",0.005611622267692517,94,0.004255913857400322,0.00705662676597344,
+"splicebert absolute absorbed by order 3, neg2 arm",0.013076691127116381,94,0.011053589870895643,0.015228176002187633,
+"splicebert minus kmer, absolute absorbed, neg2 arm",0.002729150442020991,94,0.0013760137413674155,0.0041407910573060275,
 "kmer compression-predicted order-3 gain, gc arm",0.023912656584655703,94,0.01864847093492661,0.02919825154469887,
 "kmer compression-corrected order-3 residual, gc arm",-0.018158355011643215,94,-0.021714470579166412,-0.014588711023122614,
 "cnn compression-predicted order-3 gain, gc arm",0.029838504045757473,94,0.023138849848767722,0.03729316686316275,
@@ -48,16 +64,29 @@ max |order-2 gain - R1g published gain|,0.0,94,,,
 "splicebert compression-corrected order-3 residual, dn arm",-0.03354752940404719,94,-0.036648353191106965,-0.0302002046687711,
 "kmer minus splicebert, compression-corrected residual, dn arm",-0.012486106796454571,94,-0.01705920674032117,-0.007710637982737675,
 "kmer/splicebert corrected-residual ratio, dn arm",1.3721915448995252,94,,,
+"kmer compression-predicted order-3 gain, neg2 arm",0.011078667930873322,94,0.008908480020978958,0.013435340597935556,
+"kmer compression-corrected order-3 residual, neg2 arm",-0.00919426445277106,94,-0.011286577300558376,-0.007183498420171616,
+"cnn compression-predicted order-3 gain, neg2 arm",0.010273106365030787,94,0.0075333919590953105,0.013124864582128548,
+"cnn compression-corrected order-3 residual, neg2 arm",-0.004616003474469523,94,-0.005717140398544861,-0.003556866311545563,
+"splicebert compression-predicted order-3 gain, neg2 arm",0.04359929679259965,94,0.03703524764388347,0.05086838409965113,
+"splicebert compression-corrected order-3 residual, neg2 arm",-0.010061960030051229,94,-0.011651298906445236,-0.008525127034444123,
+"kmer minus splicebert, compression-corrected residual, neg2 arm",0.0008676955772801664,94,-0.0005234661946027749,0.002375851862986651,
+"kmer/splicebert corrected-residual ratio, neg2 arm",0.9137647561023208,94,,,
 "absorbed spread across model classes, gc arm",0.009180649190706637,94,,,
 "absorbed spread across model classes, dn arm",0.018765862634390763,94,,,
+"absorbed spread across model classes, neg2 arm",0.007465068859423865,94,,,
 "cnn minus kmer, absolute absorbed, gc arm",-0.007718014725056139,94,-0.009790501003566345,-0.005681348616027332,
 "cnn minus kmer, absolute absorbed, dn arm",-0.017844331094975293,94,-0.021884948087026915,-0.013848632951109207,
+"cnn minus kmer, absolute absorbed, neg2 arm",-0.004735918417402874,94,-0.006317966452037732,-0.003117191759583079,
 "kmer order-3 gain positive in, gc arm",65.0,94,,,
 "cnn order-3 gain positive in, gc arm",80.0,94,,,
 "splicebert order-3 gain positive in, gc arm",94.0,94,,,
 "kmer order-3 gain positive in, dn arm",75.0,94,,,
 "cnn order-3 gain positive in, dn arm",90.0,94,,,
 "splicebert order-3 gain positive in, dn arm",94.0,94,,,
+"kmer order-3 gain positive in, neg2 arm",60.0,94,,,
+"cnn order-3 gain positive in, neg2 arm",71.0,94,,,
+"splicebert order-3 gain positive in, neg2 arm",92.0,94,,,
 "cnn minus kmer, order-3 baseline, gc arm",0.014209455788329373,94,0.010393335318681748,0.01840482355070116,
 "splicebert minus kmer, order-3 baseline, gc arm",0.061050829570209846,94,0.050923734691323004,0.0720132541847688,
 "splicebert / kmer at order 3, gc arm",11.609598540426969,94,,,
@@ -66,6 +95,10 @@ max |order-2 gain - R1g published gain|,0.0,94,,,
 "splicebert minus kmer, order-3 baseline, dn arm",0.10634544550937529,94,0.0956546896800261,0.11687199911956722,
 "splicebert / kmer at order 3, dn arm",9.544759116127608,94,,,
 "splicebert / kmer at order 2, dn arm",2.6187812018097176,94,,,
+"cnn minus kmer, order-3 baseline, neg2 arm",0.0037726994124590036,94,0.0020033746390817468,0.005814567030345813,
+"splicebert minus kmer, order-3 baseline, neg2 arm",0.03165293328444616,94,0.026058280390893702,0.037977390986893324,
+"splicebert / kmer at order 3, neg2 arm",17.797322681829833,94,,,
+"splicebert / kmer at order 2, neg2 arm",3.8108437438680274,94,,,
 "kmer R1 contrast (dn-gc), order-2 baseline",0.03975093841052303,94,0.03237834794987913,0.047806761224369096,
 "kmer dn/gc multiplier, order-2 baseline",2.4992943449996727,94,,,
 "cnn R1 contrast (dn-gc), order-2 baseline",0.0506490819037062,94,0.04145502189054924,0.060469510292688246,
@@ -78,3 +111,33 @@ max |order-2 gain - R1g published gain|,0.0,94,,,
 "cnn dn/gc multiplier, order-3 baseline",2.3883083436096593,94,,,
 "splicebert R1 contrast (dn-gc), order-3 baseline",0.051986006990612746,94,0.04633349446192908,0.057685842484464005,
 "splicebert dn/gc multiplier, order-3 baseline",1.7781738633094049,94,,,
+"kmer three-arm span, order-2 baseline",5.417293920497092,94,4.43108894493515,6.589071517901743,smallest arm neg2 at +0.0122
+"kmer smallest-arm contribution, order-2",0.012231944163197651,94,,,neg2
+"cnn three-arm span, order-2 baseline",7.423521306341808,94,6.063225064840825,9.310799769621253,smallest arm neg2 at +0.0113
+"cnn smallest-arm contribution, order-2",0.011268725158253787,94,,,neg2
+"splicebert three-arm span, order-2 baseline",3.722720855848124,94,3.2236013483977732,4.300600990275586,smallest arm neg2 at +0.0466
+"splicebert smallest-arm contribution, order-2",0.0466140278896648,94,,,neg2
+"kmer three-arm span, order-3 baseline",6.604579522955238,94,4.712017137778832,10.052414974866736,smallest arm neg2 at +0.0019
+"kmer smallest-arm contribution, order-3",0.0018844034781022622,94,,,neg2
+"cnn three-arm span, order-3 baseline",8.42827312818435,94,6.492974590816114,11.639354734624563,smallest arm neg2 at +0.0057
+"cnn smallest-arm contribution, order-3",0.005657102890561265,94,,,neg2
+"splicebert three-arm span, order-3 baseline",3.542056394486598,94,3.0460055305745155,4.113546390542781,smallest arm neg2 at +0.0335
+"splicebert smallest-arm contribution, order-3",0.03353733676254842,94,,,neg2
+"kmer top-3 share of order-3 positive mass, gc arm",0.21499477035550651,94,,,65 datasets positive
+"kmer top-3 over-representation, order-3, gc arm",4.6582200243693075,94,,,"top-3 share / uniform share, panel-size invariant"
+"cnn top-3 share of order-3 positive mass, gc arm",0.16473705790754806,94,,,80 datasets positive
+"cnn top-3 over-representation, order-3, gc arm",4.392988210867949,94,,,"top-3 share / uniform share, panel-size invariant"
+"splicebert top-3 share of order-3 positive mass, gc arm",0.10328106857422381,94,,,94 datasets positive
+"splicebert top-3 over-representation, order-3, gc arm",3.236140148659013,94,,,"top-3 share / uniform share, panel-size invariant"
+"kmer top-3 share of order-3 positive mass, dn arm",0.1967160642717935,94,,,75 datasets positive
+"kmer top-3 over-representation, order-3, dn arm",4.917901606794837,94,,,"top-3 share / uniform share, panel-size invariant"
+"cnn top-3 share of order-3 positive mass, dn arm",0.12485141868945973,94,,,90 datasets positive
+"cnn top-3 over-representation, order-3, dn arm",3.7455425606837918,94,,,"top-3 share / uniform share, panel-size invariant"
+"splicebert top-3 share of order-3 positive mass, dn arm",0.06759704670772179,94,,,94 datasets positive
+"splicebert top-3 over-representation, order-3, dn arm",2.1180407968419495,94,,,"top-3 share / uniform share, panel-size invariant"
+"kmer top-3 share of order-3 positive mass, neg2 arm",0.2045934664011084,94,,,60 datasets positive
+"kmer top-3 over-representation, order-3, neg2 arm",4.091869328022168,94,,,"top-3 share / uniform share, panel-size invariant"
+"cnn top-3 share of order-3 positive mass, neg2 arm",0.24923620571518668,94,,,71 datasets positive
+"cnn top-3 over-representation, order-3, neg2 arm",5.898590201926085,94,,,"top-3 share / uniform share, panel-size invariant"
+"splicebert top-3 share of order-3 positive mass, neg2 arm",0.13395304859190696,94,,,92 datasets positive
+"splicebert top-3 over-representation, order-3, neg2 arm",4.107893490151813,94,,,"top-3 share / uniform share, panel-size invariant"

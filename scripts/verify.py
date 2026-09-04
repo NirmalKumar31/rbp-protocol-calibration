@@ -1850,6 +1850,94 @@ def verify_baseline_order_models(T, g):
                    "grows with capacity' stays withdrawn",
                    f"{m['splicebert']:.2f}x", f"< {min(m['kmer'], m['cnn']):.2f}x")
 
+    # B2: THE THIRD ARM, which was computed into the per-dataset table and summarised nowhere
+    # until now. Everything above reads ("gc", "dn"); the bias-aware arm is the fold range's
+    # own denominator, so leaving it unreported left the order-3 span unmeasured on the full
+    # panel and the paper quoting a 30-dataset 4-mer number for it.
+    for label, key in (
+            ("kmer gain over order-3 baseline, neg2 arm", spec["gain_order3_kmer_neg2"]),
+            ("cnn gain over order-3 baseline, neg2 arm", spec["gain_order3_cnn_neg2"]),
+            ("splicebert gain over order-3 baseline, neg2 arm",
+             spec["gain_order3_splicebert_neg2"]),
+            ("kmer three-arm span, order-3 baseline", spec["span_order3_kmer"]),
+            ("cnn three-arm span, order-3 baseline", spec["span_order3_cnn"]),
+            ("splicebert three-arm span, order-3 baseline", spec["span_order3_splicebert"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # The span must survive for every model class, and two-sidedly: the interval's lower end
+    # above 1 is what "the protocol dependence is not an artefact of where the baseline stops"
+    # actually asserts.
+    for model in ("kmer", "cnn", "splicebert"):
+        k = f"{model} three-arm span, order-3 baseline"
+        if k in q.index and not pd.isna(q.loc[k, "ci_low"]):
+            record(float(q.loc[k, "ci_low"]) > spec["min_span_order3_ci_low"],
+                   f"the three-arm span survives an order-3 baseline for the {model}",
+                   f"CI low {float(q.loc[k, 'ci_low']):.2f}x",
+                   f"> {spec['min_span_order3_ci_low']}")
+
+    # AND THE SPAN'S DIRECTION IS NOT UNIFORM, which the Discussion asserted unqualified as
+    # "does not shrink but grows". It grows for the 4-mer and the CNN and FALLS for SpliceBERT.
+    # Gate the pattern, not the sentence, so the sentence cannot drift back.
+    grow = {}
+    for model in ("kmer", "cnn", "splicebert"):
+        a = must(f"{model} three-arm span, order-2 baseline")
+        b = must(f"{model} three-arm span, order-3 baseline")
+        if None not in (a, b):
+            grow[model] = b > a
+    if len(grow) == 3:
+        record(grow["kmer"] and grow["cnn"] and not grow["splicebert"],
+               "the order-3 span grows for the 4-mer and the CNN and falls for SpliceBERT, so "
+               "'the span grows at order three' must stay qualified",
+               f"kmer {grow['kmer']}, cnn {grow['cnn']}, splicebert {grow['splicebert']}",
+               "True, True, False")
+
+    # THE NEAR-ZERO DENOMINATOR that makes those spans ratios and not magnitudes. The caution
+    # is only warranted while the smallest arm really is near zero, so gate the denominator
+    # itself rather than the prose about it.
+    sm = must("kmer smallest-arm contribution, order-3")
+    if sm is not None:
+        at_most("the order-3 span's smallest arm is near zero, so the ratio is reported as a "
+                "caution and the absolute differences lead", sm,
+                spec["max_smallest_arm_order3"])
+
+    # THE TWO-OF-THREE PATTERN in the compression-corrected comparison. The 4-mer loses more
+    # than SpliceBERT in the GC and dinucleotide arms and LESS in the bias-aware arm, so
+    # "a k-mer model is the more fragile under a raised baseline" is a two-arm statement.
+    rn = must("kmer/splicebert corrected-residual ratio, neg2 arm")
+    if rn is not None:
+        near("kmer/splicebert corrected-residual ratio, neg2 arm",
+             rn, spec["corrected_ratio_neg2"])
+        rg = must("kmer/splicebert corrected-residual ratio, gc arm")
+        rd = must("kmer/splicebert corrected-residual ratio, dn arm")
+        if None not in (rg, rd):
+            record(rg > 1 and rd > 1 and rn < 1,
+                   "the 4-mer loses more than SpliceBERT under a raised baseline in 2 of 3 "
+                   "arms and LESS in the bias-aware arm, so the fragility reading is not "
+                   "protocol-free", f"gc {rg:.2f}, dn {rd:.2f}, neg2 {rn:.2f}",
+                   "> 1, > 1, < 1")
+
+    # CONCENTRATION IS NOT PANEL SIZE. The raw top-3 share falls from 51% on 30 datasets to
+    # 21% on 94, which would read as "less concentrated" and is mostly the panel being three
+    # times larger. Divided by the share three datasets would hold under an even spread, the
+    # full panel is MORE concentrated, and that comparison is what the text has to make.
+    ov = must("kmer top-3 over-representation, order-3, gc arm")
+    sub = T.get("baseline_order.csv")
+    if ov is not None:
+        near("kmer top-3 over-representation, order-3, gc arm", ov,
+             spec["top3_over_representation_gc"])
+        if sub is not None:
+            sq = sub.set_index("check")
+            k = "top-3 over-representation of order-3 mass, gc arm"
+            if k in sq.index:
+                record(ov > float(sq.loc[k, "value"]),
+                       "the full panel is MORE concentrated than the 30-dataset subsample once "
+                       "panel size is divided out, so the fall in the raw share from 51% to "
+                       "21% must not be reported as reduced concentration",
+                       f"{ov:.2f}x vs {float(sq.loc[k, 'value']):.2f}x subsample",
+                       "full panel higher")
+
 
 def verify_models_by_protocol(T, g):
     """R1w: the floor and the recommendation generalise across models. R1n does not."""

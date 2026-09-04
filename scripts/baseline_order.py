@@ -259,6 +259,14 @@ def main():
         out += [{"check": f"order-3 gain positive in, {arm} arm", "value": n_pos, "n": len(t)},
                 {"check": f"median per-dataset order-3/order-2 ratio, {arm} arm",
                  "value": med_ratio, "n": len(t)},
+                # THE SHARE IS NOT COMPARABLE ACROSS PANEL SIZES. Three of thirty datasets is
+                # a tenth of this panel; three of ninety-four is a thirty-second. Dividing by
+                # the share three datasets would hold under an even spread makes the number
+                # mean "times over-represented" and comparable with the full-panel version in
+                # baseline_order_models.csv, which is the only way to see whether the bigger
+                # panel is really less concentrated or just bigger.
+                {"check": f"top-3 over-representation of order-3 mass, {arm} arm",
+                 "value": (top3 / (3 / n_pos)) if n_pos else np.nan, "n": len(t)},
                 {"check": f"share of the positive order-3 mass in its top 3 datasets, {arm} arm",
                  "value": top3, "n": len(t)}]
         log(f"  {arm:6s} order-3 gain positive in {n_pos:2d}/{len(t)}   "
@@ -277,8 +285,9 @@ def main():
                     "value": float(r_), "n": len(t), "note": f"p = {p_:.3f}"})
         log(f"  {arm:6s} spearman(size, retained fraction) {r_:+.3f}  p={p_:.3f}")
     log("  -> bigger datasets retain MORE, and the subsample drops the two largest, so the")
-    log("     removal fractions above are biased UPWARD. R1r bounds this on n=94 for gc/dn;")
-    log("     neg2 has no n=94 counterpart and it is the fold range's denominator.")
+    log("     removal fractions above are biased UPWARD. R1r now bounds this on n=94 for ALL")
+    log("     THREE arms, including neg2, which is the fold range's denominator; see")
+    log("     baseline_order_models.csv. Prefer those numbers to these wherever both exist.")
 
     pd.DataFrame(out).to_csv(TABLES / "baseline_order.csv", index=False)
     log("\nwrote baseline_order.csv and baseline_order_per_dataset.csv")

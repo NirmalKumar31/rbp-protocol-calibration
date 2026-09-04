@@ -28,8 +28,10 @@ things alongside its headline AUROC.
   bias-aware arm nineteen composition features beat the 4-mer outright in 53 of 94 datasets.
 \item \textbf{The order of that baseline}, because the contribution is an increment over
   whatever the baseline captures and nothing fixes the stopping point. Ours stops at order two;
-  at order three the protocol span does not shrink but grows, so the baseline's order is part of
-  the measurement and not a detail of it.
+  at order three the span does not collapse, growing for two model classes and falling slightly
+  for the third, while every contribution shrinks: by about a quarter for SpliceBERT and by four
+  fifths or more for the 4-mer. The
+  baseline's order sets the magnitude and is part of the measurement, not a detail of it.
 \end{enumerate}
 
 \noindent Contributions measured under different negative-set protocols should not be compared.
@@ -98,38 +100,19 @@ and the unbounded scales are smaller in every case. So the direction of the prot
 property of the comparison and the five-fold figure is a property of the AUROC scale, and this
 paper's headline magnitude should be read as the latter.
 
-The composition baseline used here stops at order two, matching what a
-dinucleotide-preserving shuffle would hold fixed. That is defensible, and it is a choice, so we
-measured what it costs.
-Refitting the baseline at order three, adding the 63 trinucleotide frequencies, removed
-approximately four fifths of the 4-mer's measured contribution and 87\% of the two-arm contrast
-on 30 size-stratified datasets, and on the bias-aware arm the median dataset retained nothing.
-For a bag-of-$k$-mers model, most
-of what is reported as contribution over a composition baseline is one further order of
-composition, not motif recognition or any positional feature. Any study reporting an
-increment over a composition baseline is reporting a quantity indexed by the order of that
-baseline, and few state which order was used.
-
-The collapse is bounded in two ways. Protocol dependence is not an artefact of where the baseline
-stops: at an order-three baseline the two-arm contrast remained $+0.0067$, $+0.0277$ and
-$+0.0520$ for the three model classes at $n=94$, all with intervals excluding zero. The collapse
-is also specific to models whose features are nested within the span of the baseline. Over a
-trinucleotide baseline the 4-mer's contribution was positive in 65 of 94 datasets against 94 of
-94 for SpliceBERT, and after accounting for the reduced headroom the raised baseline leaves, the
-4-mer lost 1.37 times what SpliceBERT lost in the dinucleotide arm and 1.29 times in the GC arm.
-A benchmark meant to separate model classes, instead of ranking them by how much short-range
-composition they absorb, could therefore raise the order of its baseline. That recommendation
-carries a circularity worth stating: trinucleotide counts are linear aggregates of 4-mer counts,
-so an order-three baseline is structurally unfavourable to $k$-mer models, and separates models
-by how much of their signal lies outside short-range composition, not by capacity as such.
-
-Two features of the order-three numbers are cautions and not results. The span across protocols
-does not collapse at order three but grows, to 7.16, and it
-grows because the bias-aware denominator falls to $+0.0015$ with only 17 of 30 datasets
-positive, which is the same near-zero-denominator pathology that disqualifies normalising by the
-excess over chance; its interval runs to 22.6 and it should not be read as a magnitude. And the
-surviving order-three contribution is concentrated, with 51\% of the positive mass in the GC arm
-sitting in 3 of the 30 datasets.
+Where the composition baseline stops is an analyst's choice, and
+Section~\ref{sec:orderthree} measures what it costs. Raising it to order three removed most of
+the 4-mer's measured contribution and about a quarter to a third of SpliceBERT's, so for a
+bag-of-$k$-mers model most of what is reported as contribution over composition is one further
+order of composition rather than motif recognition or any positional feature. Any study
+reporting an increment over a composition baseline is reporting a quantity indexed by the order
+of that baseline, and few state which order was used. The protocol dependence survived the
+change and its magnitudes did not, so a benchmark meant to separate model classes rather than
+rank them by how much short-range composition they absorb could raise the order of its
+baseline. That recommendation carries a circularity worth stating: trinucleotide counts are
+linear aggregates of 4-mer counts, so an order-three baseline is structurally unfavourable to
+$k$-mer models, and separates models by how much of their signal lies outside short-range
+composition, not by capacity as such.
 
 \citet{horlacher2023} established that negative-set construction changes apparent performance
 across many RBP prediction methods and proposed the bias-aware alternative. The present work
@@ -171,9 +154,9 @@ All three model classes were measured under all three protocols, but the study c
 lines and one assay. Whether the calibration holds for other crosslinking protocols or other
 organisms is untested. The transform sweep, the baseline attribution and the recommendation test
 are reported for all three model classes. The order-three analysis is reported for all three
-model classes at $n=94$ on the two composition-matched arms, and for the 4-mer additionally on
-30 size-stratified datasets across all three arms; the two use different bootstrap schemes,
-protein-clustered for the first and over datasets for the second. No model larger than 20~M
+model classes at $n=94$ on all three arms; where the earlier 30-dataset 4-mer subsample is
+quoted alongside it, the two use different bootstrap schemes, protein-clustered for the full
+panel and over datasets for the subsample. No model larger than 20~M
 parameters was tested, and no published RBP-specific method: the three classes are a capacity
 ladder, not a survey of the methods a benchmark would rank.
 
