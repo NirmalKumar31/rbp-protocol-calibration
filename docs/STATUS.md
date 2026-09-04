@@ -1,59 +1,66 @@
-# Status
+# Where this stands
 
-Written 2026-09-03. This file lives on `working-notes` because it is a development record, not
-part of the release. `main` and `publication` carry the release.
+Last updated 2026-09-04, after three review rounds.
 
-## Where things stand
+## The paper is ready to post
 
-**The study is finished and the paper is drafted. Stop analysing.** Three council rounds and an
-adversarial statistician found no surviving fatal flaw. Every remaining item is administrative
-or belongs to the author.
+28 pages, 7 tables, 6 figures, 26 references, 255-word abstract. A clean clone passes
+**696/696** verifier assertions; CI green; 0 orphan numbers over 272 checked values.
+`main` and `publication` are identical. Build with `cd manuscript && ./build.sh`.
 
-- Repo public at `https://github.com/NirmalKumar31/rbp-protocol-calibration`.
-  A **clean clone passes 649/649** verifier assertions. 648 tests. CI green on `main` and
-  `publication`.
-- `manuscript/paper.pdf`, 22 pages, 212-word abstract, 6 figures, 6 tables, 20 verified
-  references. Build with `cd manuscript && ./build.sh`.
-- Spend ~$35 of the $40 cap.
+## The only thing waiting on a human
 
-## The one outstanding item
+**The Zenodo DOI.** `docs/ZENODO.md` has the procedure. A commented two-line sentence at the
+end of `manuscript/sections/data-availability.tex` is the placeholder: uncomment it, insert the
+**concept** DOI (not the version DOI), rebuild. That is the only manuscript edit left.
 
-**Zenodo DOI.** Procedure in `ZENODO.md`. Two things people get wrong: Zenodo only archives
-releases created *after* the repository is switched on, and the **concept** DOI rather than the
-version DOI belongs in the paper. Then edit Code availability in `manuscript/paper.tex` and
-`manuscript/sections/data-availability.tex`, and rebuild.
+Later repo changes are fine: each GitHub release mints a new version under the same concept
+DOI, so the paper never needs re-editing. You cannot swap files inside a published version, and
+you cannot self-delete a record, so get authorship and licence metadata right the first time.
 
-After that the preprint goes to **bioRxiv, not arXiv**: arXiv requires an endorsement for a
-first-time q-bio submitter, which is not obtainable here, and bioRxiv requires none.
+Then bioRxiv, not arXiv: arXiv needs an endorsement a first-time q-bio submitter cannot get.
 
-## Branch layout
+## One agreed-necessary item is unpaid
 
-| branch | contents |
-|---|---|
-| `main` | the release; development history separated out |
-| `publication` | identical to `main`; leave it alone once submitted |
-| `working-notes` | this file, the old `docs/52-65`, `AGENT-CONTEXT.md`, the claims ledger `60-the-paper.md`, the review records, and the eight `manuscript/0*.md` drafts |
+**Retrain the 20 leaky dinucleotide-arm datasets.** For those 20 the committed CNN and
+SpliceBERT scores came from a partition that is not chromosome-grouped. Two independent external
+reviews and an internal adversarial referee all demand a retrain rather than a disclosure.
 
-Nothing was deleted. If you want the reasoning behind a claim, a withdrawal, or an editorial
-decision, it is on this branch.
+- 200 fold-runs (20 datasets x 5 folds x 2 models)
+- those datasets hold **37% of the dinucleotide arm's rows**, so ~**$7** on Modal, not the ~$4
+  a run-count estimate suggests
+- the defect is **conservative**: dropping the 20 WIDENS every span (5.42 to 6.02, 7.63 to 8.33,
+  3.76 to 3.92) and every restricted value sits inside the full-panel interval
 
-## Two things to know before touching the code
+So the paper is postable without it. It just leaves the most quotable reviewer objection
+standing. The full panel is primary and the 74 are the sensitivity, which is stated in both
+Results and Limitations.
 
-**Run `scripts/ci_local.sh` before pushing.** CI failed four times on pushes that passed
-locally, every time because the two ran different commands. That script runs exactly the
-workflow's steps plus the verifier.
+## Free work that was offered and not run
 
-**The harness checks values, not provenance.** Both defects found after the assertion count
-passed 600 were of that kind: 20 dinucleotide-arm datasets whose retained neural scores came
-from a partition that was not chromosome-grouped, and an asymmetric convergence guard in
-`lr_test` that reported a diverged fit as overwhelming evidence. Neither was caught by any
-assertion. `lr_p` in `rehearsal_binding_*.csv` is unstable and unused; do not trust it.
+All local CPU, no cloud:
 
-## What is deliberately not being done
+| item | effort | why |
+|---|---|---|
+| gene/transcript-clustered CV | ~3 h | the only one that could ADD a result, not just close a hole |
+| train-fold-only standardisation | ~1 h | removes a certain reviewer comment; currently label-free but improper |
+| positive-set intersection as a sensitivity | ~1 h | Jaccard is 0.9972, so this is a sensitivity, not a primary panel |
+| matching-algorithm robustness | ~2 h | fair ask given the paper's own thesis |
+| study-design figure | ~1 h | the methods take 8 pages to grasp and should take one figure |
 
-- The transform sweep, the baseline attribution and the recommendation test are reported for
-  all three model classes; the order-3 analysis is 4-mer only on 30 datasets. Stated in
-  Limitations.
-- Extending to a third cell line or another assay. Out of scope and out of budget.
-- Cutting the paper further. An editor-role review recommended six main sections; the current
-  six Results subsections already match that.
+## Two things not to get wrong
+
+**Read the rendered PDF, not the source.** Three figure captions described panels their figures
+did not contain, and no source-level check can see that. Extract with `pypdf` and read it.
+
+**Six claims were wrong and are fixed.** The worst: the composition block has rank **18**, not
+15, because dinucleotide counts sum to L-1 and recover base counts only up to the terminal base.
+That sentence was the stated reason the primary contrast's direction is implied by the design.
+The conclusion survives on the asymmetry argument instead. The others are the external benchmark
+being external in construction only, the withdrawn capacity claim, headroom normalisation not
+being a monotone transformation, undefined "apparent AUROC", and a backwards variance argument.
+
+## Branches
+
+- `main`, `publication`: identical. Leave `publication` alone once submitted.
+- `working-notes`: this file, the development record, council records, draft markdown.
