@@ -19,6 +19,6 @@ pairs_dn_arm,457998,sum of pairs over match_quality_per_dataset.csv
 pairs_gc_arm,456734,sum of pairs over match_quality_per_dataset.csv
 pairs_neg2_arm,456734,sum of pairs over match_quality_per_dataset.csv
 pairs_dn_minus_gc,1264,"difference of those two sums, the arms' retained-positive gap"
-verify_assertions,723,written by scripts/verify.py
-verify_assertions_passed,723,written by scripts/verify.py
-verify_domain_checks,722,written by scripts/verify.py
+verify_assertions,730,written by scripts/verify.py
+verify_assertions_passed,730,written by scripts/verify.py
+verify_domain_checks,729,written by scripts/verify.py

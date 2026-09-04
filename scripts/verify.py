@@ -2253,6 +2253,60 @@ def verify_fold_integrity(T, g):
                "than disclosed", int(nl), spec["leaky_datasets"]["value"])
 
 
+def verify_nested_scale(T, g):
+    """1b/1c: the covariate scale and the standardisation window, both measured."""
+    print("\nnested scale  (does the covariate scale or the standardisation window matter?)")
+    d = T.get("nested_scale.csv")
+    if d is None:
+        return record(False, "nested_scale.csv present", "MISSING",
+                      "run scripts/nested_scale.py --store ../rbp-store")
+    spec = g["nested_scale"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for label, key in (
+            ("logit minus probability, gc arm, cnn", spec["logit_gain_cnn_gc"]),
+            ("logit minus probability, gc arm, splicebert", spec["logit_gain_splicebert_gc"]),
+            ("logit minus probability, dn arm, cnn", spec["logit_gain_cnn_dn"]),
+            ("logit minus probability, dn arm, splicebert", spec["logit_gain_splicebert_dn"])):
+        v = get(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE DIRECTION IS THE CLAIM. "The published figures are conservative" is only true while
+    # the logit scale raises every neural contribution in every arm.
+    if spec["logit_must_raise_neural"]:
+        rows = [k for k in q.index if str(k).startswith("logit minus probability")]
+        vals = [float(q.loc[k, "value"]) for k in rows]
+        record(len(vals) == 6 and all(v > 0 for v in vals),
+               "the logit scale RAISES the neural contribution in all six arm-by-model cells, "
+               "so the published probability-scale figures are the conservative ones",
+               f"{sum(v > 0 for v in vals)}/{len(vals)} positive", "6/6")
+
+    # THE CONTRAST IS WHAT THE PAPER IS ABOUT, so it gets its own ceiling. A scale change that
+    # shifts both arms equally shifts no contrast, which is why the per-arm gains above are an
+    # upper bound on this rather than a substitute for it.
+    cs = [abs(float(q.loc[k, "value"])) for k in q.index
+          if str(k).startswith("contrast shift under the logit scale")]
+    if cs:
+        at_most("the covariate scale moves the two-arm contrast in the fourth decimal, well "
+                "inside the protein-clustered half-width, so the choice is not load-bearing",
+                max(cs), spec["max_contrast_shift_from_scale"])
+
+    # AND THE STANDARDISATION WINDOW MUST STAY BELOW THE QUOTED PRECISION.
+    wf = [abs(float(q.loc[k, "value"])) for k in q.index
+          if str(k).startswith("within-fold minus whole-dataset")]
+    if wf:
+        at_most("standardising within fold instead of over the dataset changes no panel mean "
+                "beyond the precision the paper quotes, so the improper form costs nothing",
+                max(wf), spec["max_within_fold_effect"])
+
+
 def verify_design_effect(T, g):
     """The design effect the paper applies, against the one measured from the data."""
     print("\ndesign effect  (1.35 is applied; what does the data say?)")
@@ -3372,6 +3426,7 @@ def main():
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
                verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_design_effect, verify_standalone_auroc, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
+               verify_nested_scale,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

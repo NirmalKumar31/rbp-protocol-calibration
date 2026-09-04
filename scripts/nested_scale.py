@@ -113,6 +113,23 @@ def summarise(t):
                             "value": float((j.gain_l - j.gain_p).mean()), "n": len(j),
                             "note": f"max |delta| {(j.gain_l - j.gain_p).abs().max():.4f}"})
 
+    # And the effect on the CONTRAST, which is the quantity the paper is about. A scale change
+    # that moves both arms equally moves no contrast, so the individual gains above are an
+    # upper bound on this and not a substitute for it.
+    for model in ("cnn", "splicebert"):
+        per = {}
+        for arm in ("dn", "gc"):
+            a = w[(w.arm == arm) & (w.model == model) & (w.scale == "probability")]
+            b = w[(w.arm == arm) & (w.model == model) & (w.scale == "logit")]
+            if len(a) and len(b):
+                j = a.set_index("dataset").gain, b.set_index("dataset").gain
+                per[arm] = j[1] - j[0]
+        if len(per) == 2:
+            ch = per["dn"] - per["gc"]
+            out.append({"check": f"contrast shift under the logit scale, {model}",
+                        "value": float(ch.mean()), "n": int(ch.notna().sum()),
+                        "note": f"max |delta| {ch.abs().max():.4f}"})
+
     # 1c: whole-dataset -> within-fold, at each model's own primary scale
     prim = t[((t.model == "kmer") & (t.scale == "native"))
              | ((t.model != "kmer") & (t.scale == "logit"))]

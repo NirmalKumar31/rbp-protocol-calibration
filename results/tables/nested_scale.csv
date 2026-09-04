@@ -1,0 +1,48 @@
+check,value,n,note
+"gain, dn arm, cnn, logit, whole_dataset",0.08409959283293657,940,
+"gain, dn arm, cnn, logit, within_fold",0.08412722280245269,940,
+"gain, dn arm, cnn, probability, whole_dataset",0.08365362130760695,940,
+"gain, dn arm, cnn, probability, within_fold",0.08369945291802267,940,
+"gain, dn arm, kmer, native, whole_dataset",0.06626403675115054,940,
+"gain, dn arm, kmer, native, within_fold",0.06630215754410841,940,
+"gain, dn arm, splicebert, logit, whole_dataset",0.1767959017686806,940,
+"gain, dn arm, splicebert, logit, within_fold",0.17682004125386674,940,
+"gain, dn arm, splicebert, probability, whole_dataset",0.17353101379994126,940,
+"gain, dn arm, splicebert, probability, within_fold",0.1735555773280746,940,
+"gain, gc arm, cnn, logit, whole_dataset",0.03379803103932122,940,
+"gain, gc arm, cnn, logit, within_fold",0.033805956912146905,940,
+"gain, gc arm, cnn, probability, whole_dataset",0.03300453940390074,940,
+"gain, gc arm, cnn, probability, within_fold",0.03302411204391013,940,
+"gain, gc arm, kmer, native, whole_dataset",0.026513098340627508,940,
+"gain, gc arm, kmer, native, within_fold",0.02651961792534518,940,
+"gain, gc arm, splicebert, logit, whole_dataset",0.09200471658008179,940,
+"gain, gc arm, splicebert, logit, within_fold",0.09198807361756586,940,
+"gain, gc arm, splicebert, probability, whole_dataset",0.08902656237648784,940,
+"gain, gc arm, splicebert, probability, within_fold",0.08903288095007392,940,
+"gain, neg2 arm, cnn, logit, whole_dataset",0.011717129786075236,940,
+"gain, neg2 arm, cnn, logit, within_fold",0.01172212964955166,940,
+"gain, neg2 arm, cnn, probability, whole_dataset",0.011268725158253782,940,
+"gain, neg2 arm, cnn, probability, within_fold",0.011273368460357655,940,
+"gain, neg2 arm, kmer, native, whole_dataset",0.012231944163197651,940,
+"gain, neg2 arm, kmer, native, within_fold",0.012239302083829041,940,
+"gain, neg2 arm, splicebert, logit, whole_dataset",0.04804723692847067,940,
+"gain, neg2 arm, splicebert, logit, within_fold",0.048030068433474286,940,
+"gain, neg2 arm, splicebert, probability, whole_dataset",0.04661402788966481,940,
+"gain, neg2 arm, splicebert, probability, within_fold",0.04662081501789583,940,
+"logit minus probability, dn arm, cnn",0.00044597152532961784,94,max |delta| 0.0042
+"logit minus probability, dn arm, splicebert",0.003264887968739331,94,max |delta| 0.0219
+"logit minus probability, gc arm, cnn",0.0007934916354204785,94,max |delta| 0.0058
+"logit minus probability, gc arm, splicebert",0.002978154203593941,94,max |delta| 0.0140
+"logit minus probability, neg2 arm, cnn",0.0004484046278214538,94,max |delta| 0.0040
+"logit minus probability, neg2 arm, splicebert",0.0014332090388058652,94,max |delta| 0.0089
+"contrast shift under the logit scale, cnn",-0.00034752011009086105,94,max |delta| 0.0046
+"contrast shift under the logit scale, splicebert",0.0002867337651453898,94,max |delta| 0.0227
+"within-fold minus whole-dataset, dn arm, kmer",3.8120792957872535e-05,94,max |delta| 0.0007
+"within-fold minus whole-dataset, dn arm, cnn",2.7629969516120868e-05,94,max |delta| 0.0007
+"within-fold minus whole-dataset, dn arm, splicebert",2.4139485186129307e-05,94,max |delta| 0.0013
+"within-fold minus whole-dataset, gc arm, kmer",6.519584717674696e-06,94,max |delta| 0.0002
+"within-fold minus whole-dataset, gc arm, cnn",7.9258728256901e-06,94,max |delta| 0.0004
+"within-fold minus whole-dataset, gc arm, splicebert",-1.6642962515926622e-05,94,max |delta| 0.0002
+"within-fold minus whole-dataset, neg2 arm, kmer",7.357920631387307e-06,94,max |delta| 0.0002
+"within-fold minus whole-dataset, neg2 arm, cnn",4.999863476423319e-06,94,max |delta| 0.0005
+"within-fold minus whole-dataset, neg2 arm, splicebert",-1.7168494996388844e-05,94,max |delta| 0.0005

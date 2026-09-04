@@ -1343,7 +1343,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 722
+  min_domain_checks: 729
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1834,6 +1834,30 @@ standalone_auroc:
   corr_alone_comp_dn:     {value: 0.6238, tol: 0.05}
   corr_alone_comp_neg2:   {value: 0.9556, tol: 0.03}
   corr_alone_comp_must_exclude_zero: true
+
+# --- 1b/1c: the nested fit's two specification choices, measured on the full panel ---------
+#
+# BOTH ARE REAL OBJECTIONS AND THEY GET DIFFERENT TREATMENT, so both are gated.
+#
+# THE COVARIATE SCALE is an inconsistency: the 4-mer's score is a log odds, the neural models'
+# are probabilities, and logistic regression is not invariant to a nonlinear transform of a
+# covariate. Measured, the logit scale RAISES every neural contribution, so the published
+# probability-scale figures are the conservative ones, and the two-arm contrast moves in the
+# fourth decimal against a protein-clustered half-width near 0.009. The gate below pins the
+# DIRECTION -- if the effect ever turns negative for a neural model the "conservative" claim
+# is false and the primary numbers have to be refit rather than defended.
+#
+# THE STANDARDISATION WINDOW is improper but symmetric and label-free. Measured at 4e-5 on any
+# panel mean, which is below the precision the paper quotes. Gated as a CEILING: if it ever
+# exceeds the fourth decimal the whole-dataset form stops being defensible.
+nested_scale:
+  logit_gain_cnn_gc:        {value: 0.00079, tol: 0.0004}
+  logit_gain_splicebert_gc: {value: 0.00298, tol: 0.0010}
+  logit_gain_cnn_dn:        {value: 0.00045, tol: 0.0004}
+  logit_gain_splicebert_dn: {value: 0.00327, tol: 0.0010}
+  logit_must_raise_neural: true
+  max_within_fold_effect: 0.0002
+  max_contrast_shift_from_scale: 0.0010
 
 fold_integrity:
   # 564, not 376: the bias-aware arm was added after three referees pointed out that the

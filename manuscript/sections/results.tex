@@ -488,13 +488,30 @@ unchanged, and the GC arm is unchanged to the last decimal place. The audit is
 \texttt{scripts/fold\_integrity.py} and it runs inside the verification harness, so the property
 is asserted rather than remembered.
 
-This subsection carries one remaining provenance limitation, and it is one of scale. The 4-mer
-entered the nested fit as a
-log odds and the neural models as probabilities; logistic regression is not invariant to a
-nonlinear transform of a covariate. Refitting the neural arms on the logit scale increased their
-contributions by $+0.0008$ (CNN) and $+0.0030$ (SpliceBERT) on the GC arm and moved the contrasts
-by at most 0.0004, so the reported values are conservative. AUROC itself is invariant to monotone
-transforms.
+Two specification choices in the nested fit remain, and both are measured on the full panel
+rather than argued.
+
+The first is the covariate scale. The 4-mer's out-of-fold score is a log odds and the neural
+models' are sigmoid probabilities, and logistic regression is not invariant to a nonlinear
+transform of a covariate, so the model-class comparison put different scales in different arms.
+Putting the neural scores on the logit scale raises their contributions in every arm, by
+$+0.0008$ and $+0.0030$ in the GC arm, $+0.0004$ and $+0.0033$ in the dinucleotide arm and
+$+0.0004$ and $+0.0014$ in the bias-aware arm for the convolutional network and SpliceBERT
+respectively, with a maximum of 0.0219 on any single dataset. The two-arm contrast moves by
+$-0.0003$ and $+0.0003$. We retain the published scale because the effect is one-directional and
+raises the neural contributions, so every neural figure here is the conservative one, and
+because the contrast the paper is about moves in the fourth decimal against a
+protein-clustered half-width near 0.009. AUROC itself is invariant to monotone transforms, so no
+model-alone number is affected either way.
+
+The second is the standardisation window. Columns are centred and scaled over the whole dataset
+before the out-of-fold loop, so a test row's own mean and standard deviation reach its features.
+This is improper, and it is also label-free and applied identically to every arm, so the
+argument that it cannot manufacture a contribution is sound but is still an argument.
+Standardising instead on each fold's training rows changes the panel-mean contribution by at
+most 0.00004 in any arm for any model, and by at most 0.0013 on any single dataset. That is
+below the fourth decimal the paper quotes, and it is the reason the whole-dataset form is
+retained rather than defended.
 
 
 \begin{figure}[htbp]
