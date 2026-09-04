@@ -40,8 +40,33 @@ def _tracked():
     Scanning the working directory is the wrong scope: cloud/jobs/rendered/ holds 30 untracked
     build artifacts carrying the old project id, and they are gitignored precisely so they
     never become public. What matters is what `git ls-files` would ship.
+
+    THE FALLBACK EXISTS BECAUSE THE CONTAINER HAS NO GIT. This ran `git ls-files` at
+    COLLECTION time and raised FileNotFoundError inside the image, which aborted collection and
+    failed every Cloud Build of the GPU image -- so the published image had been stale since
+    this test was added, and a Batch job died on an arm the image had never heard of. Where git
+    is unavailable the fallback walks the search directories instead and takes its exclusions
+    FROM .gitignore rather than from a hand-written list. Two ignored trees would otherwise
+    trip it: `cloud/jobs/rendered/`, which holds 31 Batch specs rendered against whichever
+    project submitted them, and `cloud/terraform/terraform.tfvars`, which holds the real
+    billing account id and is ignored for exactly that reason. Reading the same file git reads
+    keeps the two paths from drifting; a fallback that fails the moment it is exercised is a
+    trap, not a safety net. The matching is substring-crude, so it can only over-exclude, and
+    the git path already covers the superset.
     """
-    out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True)
+    try:
+        out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True,
+                             text=True)
+    except FileNotFoundError:
+        pats = [ln.strip().strip("/") for ln in
+                (ROOT / ".gitignore").read_text().splitlines()
+                if ln.strip() and not ln.startswith("#") and "*" not in ln]
+        for d in SEARCH:
+            for p in (ROOT / d).rglob("*"):
+                s = str(p.relative_to(ROOT))
+                if p.is_file() and not any(q in s for q in pats):
+                    yield p
+        return
     for name in out.stdout.split("\0"):
         if not name:
             continue
