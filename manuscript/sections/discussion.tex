@@ -75,9 +75,8 @@ pooled relation is null. What we take from this subsection is therefore the grad
 which the evidence is strong, and not a taxonomy of protocols built on top of it.
 
 Protocol dependence can be reduced by fitting a transformation but not by choosing one from
-among the standard set. Of the eight coordinates we compared, five reduced the span without
-closing it, two are controls that return the raw span by construction, and one increased it more
-than threefold. The smallest of the five, division by the baseline's headroom, is a
+among the standard set. The smallest of the five that reduced it, division by the baseline's
+headroom, is a
 normalisation rather than a transformation of the contribution, and is the pair of AUROCs we
 recommend reporting expressed as a single number. An exponent that closes the span appears
 to exist and does not survive inspection: it closes only under the one aggregation that a
@@ -223,7 +222,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 768 assertions compare each published value against a frozen
+credit than it earns. Its 860 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -236,7 +235,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 768 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 860 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit

@@ -19,6 +19,7 @@ claim broke.
 
 import argparse
 import io
+import re
 import sys
 from pathlib import Path
 
@@ -4185,6 +4186,32 @@ def main():
             ROOT / "results" / "tables" / "verify_summary.csv", index=False)
     except OSError:
         pass                                     # a read-only checkout still verifies
+
+    # AND CHECK THE MANUSCRIPT'S CLAIM AGAINST WHAT RAN. Writing the count to a table made it
+    # sourceable; it did not make it TRUE. The paper said "768 numeric assertions" in four
+    # places while 859 ran, and the manuscript audit could not catch that because it matches
+    # values against tables and 768 is a value some table still holds. A claim about coverage
+    # is the one number in this paper that goes stale every time a gate is added, so it is
+    # checked against the run that is happening rather than against a record of a past one.
+    stated = set()
+    for f in sorted((ROOT / "manuscript").rglob("*.tex")):
+        if f.name == "bibliography.tex":
+            continue
+        for m in re.finditer(r"(\d{3,4})\s+(?:numeric\s+)?assertions", f.read_text()):
+            stated.add(int(m.group(1)))
+    if stated:
+        # THE TOTAL THIS CHECK COMPARES AGAINST INCLUDES ITSELF, because the number the paper
+        # quotes is the number the run reports, and that total is printed after this check has
+        # been appended. Comparing against the pre-append count made the target unreachable:
+        # writing the displayed number into the manuscript would have failed on the next run.
+        final = len(checks) + 1
+        wrong = sorted(x for x in stated if x != final)
+        checks.append((not wrong,
+                       "the assertion count the manuscript states equals the count that ran",
+                       ", ".join(str(x) for x in sorted(stated)) or "none", final,
+                       "" if not wrong else "stale coverage claim; update the manuscript"))
+        if wrong:
+            bad = [c for c in checks if not c[0]]
 
     print("\n" + "=" * 78)
     print(f"{len(checks) - len(bad)}/{len(checks)} checks passed")
