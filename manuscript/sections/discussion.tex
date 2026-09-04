@@ -33,8 +33,8 @@ that covariate restored.
 
 The relation between the composition baseline a protocol leaves and the contribution a model
 subsequently shows was strong for composition-matched negatives, both in our data and
-independently in that of \citet{horlacher2023}, and absent for negatives drawn from the sites of
-other proteins. A residual difference between the two groups survived adjustment for the
+independently in that of \citet{horlacher2023}, and not detectable for negatives drawn from the
+sites of other proteins. A residual difference between the two groups survived adjustment for the
 baseline. On the 4-mer measurement this points to what the negative window is, more than to how
 tightly
 it is matched: contributions appear comparable within a group of protocols that draw negatives
@@ -103,8 +103,8 @@ benchmarks. On this panel the protocol effect is of the same order as the effect
 model class, which is what these benchmarks exist to resolve: within a protocol the three model
 classes span 2.65 to 4.14-fold, against 3.8 to 7.6-fold across protocols within a model. The
 same dependence has since been reported for transcription factor binding sites
-\citep{tourne2026}, on a different assay, a different class of model and without an explicit
-baseline, which suggests the problem is not specific to eCLIP. The circularity we cite in the
+\citep{tourne2026}, on a different assay, a different class of model, and against a motif
+rather than a composition baseline, which suggests the problem is not specific to eCLIP. The circularity we cite in the
 Introduction for variant-effect prediction has the same shape. Here it is measured for one
 estimand in one assay, with the arithmetic part separated from the part that is not.
 
@@ -166,9 +166,14 @@ classes in the two arms that match on it.
 The verification harness asserts values and not the provenance of the code that produced
 them, and the fold-partition defect above is of exactly the class that this distinction permits:
 it was identified by inspection and by none of the 696 assertions, as was the region
-asymmetry of Section~\ref{sec:region}. Its manuscript audit checks only values written to three
-or more decimal places, and requires a decimal point, so bare integers are not checked at all;
-those were checked by hand, and three were wrong in an earlier draft of this manuscript.
+asymmetry of Section~\ref{sec:region}. Its manuscript audit traces every number in this text,
+decimal values and bare counts alike, to a committed table, a configuration value or a
+constructed object, and no unsourced number remains. Two limits are worth stating. The audit
+cannot tell whether a number is attached to the right claim, so a real value printed on the
+wrong line passes. And its power is bounded by how densely the sourced values fill the space it
+searches, which is about a quarter of both the four-decimal grid over $[0.5, 1.0]$ and the
+integer range the paper's counts occupy, so a fabricated value would escape roughly one time in
+four. The audit reports that occupancy on every run for exactly this reason.
 
 Confidence intervals on a single dataset's contribution are Wald intervals on the DeLong
 standard error and not bootstrap intervals, and the Firth \citep{firth1993} coefficient

@@ -9,9 +9,10 @@ eleven RBP prediction methods across hundreds of CLIP-seq experiments under two 
 definitions and showed that a method's apparent performance depends on which definition is
 used. They proposed a bias-aware alternative in which negatives are drawn from the binding
 sites of other RBPs rather than from genomic background. The same dependence has since been
-reported for transcription factor binding sites, where six sampling strategies were compared
-against a position weight matrix baseline and dinucleotide-shuffled negatives performed worst
-of those tested \citep{tourne2026}.
+reported for transcription factor binding sites, where five negative-sampling strategies were
+compared against a position weight matrix lower baseline and models trained on
+dinucleotide-shuffled negatives transferred poorly to held-out high-quality data, at about
+76\% AUROC against about 86\% for genomic sampling \citep{tourne2026}.
 
 How large that dependence is, and in which direction it acts, remains open. A raw AUROC
 conflates the signal a model found with the difficulty of the discrimination it was set, and

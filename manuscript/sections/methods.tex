@@ -8,9 +8,12 @@ replicates, breaking ties by ENCODE's \texttt{preferred\_default} flag, and requ
 protocols; datasets retaining at least 400 out-of-fold scored pairs were eligible.
 
 The study panel was then defined once by the dinucleotide arm, which is the stricter control:
-eligible datasets were sorted by pair count with a stable sort and every second one retained,
-giving 95 datasets over 79 proteins. We sampled systematically by rank instead of taking the
-largest $N$, because AUROC correlates with dataset size in these data, negligibly for
+the 189 eligible datasets were sorted by pair count with a stable sort and every second one
+retained, giving 95 datasets over 79 proteins. The set was halved rather than taken whole
+because the sweep trains three model classes over five folds and three protocols, and the full
+eligible set did not fit the compute budget the retained panel already consumes. Given that a
+reduction was necessary, we sampled systematically by rank instead of taking the largest $N$,
+because AUROC correlates with dataset size in these data, negligibly for
 the composition baseline (Pearson $r$ on $\log_{10} n$ of $-0.04$ in the GC arm) but strongly
 for the models, reaching $0.70$ for SpliceBERT under dinucleotide matching, so a size-truncated
 panel would confound panel membership with the measured quantity; the retained panel spans the
@@ -62,7 +65,11 @@ binding site. The negative inherits the positive's strand label; the consequence
 in the Results.
 
 \paragraph{Dinucleotide-matched.} Positives are grouped by region and chromosome, and for each
-group a candidate pool of $\max(1500,\, 8n)$ windows is sampled. For each positive the nearest
+group a candidate pool of $\max(1500,\, 8n)$ windows is sampled from the same free intervals the
+GC matcher draws on: same region class, same chromosome, and at least 500~nt from any peak of the
+target protein, the exclusion applied through the same code path and the same configured distance.
+The two composition-matched protocols therefore share one candidate universe and differ only in
+the statistic they match on. For each positive the nearest
 unused candidate is assigned greedily under the $L_1$ distance over the sixteen dinucleotide
 \emph{counts}, searched with a $k$-d tree over the forty nearest neighbours. The distance is over counts, not frequencies, because integer
 distances are exactly representable, and each candidate carries an additional
@@ -96,7 +103,8 @@ Section~\ref{sec:region}. Only the bias-aware
 protocol's negatives are transcribed RNA, and conversely 67.6\% of GC-arm negatives lie in loci
 not transcribed on the strand the window is labelled with. Section~\ref{sec:region} bounds what
 the region asymmetry contributes; the strand and
-transcription placebos in the Results bound the other two.
+transcription controls in the Results bound the other two; these are the tables the
+repository names \texttt{strand\_placebo} and \texttt{transcription\_placebo}.
 
 \subsection{Achieved match quality}
 

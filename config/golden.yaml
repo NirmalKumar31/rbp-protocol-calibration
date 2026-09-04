@@ -1344,18 +1344,20 @@ integrity:
   # NEW unsourced number fails the build.
   #
   # DO NOT RAISE THIS TO MAKE A BUILD PASS. Add the number to the table that owns it.
-  # Down from 45. Cutting the dead sections removed most of them, and pruning the limitations
-  # that belonged to those sections removed the rest. The two that remain are both the
-  # algebraic identity that retracted the composition-share claim:
   #
-  #   0.127853   C = mean(composition_auroc) - 0.5, the constant that makes share_m = C/gain_m
-  #   1.648166   share_kmer/share_SB == gain_SB/gain_kmer, quoted to 6 dp precisely to show the
-  #              two routes agree EXACTLY, which is what proves it is an identity
+  # NOW ZERO, and down from 45. Three things got it there. Cutting the dead sections removed
+  # most of them. The last two floats, 0.127853 and 1.648166, were the algebraic identity that
+  # retracted the composition-share claim; they left the prose with that retraction and this
+  # ceiling stayed at 2 after they were already gone, which is how a ratchet quietly stops
+  # ratcheting. And audit_manuscript.py now checks BARE INTEGERS, which it never did: that
+  # found 18 more, every one of them a correct number that no result table could ever source,
+  # because a count is a property of a table's shape and not an aggregate of its values.
+  # scripts/manuscript_constants.py now derives each of those from its actual source -- the
+  # config, the constructed model object, the committed evidence tree -- so they are checked
+  # rather than exempted.
   #
-  # They are evidence ABOUT a retraction rather than claims, and reproducing them in a table
-  # would mean re-deriving a quantity the paper exists to disown. A THIRD ORPHAN MEANS SOMEONE
-  # PRINTED A NUMBER WITH NO SOURCE.
-  max_manuscript_orphans: 2
+  # AT ZERO, ANY ORPHAN AT ALL MEANS SOMEONE PRINTED A NUMBER WITH NO SOURCE.
+  max_manuscript_orphans: 0
   # Duplicated numbers must agree. cost_of_matching.csv is a join of the two rehearsal arms and
   # verify.py read only the join, so scrambling rehearsal_binding_dinuc.csv passed 166/166
   # while breaking 88/94, 94/94 and the Wilcoxon p. Exact equality: these are copies, not
@@ -1712,7 +1714,7 @@ match_quality:
 #   SpliceBERT +0.0864 -> +0.0878   (+0.0015)
 # all inside the protein-clustered half-widths of ~0.009. The affected quantity is the CNN's
 # dinucleotide-arm deep gain: difference-in-differences against the k-mer is +0.0294, though the
-# leaky datasets are also the panel's largest (median 15,596 vs 4,373 pairs) so that is an upper
+# leaky datasets are also the panel's largest (median 7,798 vs 2,184 pairs) so that is an upper
 # bound confounded with size.
 #
 # THE GC ARM IS CLEAN, 94 OF 94. So R1's headline, R1m, R1n, R1q and the GC arm of R1o/R1r are

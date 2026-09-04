@@ -3150,8 +3150,8 @@ def verify_integrity(T, g):
     # EVERY NUMBER IN THE MANUSCRIPT MUST HAVE A SOURCE. scripts/audit_manuscript.py lists the
     # ones that appear in no committed table and in no golden key. The paper's primary contrast
     # was in exactly that state through six rounds of adversarial review, because a reviewer
-    # reads a number rather than goes looking for it. Ratcheted: three orphans are known and
-    # documented in golden.yaml, and a fourth fails the build.
+    # reads a number rather than goes looking for it. Ratcheted to zero, over both decimal
+    # values and bare integers, so any unsourced number at all fails the build.
     orph = T.get("manuscript_orphans.csv")
     if orph is None:
         record(False, "manuscript_orphans.csv present", "MISSING",
@@ -3258,6 +3258,19 @@ def main():
            "" if n_ran >= floor else "gates were SKIPPED, not passed -- look for missing rows")
 
     bad = [c for c in checks if not c[0]]
+
+    # RECORD WHAT RAN, so the manuscript's claim about coverage is auditable. The paper says
+    # "696 numeric assertions"; that integer lived in prose and in no table, so
+    # audit_manuscript.py could not source it and it was checked by hand. Written on every
+    # run, pass or fail, because a claim of 696 against a run of 690 is the interesting case.
+    try:
+        pd.DataFrame([{"name": "assertions", "value": len(checks)},
+                      {"name": "assertions_passed", "value": len(checks) - len(bad)},
+                      {"name": "domain_checks", "value": n_ran}]).to_csv(
+            ROOT / "results" / "tables" / "verify_summary.csv", index=False)
+    except OSError:
+        pass                                     # a read-only checkout still verifies
+
     print("\n" + "=" * 78)
     print(f"{len(checks) - len(bad)}/{len(checks)} checks passed")
     if bad:

@@ -1,0 +1,31 @@
+# The 20 dinucleotide-arm datasets whose out-of-fold score folds are not chromosome-grouped,
+# and which are therefore retrained. Produced by scripts/fold_integrity.py as the dn-arm rows
+# with max_chroms_per_score_fold > 5; the clean arms cap at exactly 5, one per fold.
+#
+# FROZEN ON PURPOSE. Once the retrain lands, fold_integrity.py reports zero such datasets, so
+# the list cannot be regenerated from the repaired store and this file becomes the only record
+# of which scores were replaced. Cross-checked against results/tables/fold_integrity_per_dataset.csv
+# at 20/20 before the sweep was dispatched.
+#
+# These are also the panel's largest datasets, median 15,596 pairs against 4,373 for the other
+# 74, which is why a size-stratified subset of 20 selects a different 20.
+AQR:HepG2
+CSTF2T:HepG2
+DROSHA:K562
+EFTUD2:HepG2
+ELAC2:K562
+ELAVL1:K562
+FKBP4:HepG2
+GTF2F1:HepG2
+HNRNPM:HepG2
+KHSRP:K562
+MATR3:K562
+NKRF:HepG2
+NONO:K562
+PCBP2:HepG2
+PRPF4:HepG2
+PTBP1:HepG2
+PTBP1:K562
+SLTM:K562
+SMNDC1:K562
+XPO5:HepG2

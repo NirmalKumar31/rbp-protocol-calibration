@@ -216,8 +216,12 @@ def main():
                     "note": "leaky datasets are also the largest; size-confounded"})
         log(f"    {model:11s} leaky {gap[~d.clean].mean():+.4f}  "
             f"clean {gap[d.clean].mean():+.4f}  DiD {did:+.4f}")
+    # WINDOWS, not pairs: n_dn is len() of the scored frame, which holds one row per window
+    # and so two per pair. Reported as pairs for two drafts, and quoted that way in the
+    # manuscript, where every other size is in pairs.
     log("\n  NOTE: the leaky datasets are the panel's largest (median "
-        f"{d.loc[~d.clean, 'n_dn'].median():.0f} vs {d.loc[d.clean, 'n_dn'].median():.0f} "
+        f"{d.loc[~d.clean, 'n_dn'].median()/2:.0f} vs "
+        f"{d.loc[d.clean, 'n_dn'].median()/2:.0f} "
         "pairs), so the DiD confounds leakage with size and is an UPPER bound.")
 
     pd.DataFrame(out).to_csv(TABLES / "fold_integrity.csv", index=False)

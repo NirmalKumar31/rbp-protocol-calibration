@@ -1,0 +1,20 @@
+name,value,source
+window_size_nt,101,config/params.yaml windows.size
+cv_folds,5,config/params.yaml cv.k
+min_peak_distance_nt,500,config/params.yaml negatives.min_peak_distance
+kmer_k,4,default of rbp.eval.baseline.fit_fold_models
+kmer_columns,256,4**k with k=4
+kmers_per_window,98,window_size - k + 1 = 101 - 4 + 1
+logreg_max_iter_3000,3000,literal in src/rbp/stats.py LogisticRegression(...)
+bootstrap_draws,4000,"N_BOOT, identical across 5 scripts: cluster_intervals, protocol_or_baseline, recommendation_works, scale_sweep, three_arm_models"
+cnn_params,7089,sum of numel over DeepBindCNN().parameters()
+committed_fold_runs,2830,count of scores.tsv.gz under data/evidence/scores*/
+retrained_datasets,20,rows of cloud/modal/retrain_dinuc_20.txt
+retrained_median_pairs,7798,"median pairs over the retrained datasets, from the dinuc manifest"
+clean_median_pairs,2184,median pairs over the datasets that were not retrained
+encode_candidate_experiments_K562,139,distinct experiments in config/panel_full.tsv
+encode_candidate_experiments_HepG2,105,distinct experiments in config/panel_full_HepG2.tsv
+eligible_datasets,189,rows of config/panel_final_HepG2_dinuc.tsv + config/panel_final_K562_dinuc.tsv
+verify_assertions,696,written by scripts/verify.py
+verify_assertions_passed,696,written by scripts/verify.py
+verify_domain_checks,695,written by scripts/verify.py

@@ -5,6 +5,12 @@
     modal run cloud/modal/modal_gc_sweep.py::sweep --yes             # the full 94
     modal run cloud/modal/modal_gc_sweep.py::status
 
+    # a named subset, e.g. the dinucleotide datasets whose folds are not chromosome-grouped
+    RBP_ARM=dinuc modal run cloud/modal/modal_gc_sweep.py::upload \
+        --model cnn --only cloud/modal/retrain_dinuc_20.txt
+    RBP_ARM=dinuc modal run cloud/modal/modal_gc_sweep.py::sweep \
+        --model cnn --only cloud/modal/retrain_dinuc_20.txt --limit 2 --yes
+
 WHY A SECOND SWEEP FILE. `modal_sweep.py` ran the dinucleotide arm and hardcodes
 `"ARM": "dinuc"`, but that is not the reason it cannot be reused. It reads its datasets from
 `gs://rbp-repro-2026-derived` and writes every score back there, and that project's billing
@@ -62,9 +68,12 @@ APP = f"rbp-{ARM}-sweep"
 VOLUME = f"rbp-{ARM}-store"
 STORE = REPO.parent / "rbp-store"
 
-# The dinucleotide SpliceBERT sweep: 475 runs over 458,336 pairs, billed ~$31.
-# Cost scales with pairs, so this is the only honest unit to estimate a new arm in.
-COST_PER_PAIR = 31.0 / 458336
+# Dollars per pair trained, PER MODEL, from the bias-aware arm's 940 recorded runs: A10G
+# seconds out of metrics.json, at $1.10/GPU-h. A single blended rate was wrong by 2.6x in
+# each direction -- SpliceBERT fine-tuning costs 1.87x the CNN per pair, so pricing a CNN
+# sweep at the SpliceBERT rate quoted $11.47 for work that measured $2.47. Cost scales with
+# pairs and not with runs, because a fold's work is proportional to its dataset.
+COST_PER_PAIR = {"cnn": 6.66 / 456734, "splicebert": 12.44 / 456734}
 MAX_CONTAINERS = 10
 
 vol = modal.Volume.from_name(VOLUME, create_if_missing=True)
@@ -144,6 +153,39 @@ def done(rows):
     return out
 
 
+def named(spec):
+    """The datasets in --only, as PROTEIN:CELL, from a file or a comma-separated list.
+
+    stratified() selects by pair COUNT, so it cannot express "these twenty". The twenty
+    dinucleotide datasets that need retraining are a named list from fold_integrity.py --
+    the ones whose score folds are not chromosome-grouped -- and they are also the panel's
+    largest, so a count-stratified subset of size 20 picks a different twenty and reports
+    success. Returns None when --only is absent, which is not the same as an empty set.
+    """
+    if not spec:
+        return None
+    f = Path(spec)
+    body = f.read_text() if f.exists() else spec.replace(",", "\n")
+    return {ln.strip() for ln in body.splitlines()
+            if ln.strip() and not ln.lstrip().startswith("#")}
+
+
+def restrict(rows, only, n_datasets):
+    """rows narrowed to --only, else to a size-stratified sample, else unchanged."""
+    keep = named(only)
+    if keep is not None:
+        have = {f"{r['protein']}:{r['cell_line']}" for r in rows}
+        missing = keep - have
+        if missing:
+            sys.exit(f"--only names {len(missing)} datasets absent from the manifest: "
+                     f"{sorted(missing)}")
+    elif n_datasets:
+        keep = stratified(rows, n_datasets)
+    else:
+        return rows
+    return [r for r in rows if f"{r['protein']}:{r['cell_line']}" in keep]
+
+
 def stratified(rows, n_datasets):
     """A size-unbiased subset of whole datasets, never a subset of windows.
 
@@ -201,9 +243,9 @@ def task(idx: int, model: str, epochs: int = 0):
 # --- entrypoints ------------------------------------------------------------------------
 
 @app.local_entrypoint()
-def upload(model: str = "splicebert"):
+def upload(model: str = "splicebert", only: str = ""):
     """Push the inputs the sweep reads: panels, the study panel, manifests, datasets."""
-    rows = manifest_rows(model)
+    rows = restrict(manifest_rows(model), only, 0)
     want = {(r["cell_line"], r["protein"]) for r in rows}
     files = []
     for key in ("manifest/study_panel.tsv", manifest_key(model)):
@@ -224,22 +266,30 @@ def upload(model: str = "splicebert"):
 
 
 @app.local_entrypoint()
-def sweep(model: str = "splicebert", datasets: int = 0, yes: bool = False):
-    rows = manifest_rows(model)
-    if datasets:
-        keep = stratified(rows, datasets)
-        rows = [r for r in rows if f"{r['protein']}:{r['cell_line']}" in keep]
+def sweep(model: str = "splicebert", datasets: int = 0, only: str = "",
+          limit: int = 0, yes: bool = False):
+    rows = restrict(manifest_rows(model), only, datasets)
     finished = done(rows)
     todo = [r for r in rows if int(r["idx"]) not in finished]
+    # --limit is for the smoke test: dispatch a couple of tasks, check the returned scores
+    # against dataset.tsv, then re-run without it and resume picks up the rest.
+    if limit:
+        todo = todo[:limit]
 
     n_ds = len({(r["cell_line"], r["protein"]) for r in rows})
     pairs = sum(int(r["pairs"]) for r in todo) / 5      # each fold trains on one dataset
-    est = pairs * COST_PER_PAIR
+    rate = COST_PER_PAIR.get(model)
+    if rate is None:
+        sys.exit(f"no measured cost rate for model {model!r}; add one to COST_PER_PAIR "
+                 f"rather than guessing, then re-run")
+    est = pairs * rate
     print(f"\n{model} / arm={ARM}: {n_ds} datasets, {len(rows)} runs, "
           f"{len(finished)} already done, {len(todo)} to run")
+    print(f"  {pairs:,.0f} pairs to train")
     print(f"  estimated ${est:.2f} at {MAX_CONTAINERS} x A10G "
           f"(${MAX_CONTAINERS*1.10:.2f}/h, so roughly {est/(MAX_CONTAINERS*1.10):.1f} h)")
-    print("  basis: the dinucleotide arm's actual bill, $31 for 458,336 pairs")
+    print(f"  basis: {model} at ${rate*1e6:.2f} per Mpair, measured over the bias-aware "
+          f"arm's 940 runs")
     if not todo:
         return
     if not yes:
@@ -264,8 +314,8 @@ def sweep(model: str = "splicebert", datasets: int = 0, yes: bool = False):
 
 
 @app.local_entrypoint()
-def status(model: str = "splicebert"):
-    rows = manifest_rows(model)
+def status(model: str = "splicebert", only: str = ""):
+    rows = restrict(manifest_rows(model), only, 0)
     finished = done(rows)
     print(f"{model} / arm={ARM}: {len(finished)} / {len(rows)} runs complete")
     if finished:
