@@ -1,0 +1,8 @@
+check,value,n
+datasets measured for positional signal,94.0,94
+median absolute offset of peak information from the window centre (nt),23.0,94
+mean absolute offset of peak information from the centre (nt),20.606382978723403,94
+IQR of the absolute offset (nt),17.75,94
+datasets whose peak sits within 5 nt of the centre,13.0,94
+median peak positional mutual information (bits),0.013641667462388152,94
+median positional mutual information at the centre (bits),0.0058337488480494915,94

@@ -2253,6 +2253,45 @@ def verify_fold_integrity(T, g):
                "than disclosed", int(nl), spec["leaky_datasets"]["value"])
 
 
+def verify_positional_signal(T, g):
+    """B14: is the discriminative signal off centre, as the CNN's design assumes?"""
+    print("\npositional signal  (does the architecture's premise hold?)")
+    d = T.get("positional_signal.csv")
+    if d is None:
+        return record(False, "positional_signal.csv present", "MISSING",
+                      "run scripts/positional_signal.py --store ../rbp-store")
+    spec = g["positional_signal"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    med = get("median absolute offset of peak information from the window centre (nt)")
+    if med is not None:
+        near("median absolute offset from the window centre (nt)", med,
+             spec["median_abs_offset"])
+        at_least("the discriminative signal is genuinely off centre, which is what licenses a "
+                 "position-invariant architecture", med, spec["min_median_abs_offset"])
+    nearc = get("datasets whose peak sits within 5 nt of the centre")
+    if nearc is not None:
+        at_most("and it is off centre in most datasets rather than a few", int(nearc),
+                spec["max_datasets_near_centre"])
+    c, pk = (get("median positional mutual information at the centre (bits)"),
+             get("median peak positional mutual information (bits)"))
+    if c is not None:
+        near("positional mutual information at the centre (bits)", c, spec["mi_centre"])
+    if pk is not None:
+        near("peak positional mutual information (bits)", pk, spec["mi_peak"])
+    if None not in (c, pk) and spec["centre_must_be_below_peak"]:
+        record(c < pk,
+               "the window midpoint carries less information than the peak position, so "
+               "centring on the peak midpoint is not centring on the signal",
+               f"centre {c:.5f} vs peak {pk:.5f}", "centre below peak")
+
+
 def verify_cobinding_noise(T, g):
     """B4: co-binding label noise as an alternative explanation for the bias-aware deficit."""
     print("\nco-binding noise  (is the bias-aware deficit mislabelled positives?)")
@@ -3557,7 +3596,8 @@ def main():
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
                verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_design_effect, verify_standalone_auroc, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
-               verify_cobinding_noise, verify_estimands, verify_nested_scale,
+               verify_positional_signal, verify_cobinding_noise,
+               verify_estimands, verify_nested_scale,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

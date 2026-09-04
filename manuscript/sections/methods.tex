@@ -254,9 +254,14 @@ most favourable order available.
 \paragraph{Convolutional network.} A DeepBind-style architecture \citep{alipanahi2015}:
 convolution (4 to 16 channels, width 12), ReLU, max-pool 4, convolution (16 to 32, width 8),
 ReLU, global max-pool over position, dense 32 to 64, ReLU, dropout 0.5, dense 64 to 1. 7089
-parameters, all trained from scratch. Global max-pooling makes the model
-position-invariant, which is necessary here because exploratory analysis placed the
-discriminative signal approximately 15~nt off centre, varying by protein.
+parameters, all trained from scratch. Global max-pooling makes the model position-invariant,
+which is necessary here because the discriminative signal is not at the window centre. Taking
+the mutual information in bits between the base at each of the 101 positions and the label, over
+every window of a dataset and with no model fitted, the position carrying the most information
+sits a median of 23~nt from the midpoint, with an interquartile range of 11 to 29~nt and a
+maximum of 48; it lies within 5~nt of the midpoint in only 13 of 94 datasets. The midpoint
+itself carries 0.0058 bits against 0.0136 at the peak, so less than half. A position-sensitive
+architecture would therefore be fitting a location that moves from protein to protein.
 
 \paragraph{SpliceBERT.} The pretrained nucleotide language model of \citet{chen2024},
 \texttt{multimolecule/\allowbreak splicebert}, fully fine-tuned; 19.78~M parameters, all trainable. The
@@ -318,7 +323,7 @@ published per-window score files do not carry.
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 754 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 760 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

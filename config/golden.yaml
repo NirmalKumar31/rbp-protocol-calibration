@@ -1343,7 +1343,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 753
+  min_domain_checks: 759
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1900,6 +1900,29 @@ standalone_auroc:
 # zero. Not enough mislabelling to account for a deficit of 0.021. AND THE SIGN IS BACKWARDS --
 # the third of datasets with the MOST residual overlap has the SMALLEST deficit. Both are
 # gated, because either one alone could be argued around.
+# --- B14: where the discriminative signal actually sits along the window ------------------
+#
+# The Methods justified the CNN's global max-pool with "the discriminative signal is
+# approximately 15 nt off centre, varying by protein". That number had no table, no script and
+# no figure, and the manuscript audit could not catch it because a bare 15 inside a clause about
+# design rationale is indistinguishable from a page number.
+#
+# MEASURED, with no model fitted: mutual information in bits between the base at each of the 101
+# positions and the label. The peak sits a MEDIAN OF 23 nt from the midpoint, not 15, with an
+# IQR of 11 to 29 and a maximum of 48, and within 5 nt of the midpoint in only 13 of 94
+# datasets. The claim's direction and its "varying by protein" were right and its magnitude was
+# understated, which makes the design choice MORE justified rather than less.
+#
+# Gated as a floor on the offset and a ceiling on how many datasets are centred, because both
+# have to hold for position-invariance to be the right architecture.
+positional_signal:
+  median_abs_offset: {value: 23.0, tol: 3.0}
+  min_median_abs_offset: 10.0
+  max_datasets_near_centre: 30
+  mi_centre: {value: 0.0058, tol: 0.0015}
+  mi_peak:   {value: 0.0136, tol: 0.0030}
+  centre_must_be_below_peak: true
+
 cobinding_noise:
   max_overlap_fraction: 0.01
   median_overlap:  {value: 0.0000, tol: 0.0005}
