@@ -16,7 +16,8 @@ protein excess minus model-class excess,0.3324138612514943,262,,,
 "excess over the block-preserving null, protein",0.07276137298225882,262,p = 0.0030,,
 cross-cell-line correlation of the log multiplier,0.5821892910940252,40,"15 proteins in both lines, x 3 models",,
 cross-cell-line spearman of the log multiplier,0.6054409005628518,40,p = 0.0000,,
-"cross-cell-line correlation, collapsed over models",0.5983745054225036,15,p = 0.0184,,
+"cross-cell-line correlation, collapsed over models",0.5983745054225036,15,p = 0.0184,0.1241741398865373,0.850069710850059
+"cross-cell-line correlation, collapsed, bootstrap CI",0.6114488756508412,15,4000 protein draws,-0.011990701742788122,0.9049572489044794
 "cross-cell-line spearman, collapsed over models",0.5642857142857142,15,p = 0.0284,,
 "cross-cell-line correlation, cnn only",0.300204716339233,12,p = 0.3431,,
 "cross-cell-line correlation, kmer only",0.7536622693109204,13,p = 0.0029,,

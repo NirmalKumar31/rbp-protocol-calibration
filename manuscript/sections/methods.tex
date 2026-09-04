@@ -242,8 +242,14 @@ individual datasets.
 
 \paragraph{4-mer logistic regression.} Raw 4-mer counts over the RNA sequence (98 per window,
 256 columns) into $L_2$-penalised logistic regression ($C=1$). One model per fold, out-of-fold
-score taken as the linear predictor. The $k$-mer order is 4, and the contrast is
-positive at every order from 3 to 6.
+score taken as the linear predictor. The $k$-mer order is 4, and the choice is not
+load-bearing: rebuilding the primary contrast from raw sequence at each order gives $+0.0311$
+at $k=3$, $+0.0397$ at $k=4$, $+0.0397$ at $k=5$ and $+0.0355$ at $k=6$, every interval
+excluding zero, with the dinucleotide arm larger in 90, 88, 89 and 91 of 94 datasets
+respectively and 82 of 94 datasets positive at every order. The $k=5$ minus $k=4$ difference is
+$+0.0001$ (paired Wilcoxon $p=0.84$). Order 4 is the smallest that spans the dinucleotide
+baseline strictly, and the contrast is smallest at $k=3$, so the reported figure is not the
+most favourable order available.
 
 \paragraph{Convolutional network.} A DeepBind-style architecture \citep{alipanahi2015}:
 convolution (4 to 16 channels, width 12), ReLU, max-pool 4, convolution (16 to 32, width 8),
@@ -312,7 +318,7 @@ published per-window score files do not carry.
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 717 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 723 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

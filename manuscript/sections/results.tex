@@ -444,7 +444,11 @@ rows are not independent, since they come from fifteen proteins by three models 
 labels and folds, so we report the protein-collapsed version as primary: averaging over models
 gives $r=0.598$ ($p=0.018$, Spearman 0.564, $p=0.028$, $n=15$), an order of magnitude weaker in
 $p$ than the uncollapsed 0.0001 and the figure consistent with this paper's own standard of
-resampling proteins. Per model the agreement is $r=0.754$ for the 4-mer and $0.766$ for
+resampling proteins. At fifteen proteins that point estimate carries very little: its Fisher $z$
+interval is $+0.124$ to $+0.850$, and a bootstrap over the same fifteen proteins gives $-0.012$
+to $+0.905$, which includes zero. We therefore read this as consistent with reproducibility
+across cell lines rather than as evidence for it, and the design has too few shared proteins to
+do better. Per model the agreement is $r=0.754$ for the 4-mer and $0.766$ for
 SpliceBERT but only $0.300$ ($p=0.34$) for the convolutional network, so it is not a property of
 all three. Cell line was not detectable, although with fifteen proteins measured in both lines
 the design has little power. Model class was small but detectable ($p=0.023$), consistent with

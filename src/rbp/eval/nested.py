@@ -115,7 +115,7 @@ def entropy(seqs):
     return h
 
 
-def composition_features(seqs, include_entropy=True):
+def composition_features(seqs, include_entropy=True, standardise_cols=True):
     """The nuisance block: mono and dinucleotide frequencies, plus entropy.
 
     One column from each frequency family is dropped. Frequencies sum to one, so keeping
@@ -137,6 +137,8 @@ def composition_features(seqs, include_entropy=True):
         cols.append(entropy(seqs)[:, None])
         names.append("entropy")
     X = np.column_stack(cols)
+    if not standardise_cols:
+        return X, names
     return np.column_stack([standardise(X[:, j]) for j in range(X.shape[1])]), names
 
 
@@ -198,13 +200,34 @@ def test_score(seqs, score, label, blocks=None, n_boot=BOOT, seed=0, method="fir
                   stat, lr_p, len(y), len(boots))
 
 
-def _oof_scores(X, y, folds, method="l2"):
+def _fold_standardise(X, tr, te):
+    """Centre and scale every column on the TRAINING rows only, applied to both sides.
+
+    A column whose training rows are constant is left at zero rather than divided by zero.
+    """
+    mu = X[tr].mean(axis=0)
+    sd = X[tr].std(axis=0)
+    good = sd > 0
+    out_tr = np.zeros((int(tr.sum()), X.shape[1]))
+    out_te = np.zeros((int(te.sum()), X.shape[1]))
+    out_tr[:, good] = (X[tr][:, good] - mu[good]) / sd[good]
+    out_te[:, good] = (X[te][:, good] - mu[good]) / sd[good]
+    return out_tr, out_te
+
+
+def _oof_scores(X, y, folds, method="l2", within_fold=False):
     """Out-of-fold linear predictor for a design matrix, using the study's own folds.
 
     Every comparison in the paper has to be out-of-fold on both sides. An in-sample
     composition AUROC against an out-of-fold model AUROC flatters composition, and on
     TARDBP it did exactly that: in-sample composition reached 0.986 against the model's
     out-of-fold 0.984, which reads as "composition beats the model" and is an artefact.
+
+    `within_fold` standardises each column on the training rows of each fold instead of over
+    the whole dataset. The whole-dataset form is what every published number uses. It is
+    label-free and applied identically to both arms, so it cannot manufacture a contribution,
+    but it does let a test row's own mean and sd into its features, and a reviewer is entitled
+    to ask what that costs. See scripts/nested_scale.py, which measures it.
     """
     from ..stats import fit_full
     y = np.asarray(y, dtype=int)
@@ -215,8 +238,9 @@ def _oof_scores(X, y, folds, method="l2"):
         tr = ~te
         if len(np.unique(y[tr])) < 2:
             continue
-        beta, _ = fit_full(X[tr], y[tr], method)
-        out[te] = np.column_stack([np.ones(te.sum()), X[te]]) @ beta
+        Xtr, Xte = _fold_standardise(X, tr, te) if within_fold else (X[tr], X[te])
+        beta, _ = fit_full(Xtr, y[tr], method)
+        out[te] = np.column_stack([np.ones(te.sum()), Xte]) @ beta
     return out
 
 
@@ -267,23 +291,54 @@ class Gain:
         return self.delta_ci_low > 0
 
 
+def to_logit(p, eps=1e-6):
+    """log(p/(1-p)) for a probability, clipped off the endpoints.
+
+    A neural model's sigmoid output saturates, and logit(0) is not a number. The clip is at
+    1e-6, which bounds the transformed value at +/-13.8 and so cannot dominate a
+    standardised column through a single saturated row.
+    """
+    q = np.clip(np.asarray(p, dtype=float), eps, 1.0 - eps)
+    return np.log(q / (1.0 - q))
+
+
 def gain_over_composition(seqs, score, label, folds, method="l2",
-                          include_entropy=True, level=0.95):
+                          include_entropy=True, level=0.95,
+                          score_scale="raw", within_fold=False):
     """Out-of-fold AUROC gain from adding `score` to a composition-only model.
 
     Both arms are fit and scored out-of-fold on the same folds, then compared with
     DeLong's test -- which is required rather than optional here, because the two score
     vectors come from overlapping training data on identical test rows and are therefore
     strongly correlated. Treating them as independent would inflate the interval.
+
+    TWO SPECIFICATION CHOICES, BOTH DEFAULTING TO WHAT THE PUBLISHED NUMBERS USED.
+
+    `score_scale="logit"` transforms the score before it enters the design. This matters
+    because logistic regression is NOT invariant to a nonlinear transform of a covariate,
+    and the three model classes arrive on different scales: the 4-mer's out-of-fold score is
+    already a log odds, while the CNN's and SpliceBERT's are sigmoid probabilities. Adding a
+    probability where the natural scale is a log odds is a real inconsistency between arms of
+    the model-class comparison, not a matter of taste. AUROC itself is invariant, so no
+    model-alone number moves.
+
+    `within_fold=True` standardises on each fold's training rows instead of over the whole
+    dataset. See _oof_scores.
     """
     from .delong import delong_test
 
     y = np.asarray(label, dtype=int)
-    comp, _ = composition_features(seqs, include_entropy)
-    full = np.column_stack([comp, standardise(score)])
+    comp, _ = composition_features(seqs, include_entropy,
+                                   standardise_cols=not within_fold)
+    if score_scale == "logit":
+        score = to_logit(score)
+    elif score_scale != "raw":
+        raise ValueError(f"score_scale={score_scale!r}; expected 'raw' or 'logit'")
+    col = np.asarray(score, dtype=float) if within_fold else standardise(score)
+    full = np.column_stack([comp, col])
 
-    s_comp = _oof_scores(comp, y, folds, method)
-    s_full = _oof_scores(full, y, folds, method)
+    s_comp = _oof_scores(comp, y, folds, method, within_fold)
+    s_full = _oof_scores(full, y, folds, method, within_fold)
     ok = np.isfinite(s_comp) & np.isfinite(s_full)
 
     r = delong_test(s_full[ok], s_comp[ok], y[ok])

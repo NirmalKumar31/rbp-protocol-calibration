@@ -2636,6 +2636,31 @@ def verify_multiplier_variance(T, g):
                "the block-preserving excess is reported, so the five-fold-too-generous "
                "wholesale excess cannot be quoted on its own",
                "excess over the block-preserving null", "present")
+
+    # B13. THE DIRECT TEST'S INTERVAL. The collapsed correlation is quoted as the paper's
+    # cross-cell-line evidence, and at n = 15 a point estimate with a p and no interval invites
+    # the reader to treat 0.598 as the finding. Both intervals are gated, and so is the fact
+    # that the bootstrap one CONTAINS ZERO -- that is what licenses the text saying the result
+    # is consistent with reproducibility rather than evidence for it.
+    kc = "cross-cell-line correlation, collapsed over models"
+    kb = "cross-cell-line correlation, collapsed, bootstrap CI"
+    v = must(kc)
+    if v is not None:
+        near(kc, v, spec["cross_cell_collapsed_r"])
+    if kc in q.index and "ci_low" in d.columns:
+        near("cross-cell-line Fisher z lower bound",
+             float(q.loc[kc, "ci_low"]), spec["cross_cell_fisher_low"])
+        near("cross-cell-line Fisher z upper bound",
+             float(q.loc[kc, "ci_high"]), spec["cross_cell_fisher_high"])
+    if kb in q.index and "ci_low" in d.columns:
+        lo, hi = float(q.loc[kb, "ci_low"]), float(q.loc[kb, "ci_high"])
+        near("cross-cell-line bootstrap lower bound", lo, spec["cross_cell_boot_low"])
+        near("cross-cell-line bootstrap upper bound", hi, spec["cross_cell_boot_high"])
+        if spec["cross_cell_boot_must_span_zero"]:
+            record(lo < 0 < hi,
+                   "the cross-cell-line bootstrap interval CONTAINS ZERO at n=15, so the "
+                   "direct test is consistent with reproducibility and is not evidence for it",
+                   f"[{lo:+.3f}, {hi:+.3f}]", "spans zero")
         pe = must("excess over the permutation null, protein")
         pb = must("excess over the block-preserving null, protein")
         if pe is not None and pb is not None:
