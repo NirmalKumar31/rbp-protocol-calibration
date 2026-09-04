@@ -179,6 +179,23 @@ narrow range and not in the middle of it. Only the 4-mer can be re-partitioned t
 neural sweeps trained on the frozen assignment, so re-partitioning them would compare their old
 folds against new ones.
 
+A related question is the grouping variable rather than the partition. Windows drawn from one
+gene are correlated, so a fold assignment splitting a gene across folds would leak. Chromosome
+grouping is strictly coarser than gene grouping and a locus lies on one chromosome, so that
+cannot happen here, and we verified it rather than asserting it: over both
+composition-matched arms, 22 of 825{,}718 gene groups fall in more than one fold, holding 176
+windows. Every one is a gene \emph{name} shared across chromosomes rather than a locus. Of the
+72 such names in GENCODE v45, 36 are pseudo-autosomal chrX/chrY pairs and the remainder are
+multi-copy small-RNA families, the widest sharing one name across 24 chromosomes. Near-identical
+sequence at those loci does sit on both sides of a chromosome split, so family-level similarity
+is the one leakage channel this design does not close, at a scale of 176 windows in 2.7 million.
+Refitting the 4-mer under gene-clustered folds built to the same balanced-mass objective, which
+splits a median of 22.9 chromosomes across folds and is therefore the \emph{less} conservative
+design, gives contributions of $+0.0269$ and $+0.0664$ against $+0.0265$ and $+0.0663$, and a
+two-arm contrast of $+0.0394$ against $+0.0398$. The finer grouping changes the contrast by
+$0.0003$, so the coarser choice costs almost nothing and the grouping variable is not carrying
+the result.
+
 One limitation concerns the provenance of the neural scores. Initialisation was unseeded across
 all 2830 committed fold-runs, at the cost quantified in Methods. A second, that 20 of the 94
 dinucleotide-arm datasets carried scores from a partition that was not chromosome-grouped, has

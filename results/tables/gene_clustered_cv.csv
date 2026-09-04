@@ -1,6 +1,10 @@
 check,value,n,ci_low,ci_high,note
-genes spanning a frozen fold boundary,22.0,94,,,
-"distinct gene groups, dinucleotide arm",413322.0,94,,,
+gene groups spanning a frozen fold boundary,22.0,94,,,
+"gene groups examined, summed over datasets and both arms",825718.0,94,,,
+windows inside a gene group that spans a frozen fold boundary,176.0,94,,,
+gene names appearing on more than one chromosome,72.0,94,,,
+"of those, pseudo-autosomal chrX/chrY name pairs",36.0,94,,,
+largest number of chromosomes sharing one gene name,24.0,94,,,
 "chromosomes split across folds by the gene-clustered design, dinucleotide arm",22.9468085106383,94,22.898987061627512,22.98876404494382,
 "fold-mass coefficient of variation, gene-clustered, dinucleotide arm",0.0005188897348989669,94,0.0003990953806325451,0.0006589759630154164,
 max |frozen refit gain - published gain|,9.8879238130678e-17,94,,,

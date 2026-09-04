@@ -2027,6 +2027,98 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_gene_clustered_cv(T, g):
+    """B10: chromosome folds already imply gene folds. What does the finer design cost?"""
+    print("\ngene-clustered CV  (is the fold design carrying the result?)")
+    d = T.get("gene_clustered_cv.csv")
+    if d is None:
+        return record(False, "gene_clustered_cv.csv present", "MISSING",
+                      "run scripts/gene_clustered_cv.py")
+    spec = g["gene_clustered_cv"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+
+    # THE CONTROL. The frozen refit through this code path must return the published
+    # per-dataset gain, or the gene-clustered number beside it is being compared with
+    # something this script invented.
+    v = get("max |frozen refit gain - published gain|")
+    if v is not None:
+        at_most("the frozen refit reproduces the published per-dataset gain", v,
+                spec["max_frozen_reproduction"])
+
+    # THE STRUCTURAL FACT AND ITS ONE EXCEPTION. A locus cannot span a chromosome-grouped
+    # fold, so the leakage the objection describes is impossible by construction. What DOES
+    # span is a gene NAME shared across chromosomes, and that is the one channel chromosome
+    # grouping cannot close. Gated as a small non-zero rather than as zero, because asserting
+    # zero here was wrong and asserting nothing would lose the finding.
+    span = get("gene groups spanning a frozen fold boundary")
+    wins = get("windows inside a gene group that spans a frozen fold boundary")
+    groups = get("gene groups examined, summed over datasets and both arms")
+    if None not in (span, wins, groups):
+        record(0 < span <= spec["max_spanning_groups"],
+               "a few gene groups span a frozen fold boundary, and they are gene NAMES shared "
+               "across chromosomes rather than loci: chromosome grouping implies locus "
+               "grouping but not family grouping", int(span),
+               f"1 to {spec['max_spanning_groups']}")
+        at_most("and the sequence involved is a negligible share of the panel", wins,
+                spec["max_spanning_windows"])
+
+    # THE CAUSE, MEASURED FROM THE GENE INDEX rather than offered as a plausible story.
+    for label, key in (
+            ("gene names appearing on more than one chromosome", "multi_chrom_names"),
+            ("of those, pseudo-autosomal chrX/chrY name pairs", "par_pairs"),
+            ("largest number of chromosomes sharing one gene name", "widest_name")):
+        v = get(label)
+        if v is not None:
+            record(int(v) == spec[key], label, int(v), spec[key])
+
+    # HOW MUCH FINER THE GENE DESIGN IS. Without this the agreement below could mean the two
+    # designs are nearly the same design, which would make the comparison uninformative.
+    v = get("chromosomes split across folds by the gene-clustered design, dinucleotide arm")
+    if v is not None:
+        record(v >= spec["min_chroms_split"],
+               "the gene-clustered design really is finer: it splits chromosomes across folds, "
+               "which the published design forbids", f"{v:.1f}",
+               f">= {spec['min_chroms_split']}")
+
+    for label, key in (
+            ("4-mer contribution, frozen folds, gc arm", spec["gain_frozen_gc"]),
+            ("4-mer contribution, gene-clustered folds, gc arm", spec["gain_gene_gc"]),
+            ("4-mer contribution, frozen folds, dn arm", spec["gain_frozen_dn"]),
+            ("4-mer contribution, gene-clustered folds, dn arm", spec["gain_gene_dn"]),
+            ("two-arm contrast, frozen folds", spec["contrast_frozen"]),
+            ("two-arm contrast, gene-clustered folds", spec["contrast_gene"])):
+        v = get(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE HEADLINE, TWO-SIDEDLY. A small change AND a preserved sign; a tight bound on the
+    # change alone would pass a design that moved the contrast to zero if the tolerance were
+    # ever loosened.
+    ch = get("contrast change from gene-clustered folds")
+    cg = get("two-arm contrast, gene-clustered folds")
+    if None not in (ch, cg):
+        at_most("re-folding by gene moves the two-arm contrast by almost nothing", abs(ch),
+                spec["max_contrast_change"])
+        record(cg > 0, "and the contrast keeps its sign under the finer design",
+               f"{cg:+.4f}", "> 0")
+    m = get("gene-clustered / frozen contrast multiplier")
+    if m is not None:
+        record(abs(m - 1.0) <= spec["max_multiplier_deviation"],
+               "the finer design is the LESS conservative one, so this bounds what the coarser "
+               "published choice costs rather than validating it", f"{m:.3f}x",
+               f"1 +/- {spec['max_multiplier_deviation']}")
+
+
 def verify_order_profile(T, g):
     """B3: the contribution as a function of where the baseline stops, and where it breaks."""
     print("\norder profile  (orders 1-4, and the estimator's own noise floor)")
@@ -4059,6 +4151,7 @@ def main():
                verify_cobinding_noise,
                verify_estimands, verify_nested_scale, verify_shuffled_arm,
                verify_order_profile, verify_region_annotation,
+               verify_gene_clustered_cv,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
