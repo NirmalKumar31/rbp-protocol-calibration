@@ -216,7 +216,7 @@ def candidate_pool(fasta, pool, chrom, size, n_want, rng, drop_n=True, max_tries
 
 def build_negatives_dinuc(positives, peaks, fasta, region_index, size,
                           min_peak_distance, seed=7, drop_n=True, pool_multiple=8,
-                          pool_min=1500, max_l1=None):
+                          pool_min=1500, max_l1=None, pools=None):
     """One dinucleotide-matched negative per positive.
 
     Greedy nearest-neighbour assignment: for each positive, take the closest unused
@@ -228,13 +228,20 @@ def build_negatives_dinuc(positives, peaks, fasta, region_index, size,
     Returns (rows, dropped, distances) where `distances` is the achieved L1 per pair. L1 on
     frequency vectors runs 0 to 2, so 0.05 means the average dinucleotide frequency differs
     by about 0.3 percentage points.
+
+    `pools` accepts an already-computed {region: available windows} mapping. It depends only
+    on the peaks, the region index, the window size and the peak-distance margin, none of
+    which vary with `pool_multiple` or with the assignment rule, so a caller rebuilding the
+    same dataset under several settings can compute it once. Default None reproduces the
+    published behaviour exactly; every committed dataset was built without it.
     """
     from scipy.spatial import cKDTree
 
     rng = np.random.default_rng(seed)
-    excl = exclusion_zones(peaks, min_peak_distance)
-    regions = {p["region"] for p in positives}
-    pools = {r: available(region_index, r, excl, size) for r in regions}
+    if pools is None:
+        excl = exclusion_zones(peaks, min_peak_distance)
+        regions = {p["region"] for p in positives}
+        pools = {r: available(region_index, r, excl, size) for r in regions}
 
     # group positives by (region, chromosome) so one candidate pool serves many of them
     buckets = {}

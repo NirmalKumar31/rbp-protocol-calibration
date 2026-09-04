@@ -1939,6 +1939,117 @@ def verify_baseline_order_models(T, g):
                        "full panel higher")
 
 
+def verify_order_profile(T, g):
+    """B3: the contribution as a function of where the baseline stops, and where it breaks."""
+    print("\norder profile  (orders 1-4, and the estimator's own noise floor)")
+    d = T.get("order_profile.csv")
+    if d is None:
+        return record(False, "order_profile.csv present", "MISSING",
+                      "run scripts/order_profile.py --store ../rbp-store")
+    spec = g["order_profile"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = q["n"].iloc[0] if "n" in q.columns else None
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+
+    # THE DOUBLE ANCHOR. Orders 2 and 3 are pinned by two tables produced by two other
+    # scripts, so the profile cannot be a smooth curve through the wrong points. Both come
+    # back at machine precision, which is stronger than a tolerance and is why the floor is
+    # set there.
+    for label, key in (
+            ("max |order-2 gain - deep_contrast_per_dataset.csv|", "max_anchor2"),
+            ("max |order-3 gain - baseline_order_models_per_dataset.csv|", "max_anchor3")):
+        v = get(label)
+        if v is not None:
+            at_most(label, v, spec[key])
+
+    for order in (1, 2, 3, 4):
+        v = get(f"composition columns at order {order}")
+        if v is not None:
+            record(int(v) == spec["columns"][order], f"baseline width at order {order}",
+                   int(v), spec["columns"][order])
+
+    # THE PROFILE ITSELF, one anchor point per order per arm for the 4-mer, and the two
+    # neural models at the ends. Enough to pin the shape without transcribing 36 cells.
+    for label, key in (
+            ("kmer gain at order 1, gc arm", spec["kmer_order1_gc"]),
+            ("kmer gain at order 1, dn arm", spec["kmer_order1_dn"]),
+            ("kmer gain at order 1, neg2 arm", spec["kmer_order1_neg2"]),
+            ("splicebert gain at order 1, dn arm", spec["splicebert_order1_dn"]),
+            ("cnn gain at order 4, gc arm", spec["cnn_order4_gc"]),
+            ("splicebert gain at order 4, gc arm", spec["splicebert_order4_gc"]),
+            ("kmer three-arm span at order 1", spec["span_order1_kmer"]),
+            ("cnn three-arm span at order 1", spec["span_order1_cnn"]),
+            ("splicebert three-arm span at order 1", spec["span_order1_splicebert"])):
+        v = get(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE CONTRAST SURVIVES AT EVERY ORDER, for every model class, two-sidedly. This is the
+    # claim the profile exists to test, stated over the whole function rather than at the two
+    # points the paper happened to compute.
+    ok = 0
+    for order in (1, 2, 3, 4):
+        for model in ("kmer", "cnn", "splicebert"):
+            k = f"{model} two-arm contrast (dn-gc) at order {order}"
+            if k in q.index and not pd.isna(q.loc[k, "ci_low"]):
+                ok += int(float(q.loc[k, "ci_low"]) > 0)
+    record(ok == spec["n_order_model_cells"],
+           "the two-arm contrast is positive with an interval excluding zero at EVERY "
+           "baseline order for EVERY model class, so protocol dependence does not depend on "
+           "where the baseline stops", f"{ok}/{spec['n_order_model_cells']}",
+           f"{spec['n_order_model_cells']}/{spec['n_order_model_cells']}")
+
+    # THE NOISE FLOOR, WHICH IS THE SECTION'S REAL RESULT. At order four the baseline spans
+    # the 4-mer's entire feature space, so the true contribution is zero BY CONSTRUCTION and
+    # anything measured is the estimator's error. It measures 2 to 7 times the contribution
+    # the paper reports at order two, which is the scale on which every number in this
+    # literature should be read.
+    for arm, key in (("gc", "floor_gc"), ("dn", "floor_dn"), ("neg2", "floor_neg2")):
+        v = get(f"kmer noise-floor gain at order 4, {arm} arm")
+        if v is not None:
+            near(f"order-4 noise floor, {arm} arm", v, spec[key])
+        pos = get(f"kmer gain at order 4 positive in, {arm} arm")
+        if pos is not None:
+            record(int(pos) == spec["n_datasets"],
+                   f"the floor is positive on EVERY dataset, {arm} arm, so it is a bias and "
+                   f"not scatter about zero", f"{int(pos)}/{spec['n_datasets']}",
+                   f"{spec['n_datasets']}/{spec['n_datasets']}")
+        rat = get(f"noise floor as a fraction of the order-2 gain, {arm} arm")
+        if rat is not None:
+            record(rat >= spec["min_floor_multiple"],
+                   f"and it exceeds the order-2 contribution the paper reports, {arm} arm",
+                   f"{rat:.2f}x", f">= {spec['min_floor_multiple']}x")
+
+    # THE MECHANISM, AND WHY THE PAPER'S OWN BASELINE IS NOT AFFECTED. The floor is a
+    # 337-column baseline overfitting at these sample sizes, and the diagnostic is that the
+    # baseline's OWN out-of-fold AUROC falls. It falls often at order 4 and almost never at
+    # order 2, which is what confines the problem to the orders the paper does not use.
+    for arm in ("gc", "dn", "neg2"):
+        early = get(f"baseline AUROC fell from order 1 to 2, {arm} arm")
+        late = get(f"baseline AUROC fell from order 3 to 4, {arm} arm")
+        if None not in (early, late):
+            record(early <= spec["max_baseline_fell_early"] and late >= spec["min_baseline_fell_late"],
+                   f"the baseline still improves at order 2 and stops improving at order 4, "
+                   f"{arm} arm, which is what makes order 4 a noise floor and order 2 a "
+                   f"baseline", f"fell {int(early)}/94 then {int(late)}/94",
+                   f"<= {spec['max_baseline_fell_early']} then "
+                   f">= {spec['min_baseline_fell_late']}")
+        rho = get(f"spearman(rows, order-4 noise floor), {arm} arm")
+        if rho is not None:
+            record(rho <= spec["max_floor_size_rho"],
+                   f"and the floor shrinks as the sample grows, {arm} arm, which is the "
+                   f"signature of overfitting rather than of information",
+                   f"rho {rho:+.3f}", f"<= {spec['max_floor_size_rho']}")
+
+
 def verify_shuffled_arm(T, g):
     """B5: the fourth arm, where the baseline is removed rather than raised."""
     print("\nshuffled arm  (dinucleotide shuffling, the construction in widest use)")
@@ -3859,6 +3970,7 @@ def main():
                verify_positional_signal,
                verify_cobinding_noise,
                verify_estimands, verify_nested_scale, verify_shuffled_arm,
+               verify_order_profile,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

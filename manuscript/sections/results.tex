@@ -730,7 +730,7 @@ IDI & 4-mer & 0.0669 & 0.0448 & 0.0279 & 2.40 \\
 \end{tabular}
 \end{table}
 
-\subsection{The span survives raising the baseline one order, but the magnitudes do not}
+\subsection{The span survives every order of composition baseline; the magnitudes do not, and the estimator stops working before order four}
 \label{sec:orderthree}
 
 The composition baseline stops at order two because that is what a dinucleotide-preserving
@@ -805,6 +805,92 @@ The reading that a $k$-mer model is the more fragile of the two under a raised b
 therefore holds in two of the three arms and reverses in the third, which is the same
 two-of-three pattern the apparent-difficulty ordering shows in
 Section~\ref{sec:models}.
+
+Reporting two orders invites the question of why not a third, and answering it one order at a
+time invites it again, so we report the whole profile: orders one to four, all three arms, all
+three model classes, from the same out-of-fold scores (Table~\ref{tab:profile},
+Figure~\ref{fig:profile}). Orders two and
+three reproduce the two published tables to machine precision, $10^{-16}$, so the profile passes
+through both points already in the paper rather than being a smooth curve near them.
+
+\begin{table}[htbp]
+\centering
+\caption{Nested contribution against the order of the composition baseline, $n=94$ datasets.
+Baseline width counts columns after one is dropped per frequency family and entropy is
+appended. Order four is not a baseline: see the text.}
+\label{tab:profile}
+\begin{tabular}{llcccc}
+\toprule
+ & & order 1 & order 2 & order 3 & order 4 \\
+ & baseline width & 4 & 19 & 82 & 337 \\
+\midrule
+dinucleotide & composition alone & 0.5918 & 0.6274 & 0.6791 & 0.6861 \\
+ & 4-mer & $+0.1010$ & $+0.0663$ & $+0.0124$ & $+0.1444$ \\
+ & CNN & $+0.1134$ & $+0.0837$ & $+0.0477$ & $+0.0338$ \\
+ & SpliceBERT & $+0.2106$ & $+0.1735$ & $+0.1188$ & $+0.0930$ \\
+\midrule
+GC & composition alone & 0.7451 & 0.7827 & 0.8023 & 0.7961 \\
+ & 4-mer & $+0.0616$ & $+0.0265$ & $+0.0058$ & $+0.0986$ \\
+ & CNN & $+0.0610$ & $+0.0330$ & $+0.0200$ & $+0.0139$ \\
+ & SpliceBERT & $+0.1267$ & $+0.0890$ & $+0.0668$ & $+0.0548$ \\
+\midrule
+bias-aware & composition alone & 0.7959 & 0.8248 & 0.8361 & 0.8256 \\
+ & 4-mer & $+0.0363$ & $+0.0122$ & $+0.0019$ & $+0.0899$ \\
+ & CNN & $+0.0285$ & $+0.0113$ & $+0.0057$ & $+0.0036$ \\
+ & SpliceBERT & $+0.0740$ & $+0.0466$ & $+0.0335$ & $+0.0276$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Over the three orders at which the baseline is a baseline, every contribution declines
+monotonically and the protocol dependence does not. The two-arm contrast is positive with an
+interval excluding zero in all twelve order-by-model cells, and the three-arm span runs from
+2.78 to 6.60 for the 4-mer, 3.98 to 8.43 for the convolutional network and 2.85 to 3.72 for
+SpliceBERT. Where the baseline stops therefore sets the magnitude of what is reported and not
+whether the protocol matters.
+
+Order four is a different object, and it is the most useful number in this section. A bag of
+4-mer counts holds no information beyond an order-four composition block: at that order the
+baseline spans the model's entire feature space, so the model's true contribution is exactly
+zero by construction. The estimator does not report zero. It reports $+0.0986$, $+0.1444$ and
+$+0.0899$ in the three arms, positive on all 94 datasets in each, which is 3.72, 2.18 and 7.35
+times the contribution the same estimator reports for the same model at order two. With the
+truth known, that is the instrument's error, and it is larger than most of the increments this
+literature publishes.
+
+The cause is measurable and it confines the problem. A 337-column baseline overfits at these
+sample sizes: the baseline's own out-of-fold AUROC \emph{falls} from order three to order four
+on 52, 34 and 64 of the 94 datasets, while from order one to order two it falls on 2, 3 and 1.
+A pre-fit model score is a one-column, well-regularised summary of the same information, so
+adding it repairs a fit the baseline could not achieve on its own, and the repair is credited as
+contribution. Two predictions follow and both hold: the effect should shrink as the sample grows,
+and it does, with Spearman correlations of $-0.829$, $-0.950$ and $-0.835$ between dataset size
+and the floor; and it should appear only for the model whose features the block spans, which is
+why the 4-mer's contribution jumps at order four while the convolutional network's and
+SpliceBERT's continue to fall.
+
+This qualifies the recommendation above. Raising the order of a composition baseline sharpens
+the comparison until the baseline itself stops fitting, and on panels of this size that happens
+before order four. A study raising its baseline should report whether the baseline's own
+out-of-fold performance still improves, which costs nothing and is the diagnostic that separates
+a sharper instrument from a broken one.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/f16_order_profile}
+\caption{Nested contribution against the order of the composition baseline, $n=94$ datasets,
+in each negative-set protocol: (a) dinucleotide-matched, (b) GC-matched, (c) bias-aware. Top
+row, contribution for each model class, with 95\% protein-clustered percentile intervals as
+bands; the step from order three to order four is dashed because it crosses out of the range
+where the baseline is a baseline. Bottom row, the composition baseline's own out-of-fold AUROC,
+which is the diagnostic: the shaded region marks order four, where a 337-column block overfits
+and its own AUROC falls on 34, 52 and 64 of the 94 datasets. The 4-mer's contribution rises
+there while the two neural models' continue to fall, because the order-four block spans the
+4-mer's feature space and its pre-fit score repairs a fit the baseline cannot achieve alone.
+Panel means can still rise where the per-dataset AUROC falls on a minority of datasets, which
+is why the counts are given.}
+\label{fig:profile}
+\end{figure}
 
 \subsection{One structural feature of the calibration replicates on an externally constructed
 benchmark}

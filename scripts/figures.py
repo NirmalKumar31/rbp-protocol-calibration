@@ -989,9 +989,80 @@ def f15():
     save(fig, "f15_recommendation")
 
 
+def f16():
+    """B3: the contribution as a function of where the baseline stops, and where it breaks.
+
+    THE ORDER-4 COLUMN IS DRAWN, NOT DROPPED. At order four the baseline spans the 4-mer's
+    own feature space, so its true contribution is zero and the +0.09 to +0.14 the estimator
+    reports is the instrument's error. Hiding that column would turn the figure into three
+    tidy declining curves and lose the section's main result; drawing it without marking it
+    would invite reading a noise floor as a contribution. So it is drawn beyond a rule, in
+    a shaded panel region, with the baseline's own AUROC below it as the reason.
+    """
+    t = need("order_profile.csv")
+    if t is None:
+        return
+    q = t[0].set_index("check")
+    orders = [1, 2, 3, 4]
+    arms = [("dn", "dinucleotide-matched"), ("gc", "GC-matched"), ("neg2", "bias-aware")]
+    fig, ax = plt.subplots(2, 3, figsize=(9.4, 5.4), sharex=True,
+                           gridspec_kw={"height_ratios": [2.0, 1.0]})
+
+    for col, (arm, title) in enumerate(arms):
+        a0, a1 = ax[0][col], ax[1][col]
+        # The region where the baseline has stopped fitting. Shaded rather than cut.
+        for a in (a0, a1):
+            a.axvspan(3.5, 4.35, color=COLOR["grey_light"], alpha=0.55, zorder=0, lw=0)
+        for model in ("kmer", "cnn", "splicebert"):
+            ys, los, his = [], [], []
+            for o in orders:
+                k = f"{model} gain at order {o}, {arm} arm"
+                ys.append(float(q.loc[k, "value"]))
+                los.append(float(q.loc[k, "ci_low"]))
+                his.append(float(q.loc[k, "ci_high"]))
+            # Orders 1-3 joined; the step into 4 dashed, because it crosses from a baseline
+            # into a noise floor and a solid line would assert a continuous quantity.
+            a0.plot(orders[:3], ys[:3], color=COLOR[model], linewidth=2.0, zorder=3,
+                    marker="o", markersize=5, markeredgecolor="white", markeredgewidth=0.6,
+                    label=LABEL[model] if col == 0 else None)
+            a0.plot(orders[2:], ys[2:], color=COLOR[model], linewidth=2.0, zorder=3,
+                    linestyle=(0, (3, 2)), marker="o", markersize=5,
+                    markeredgecolor="white", markeredgewidth=0.6)
+            a0.fill_between(orders, los, his, color=COLOR[model], alpha=0.15, lw=0, zorder=2)
+        a0.axhline(0, color="#404040", linewidth=0.8, zorder=1)
+        a0.set_title(f"{'abc'[col]}  {title}", loc="left", fontsize=9)
+        a0.grid(axis="x", visible=False)
+        # THE BAND'S LABEL CARRIES ITS OWN REASON. Annotating the count beside the curve in
+        # the panel below collided with the curve in two of three arms, and separating cause
+        # from effect made the reader join them up. One label, both facts.
+        fell = int(q.loc[f"baseline AUROC fell from order 3 to 4, {arm} arm", "value"])
+        a0.text(3.93, a0.get_ylim()[0] + 0.97 * (a0.get_ylim()[1] - a0.get_ylim()[0]),
+                f"baseline\nno longer fits\n(its own AUROC\nfalls on {fell}/94)",
+                fontsize=6.5, ha="right", va="top", color="#404040")
+        if col == 0:
+            a0.set_ylabel("nested contribution")
+            a0.legend(frameon=False, fontsize=7.5, loc="upper left")
+
+        # THE DIAGNOSTIC, directly under the curves it explains: the baseline's own
+        # out-of-fold AUROC. Where it stops rising, the panel above stops being a baseline.
+        cs = [float(q.loc[f"composition AUROC at order {o}, {arm} arm", "value"])
+              for o in orders]
+        a1.plot(orders, cs, color=COLOR["composition"], linewidth=2.0, marker="s",
+                markersize=4.5, markeredgecolor="white", markeredgewidth=0.6, zorder=3,
+                label="baseline's own AUROC" if col == 0 else None)
+        a1.set_xticks(orders)
+        a1.set_xlabel("order of the composition baseline")
+        a1.grid(axis="x", visible=False)
+        if col == 0:
+            a1.set_ylabel("composition AUROC")
+            a1.legend(frameon=False, fontsize=7.5, loc="lower right")
+    fig.tight_layout()
+    save(fig, "f16_order_profile")
+
 FIGURES = {"f0": f0, "f1": f1, "f2": f2, "f3": f3, "f4": f4, "f5": f5,
            "f6": f6, "f7": f7, "f8": f8, "f9": f9, "f10": f10,
-           "f11": f11, "f12": f12, "f13": f13, "f14": f14, "f15": f15}
+           "f11": f11, "f12": f12, "f13": f13, "f14": f14, "f15": f15,
+           "f16": f16}
 
 
 def main():
