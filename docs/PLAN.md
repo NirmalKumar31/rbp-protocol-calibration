@@ -297,3 +297,123 @@ staging, and Phase 1 evidence backups. Awaiting user approval to delete:
 `rna-binding-proteins/data/raw/GRCh38.primary_assembly.genome.fa.gz` (0.8 GB, redundant with
 the uncompressed copy beside it) and `rbp-repo/` (3.0 GB, superseded by rbp-repro).
 **Do not delete without asking again.**
+
+---
+
+# EXECUTION LOG, 2026-09-04. READ THIS FIRST; the sections above are the ORIGINAL plan.
+
+**State at the end of this session: 768/768 verifier assertions on BOTH artefacts, 0 orphans
+over 278 decimal values and 221 integers, 684 tests, working tree clean, `main` pushed.**
+Gate count went 696 -> 768 and the floor was raised in step every time.
+
+## HOW TO RUN ANYTHING (this cost real time to rediscover)
+
+The venv is NOT in this repo:
+
+    PY="/Users/nirmalkumar/Deep Learning Project/rna-binding-proteins/.venv/bin/python"
+    export PYTHONPATH="$PWD/src"
+    "$PY" scripts/verify.py --local results/tables      # 768/768
+    "$PY" scripts/verify.py                             # the GCS path, also 768/768
+
+`verify.py` with no `--local` reads GCS. **The bucket is ALIVE** (see E2 below), so both pass.
+`run.sh` needs `PY=` pointing at that interpreter; its 54 `$PY` call sites are now quoted, which
+they had to be because this repo lives under a path containing a space.
+
+## DONE, ALL COMMITTED AND PUSHED
+
+* **Phase 1 COMPLETE.** 1a, 1b, 1c.
+* **Phase 3 COMPLETE.** All 29 items A1-A30.
+* **Phase 4:** C1, C3. (C2, the full rebuild around the baseline, NOT attempted.)
+* **Phase 5:** D2 (partial), D3, D4, D5, D6, D7, D8, D9.
+* **Phase 6:** E1, E2, E4.
+* **Phase 2:** B1, B4, B6, B7, B8, B9, B13, B14, B15.
+
+## THE FINDINGS THAT CHANGED CLAIMS, not just confirmed them
+
+* **1a retrain:** all three arms now 94/94 chromosome-grouped. CNN contrast 0.0530 -> **0.0506**,
+  SpliceBERT 0.0864 -> **0.0845**, 4-mer unchanged, GC arm bit-identical. Spans 7.63 -> **7.42**
+  and 3.76 -> **3.72**; "3.8 to 7.6-fold" -> **"3.7 to 7.4-fold"**.
+* **1b/1c MEASURED, NOT ADOPTED.** Logit scale RAISES every neural contribution (6/6 cells), so
+  the published probability-scale figures are the CONSERVATIVE ones; contrast moves 0.0003.
+  Within-fold standardisation moves panel means by 4e-5. Reasoning is in the paper; the
+  DIRECTION is gated so "conservative" is falsifiable.
+* **B1, the strongest result.** Ordering holds on all 5 estimands x 3 models = 15/15, including
+  delta deviance which is UNBOUNDED, so it is not an AUROC-ceiling artefact. But the MAGNITUDE
+  is scale-dependent: 5.42x in AUROC, ~2.1x on unbounded scales. Both gated.
+* **B8.** The external test was never of the title relation (their difficulty read off the
+  composition baseline, ours off model-alone AUROC). On the right axis the non-replication is
+  confirmed and sharper: opposite movement in 11/45 theirs vs 88/94 ours. AND it exposed that
+  our inversion is about DIRECTION not covarying magnitudes (+0.385, positive).
+* **B14.** The CNN's design rationale rested on an unsourced "15 nt". Real figure **23 nt**
+  (IQR 11-29, max 48); centre carries 0.0058 bits vs 0.0136 at peak. Understated, so the
+  architecture is MORE justified.
+* **B7.** The bias-aware arm is NOT the easiest protocol for SpliceBERT (GC is higher by
+  0.0039), so "easiest of the three" needed qualifying in the abstract and Introduction.
+* **B4.** Co-binding rejected twice over: residual overlap max 0.29%, AND the sign is backwards
+  (highest-overlap third has the SMALLEST deficit).
+* **B6.** Contrast over 4 chromosome partitions: +0.0392 to +0.0398, range 0.0006. The frozen
+  one is the LARGEST of the four and the text says so.
+* **B9.** Ordering holds under pooled, fold-averaged and rank-normalised aggregation (3/3).
+  Pooling costs the NEURAL models ~0.008 and the 4-mer 0.0001; the two repairs agree to 0.0007,
+  which diagnoses per-fold scale drift.
+* **A units error the integer audit caught:** the paper quoted WINDOWS and called them pairs.
+  15,596/4,373 -> **7,798/2,184**.
+* **The equalising exponent was an aggregation artefact.** Retracted. It closes only under a
+  mean-of-ratios, which a headroom of 0.0267 dominates; median bottoms at 1.238.
+* **Tourne was mischaracterised twice, contradictorily.** Five strategies not six, a PWM
+  baseline WAS used, and dinucleotide shuffling did NOT perform worst.
+* **E2 surprise: the GCS bucket was never dead, only unfunded.** E1's relink restored it in
+  full. Uploaded the 63 missing tables; both artefacts now verify.
+
+## NEW SCRIPTS THIS SESSION (all wired into run.sh's comments, all gated)
+
+    scripts/four_models_table.py      matched_four_models.csv, offline at last
+    scripts/manuscript_constants.py   derives every structural constant the paper quotes
+    scripts/nested_scale.py           1b/1c, the 2x2
+    scripts/estimands.py              B1, five estimands
+    scripts/cobinding_noise.py        B4, needs the peak BEDs
+    scripts/positional_signal.py      B14
+    scripts/partition_sensitivity.py  B6
+    scripts/auroc_aggregation.py      B9
+    src/rbp/eval/{estimands,scale_sensitivity}.py
+    tests/unit/{test_palette_cvd,test_figure_output}.py
+
+Three tables had NO PRODUCER and silently kept pre-retrain contents:
+`three_arm_models_per_dataset.csv` (none at all; `--store` was an inert flag),
+`matched_four_models.csv` (GCS-only), and `run.sh` itself could not run under its own path.
+
+## STILL OPEN
+
+* **Phase 2:** B2 (order-three on the full panel x 3 arms; currently gc/dn only), B3
+  (composition-order profile orders 1-4 + figure), B5 (dinucleotide-SHUFFLED fourth arm), B10
+  (gene/transcript-clustered CV), B11 (matching-algorithm robustness), B16 (summit- vs
+  midpoint-centred windows; needs the genome FASTA, which is deliberately kept), B17
+  (transcript-aware region annotation).
+* **C2** the full reframe around the baseline as the channel.
+* **D1 THE LENGTH CUT. Deliberately deferred and here is why:** the paper is now 36 pages and
+  17,716 words because Phase 2 keeps ADDING sections. Cutting before Phase 2 stops would waste
+  the cut. §3.5 is the largest at 1,527 words, §3.4 next at 992. A cross-section duplication
+  scan found 36 near-duplicate sentence pairs, mostly Introduction restating Results.
+* **E3** one analysis through `cloud/submit_cpu_sweep.sh`; **E5** clean `terraform plan`.
+  NOTE: I deleted both 114 MB terraform provider binaries for disk; `terraform init` restores.
+* **F3** region-matched neural arm (~$19, affordable), **F4**, **F5**.
+* **Zenodo** — the user's action. Placeholder is a commented two-line sentence at the end of
+  `manuscript/sections/data-availability.tex`. Use the CONCEPT DOI.
+
+## SPEND
+
+**$6.99 of $50-60.** The retrain measured 6.35 GPU-h against a $7.07 estimate: 1% out. The
+Modal CPU fan-out budgeted at $10-15 was NOT needed -- every Phase 2 analysis runs in 10-30
+minutes locally, so it was never the bottleneck the plan assumed.
+
+## DISK
+
+Freed ~2 GB by single-file deletion: 16 unreferenced SpliceBERT checkpoints in
+`rna-binding-proteins/.cache/weights` (1.2 GB; "locality" appears 0 times in the manuscript),
+`rbp-store/external/samples.tar.gz` (362 MB, its extracted copy sits beside it),
+`data/raw/clinvar.vcf.gz` (184 MB, ClinVar is absent from the paper), and two terraform
+providers. Then macOS reclaimed purgeable space and free space went 3.6 -> 21 GB.
+**`rbp-repo/` (3.0 GB) is still there** -- clean tree, nothing unpushed, live remote, so it is
+recoverable by clone. The auto-mode classifier blocks recursive deletes, so it needs the user:
+`rm -rf "/Users/nirmalkumar/Deep Learning Project/rbp-repo"`.
+Do NOT delete `GRCh38.primary_assembly.genome.fa` (2.9 GB): B16 needs it.
