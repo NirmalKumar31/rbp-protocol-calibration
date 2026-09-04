@@ -318,6 +318,7 @@ s13b_local_analysis() {
   "$PY" scripts/window_centring.py --from-cache || die "window centring"
   "$PY" scripts/device_portability.py --from-cache || die "device portability"
   "$PY" scripts/matching_robustness.py --from-cache || die "matching robustness"
+  "$PY" scripts/region_matched_neural.py --from-cache || die "region-matched neural"
   "$PY" scripts/shuffled_arm.py --from-cache || die "shuffled fourth arm"
   "$PY" scripts/multiplier_variance.py || die "multiplier variance"
   "$PY" scripts/score_scale_check.py --from-cache || die "score scale"
@@ -348,6 +349,7 @@ s13b_local_analysis() {
   #   "$PY" scripts/window_centring.py --store ../rbp-store    # B16, needs the genome FASTA
   #   "$PY" scripts/device_portability.py  # E3, reads the CPU sweep results from GCS
   #   "$PY" scripts/matching_robustness.py --store ../rbp-store  # B11, needs the genome FASTA
+  #   "$PY" scripts/region_matched_neural.py --store ../rbp-store # F3, needs the neg2_rm scores
   # peak_thresholds.py fetches 95 narrowPeak files from ENCODE and so is NOT in the default
   # path; its table is committed. Regenerate with: "$PY" scripts/peak_thresholds.py
   "$PY" scripts/recompute.py         || die "recompute from per-example evidence"

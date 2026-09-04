@@ -1,18 +1,27 @@
 check,value,n,note,ci_low,ci_high
-datasets with complete region-matched neural scores,4.0,4,,,
-model classes measured on the region-matched arm,2.0,4,"kmer,cnn",,
-"composition AUROC, region-matched arm, kmer rows",0.7626111208104345,4,,0.6989528383741007,0.8261026998962653
-"kmer contribution, region-matched arm",0.018939658249247676,4,,0.004165356753311145,0.03151227815393179
-"kmer contribution, published bias-aware arm",0.02459902603954228,4,,0.005897915089789299,0.043300136989295246
-kmer change from matching region,-0.005659367790294599,4,,-0.02327965835904005,0.006358655441556099
-"composition AUROC, region-matched arm, cnn rows",0.7626111208104345,4,,0.6989528383741007,0.8261026998962653
-"cnn contribution, region-matched arm",0.033221973821410955,4,,0.003301607089116143,0.08226609665675272
-"cnn contribution, published bias-aware arm",0.028984728130473977,4,,0.0035485929598822,0.07036266583773461
-cnn change from matching region,0.004237245690936979,4,,-0.0009127292628844713,0.011903430819018115
-"region-matched arm is smallest of three, kmer",1.0,4,rm +0.0189 vs gc +0.0324 vs dn +0.0569,,
-"three-arm span with the region-matched arm, kmer",3.003972662780088,4,,1.6373717781591504,5.9106460366319915
-"region-matched arm is smallest of three, cnn",1.0,4,rm +0.0332 vs gc +0.0562 vs dn +0.0818,,
-"three-arm span with the region-matched arm, cnn",2.4617789871637523,4,,0.9776508068468307,13.006531981721343
-model classes for which the region-matched arm stays smallest,2.0,2,,,
-"dinucleotide minus region-matched contrast, kmer",0.037954557373889725,4,,0.012062053573595494,0.07833678675789059
-"dinucleotide minus region-matched contrast, cnn",0.048563183244242795,4,,-0.0002440221933755881,0.09416525395196562
+datasets with complete region-matched neural scores,94.0,94,,,
+model classes measured on the region-matched arm,3.0,94,"kmer,cnn,splicebert",,
+"composition AUROC, region-matched arm, kmer rows",0.8052420239682333,94,,0.7860417410147412,0.8249888505561154
+"kmer contribution, region-matched arm",0.009201869391751615,94,,0.007038269191154242,0.011543212512287182
+"kmer contribution, published bias-aware arm",0.012231944163197651,94,,0.009754584941553283,0.015055647482416442
+kmer change from matching region,-0.003030074771446038,94,,-0.004687474344607962,-0.0014645227972107306
+"composition AUROC, region-matched arm, cnn rows",0.8052420239682333,94,,0.7860417410147412,0.8249888505561154
+"cnn contribution, region-matched arm",0.009957457344165291,94,,0.006812029926426341,0.013537421931793813
+"cnn contribution, published bias-aware arm",0.011268725158253787,94,,0.008250424264324829,0.01456724550100678
+cnn change from matching region,-0.0013112678140884911,94,,-0.002720531958288689,7.633299167754146e-05
+"composition AUROC, region-matched arm, splicebert rows",0.8052420239682333,94,,0.7860417410147412,0.8249888505561154
+"splicebert contribution, region-matched arm",0.035216276134973,94,,0.028906623545283405,0.0424771233374798
+"splicebert contribution, published bias-aware arm",0.0466140278896648,94,,0.03981278581482799,0.05421855862030952
+splicebert change from matching region,-0.0113977517546918,94,,-0.015026030194624288,-0.007912994991981255
+"4-mer contribution minus region_asymmetry.py's, region-matched arm",1.1449174941446927e-16,94,,,
+"4-mer baseline minus region_asymmetry.py's, region-matched arm",0.0,94,,,
+"region-matched arm is smallest of three, kmer",1.0,94,rm +0.0092 vs gc +0.0265 vs dn +0.0663,,
+"three-arm span with the region-matched arm, kmer",7.20114945453892,94,,5.790088786297207,9.118097496539397
+"region-matched arm is smallest of three, cnn",1.0,94,rm +0.0100 vs gc +0.0330 vs dn +0.0837,,
+"three-arm span with the region-matched arm, cnn",8.401102652639024,94,,6.5919044145034515,11.19765954916546
+"region-matched arm is smallest of three, splicebert",1.0,94,rm +0.0352 vs gc +0.0890 vs dn +0.1735,,
+"three-arm span with the region-matched arm, splicebert",4.927579881951488,94,,4.13253523608806,5.920218756142979
+model classes for which the region-matched arm stays smallest,3.0,3,,,
+"dinucleotide minus region-matched contrast, kmer",0.05706216735939892,94,,0.04574441064691984,0.06943469861375046
+"dinucleotide minus region-matched contrast, cnn",0.07369616396344165,94,,0.06111322172327446,0.08712094462288965
+"dinucleotide minus region-matched contrast, splicebert",0.13831473766496827,94,,0.12154818352832954,0.15572610948307983

@@ -166,6 +166,32 @@ GC arm is region mix and the rest is not. The ordering is unchanged: the region-
 still carries the highest composition baseline of the three and still yields the lowest
 contribution, and the span against the dinucleotide arm widens from 5.42 to 7.20.
 
+That repair was available for the 4-mer alone until now, which left the obvious objection open:
+a convolutional network or a pretrained language model might depend on transcript region in a
+way a bag of 4-mer counts does not, and the arm whose position the design does not imply was
+corrected for only one model class of three. We therefore trained both neural models on the
+region-matched arm across all 94 datasets and five folds, on the same code path and hardware as
+the published sweeps, 940 fold-runs in total. The 4-mer column recomputed here reproduces the
+independently computed value above to $1.1\times10^{-16}$, so the neural columns beside it are
+measured on the same arm.
+
+The answer does not change for any model class, and the correction moves the result the wrong way
+for a confound. With region matched the contributions are $+0.0092$, $+0.0100$ and $+0.0352$ for
+the 4-mer, the convolutional network and SpliceBERT, and the region-matched arm still gives the
+smallest of the three protocols for every one of them. The span against the dinucleotide arm
+\emph{widens} in all three cases, from 5.42 to 7.20, from 7.42 to 8.40 and from 3.72 to 4.93. A
+result driven by the region confound would have narrowed when the confound was removed.
+SpliceBERT loses the most to the repair, $-0.0114$ against $-0.0030$ and $-0.0013$, so the
+pretrained model was the one leaning hardest on transcript annotation, which is the direction the
+objection anticipated even though the conclusion is unaffected.
+
+One ordering does move, and it confirms rather than contradicts what we report above. In the
+published bias-aware arm the 4-mer leads the convolutional network by $+0.0010$ with an interval
+spanning zero, which we describe as the protocol destroying the ranking between them rather than
+reversing it. Matching region flips the sign of that difference, to $+0.0100$ against $+0.0092$.
+A ranking that changes direction under a correction this small is a ranking the arm does not
+determine.
+
 Both alternative constructions agree. Reweighting the donors already drawn, instead of redrawing
 them,
 gives 0.8017 and $+0.0062$ from a construction that discards 30\% of the rows. And on the half

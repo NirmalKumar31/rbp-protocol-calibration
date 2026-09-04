@@ -151,8 +151,8 @@ degrees-of-freedom statements are exact for the design and approximate for the d
 
 All three model classes were measured under all three protocols, but the study covers two cell
 lines and one assay. Whether the calibration holds for other crosslinking protocols or other
-organisms is untested. The transform sweep, the baseline attribution and the recommendation test
-are reported for all three model classes. The order-three analysis is reported for all three
+organisms is untested. The transform sweep, the baseline attribution, the recommendation test and the
+region-matched rebuild are reported for all three model classes. The order-three analysis is reported for all three
 model classes at $n=94$ on all three arms; where the earlier 30-dataset 4-mer subsample is
 quoted alongside it, the two use different bootstrap schemes, protein-clustered for the full
 panel and over datasets for the subsample. No model larger than 20~M
@@ -282,7 +282,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 904 assertions compare each published value against a frozen
+credit than it earns. Its 918 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -295,7 +295,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 904 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 918 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit

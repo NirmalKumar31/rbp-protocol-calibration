@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 902
+  min_domain_checks: 916
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2444,3 +2444,33 @@ matching_robustness:
   min_floor_bound_fraction: 0.5
   max_baseline_contribution_r: -0.70
   max_subsampled_buckets: 20
+
+# F3: THE REGION-MATCHED ARM FOR ALL THREE MODEL CLASSES. The bias-aware arm matches fold only,
+# so region alone separates its classes at a median AUROC of 0.748, and the repair existed for
+# the 4-mer ONLY because nothing could dispatch a neural sweep for the arm. The obvious
+# objection -- that a convolutional network or a language model might lean on region in a way a
+# bag of 4-mers does not -- had no answer. 940 fold-runs on Modal A10G, $18.97.
+#
+# It does not change the answer. With region matched the bias-aware arm still gives the smallest
+# contribution of the three for every model class, and the correction WIDENS the span in all
+# three cases (5.42 -> 7.20, 7.42 -> 8.40, 3.72 -> 4.93), which is the opposite of what a
+# confound-driven result would do. Gated as a direction, not merely as three values.
+#
+# SpliceBERT loses the most from the repair (-0.0114 against -0.0030 and -0.0013), so the
+# language model was the one leaning hardest on transcript region.
+#
+# The 4-mer column is a CROSS-TABLE CONTROL: region_asymmetry.py computed it independently from
+# a different script on the same windows, and it agrees to 1.14e-16.
+region_matched_neural:
+  n_datasets: 94
+  max_control_gap: 1.0e-9
+  baseline:         {value: 0.8052, tol: 0.004}
+  gain_kmer:        {value: 0.0092, tol: 0.002}
+  gain_cnn:         {value: 0.0100, tol: 0.002}
+  gain_splicebert:  {value: 0.0352, tol: 0.005}
+  span_kmer:        {value: 7.20, tol: 1.20}
+  span_cnn:         {value: 8.40, tol: 1.40}
+  span_splicebert:  {value: 4.93, tol: 0.70}
+  published_span_kmer:       {value: 5.42, tol: 0.05}
+  published_span_cnn:        {value: 7.42, tol: 0.05}
+  published_span_splicebert: {value: 3.72, tol: 0.05}

@@ -2028,6 +2028,89 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_region_matched_neural(T, g):
+    """F3: the region-matched bias-aware arm, for all three model classes."""
+    print("\nregion-matched neural  (does removing the region confound change the answer?)")
+    d = T.get("region_matched_neural.csv")
+    if d is None:
+        return record(False, "region_matched_neural.csv present", "MISSING",
+                      "run scripts/region_matched_neural.py --store ../rbp-store")
+    spec = g["region_matched_neural"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("datasets with complete region-matched neural scores")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+    v = get("model classes measured on the region-matched arm")
+    if v is not None:
+        record(int(v) == 3, "all three model classes measured", int(v), 3)
+
+    # THE CROSS-TABLE CONTROL. region_asymmetry.py computed this arm's 4-mer contribution
+    # independently, from a different script on the same windows. If the 4-mer column here did
+    # not land on that number, the neural columns beside it would be measuring a different arm.
+    for label, key in (("4-mer contribution minus region_asymmetry.py's, region-matched arm",
+                        "max_control_gap"),
+                       ("4-mer baseline minus region_asymmetry.py's, region-matched arm",
+                        "max_control_gap")):
+        v = get(label)
+        if v is not None:
+            at_most(label, abs(v), spec[key])
+
+    for label, key in (
+            ("kmer contribution, region-matched arm", spec["gain_kmer"]),
+            ("cnn contribution, region-matched arm", spec["gain_cnn"]),
+            ("splicebert contribution, region-matched arm", spec["gain_splicebert"]),
+            ("composition AUROC, region-matched arm, kmer rows", spec["baseline"])):
+        v = get(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE CLAIM. The bias-aware arm's job in this paper is to hold the highest baseline and the
+    # smallest contribution. If matching region moved it out of that position for ANY model
+    # class, the three-arm span would be partly a region artefact.
+    v = get("model classes for which the region-matched arm stays smallest")
+    if v is not None:
+        record(int(v) == 3,
+               "with transcript region matched, the bias-aware arm still gives the SMALLEST "
+               "contribution of the three for every model class, so its position is not a "
+               "region artefact", f"{int(v)}/3", "3/3")
+
+    # AND THE CORRECTION WIDENS THE SPAN RATHER THAN NARROWING IT, for every model class. That
+    # is the opposite of what a confound-driven result would do, so it is gated as a direction
+    # and not merely as three values.
+    pub = {"kmer": spec["published_span_kmer"], "cnn": spec["published_span_cnn"],
+           "splicebert": spec["published_span_splicebert"]}
+    n_wider = 0
+    for model in ("kmer", "cnn", "splicebert"):
+        v = get(f"three-arm span with the region-matched arm, {model}")
+        if v is not None:
+            near(f"three-arm span, region-matched, {model}", v, spec[f"span_{model}"])
+            n_wider += int(v > pub[model]["value"])
+    record(n_wider == 3,
+           "removing the region confound WIDENS the three-arm span for every model class, "
+           "which is the opposite of what a confound-driven result would do", f"{n_wider}/3",
+           "3/3")
+
+    # THE 4-MER AND THE CNN SWAP PLACES AGAIN, and that confirms an earlier reading rather than
+    # contradicting it. In the published bias-aware arm the 4-mer leads the CNN by +0.0010 with
+    # an interval spanning zero, which the paper reports as the protocol DESTROYING the ranking
+    # rather than reversing it. Matching region flips the sign of that difference. A ranking
+    # that flips under a correction of this size is exactly a ranking that is not determined.
+    a, b = get("kmer contribution, region-matched arm"), get("cnn contribution, region-matched arm")
+    if None not in (a, b):
+        record(b > a,
+               "the CNN now edges the 4-mer where the published bias-aware arm had it the "
+               "other way, which confirms that this arm destroys the ranking between them "
+               "rather than reversing it", f"cnn {b:+.4f} vs kmer {a:+.4f}",
+               "sign flips under the correction")
+
+
 def verify_matching_robustness(T, g):
     """B11: two free parameters in the matcher, varied for the first time."""
     print("\nmatching robustness  (greedy vs exact assignment, three pool sizes)")
@@ -4405,6 +4488,7 @@ def main():
                verify_order_profile, verify_region_annotation,
                verify_gene_clustered_cv, verify_window_centring,
                verify_device_portability, verify_matching_robustness,
+               verify_region_matched_neural,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
