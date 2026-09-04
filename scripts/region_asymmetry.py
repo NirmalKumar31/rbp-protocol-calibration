@@ -15,16 +15,24 @@ TWO MEASUREMENTS:
 
   1. How much the region label alone separates the classes, per arm. Scored by the likelihood
      ratio over the five region marginals, which is the optimal region-only score.
-  2. A region-matched bias-aware arm, built by reweighting the donors ALREADY drawn: inside
-     each fold, subsample the negatives so their region marginals match the positives'. Region
-     then carries nothing and whatever survives is not region imbalance. Pairs are lost where
-     the drawn pool is short of a class, so the retained fraction is reported.
+  2. A region-matched bias-aware arm built through the pipeline, `build_neg2.py
+     --match-region`, which stratifies the draw on region instead of drawing uniformly inside
+     the fold. It keeps every pair (456,734, the same as the published arm) and achieves the
+     match exactly: region-only AUROC 0.5000, TV 0.0000.
+  3. The same thing by reweighting the donors ALREADY drawn, as a second estimate from a
+     different construction. It discards 30% of rows, so it is the weaker of the two and is
+     reported only because agreement between two constructions is worth more than either.
 
 THE ANSWER: region alone separates the bias-aware classes at median AUROC 0.748 against exactly
 0.5000 in both other arms. Matching it lowers the arm's composition baseline from 0.8248 to
-0.8017 and its contribution from +0.0122 to +0.0062. The arm STILL carries the highest baseline
-and the lowest contribution of the three, and the span widens. So the ordering is not a region
-artefact, but the mechanism sentence was overstated and the magnitude is part annotation.
+0.8052 and its contribution from +0.0122 to +0.0092, so 47% of the arm's baseline excess over
+the GC arm is region mix. The arm STILL carries the highest baseline and the lowest contribution
+of the three, and the span widens from 5.42 to 7.20. So the ordering is not a region artefact,
+but the mechanism sentence was overstated and the magnitude is part annotation.
+
+NOTE WHAT THIS ARM IS NOT. Horlacher's negative-2 does not match region either, so a
+region-matched version is not the field's protocol and is not a fourth point on the same axis.
+It is a diagnostic that measures how much of one arm's baseline is transcript annotation.
 """
 
 import argparse
@@ -96,6 +104,23 @@ def measure(store, panel, rng):
             row[f"region_auroc_{arm}"], row[f"region_tv_{arm}"] = a, tv
             if arm != "neg2":
                 continue
+
+            # THE PRIMARY REGION-MATCHED ESTIMATE: the arm rebuilt through the pipeline with
+            # the draw stratified on region. Every pair is kept, so this is not a subsample of
+            # the published arm and carries no selection caveat.
+            f2 = store / "neg2_rm" / r.cell / r.protein / "dataset.tsv"
+            if f2.exists():
+                d2 = pd.read_csv(f2, sep="\t", usecols=["label", "region", "fold", "seq_rna"])
+                a3, tv3 = region_lr_auroc(d2.label.to_numpy(), d2.region.to_numpy())
+                sc2, _, _ = kmer_oof(d2.seq_rna.values, d2.label.values, d2.fold.values, k=4)
+                g2 = np.isfinite(sc2)
+                r2 = gain_over_composition(d2.seq_rna.values[g2], sc2[g2],
+                                           d2.label.values[g2], d2.fold.values[g2])
+                row.update({"region_auroc_built": a3, "region_tv_built": tv3,
+                            "retained_built": len(d2) / len(d),
+                            "comp_built": r2.auroc_composition,
+                            "full_built": r2.auroc_with_score, "gain_built": r2.delta})
+
             m = d.loc[region_matched_rows(d, rng)].reset_index(drop=True)
             if m.label.nunique() < 2 or len(m) < 200:
                 ok = False
@@ -150,30 +175,54 @@ def main():
             f"above 0.70 in {int((c > 0.70).sum())}/{len(m)}   "
             f"TV {m[f'region_tv_{arm}'].median():.4f}")
 
-    log(f"\n=== bias-aware arm with region matched, {m.retained.median():.1%} of rows "
-        f"retained ===\n")
-    log(f"  region-only AUROC after matching: median {m.region_auroc_matched.median():.4f}"
-        f"   TV {m.region_tv_matched.median():.4f}")
-    log(f"\n  {'quantity':22s} {'bias-aware':>11s} {'region-matched':>15s} {'GC':>9s}"
-        f" {'dinuc':>9s}")
-    for lab, a_, b_, c_, d_ in (("composition alone", "comp_neg2", "comp_matched", "comp_gc",
-                                 "comp_dn"),
-                                ("nested contribution", "gain_neg2", "gain_matched", "gain_gc",
-                                 "gain_dn")):
-        log(f"  {lab:22s} {m[a_].mean():11.4f} {m[b_].mean():15.4f} {m[c_].mean():9.4f}"
-            f" {m[d_].mean():9.4f}")
+    built = "comp_built" in m.columns and m.comp_built.notna().all()
+    log("\n=== bias-aware arm with region matched ===\n")
+    log(f"  {'construction':26s} {'kept':>6s} {'region AUROC':>13s} {'composition':>12s}"
+        f" {'contribution':>13s}")
+    log(f"  {'published (region free)':26s} {'100%':>6s} "
+        f"{m.region_auroc_neg2.median():13.4f} {m.comp_neg2.mean():12.4f} "
+        f"{m.gain_neg2.mean():+13.4f}")
+    if built:
+        log(f"  {'pipeline, stratified draw':26s} {m.retained_built.median():6.0%} "
+            f"{m.region_auroc_built.median():13.4f} {m.comp_built.mean():12.4f} "
+            f"{m.gain_built.mean():+13.4f}")
+    log(f"  {'reweighting the drawn arm':26s} {m.retained.median():6.0%} "
+        f"{m.region_auroc_matched.median():13.4f} {m.comp_matched.mean():12.4f} "
+        f"{m.gain_matched.mean():+13.4f}")
+    log(f"  {'GC arm':26s} {'':>6s} {m.region_auroc_gc.median():13.4f} "
+        f"{m.comp_gc.mean():12.4f} {m.gain_gc.mean():+13.4f}")
+    log(f"  {'dinucleotide arm':26s} {'':>6s} {m.region_auroc_dn.median():13.4f} "
+        f"{m.comp_dn.mean():12.4f} {m.gain_dn.mean():+13.4f}")
+
     out += [{"check": "rows retained under region matching",
-             "value": float(m.retained.median()), "n": len(m), "note": ""},
+             "value": float(m.retained.median()), "n": len(m), "note": "reweighting"},
             {"check": "region-only AUROC after matching, neg2 arm",
              "value": float(m.region_auroc_matched.median()), "n": len(m), "note": ""},
             {"check": "composition alone, neg2 arm region-matched",
-             "value": float(m.comp_matched.mean()), "n": len(m), "note": ""},
+             "value": float(m.comp_matched.mean()), "n": len(m), "note": "reweighting"},
             {"check": "nested contribution, neg2 arm region-matched",
-             "value": float(m.gain_matched.mean()), "n": len(m), "note": ""}]
+             "value": float(m.gain_matched.mean()), "n": len(m), "note": "reweighting"}]
+    if built:
+        excess = (m.comp_neg2.mean() - m.comp_gc.mean())
+        share = (m.comp_neg2.mean() - m.comp_built.mean()) / excess if excess else float("nan")
+        out += [{"check": "rows retained, pipeline region-matched arm",
+                 "value": float(m.retained_built.median()), "n": len(m), "note": ""},
+                {"check": "region-only AUROC, pipeline region-matched arm",
+                 "value": float(m.region_auroc_built.median()), "n": len(m), "note": ""},
+                {"check": "composition alone, pipeline region-matched arm",
+                 "value": float(m.comp_built.mean()), "n": len(m), "note": "PRIMARY"},
+                {"check": "nested contribution, pipeline region-matched arm",
+                 "value": float(m.gain_built.mean()), "n": len(m), "note": "PRIMARY"},
+                {"check": "share of the neg2 baseline excess over gc that is region mix",
+                 "value": float(share), "n": len(m), "note": ""}]
+        log(f"\n  region accounts for {100 * share:.0f}% of the bias-aware arm's baseline "
+            f"excess over the GC arm")
 
-    still_high = bool(m.comp_matched.mean() > max(m.comp_gc.mean(), m.comp_dn.mean()))
-    still_low = bool(m.gain_matched.mean() < min(m.gain_gc.mean(), m.gain_dn.mean()))
-    span = float(m.gain_dn.mean() / m.gain_matched.mean())
+    key_comp = m.comp_built if built else m.comp_matched
+    key_gain = m.gain_built if built else m.gain_matched
+    still_high = bool(key_comp.mean() > max(m.comp_gc.mean(), m.comp_dn.mean()))
+    still_low = bool(key_gain.mean() < min(m.gain_gc.mean(), m.gain_dn.mean()))
+    span = float(m.gain_dn.mean() / key_gain.mean())
     out += [{"check": "region-matched neg2 still has the highest baseline",
              "value": int(still_high), "n": len(m), "note": ""},
             {"check": "region-matched neg2 still has the lowest contribution",

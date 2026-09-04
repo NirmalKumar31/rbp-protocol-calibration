@@ -24,10 +24,13 @@ so a protocol that poses that task leaves a sequence model comparatively little 
 things make it a composition task, and only one of them is about binding sites. Distinct RBPs
 occupy distinct transcript regions, and the base composition characteristic of each region is
 readable from nineteen features; distinct RBPs also occupy compositionally distinct sites within
-a region. Matching the bias-aware arm on region removes the first and leaves the second, which
-costs the arm 0.023 AUROC of baseline and about half its measured contribution, and leaves its
-position among the three protocols unchanged. The lesson for a designer is that a protocol which
-frees a covariate the other protocols hold fixed is not simply a harder version of them.
+a region. Rebuilding the bias-aware arm with the donor draw stratified on region removes the
+first and leaves the second: it costs the arm 0.020 AUROC of baseline, which is 46\% of its
+excess over the GC arm, and a quarter of its measured contribution, and leaves its position
+among the three protocols unchanged. The lesson for a designer is that a protocol which frees a
+covariate the other protocols hold fixed is not simply a harder version of them, and that the
+comparison to make before attributing a baseline to biology is against the same protocol with
+that covariate restored.
 
 The relation between the composition baseline a protocol leaves and the contribution a model
 subsequently shows was strong for composition-matched negatives, both in our data and
@@ -157,7 +160,7 @@ classes in the two arms that match on it.
 
 The verification harness asserts values rather than the provenance of the code that produced
 them, and the fold-partition defect above is of exactly the class that this distinction permits:
-it was identified by inspection rather than by any of the 674 assertions, as was the region
+it was identified by inspection rather than by any of the 680 assertions, as was the region
 asymmetry of Section~\ref{sec:region}. Its manuscript audit checks only values written to three
 or more decimal places, and requires a decimal point, so bare integers are not checked at all;
 those were checked by hand, and three were wrong in an earlier draft of this manuscript.

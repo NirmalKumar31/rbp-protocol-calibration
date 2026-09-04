@@ -1329,7 +1329,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 673
+  min_domain_checks: 679
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1738,6 +1738,15 @@ region_asymmetry:
   region_auroc_matched: {value: 0.5026, tol: 0.02}
   comp_matched:         {value: 0.8017, tol: 0.01}
   gain_matched:         {value: 0.0062, tol: 0.003}
+  # THE PRIMARY REGION-MATCHED ESTIMATE: the arm rebuilt through build_neg2.py --match-region,
+  # which keeps every pair rather than discarding 30% of them and hits the match exactly. Its
+  # region-only AUROC is gated to the same 0.5000 the other two matched arms are, because a
+  # stratified draw that misses is a broken draw.
+  region_auroc_built: {value: 0.5000, tol: 0.001}
+  comp_built:         {value: 0.8052, tol: 0.01}
+  gain_built:         {value: 0.0092, tol: 0.003}
+  retained_built:     {value: 1.000, tol: 0.001}
+  region_share_of_excess: {value: 0.46, tol: 0.06}
   # The dose-response, which is what makes region a candidate explanation rather than a
   # coincidence. Signs are the claim; the magnitudes are loosely toleranced.
   dose_baseline: {value: 0.287, tol: 0.08}

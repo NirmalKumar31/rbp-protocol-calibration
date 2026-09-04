@@ -2185,6 +2185,12 @@ def verify_region_asymmetry(T, g):
             ("region-only AUROC after matching, neg2 arm", spec["region_auroc_matched"]),
             ("composition alone, neg2 arm region-matched", spec["comp_matched"]),
             ("nested contribution, neg2 arm region-matched", spec["gain_matched"]),
+            ("region-only AUROC, pipeline region-matched arm", spec["region_auroc_built"]),
+            ("composition alone, pipeline region-matched arm", spec["comp_built"]),
+            ("nested contribution, pipeline region-matched arm", spec["gain_built"]),
+            ("rows retained, pipeline region-matched arm", spec["retained_built"]),
+            ("share of the neg2 baseline excess over gc that is region mix",
+             spec["region_share_of_excess"]),
             ("spearman(region-only AUROC, baseline rise, neg2 over gc)",
              spec["dose_baseline"]),
             ("spearman(region-only AUROC, contribution deficit, neg2 minus gc)",
@@ -2204,6 +2210,13 @@ def verify_region_asymmetry(T, g):
             record(abs(v - 0.5) <= spec["matched_arms_exact_tol"],
                    f"{arm} arm: region carries nothing, exactly, as its matcher requires",
                    f"{v:.6f}", "0.500000")
+    # The rebuilt arm is held to the same standard: a stratified draw that lands anywhere but
+    # 0.5 did not stratify.
+    vb = must("region-only AUROC, pipeline region-matched arm")
+    if vb is not None:
+        record(abs(vb - 0.5) <= spec["matched_arms_exact_tol"],
+               "the rebuilt arm matches region exactly, as a stratified draw must",
+               f"{vb:.6f}", "0.500000")
     for label in ("region-matched neg2 still has the highest baseline",
                   "region-matched neg2 still has the lowest contribution"):
         v = must(label)

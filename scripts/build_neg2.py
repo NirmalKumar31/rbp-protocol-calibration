@@ -91,11 +91,31 @@ def too_close(pool, target, margin):
     return bad
 
 
-def build(store, seed=7):
+def draw(cand, grp, rng, match_region):
+    """Draw one negative per positive from `cand`, optionally within region class.
+
+    Without --match-region this is the arm as published: a uniform draw inside the fold.
+    With it, the draw is stratified so the negatives reproduce the positives' region
+    marginals, which is what the two composition-matched matchers do by construction.
+    """
+    if not match_region:
+        n = min(len(grp), len(cand))
+        return ([cand.iloc[rng.choice(len(cand), n, replace=False)]] if n else []), len(grp) - n
+    out, short = [], 0
+    for region, sub in grp.groupby("region"):
+        pool_r = cand[cand.region.values == region]
+        n = min(len(sub), len(pool_r))
+        short += len(sub) - n
+        if n:
+            out.append(pool_r.iloc[rng.choice(len(pool_r), n, replace=False)])
+    return out, short
+
+
+def build(store, seed=7, match_region=False):
     cfg = cfgmod.load()
     margin = int(cfg["negatives"]["min_peak_distance"])
     gc_root = Path(store) / "processed" / "gc"
-    out_root = Path(store) / "processed" / "neg2"
+    out_root = Path(store) / "processed" / ("neg2_rm" if match_region else "neg2")
     panel = pd.read_csv(ROOT / "results" / "tables" / "rehearsal_binding_gc.csv")
     rng = np.random.default_rng(seed)
 
@@ -116,25 +136,30 @@ def build(store, seed=7):
             picked = []
             short = 0
             for fold, grp in tgt.groupby("fold"):
-                cand = pool[pool.fold == fold]
-                n = len(grp)
-                if len(cand) < n:
-                    short += n - len(cand)
-                    n = len(cand)
-                if n == 0:
-                    continue
-                picked.append(cand.iloc[rng.choice(len(cand), n, replace=False)])
+                got, miss = draw(pool[pool.fold == fold], grp, rng, match_region)
+                picked += got
+                short += miss
             if not picked:
                 continue
             neg = pd.concat(picked, ignore_index=True)
             neg["label"] = 0
             neg["id"] = [f"{target}_n2_{i}" for i in range(len(neg))]
-            # Keep only the positives whose fold actually got matched, 1:1 within fold.
+            # Keep the positives that actually got a partner, 1:1 within the strata the draw
+            # used -- fold alone, or fold and region when the draw was stratified.
+            keys = ["fold", "region"] if match_region else ["fold"]
+            # Tuple-normalise both sides: a one-element groupby list yields scalar keys on
+            # some pandas versions and 1-tuples on others, and a silent mismatch here drops
+            # every dataset while reporting success.
+            def _k(x):
+                return x if isinstance(x, tuple) else (x,)
+            counts = {_k(k): v for k, v in neg.groupby(keys).size().items()}
             keep = []
-            for fold, grp in tgt.groupby("fold"):
-                k = int((neg.fold == fold).sum())
+            for key, grp in tgt.groupby(keys):
+                k = int(counts.get(_k(key), 0))
                 if k:
                     keep.append(grp.iloc[:k])
+            if not keep:
+                continue
             pos = pd.concat(keep, ignore_index=True)
 
             ds = pd.concat([pos, neg], ignore_index=True).drop(columns=["source"])
@@ -150,7 +175,8 @@ def build(store, seed=7):
             if made % 20 == 0:
                 log(f"  {made} datasets built")
     r = pd.DataFrame(report)
-    r.to_csv(ROOT / "results" / "tables" / "neg2_build.csv", index=False)
+    name = "neg2_rm_build.csv" if match_region else "neg2_build.csv"
+    r.to_csv(ROOT / "results" / "tables" / name, index=False)
     log(f"\nbuilt {made} datasets -> {out_root}")
     log(f"  median pairs {int(r.pairs.median()):,}, total {int(r.pairs.sum()):,}")
     log(f"  positives dropped for want of a same-fold donor: {int(r.unmatched_positives.sum()):,}"
@@ -161,8 +187,12 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--store", default=str(ROOT.parent / "rbp-store"))
     p.add_argument("--seed", type=int, default=7)
+    p.add_argument("--match-region", action="store_true",
+                   help="stratify the draw on transcript region, as a DIAGNOSTIC arm. This is "
+                        "not Horlacher's protocol, which leaves region free; it exists to "
+                        "measure how much of this arm's baseline is region mix.")
     a = p.parse_args()
-    build(a.store, a.seed)
+    build(a.store, a.seed, a.match_region)
 
 
 if __name__ == "__main__":
