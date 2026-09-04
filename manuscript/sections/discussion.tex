@@ -219,6 +219,31 @@ two by two orders of magnitude, because matching sixteen frequencies well depend
 candidates the pool happened to contain, while a five-point GC tolerance is met by a large
 fraction of any pool.
 
+The matcher itself has two free parameters, and varying them shows the same mechanism acting
+inside a single protocol. The dinucleotide matcher draws candidates at eight per positive and
+assigns each positive its nearest unused candidate greedily; both choices were made once. We
+rebuilt twelve size-stratified datasets under six settings, crossing greedy against an exact
+per-bucket assignment with three pool sizes. Assignment decomposes exactly by region and
+chromosome, since a candidate can only serve a positive from the same pool, so each bucket is
+solved to optimality. The pool floor had to be scaled alongside the multiple: at the published
+floor of 1500 candidates it binds in 92.3\% of buckets, so varying the multiple alone returns
+identical negatives and would have tested nothing.
+
+Exact assignment improves the achieved match by 0.0036 to 0.0052 in mean L1, about 2\%, and
+moves the measured contribution by at most 0.0020, so the greedy approximation is defensible on
+the evidence rather than only on the argument given for it. Pool size does more: mean L1 falls
+from 0.2722 to 0.2259 between the smallest and largest pools. Across all six settings the
+contribution spans 0.0106 and the composition baseline spans 0.0446, and the two move in
+opposite directions at $r=-0.926$ ($p=0.008$). An implementation detail with no name in any
+methods section therefore moves the reported quantity, and it moves it through the baseline,
+which is the same channel the protocol label acts through.
+
+Rebuilding the published setting is a fresh draw rather than a reproduction, because the matcher
+samples its candidate pool and is deterministic only in the assignment given that pool. The
+resulting deviation from the published per-dataset gain has a median of 0.0031 and shrinks as
+the dataset grows, at Spearman $-0.909$, which identifies it as sampling noise in the draw
+rather than drift in the construction.
+
 One limitation concerns the provenance of the neural scores. Initialisation was unseeded across
 all 2830 committed fold-runs, at the cost quantified in Methods. A second, that 20 of the 94
 dinucleotide-arm datasets carried scores from a partition that was not chromosome-grouped, has
@@ -257,7 +282,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 885 assertions compare each published value against a frozen
+credit than it earns. Its 904 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -270,7 +295,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 885 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 904 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit

@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 883
+  min_domain_checks: 902
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2411,3 +2411,36 @@ device_portability:
   min_spearman: 0.97
   max_auroc_difference: 0.005
   max_cpu_slowdown: 4.0
+
+# B11: THE MATCHER'S TWO FREE PARAMETERS, varied for the first time. negatives.py defends its
+# greedy assignment on the grounds that an exact one "buys very little here", which was an
+# assertion. It is now measured: exact assignment improves the achieved L1 by 0.004 to 0.005,
+# about 2%, and moves the contribution by at most 0.002. The defence holds.
+#
+# THE FLOOR HAD TO BE SCALED WITH THE MULTIPLE or the section would have tested nothing:
+# n_want is max(pool_min, multiple x bucket size) and buckets are small, so at the published
+# pool_min of 1500 the floor binds in most buckets and 4x/8x/16x return identical negatives.
+#
+# REBUILDING THE PUBLISHED SETTING IS A FRESH DRAW, not a reproduction, because candidate_pool
+# samples its windows. The gate is therefore on the median deviation AND on its correlation
+# with dataset size: sampling noise shrinks as n grows and drift does not.
+#
+# THE RESULT: across the six settings a higher composition baseline goes with a smaller
+# contribution at r = -0.926. That is this paper's mechanism measured on its own implementation
+# choices rather than on a protocol label.
+matching_robustness:
+  n_datasets: 12
+  n_rebuilds: 72
+  n_settings: 6
+  max_median_redraw: 0.008
+  max_redraw_size_rho: -0.60
+  max_l1_improvement: 0.015
+  max_contribution_change: 0.005
+  l1_greedy8:   {value: 0.2474, tol: 0.010}
+  gain_greedy8: {value: 0.0765, tol: 0.006}
+  comp_greedy8: {value: 0.6319, tol: 0.010}
+  contribution_range: {value: 0.0106, tol: 0.005}
+  baseline_range:     {value: 0.0446, tol: 0.010}
+  min_floor_bound_fraction: 0.5
+  max_baseline_contribution_r: -0.70
+  max_subsampled_buckets: 20

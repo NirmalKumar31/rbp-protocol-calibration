@@ -2028,6 +2028,99 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_matching_robustness(T, g):
+    """B11: two free parameters in the matcher, varied for the first time."""
+    print("\nmatching robustness  (greedy vs exact assignment, three pool sizes)")
+    d = T.get("matching_robustness.csv")
+    if d is None:
+        return record(False, "matching_robustness.csv present", "MISSING",
+                      "run scripts/matching_robustness.py")
+    spec = g["matching_robustness"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for label, key in (("datasets rebuilt", "n_datasets"),
+                       ("negative sets rebuilt", "n_rebuilds"),
+                       ("settings per dataset", "n_settings")):
+        v = get(label)
+        if v is not None:
+            record(int(v) == spec[key], label, int(v), spec[key])
+
+    # REBUILDING THE PUBLISHED SETTING IS A FRESH DRAW, NOT A REPRODUCTION: candidate_pool
+    # samples its windows, so the matcher is deterministic only in the assignment given the
+    # pool it drew. The way to tell sampling noise from real drift is whether the deviation
+    # shrinks with sample size, so THAT is the gate, not the raw magnitude alone.
+    v = get("median |fresh draw at the published setting - published gain|")
+    if v is not None:
+        at_most("a fresh draw at the published setting lands near the published gain on the "
+                "median dataset", v, spec["max_median_redraw"])
+    r = get("spearman(pairs, |fresh-draw deviation|)")
+    if r is not None:
+        record(r <= spec["max_redraw_size_rho"],
+               "and the deviation shrinks as the dataset grows, which is sampling noise in "
+               "the draw rather than drift in the construction", f"rho {r:+.3f}",
+               f"<= {spec['max_redraw_size_rho']}")
+
+    # DOES THE EXACT ASSIGNMENT MATCH BETTER, AND DOES IT MATTER? negatives.py defends greedy
+    # on the grounds that an exact assignment "buys very little here", which was an assertion.
+    # Both halves are gated: the improvement is real but small, and the measurement barely
+    # moves. Gating only the second would let a large L1 gain hide behind a stable contribution.
+    for mult in (4, 8, 16):
+        v = get(f"L1 improvement from exact assignment at {mult}x")
+        if v is not None:
+            record(0 < v <= spec["max_l1_improvement"],
+                   f"exact assignment improves the achieved match at {mult}x, but slightly",
+                   f"{v:+.4f}", f"0 to {spec['max_l1_improvement']}")
+        v = get(f"contribution change from exact assignment at {mult}x")
+        if v is not None:
+            at_most(f"and it moves the measured contribution very little at {mult}x", abs(v),
+                    spec["max_contribution_change"])
+
+    for label, key in (
+            ("mean L1 distance, greedy at 8x", spec["l1_greedy8"]),
+            ("4-mer contribution, greedy at 8x", spec["gain_greedy8"]),
+            ("composition AUROC, greedy at 8x", spec["comp_greedy8"]),
+            ("range of the 4-mer contribution over all matching settings",
+             spec["contribution_range"]),
+            ("range of the composition baseline over all matching settings",
+             spec["baseline_range"])):
+        v = get(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE POOL FLOOR MAKES THE MULTIPLE INERT AT THE PUBLISHED SETTING, which is why the floor
+    # had to be scaled with it. Without this the three pool sizes would return the same
+    # negatives and the section would report a robustness it had never tested.
+    v = get("fraction of buckets where the pool floor binds, greedy at 8x")
+    if v is not None:
+        record(v >= spec["min_floor_bound_fraction"],
+               "at the published pool_min the floor binds in most buckets, so varying the "
+               "multiple alone would have changed nothing", f"{v:.3f}",
+               f">= {spec['min_floor_bound_fraction']}")
+
+    # THE RESULT. Across the six settings the baseline and the contribution move in opposite
+    # directions, which is the paper's own mechanism measured on the paper's own implementation
+    # choices rather than on a protocol label. Gated on the sign and the strength.
+    r = get("correlation across settings between baseline and contribution")
+    if r is not None:
+        record(r <= spec["max_baseline_contribution_r"],
+               "across the six matcher settings a higher composition baseline goes with a "
+               "smaller contribution, so the free parameters move the measurement THROUGH "
+               "the baseline", f"r = {r:+.3f}", f"<= {spec['max_baseline_contribution_r']}")
+
+    # AND THE MEMORY GUARD IS DISCLOSED, so "optimal" is never read as unconditional.
+    v = get("buckets whose candidate set was subsampled for memory")
+    if v is not None:
+        at_most("few buckets needed their candidate set subsampled, so the exact assignment "
+                "is exact for the pool it was given nearly everywhere", v,
+                spec["max_subsampled_buckets"])
+
+
 def verify_device_portability(T, g):
     """E3: same code, same inputs, two devices and two clouds."""
     print("\ndevice portability  (Modal A10G vs GCP Batch CPU on identical inputs)")
@@ -4311,7 +4404,7 @@ def main():
                verify_estimands, verify_nested_scale, verify_shuffled_arm,
                verify_order_profile, verify_region_annotation,
                verify_gene_clustered_cv, verify_window_centring,
-               verify_device_portability,
+               verify_device_portability, verify_matching_robustness,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
