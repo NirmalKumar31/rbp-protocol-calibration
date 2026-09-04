@@ -8,8 +8,13 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 mkdir -p figures
-for f in f10_three_protocols f11_scale_sweep f12_protocol_or_baseline f9_deep_contrast \
-         f14_external_validation f15_recommendation; do
+# DERIVED FROM THE MANUSCRIPT, not maintained by hand. This was a literal list, and adding
+# f16 to the text without adding it here would have shipped an upload referencing a figure the
+# tree does not contain -- which LaTeX reports as a missing-file warning that is easy to miss in
+# a long log. Now the list cannot drift from what the sections actually cite.
+FIGS=$(grep -ho 'figures/f[0-9_a-z]*' sections/*.tex | sed 's|figures/||' | sort -u)
+for f in $FIGS; do
+  [ -f "../results/figures/$f.pdf" ] || { echo "missing ../results/figures/$f.pdf" >&2; exit 1; }
   cp "../results/figures/$f.pdf" "figures/$f.pdf"
 done
 

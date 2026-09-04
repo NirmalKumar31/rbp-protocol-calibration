@@ -267,6 +267,18 @@ windows, so the two composition-matched arms' positive sets have a Jaccard simil
 median 0.9972 and minimum 0.9237 and are identical in 10 of 94 datasets. The negatives are
 therefore almost, but not exactly, the only difference between arms.
 
+We considered restricting every arm to the intersection of its positive sets and declined,
+which is a judgement worth stating rather than leaving implicit. The intersection would make
+the negatives exactly the only difference, at the cost of discarding the windows on which the
+matchers disagree. Those are not a random sample: a matcher fails where a positive's
+composition is hardest to match, so the intersection would preferentially drop the compositional
+extremes that the dinucleotide matcher works hardest on, and it would do so from the arm whose
+contribution is largest. Removing a discrepancy of under three parts in a thousand by deleting
+the observations most informative about the effect trades a small bias for a larger one, and the
+three-arm results in Section~\ref{sec:models} are already computed on rows intersected across
+all three model classes, so the comparison that carries the paper's headline is on identical
+rows regardless.
+
 We applied no significance filter of our own to the positives, and none was available: ENCODE's
 released eCLIP peak files are already thresholded, and across our 95 files the minimum log2
 fold-enrichment is 3.0000 and the minimum $-\log_{10}p$ is 3.0003, matching the criteria of
