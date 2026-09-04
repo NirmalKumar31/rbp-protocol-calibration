@@ -120,7 +120,7 @@ def main():
               f"{', '.join(ok[~ok.index.isin(passed.index)].protein + ':' + ok[~ok.index.isin(passed.index)].cell)}")
         print("  a failure here means the delta score cannot detect a disruption we "
               "planted, so any null result for that protein is uninterpretable")
-    print(f"\nwrote results/tables/positive_control.csv")
+    print("\nwrote results/tables/positive_control.csv")
 
 
 if __name__ == "__main__":

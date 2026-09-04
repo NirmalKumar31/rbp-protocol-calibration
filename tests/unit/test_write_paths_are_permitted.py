@@ -27,7 +27,6 @@ the f-string -- `f"variants/{sub}/{name}.csv"` is checkable, `f"{dest}/{name}.cs
 """
 
 import ast
-import re
 from pathlib import Path
 
 import pytest

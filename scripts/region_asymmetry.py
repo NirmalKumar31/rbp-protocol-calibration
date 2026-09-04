@@ -11,7 +11,7 @@ did not echo. That matters because the bias-aware arm's high composition baselin
 result the paper calls not-implied-by-design, and it was explained as biology: "distinct RBPs
 occupy compositionally distinct sites".
 
-TWO MEASUREMENTS:
+THREE MEASUREMENTS:
 
   1. How much the region label alone separates the classes, per arm. Scored by the likelihood
      ratio over the five region marginals, which is the optimal region-only score.
@@ -25,7 +25,7 @@ TWO MEASUREMENTS:
 
 THE ANSWER: region alone separates the bias-aware classes at median AUROC 0.748 against exactly
 0.5000 in both other arms. Matching it lowers the arm's composition baseline from 0.8248 to
-0.8052 and its contribution from +0.0122 to +0.0092, so 47% of the arm's baseline excess over
+0.8052 and its contribution from +0.0122 to +0.0092, so 46% of the arm's baseline excess over
 the GC arm is region mix. The arm STILL carries the highest baseline and the lowest contribution
 of the three, and the span widens from 5.42 to 7.20. So the ordering is not a region artefact,
 but the mechanism sentence was overstated and the magnitude is part annotation.

@@ -18,7 +18,6 @@ on a preemptible VM.
 """
 
 import argparse
-import hashlib
 import os
 import sys
 import time

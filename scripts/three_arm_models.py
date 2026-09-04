@@ -119,7 +119,7 @@ def main():
     order = sorted(spans, key=spans.get)
     out.append({"check": "model class with the widest span", "value": float(max(spans.values())),
                 "n": len(t), "note": max(spans, key=spans.get)})
-    log(f"  ordering by span: " + " < ".join(f"{m} {spans[m]:.2f}x" for m in order))
+    log("  ordering by span: " + " < ".join(f"{m} {spans[m]:.2f}x" for m in order))
     log("  -> widest for the CNN, not the largest model: the span does not grow with capacity,")
     log("     the same non-monotonicity the ratio-scale multiplier shows.")
 

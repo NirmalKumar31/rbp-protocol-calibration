@@ -104,7 +104,7 @@ def main():
                         "max_deviation": np.abs(props - 1.0 / a.k).max(axis=1).round(4)})
     bal.sort_values("max_deviation", ascending=False).to_csv(
         ROOT / "results/tables/fold_balance.csv", index=False)
-    print(f"wrote results/tables/fold_balance.csv")
+    print("wrote results/tables/fold_balance.csv")
 
     # A single hard threshold on the worst dataset was the wrong gate. Peaks for a
     # small protein can be genuinely concentrated on a few chromosomes, so no partition

@@ -28,7 +28,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
-from rbp.eval import baseline, delong  # noqa: E402
+from rbp.eval import baseline  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
 
@@ -176,14 +176,14 @@ def baseline_strength(paths, k, cs=(0.01, 0.1, 1.0, 10.0)):
           f"mean {t.improvement.mean():+.4f}  max {t.improvement.max():+.4f}")
     print(f"selection-on-test would have overstated it by "
           f"{t.oracle_gap.median():+.4f} (median)")
-    print(f"\nby dataset size:")
+    print("\nby dataset size:")
     for lo, hi in ((0, 1000), (1000, 3000), (3000, 10000), (10000, 10 ** 9)):
         s = t[(t.pairs >= lo) & (t.pairs < hi)]
         if len(s):
             print(f"  {lo:5d}-{hi if hi < 10**9 else '+':>6} pairs: {len(s):3d} datasets, "
                   f"modal C={s.best_C.mode().iloc[0] if s.best_C.notna().any() else '-'}, "
                   f"median improvement {s.improvement.median():+.4f}")
-    print(f"\nfixed-C comparison (all datasets, one C for everything):")
+    print("\nfixed-C comparison (all datasets, one C for everything):")
     for C in cs:
         print(f"  C={C:<6} median AUROC {t[f'C{C}'].median():.4f}")
     return t
@@ -236,7 +236,7 @@ def leakage(paths, kmer=32, sample=None):
           f"median {t.frac_gt50.median():.5f}  max {t.frac_gt50.max():.5f}")
     print(f"sharing >90% (effectively duplicate):     "
           f"median {t.frac_gt90.median():.5f}  max {t.frac_gt90.max():.5f}")
-    print(f"\nworst datasets by near-duplicate fraction:")
+    print("\nworst datasets by near-duplicate fraction:")
     print(t.nlargest(5, "frac_gt50")[["dataset", "n_test", "frac_any",
                                       "frac_gt50"]].to_string(index=False))
     return t

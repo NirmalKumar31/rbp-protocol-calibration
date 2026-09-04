@@ -100,7 +100,7 @@ def main():
     print(f"\n{'':=<76}")
     print(f"WAS THE CORRECTION CLEAN? {a.cell}, {len(t)} datasets")
     print(f"{'':=<76}\n")
-    print(f"locality (Cohen's d, disruptive vs neutral mutation at the same base):")
+    print("locality (Cohen's d, disruptive vs neutral mutation at the same base):")
     print(f"  GC-matched arm    median {t.gc_locality.median():+.3f}")
     print(f"  dinuc-matched arm median {t.dn_locality.median():+.3f}")
     print(f"  datasets with a detectable local signal (d>0.5) in the GC arm: "
@@ -111,7 +111,7 @@ def main():
     for q in (0.1, 0.25, 0.5, 0.75, 0.9):
         print(f"  p{int(q*100):02d}  {v.retention.quantile(q):.3f}")
 
-    print(f"\n--- THE STRATIFIED RESULT ---")
+    print("\n--- THE STRATIFIED RESULT ---")
     print(f"{'stratum':34} {'n':>4} {'AUROC drop':>11} {'comp drop':>10} {'gain after':>11}")
     bands = [("retention >= 0.8  (clean)", v.retention >= 0.8),
              ("retention 0.5-0.8 (partial)", (v.retention >= 0.5) & (v.retention < 0.8)),

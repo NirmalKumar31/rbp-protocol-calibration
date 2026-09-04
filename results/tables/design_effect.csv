@@ -2,8 +2,8 @@ check,value,n,note
 ratio_clustering_10kb,1.1004839308678602,94,"mean 1.170, p90 1.265"
 ratio_clustering_100kb,1.1037376270187398,94,"mean 1.203, p90 1.360"
 ratio_clustering_1000kb,1.1379094450424432,94,"mean 1.219, p90 1.388"
-ratio_fitting,1.048094871918988,94,"mean 1.072, p90 1.346"
-"measured design effect, 10 kb blocks",1.1534115645718543,94,applied in cluster_intervals.py: 1.35
+ratio_fitting,1.0480948719189878,94,"mean 1.072, p90 1.346"
+"measured design effect, 10 kb blocks",1.1534115645718541,94,applied in cluster_intervals.py: 1.35
 datasets significant at design effect 1.00,80.0,94,
 datasets significant at design effect 1.15,75.0,94,
 datasets significant at design effect 1.35,72.0,94,

@@ -103,7 +103,7 @@ def main():
     test = cfg.split["test"]
     min_test = cfg.panel["min_test_pairs"]
 
-    print(f"loading region index ...", flush=True)
+    print("loading region index ...", flush=True)
     index = pickle.loads(Path(a.index).read_bytes())
     print(f"census over {len(names)} proteins; test chroms {test}; "
           f"threshold {min_test} test pairs\n")

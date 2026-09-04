@@ -8,15 +8,15 @@ check,value,n,note
 rows retained under region matching,0.6984984311967728,94,reweighting
 "region-only AUROC after matching, neg2 arm",0.502598373471635,94,
 "composition alone, neg2 arm region-matched",0.8016884634378929,94,reweighting
-"nested contribution, neg2 arm region-matched",0.006164897194472077,94,reweighting
+"nested contribution, neg2 arm region-matched",0.006164897194472051,94,reweighting
 "rows retained, pipeline region-matched arm",1.0,94,
 "region-only AUROC, pipeline region-matched arm",0.5,94,
 "composition alone, pipeline region-matched arm",0.8052420239682333,94,PRIMARY
-"nested contribution, pipeline region-matched arm",0.009201869391751615,94,PRIMARY
+"nested contribution, pipeline region-matched arm",0.009201869391751584,94,PRIMARY
 share of the neg2 baseline excess over gc that is region mix,0.4646162264216172,94,
 region-matched neg2 still has the highest baseline,1.0,94,
 region-matched neg2 still has the lowest contribution,1.0,94,
-"span, dinuc over region-matched neg2",7.20114945453892,94,published dinuc over neg2 5.42
+"span, dinuc over region-matched neg2",7.201149454538944,94,published dinuc over neg2 5.42
 "spearman(region-only AUROC, baseline rise, neg2 over gc)",0.2871292851208323,94,p=0.0050
 "spearman(region-only AUROC, contribution deficit, neg2 minus gc)",-0.2530578333273128,94,p=0.0139
 "composition alone, neg2 arm, least region-separable half",0.8184076430123071,47,

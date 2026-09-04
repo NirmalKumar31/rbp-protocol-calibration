@@ -22,10 +22,10 @@ WHAT IS MEASURED, per dataset, on the GC arm:
               variability that fitting two score vectors induces and that DeLong conditions
               away.
 
-THE ANSWER, and it runs the author's way: clustering is 1.112 at 10 kb, 1.120 at 100 kb and
-1.134 at 1 Mb, so block length barely matters; fitting is 0.996, i.e. DeLong's SE is about
-right under the null. The product is ~1.11 against the applied 1.35, which moves the count of
-datasets where the 4-mer significantly helps from 80/94 to 77/94 rather than to 72/94. The
+THE ANSWER, and it runs the author's way: clustering is 1.100 at 10 kb, 1.104 at 100 kb and
+1.138 at 1 Mb, so block length barely matters; fitting is 1.048, i.e. DeLong's SE is close to
+right under the null. The product is 1.15 against the applied 1.35, which moves the count of
+datasets where the 4-mer significantly helps from 80/94 to 75/94, not to 72/94. The
 published figure is therefore CONSERVATIVE, and it is kept for that reason -- but it is now a
 measurement with a script behind it rather than a number on trust.
 """

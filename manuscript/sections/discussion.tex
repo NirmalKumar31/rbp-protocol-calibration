@@ -6,19 +6,18 @@ to the direction of apparent performance: the protocol that made the discriminat
 AUROC produced the largest contribution, and the protocol that made it easiest produced the
 smallest.
 
-Two consequences for reporting follow. The composition-only AUROC obtained under the same
+This has consequences for reporting practice. The composition-only AUROC obtained under the same
 protocol should be given alongside every headline AUROC, which costs one additional logistic
 regression on nineteen features. And contributions measured under different negative-set
-protocols should not be compared, which is a restriction on inference rather than an addition to
-it, and is the more consequential of the two, because cross-study comparison of this kind is
+protocols should not be compared, which withdraws a comparison instead of
+offering one, and is the more consequential of the two, because cross-study comparison of this
+kind is
 what a benchmark is normally used for.
 
-Apparent difficulty is not a proxy for the stringency of an evaluation. Moving to
-dinucleotide-matched negatives reduced apparent AUROC in every dataset examined while raising
-the measured contribution almost threefold, and the bias-aware protocol, which is well motivated
-as a means of removing compositional and accessibility artefacts, produced the easiest
-discrimination and the smallest measured contribution of the three. The design of that protocol
-is not at fault; what does not follow is the inference from a lower or higher score to how much
+Apparent difficulty is therefore not a proxy for the stringency of an evaluation. The
+bias-aware protocol is well motivated as a means of removing compositional and accessibility
+artefacts, and its design is not at fault; what does not follow is the inference from a lower
+or higher score to how much
 a model has learned. Separating one protein's sites from another's is largely a composition task,
 so a protocol that poses that task leaves a sequence model comparatively little to add. Two
 things make it a composition task, and only one of them is about binding sites. Distinct RBPs
@@ -36,20 +35,22 @@ The relation between the composition baseline a protocol leaves and the contribu
 subsequently shows was strong for composition-matched negatives, both in our data and
 independently in that of \citet{horlacher2023}, and absent for negatives drawn from the sites of
 other proteins. A residual difference between the two groups survived adjustment for the
-baseline. This suggests that what matters for a benchmark designer is less the stringency of the
-matching than what the negative window is: contributions appear comparable within a group of
-protocols that draw negatives from the same kind of object, and not between such groups. Three
-qualifications apply, and together they are why we present this as a feature of one measurement
-rather than of the quantity. It was recovered from the 4-mer and did not reproduce for either
+baseline. On the 4-mer measurement this points to what the negative window is, more than to how
+tightly
+it is matched: contributions appear comparable within a group of protocols that draw negatives
+from the same kind of object, and less so between such groups. Three
+qualifications apply, and together they are why we present this as a feature of one measurement.
+It was recovered from the 4-mer and did not reproduce for either
 neural model. The statistic is not invariant to which term is placed on its horizontal axis, and
-under the two alternatives the dinucleotide arm joins the bias-aware arm rather than the GC arm,
+under the two alternatives the dinucleotide arm joins the bias-aware arm and not the GC arm,
 so the partition that survives every choice separates the GC arm from the other two. And on
 \citet{horlacher2023}'s benchmark the pooled relation is null.
 
 Protocol dependence can be reduced by fitting a transformation but not by choosing one from
 among the standard set. Eight standard reparameterisations reduced the span without closing it,
-and the smallest of them, division by the baseline's headroom, is the two-number report
-expressed as a single number. An exponent that closes the span does exist, but it does not transport. The exponent fitted to
+and the smallest of them, division by the baseline's headroom, is the pair of AUROCs we recommend
+reporting, expressed as a single number. An exponent that closes the span does exist, but it
+does not transport. The exponent fitted to
 our three protocols leaves an independent benchmark essentially where it started; the exponent
 fitted to that benchmark is 2.4 times ours; and the exponent differs by a factor of 1.22
 between model classes measured on the same data. This is
@@ -58,31 +59,32 @@ that no transformation works but that a transformation which works has to be ref
 measurement, which is precisely what a comparable quantity cannot require.
 
 The composition baseline used here stops at order two, matching what a
-dinucleotide-preserving shuffle would hold fixed. That is defensible, but it is a choice, and
-the next paragraph measures what it costs.
+dinucleotide-preserving shuffle would hold fixed. That is defensible, and it is a choice, so we
+measured what it costs.
 Refitting the baseline at order three, adding the 63 trinucleotide frequencies, removed
 approximately four fifths of the 4-mer's measured contribution and 87\% of the two-arm contrast
 on 30 size-stratified datasets, and on the bias-aware arm the median dataset retained nothing.
 For a bag-of-$k$-mers model, most
 of what is reported as contribution over a composition baseline is one further order of
-composition rather than motif recognition or any positional feature. Any study reporting an
+composition, not motif recognition or any positional feature. Any study reporting an
 increment over a composition baseline is reporting a quantity indexed by the order of that
 baseline, and few state which order was used.
 
-Two findings bound this. Protocol dependence is not an artefact of where the baseline
+The collapse is bounded in two ways. Protocol dependence is not an artefact of where the baseline
 stops: at an order-three baseline the two-arm contrast remained $+0.0067$, $+0.0309$ and
 $+0.0545$ for the three model classes at $n=94$, all with intervals excluding zero. The collapse
 is also specific to models whose features are nested within the span of the baseline. Over a
 trinucleotide baseline the 4-mer's contribution was positive in 65 of 94 datasets against 94 of
 94 for SpliceBERT, and after accounting for the reduced headroom the raised baseline leaves, the
 4-mer lost 1.41 times what SpliceBERT lost in the dinucleotide arm and 1.29 times in the GC arm.
-A benchmark intended to separate model classes rather than to rank them by how much short-range
-composition they absorb could therefore raise the order of its baseline. That recommendation
+A benchmark meant to separate model classes, instead of ranking them by how much short-range
+composition they absorb, could therefore raise the order of its baseline. That recommendation
 carries a circularity worth stating: trinucleotide counts are linear aggregates of 4-mer counts,
 so an order-three baseline is structurally unfavourable to $k$-mer models, and separates models
-by how much of their signal lies outside short-range composition rather than by capacity as
-such. Two features of the order-three numbers should also be read as cautions rather than
-results. The span across protocols does not collapse at order three but grows, to 7.16, and it
+by how much of their signal lies outside short-range composition, not by capacity as such.
+
+Two features of the order-three numbers are cautions and not results. The span across protocols
+does not collapse at order three but grows, to 7.16, and it
 grows because the bias-aware denominator falls to $+0.0015$ with only 17 of 30 datasets
 positive, which is the same near-zero-denominator pathology that disqualifies normalising by the
 excess over chance; its interval runs to 22.6 and it should not be read as a magnitude. And the
@@ -90,10 +92,12 @@ surviving order-three contribution is concentrated, with 51\% of the positive ma
 sitting in 3 of the 30 datasets.
 
 \citet{horlacher2023} established that negative-set construction changes apparent performance
-across many RBP prediction methods and proposed the bias-aware alternative. The present work does not contest that and depends on
+across many RBP prediction methods and proposed the bias-aware alternative. The present work
+does not contest that and depends on
 it, since their released negative sets provide our only external validation. What we add is a
-calibration of it. The protocol does not only change apparent AUROC; it changes the increment
-over an explicit baseline, in the opposite direction, by a factor of between 3.8 and 7.6
+calibration of it. What the protocol moves is not just apparent AUROC but the increment over
+an explicit baseline, and it moves that increment in the opposite direction, by a factor of
+between 3.8 and 7.6
 depending on the model class, and no reparameterisation renders that increment comparable across
 benchmarks. On this panel the protocol effect is of the same order as the effect of changing
 model class, which is what these benchmarks exist to resolve: within a protocol the three model
@@ -111,14 +115,14 @@ dependence is not so indexed.
 
 The relation in the title holds throughout our own data, across three arms and three model
 classes, and does not hold on the one independent benchmark we tested. On
-\citet{horlacher2023}'s two negative sets the harder arm by both difficulty measures also yields
+\citet{horlacher2023}'s two negative sets the harder arm by both AUROCs in Table~\ref{tab:external} also yields
 the smaller contribution, so difficulty and contribution move together there. Their two arms
 belong to different protocol families, which is the structure that would predict it, but that
 was not a prediction we made in advance.
 
 Achieved matching is not exact matching. The GC matcher's operative acceptance bound is 0.15
-rather than its nominal 0.05, holding the nominal tolerance for 94.8\% of pairs, and the
-dinucleotide matcher reduces composition distance 2.27-fold rather than to zero, so
+and not its nominal 0.05, holding the nominal tolerance for 94.8\% of pairs, and the
+dinucleotide matcher reduces composition distance 2.27-fold, to a median $L_1$ of 0.220, so
 degrees-of-freedom statements are exact for the design and approximate for the data.
 
 All three model classes were measured under all three protocols, but the study covers two cell
@@ -131,11 +135,12 @@ protein-clustered for the first and over datasets for the second. No model large
 parameters was tested, and no published RBP-specific method: the three classes are a capacity
 ladder, not a survey of the methods a benchmark would rank.
 
-Two provenance limitations affect the neural arms. For 20 of 94 datasets in the dinucleotide arm
+Two limitations concern the provenance of the neural scores. For 20 of 94 datasets in the
+dinucleotide arm
 the retained scores came from a partition that is not chromosome-grouped, and we report the full
 panel as primary with the 74 correctly partitioned datasets as a sensitivity; every restricted
 value lies inside the interval reported for the full panel, and the restriction widens the spans
-rather than narrowing them. Initialisation was unseeded across all 2830 fold-runs, at the cost
+instead of narrowing them. Initialisation was unseeded across all 2830 fold-runs, at the cost
 quantified in Methods.
 
 Positive sets differ slightly between arms. Window construction is identical, but a positive is
@@ -152,20 +157,20 @@ K562 datasets contributing non-IDR peaks. There were therefore no weak peaks to 
 do discard is peak \emph{width}: every positive is a fixed 101~nt window on the peak midpoint,
 so a 20~nt peak and a 2~kb peak are treated identically, and for the wider peaks the window may
 not contain the crosslink site. No expression filter was applied to negatives; that question is
-bounded by the control reported above rather than removed. Region class is assigned from the
+bounded by the control reported above and not removed. Region class is assigned from the
 window midpoint under a fixed precedence, with introns computed as gaps between exons and no
 gene-type filter, so a window spanning an annotation boundary can be labelled either way. This
-affects a matching covariate rather than an outcome, and it is the same annotation for both
+affects a matching covariate and not an outcome, and it is the same annotation for both
 classes in the two arms that match on it.
 
-The verification harness asserts values rather than the provenance of the code that produced
+The verification harness asserts values and not the provenance of the code that produced
 them, and the fold-partition defect above is of exactly the class that this distinction permits:
-it was identified by inspection rather than by any of the 680 assertions, as was the region
+it was identified by inspection and by none of the 680 assertions, as was the region
 asymmetry of Section~\ref{sec:region}. Its manuscript audit checks only values written to three
 or more decimal places, and requires a decimal point, so bare integers are not checked at all;
 those were checked by hand, and three were wrong in an earlier draft of this manuscript.
 
 Confidence intervals on a single dataset's contribution are Wald intervals on the DeLong
-standard error rather than bootstrap intervals, and the Firth \citep{firth1993} coefficient
-intervals reported in the accompanying repository resample rows rather than genes, which is
+standard error and not bootstrap intervals, and the Firth \citep{firth1993} coefficient
+intervals reported in the accompanying repository resample rows, which is
 narrower than gene-level clustering would give.

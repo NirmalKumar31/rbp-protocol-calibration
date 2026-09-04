@@ -27,7 +27,6 @@ and was measuring donor size wearing a contamination costume.
 """
 
 import argparse
-import io
 import sys
 from pathlib import Path
 

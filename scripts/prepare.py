@@ -191,7 +191,7 @@ def main():
     if not a.protein and "SLURM_ARRAY_TASK_ID" in os.environ:
         names = [names[int(os.environ["SLURM_ARRAY_TASK_ID"])]]
 
-    print(f"loading region index, fold map and genome ...", flush=True)
+    print("loading region index, fold map and genome ...", flush=True)
     index = pickle.loads(Path(a.index).read_bytes())
     fold_map = load_fold_map(cfg)
     fasta = Fasta(str(ROOT / "data/raw/GRCh38.primary_assembly.genome.fa"))

@@ -54,7 +54,6 @@ from sklearn.metrics import roc_auc_score  # noqa: E402
 
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
-from rbp.utils import panel as panelmod  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 # BOTH ARMS' PER-WINDOW SCORES ARE COMMITTED, and that is what makes this table checkable.

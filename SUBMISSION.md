@@ -71,7 +71,7 @@ embed TrueType fonts and rasters are 400 dpi.
 python scripts/verify.py --local results/tables
 ```
 
-680 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+696 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 
@@ -99,10 +99,11 @@ headline claim; all four returned major revision on presentation and disclosure.
 substantive change is a new Results subsection: the bias-aware protocol matches fold only,
 while both composition-matched protocols also match transcript region, so region alone
 separates its classes at a median AUROC of 0.748 against exactly 0.5000 in the other two. That
-asymmetry was undisclosed. Rebuilding the arm with region matched lowers its composition
-baseline from 0.8248 to 0.8017 and its contribution from +0.0122 to +0.0062, and the arm still
-carries the highest baseline and the lowest contribution of the three, so the ordering is not a
-region artefact and the span widens rather than narrowing.
+asymmetry was undisclosed. Rebuilding the arm with the donor draw stratified on region lowers its composition baseline
+from 0.8248 to 0.8052 and its contribution from +0.0122 to +0.0092, so 46% of its baseline
+excess over the GC arm is region mix. The arm still carries the highest baseline and the lowest
+contribution of the three, so the ordering is not a region artefact, and the span widens from
+5.42 to 7.20.
 
 The other changes worth naming: the Methods stated the paired-variance argument backwards; the
 design effect of 1.35 was an unsourced constant and is now measured at 1.15, so the published

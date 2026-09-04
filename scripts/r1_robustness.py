@@ -73,7 +73,7 @@ def main():
              for i in (rng.integers(0, n_rep, n_rep) for _ in range(N_BOOT))
              if len(np.unique(a[i])) > 2]
     lo, hi = np.percentile(boots, [2.5, 97.5])
-    add(f"proteins assayed in both cell lines", float(n_rep), n=n_rep,
+    add("proteins assayed in both cell lines", float(n_rep), n=n_rep,
         note=f"{' vs '.join(w.columns)}; separate experiments, separately drawn negatives")
     add("REPLICATION of the contrast across cell lines", r.statistic, lo, hi, n_rep,
         note=f"pearson, p={r.pvalue:.3g}; spearman {rs.statistic:+.3f}")

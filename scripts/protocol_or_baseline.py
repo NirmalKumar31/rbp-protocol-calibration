@@ -218,7 +218,7 @@ def main():
     rows.append({"check": "datasets where the dinuc baseline is lower than the GC baseline",
                  "value": rank})
     print(f"  comp_dn < comp_gc in {rank}/94 -- perfectly rank-confounded within dataset,")
-    print(f"  so the comparison has to borrow across datasets:")
+    print("  so the comparison has to borrow across datasets:")
     g = d[["comp_gc", "gain_gc"]].values
     matched = []
     for cb, gg in d[["comp_dn", "gain_dn"]].values:

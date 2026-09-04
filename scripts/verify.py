@@ -966,8 +966,6 @@ def verify_deep_contrast(T, g):
 
         # 4. THE ANCHOR. Recompute every cell's raw pooled AUROC from the committed
         # per-window scores. This is the check that makes the table non-forgeable.
-        import gzip
-        import io as _io
         from sklearn.metrics import roc_auc_score
         roots = {"gc": ROOT / "data" / "evidence" / "scores_gc",
                  "dn": ROOT / "data" / "evidence" / "scores"}
@@ -2162,6 +2160,85 @@ def verify_fold_integrity(T, g):
             worst, spec["max_contrast_shift_from_leakage"])
 
 
+def verify_design_effect(T, g):
+    """The design effect the paper applies, against the one measured from the data."""
+    print("\ndesign effect  (1.35 is applied; what does the data say?)")
+    d = T.get("design_effect.csv")
+    if d is None:
+        return record(False, "design_effect.csv present", "MISSING",
+                      "run scripts/design_effect.py")
+    spec = g["design_effect"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for label, key in (
+            ("ratio_clustering_10kb", spec["clustering_10kb"]),
+            ("ratio_clustering_100kb", spec["clustering_100kb"]),
+            ("ratio_clustering_1000kb", spec["clustering_1000kb"]),
+            ("ratio_fitting", spec["fitting"]),
+            ("measured design effect, 10 kb blocks", spec["measured_product"]),
+            ("datasets significant at design effect 1.00", spec["n_significant_unadjusted"]),
+            ("datasets significant at design effect 1.35", spec["n_significant_applied"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE CLAIM: the applied figure is the conservative one. If the measured product ever
+    # rises above 1.35 the paper is understating its own uncertainty and the sentence in
+    # Methods has to be rewritten, so this is gated rather than assumed.
+    if spec["applied_must_exceed_measured"]:
+        m = must("measured design effect, 10 kb blocks")
+        if m is not None:
+            record(m < 1.35, "the applied design effect is the conservative one",
+                   f"measured {m:.3f}", "< 1.35")
+
+
+def verify_standalone_auroc(T, g):
+    """The model's own AUROC per arm, which Table 1 needs and no table held until now."""
+    print("\nstandalone AUROC  (the model alone, not composition plus the model)")
+    d = T.get("standalone_auroc.csv")
+    if d is None:
+        return record(False, "standalone_auroc.csv present", "MISSING",
+                      "run scripts/standalone_auroc.py")
+    spec = g["standalone_auroc"]
+    q = d.set_index("check")
+
+    def must(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for label, key in (
+            ("model alone, dn arm", spec["model_alone_dn"]),
+            ("model alone, gc arm", spec["model_alone_gc"]),
+            ("model alone, neg2 arm", spec["model_alone_neg2"]),
+            ("model-alone AUROC drop, gc to dn", spec["drop_gc_to_dn"]),
+            ("datasets where composition beats the model, dn arm", spec["comp_beats_model_dn"]),
+            ("datasets where composition beats the model, gc arm", spec["comp_beats_model_gc"]),
+            ("datasets where composition beats the model, neg2 arm",
+             spec["comp_beats_model_neg2"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
+    # THE PROGRESSION IS THE CLAIM, and it is the sharpest form of the paper's point: the
+    # easier a protocol looks, the more often nineteen composition features beat the model.
+    if spec["comp_beats_model_must_increase_with_easiness"]:
+        a = must("datasets where composition beats the model, dn arm")
+        b = must("datasets where composition beats the model, gc arm")
+        c = must("datasets where composition beats the model, neg2 arm")
+        if None not in (a, b, c):
+            record(a < b < c,
+                   "composition beats the model more often as the protocol gets easier",
+                   f"{int(a)} < {int(b)} < {int(c)}", "strictly increasing")
+
+
 def verify_region_asymmetry(T, g):
     """Region is matched in two arms and free in the third. How much does that buy?"""
     print("\nregion asymmetry  (the bias-aware arm does not match transcript region)")
@@ -3158,7 +3235,7 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
+               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_design_effect, verify_standalone_auroc, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:

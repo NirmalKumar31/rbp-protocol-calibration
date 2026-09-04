@@ -17,7 +17,7 @@ Three details here are easy to get wrong and each one silently corrupts the resu
 
 import numpy as np
 
-from ..data.windows import revcomp, to_rna, window_bounds
+from ..data.windows import to_rna, window_bounds
 
 
 def peak_index(peak_path, chroms=None):

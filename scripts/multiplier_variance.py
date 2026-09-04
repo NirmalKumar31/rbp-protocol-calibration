@@ -177,9 +177,9 @@ def main():
             {"check": "excess over the block-preserving null, protein", "value": float(pb),
              "n": len(t), "note": f"p = {p_block:.4f}"}]
     print(f"\n  dataset as the factor: {100 * ds_share:.1f}%  vs protein's {100 * obs['protein']:.1f}%")
-    print(f"  -> protein (79 levels) is nearly the dataset factor (94 levels), so the")
-    print(f"     wholesale null is too permissive. Against a null that permutes protein")
-    print(f"     labels BETWEEN datasets and keeps each (dataset x model) block intact:")
+    print("  -> protein (79 levels) is nearly the dataset factor (94 levels), so the")
+    print("     wholesale null is too permissive. Against a null that permutes protein")
+    print("     labels BETWEEN datasets and keeps each (dataset x model) block intact:")
     print(f"     null {100 * null_block.mean():.1f}% [{100 * np.percentile(null_block, 2.5):.1f}, "
           f"{100 * np.percentile(null_block, 97.5):.1f}]   excess {100 * pb:+.1f}%  p={p_block:.4f}")
 
@@ -218,7 +218,7 @@ def main():
             out.append({"check": f"cross-cell-line correlation, {m} only", "value": float(mr),
                         "n": len(s), "note": f"p = {mp:.4f}"})
             print(f"      {m:11s} r = {mr:+.3f} (p={mp:.3f}) over {len(s)} proteins")
-        print(f"\n  THE DIRECT TEST: the same protein's log multiplier across cell lines")
+        print("\n  THE DIRECT TEST: the same protein's log multiplier across cell lines")
         print(f"    r = {r:+.3f}  spearman {rho:+.3f} (p={pv:.4f})  over {len(both)} "
               f"protein x model pairs")
         print("    This is what the section should lead with; a variance share is weaker.")

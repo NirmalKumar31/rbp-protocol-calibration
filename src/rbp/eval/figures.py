@@ -94,7 +94,7 @@ def motif_enrichment(df, out):
 
 def region_composition(summary, out):
     d = summary.set_index("protein")[[f"frac_{r}" for r in REGION_ORDER]]
-    d = d.loc[d[f"frac_intron"].sort_values().index]
+    d = d.loc[d["frac_intron"].sort_values().index]
     y = np.arange(len(d))
     fig, ax = plt.subplots(figsize=(7.6, 0.34 * len(d) + 1.6))
     left = np.zeros(len(d))

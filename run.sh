@@ -313,6 +313,12 @@ s13b_local_analysis() {
   $PY scripts/table_s1.py || die "supplementary table s1"
   $PY scripts/horlacher_arm.py --from-cache || die "horlacher arm"
   $PY scripts/recommendation_works.py || die "recommendation test"
+  $PY scripts/fold_integrity.py --from-cache   || die "fold integrity"
+  $PY scripts/region_asymmetry.py --from-cache || die "region asymmetry"
+  $PY scripts/standalone_auroc.py --from-cache || die "standalone auroc"
+  $PY scripts/design_effect.py --from-cache    || die "design effect"
+  # peak_thresholds.py fetches 95 narrowPeak files from ENCODE and so is NOT in the default
+  # path; its table is committed. Regenerate with: $PY scripts/peak_thresholds.py
   $PY scripts/recompute.py         || die "recompute from per-example evidence"
   # LAST, because it audits the tables the four above have just written.
   $PY scripts/audit_manuscript.py  || die "manuscript orphan audit"

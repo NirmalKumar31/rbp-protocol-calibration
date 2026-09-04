@@ -7,8 +7,9 @@ Figure~\ref{fig:three}).
 \begin{table}[htbp]
 \centering
 \caption{Composition-only AUROC, the 4-mer's own AUROC, the AUROC of the two together, and the
-nested contribution, under three negative-set protocols. The fourth column is the third minus
-the first by construction. The second column is what a study would report as its headline.
+nested contribution, under three negative-set protocols. The nested contribution is the
+composition-plus-4-mer column minus the composition-alone
+column by construction. The 4-mer's own AUROC is what a study would report as its headline.
 Model, positives, folds and estimator are identical across arms; $n=94$ datasets.}
 \label{tab:three}
 \begin{tabular}{lcccc}
@@ -31,12 +32,12 @@ improved almost threefold. Across the three arms the contribution spanned 5.42-f
 4.43 to 6.58, protein-clustered).
 
 The bias-aware protocol did not behave as we predicted. Because both classes are genuine
-crosslink sites, we expected composition alone to fall toward 0.5 and the contribution to rise.
+crosslink sites, we expected composition alone to fall towards 0.5 and the contribution to rise.
 Neither occurred: composition alone was the highest of the three arms at 0.8248, the AUROC of
 composition plus the model was the highest at 0.8370, and the contribution was the lowest at
 $+0.0122$, or 0.53 times the GC arm (geometric mean over the 83 datasets positive in both arms;
-the ratio of panel means is 0.46). Part of this is transcript-region mix rather than site
-composition, and the next subsection separates the two.
+the ratio of panel means is 0.46). Part of this is transcript-region mix and not site
+composition; the next subsection separates the two.
 
 The two AUROC rankings of the three protocols agree with each other, and the ranking by
 contribution is their exact reverse. Harder discriminations do reveal more of what a model adds;
@@ -52,15 +53,17 @@ The direction of the GC-versus-dinucleotide contrast is implied by the design. T
 baseline spans the fifteen degrees of freedom of the dinucleotide simplex; GC matching
 constrains one linear functional of that space and dinucleotide matching constrains all fifteen,
 so the arm that constrains more must leave the baseline weaker. Only the magnitude of that
-contrast is informative. The position of the bias-aware arm is not implied by the same argument. That protocol
+contrast is informative. The position of the bias-aware arm is not implied by the same argument.
+That protocol
 constrains none of the fifteen degrees of freedom, and its negatives are not
 composition-matched in any respect (median absolute GC difference 0.1387, against 0.0297 for
 the GC arm). It nonetheless has the highest composition baseline of the three.
 
-Two artefacts were bounded against placebos matched on region and GC, with twenty placebo seeds
+We bounded two artefacts against placebos matched on region and GC, with twenty placebo seeds
 per dataset per arm. Both tests are on the GC-versus-dinucleotide contrast and on subpanels, and
-each percentage below is taken against its own subpanel's contrast rather than the $+0.0398$
-headline. Strand misassignment, which arises because a matched negative inherits its positive's
+each percentage below is taken against its own subpanel's contrast and not against the
+$+0.0398$ headline. Strand misassignment, which arises because a matched negative inherits its
+positive's
 strand label, accounted for $-0.0055$ (CI $-0.0089$ to $-0.0022$) of the $+0.0378$ contrast on
 the 40 datasets where the test is possible, leaving 85.4\%. Negatives drawn from untranscribed
 loci accounted for $-0.0043$ (CI $-0.0069$ to $-0.0018$) of the $+0.0414$ contrast on the 84
@@ -69,19 +72,22 @@ datasets with expression data, leaving 89.7\%. The two mechanisms are correlated
 untranscribed loci and 67.6\% are not transcribed on the strand the window is labelled with, but
 both fractions are balanced between the two arms, the first to within $1.2\times10^{-5}$
 ($p=0.64$), and a confound present equally in both arms cannot produce a difference between
-them. GC-matched negatives are 42.8\% sense-strand against 47.4\% in the dinucleotide arm,
-higher in 37 of 40 datasets ($p=5.0\times10^{-9}$), so the spurious directional cue is stronger
+them. Counting all negatives, 42.8\% of GC-matched negatives carry the strand of their own gene
+against 47.4\% in the dinucleotide arm, which is the higher of the two in 37 of 40 datasets
+($p=5.0\times10^{-9}$), so the spurious directional cue is stronger
 in the arm with the smaller contribution and acts against the reported direction.
 
-The strand test admits a stronger reading that we report rather than leave to be found. Within
+The strand test admits a stronger reading, which we report here so that it is not left to be
+found. Within
 the panel, regressing the contrast on the sense-strand fraction gives a slope of $-0.187$, and
 extrapolating to a fully sense-correct arm gives $-0.046$, a sign reversal. That extrapolation
-carries no weight: the sense fraction spans only 0.433 to 0.615 across datasets, so the
+carries no weight: over the negatives whose strand is determinable, the fraction spans only
+0.433 to 0.615 across datasets, so the
 leverage available is 0.18 and the extrapolation runs far outside it, the interval on the
 extrapolated value is $-0.189$ to $+0.072$, and the direct test, the correlation between the
 sense fraction and the contrast, is $-0.240$ ($p=0.136$) and null. The point estimate is
-nonetheless the one number in this paper whose naive reading reverses the headline, and a reader
-should know it exists. None of these three controls covers the three-arm ordering, only the
+nonetheless the one number in this paper whose naive reading reverses the headline. None of
+these three controls covers the three-arm ordering, only the
 composition-matched pair; Section~\ref{sec:region} is the corresponding bound for the bias-aware
 arm.
 
@@ -104,30 +110,31 @@ a classifier given only the five region dummies scores exactly 0.5000 in both ar
 datasets. The bias-aware protocol matches fold only, and there region alone separates the two
 classes at a median AUROC of 0.748, above 0.70 in 67 of 94 datasets, with the positive and
 negative region marginals differing at a median total variation distance of 0.419
-(Table~\ref{tab:region}). The effect is graded rather than uniform: the more region separates in
+(Table~\ref{tab:region}). The effect is graded, not uniform: the more region separates in
 a dataset, the more its bias-aware baseline exceeds its GC baseline (Spearman $+0.287$,
 $p=0.005$) and the larger its contribution deficit against that arm (Spearman $-0.253$,
 $p=0.014$).
 
 We therefore rebuilt the arm with region matched, stratifying the donor draw on region class
 instead of drawing uniformly within the fold. Every other element of the construction is
-unchanged, and the rebuild keeps all 456{,}734 pairs, so it is a different arm rather than a
-subsample of the published one. It achieves the match exactly, at a region-only AUROC of 0.5000
+unchanged, and the rebuild keeps all 456{,}734 pairs, so the rebuild replaces every pair and
+drops none. It achieves the match exactly, at a region-only AUROC of 0.5000
 and a total variation distance of 0.0000. The composition baseline falls from 0.8248 to 0.8052
 and the contribution from $+0.0122$ to $+0.0092$, so 46\% of the arm's baseline excess over the
 GC arm is region mix and the rest is not. The ordering is unchanged: the region-matched arm
 still carries the highest composition baseline of the three and still yields the lowest
 contribution, and the span against the dinucleotide arm widens from 5.42 to 7.20.
 
-Two further checks agree. Reweighting the donors already drawn, rather than redrawing them,
+Both alternative constructions agree. Reweighting the donors already drawn, instead of redrawing
+them,
 gives 0.8017 and $+0.0062$ from a construction that discards 30\% of the rows. And on the half
 of the panel where region separates least, which requires no rebuild at all, the bias-aware
 baseline is still the higher (0.8184 against 0.7962 for the same datasets' GC arm) and the
 contribution ratio is still below one at 0.641.
 
-This arm is a diagnostic and not a fourth protocol. \citet{horlacher2023}'s negative-2 does not
-match region either, so a region-matched version of it is not the design the field proposed; its
-purpose is to measure how much of the arm's baseline is transcript annotation rather than
+We do not propose this arm as a fourth protocol. \citet{horlacher2023}'s negative-2 does not
+match region either, so a region-matched version of it is not the design the field proposed.
+Its purpose is to measure how much of the arm's baseline is transcript annotation and how much is
 binding-site composition.
 
 \begin{table}[htbp]
@@ -161,7 +168,7 @@ is about binding-site composition.
 
 AUROC is compressive near unity, so a contribution measured against a baseline of 0.82 is
 arithmetically smaller than the same contribution measured against 0.63, and part of the
-5.42-fold span is a property of the scale rather than of the protocol (Figure~\ref{fig:scale}).
+5.42-fold span comes from the scale itself (Figure~\ref{fig:scale}).
 
 Across eight monotone reparameterisations of the same 282 protocol-dataset cells the span was
 reduced but not eliminated. Somers' $D$ \citep{somers1962}, an affine map of AUROC, returns
@@ -186,8 +193,9 @@ exist.
 
 \begin{table}[htbp]
 \centering
-\caption{Fold span across the three protocols for $g/(1-c)^{p}$. An exponent that equalises the
-three protocols exists in sample.}
+\caption{Fold span across the three protocols for $g/(1-c)^{p}$, where $g$ is the nested
+contribution and $c$ the composition-only AUROC. An exponent that equalises the three protocols
+exists in sample.}
 \label{tab:exponent}
 \begin{tabular}{lccccccc}
 \toprule
@@ -198,7 +206,7 @@ span & 5.42 & 3.43 & 2.00 & 1.48 & 1.004 & 1.34 & 1.95 \\
 \end{tabular}
 \end{table}
 
-That exponent is a property of the benchmark rather than of the quantity. Fitted to the two
+That exponent describes this benchmark only. Fitted to the two
 negative sets of \citet{horlacher2023} the equalising exponent is 3.649, and our exponent leaves
 their benchmark at 2.340 against the 2.381 it started from. A normalisation strong enough to
 equalise one benchmark therefore has to be refitted on the next.
@@ -206,7 +214,8 @@ equalise one benchmark therefore has to be refitted on the next.
 Extending the sweep to the other two model classes qualifies the headline figure. The floor over
 the eight reparameterisations is 2.00 for the 4-mer, 2.91 for the convolutional network and 1.68
 for SpliceBERT: no model class reaches protocol independence among fixed coordinates and all
-three exceed the equal-means null, but 2.00 is the 4-mer's floor rather than a general one. The
+three exceed the equal-means null, but 2.00 is the 4-mer's floor, and each model class has its
+own. The
 fitted exponent also performs worse for the neural models, reaching 1.213 for the convolutional
 network and 1.124 for SpliceBERT against 1.004 for the 4-mer, and the equalising exponent itself
 differs by a factor of 1.22 between model classes measured on the same benchmark (1.544, 1.843,
@@ -224,8 +233,8 @@ differs by a factor of 1.22 between model classes measured on the same benchmark
 for a $k$-mer model}
 
 Pooled over all 282 protocol-dataset cells the contribution was inversely related to the
-composition baseline (Spearman $-0.600$, $p=6\times10^{-29}$), which is one way of saying that
-much of what a protocol does is determine how much room the baseline leaves
+composition baseline (Spearman $-0.600$, $p=6\times10^{-29}$), so much of what a protocol does
+is set how much room the baseline leaves
 (Figure~\ref{fig:baseline}).
 
 Regressing contribution on a quadratic in the composition baseline over all 282 cells and then
@@ -261,7 +270,7 @@ GC partners. The 41 comparisons are served by 24 distinct GC partners, one of th
 times, and proteins are not matched; the common support for this pair is 0.073 AUROC wide over
 33 of 188 cells. More fundamentally, the composition baseline is the mediator this paper
 proposes for the protocol's effect, so matching on it estimates a controlled direct effect, and
-a null direct effect is what the mechanism predicts rather than evidence against it.
+a null direct effect is what the mechanism predicts, not evidence against it.
 
 The GC-versus-bias-aware pair overlaps by 0.212 AUROC over 130 of 188 cells, where the same
 design is better conditioned. There, with a caliper of 0.01, the bias-aware arm retained a
@@ -273,15 +282,16 @@ identified with one that is.
 
 Within arms, the relation between baseline and contribution was present for composition-matched
 negatives and absent otherwise: Spearman $-0.545$ (GC), $-0.462$ (dinucleotide) and $-0.122$
-(bias-aware, not significant). This suggests two protocol families rather than three
+(bias-aware, not significant). This suggests two protocol families and not three
 interchangeable protocols, with a residual of 0.004 to 0.008 AUROC between families. The
 statistic correlates a difference with its own subtrahend, which is legitimate but not invariant
 to which term is placed on the horizontal axis, and one arm does not survive the change. Putting
 the composition-plus-model AUROC there instead gives $-0.315$ (GC), $+0.352$ (dinucleotide) and
 $+0.031$ (bias-aware); at the midpoint of the two, $-0.444$, $+0.025$ and $-0.046$. Under either
-alternative the dinucleotide arm behaves like the bias-aware arm rather than like the GC arm, so
+alternative the dinucleotide arm behaves like the bias-aware arm and not like the GC arm, so
 the family partition that survives every choice is the GC arm against the two others, not the
-composition-matched pair against the bias-aware arm. The variance ratio explains why: $\mathrm{var}$(contribution) over
+composition-matched pair against the bias-aware arm. The variance ratio explains why:
+$\mathrm{var}$(contribution) over
 $\mathrm{var}$(baseline) is 0.61 in the dinucleotide arm against 0.09 and 0.03 in the other two, so
 neither axis is uncontaminated there.
 
@@ -290,8 +300,8 @@ convolutional network the ordering reverses, the protocol label contributing 6.2
 against the baseline's 2.34\%. For SpliceBERT the within-arm relation is strong in all three
 arms, including the bias-aware arm at $-0.568$ where the 4-mer shows $-0.122$, so no two-family
 structure is apparent in that measurement. The variance attribution, the within-panel reversal
-and the family structure are properties of the 4-mer measurement and should not be read as
-properties of the quantity.
+and the family structure hold for the 4-mer measurement and should not be read as properties
+of the quantity.
 
 \begin{table}[htbp]
 \centering
@@ -361,11 +371,12 @@ positive in both arms, a looser rule than the 77-dataset intersection above, RBP
 accounted for 64.8\% of variance, cell line for 0.2\% and model class for 2.8\%, with 32.8\%
 residual. These shares are not directly comparable, and with type-II sums of squares they do not
 sum to one: a 79-level factor absorbs 29.7\% of the variance of relabelled data whereas a
-three-level factor absorbs 0.8\%. Against a null that permutes protein labels between datasets
-while preserving dataset-by-model blocks, the excess attributable to protein identity was $+7.2$
-points ($p=0.003$).
+three-level factor absorbs 0.8\%. Against a stricter null that permutes protein labels between
+datasets while preserving
+dataset-by-model blocks, and which therefore absorbs 57.6\% by itself, the excess attributable
+to protein identity was $+7.2$ points ($p=0.003$).
 
-That excess and the direct test below are one line of evidence rather than two, because the
+That excess and the direct test below are one line of evidence and not two, because the
 protein factor is nearly the dataset factor at 79 levels against 94, so both rest on the fifteen
 proteins measured in both cell lines. The direct test is that the same protein's log multiplier
 agreed between cell lines at $r=0.586$ (Spearman 0.594) over 40 protein-by-model pairs. Those
@@ -391,7 +402,7 @@ of transplant, $+0.0452$ carrying an increment from a high-baseline arm to a low
 $-0.0259$ in reverse. We report the raw contrast, which requires no transplant, link or
 transportability assumption.
 
-Two provenance limitations apply to this subsection. For 20 of the 94 datasets in the
+This subsection carries two provenance limitations. For 20 of the 94 datasets in the
 dinucleotide arm the retained neural scores were produced under a partition that is not
 chromosome-grouped. Fold sizes were preserved, so count-based checks do not detect it. Up to 23
 chromosomes appear in a single fold, and up to 44.5\% of rows have a same-strand neighbour
@@ -402,13 +413,14 @@ and is unaffected. Restricted to the 74 correctly partitioned datasets the contr
 $+0.0436$, $+0.0506$ and $+0.0878$, and the spans 6.02, 8.33 and 3.92, every one of them inside
 the protein-clustered interval reported for the full panel. We report the full panel as primary
 throughout and these as a sensitivity, because the defect is conservative: dropping the affected
-datasets widens the span rather than narrowing it. On the affected datasets themselves the
+datasets widens the span instead of narrowing it. On the affected datasets themselves the
 defect is not small. The difference in differences, comparing each neural model's margin over
 the 4-mer between arms, is $+0.0294$ for the convolutional network and $+0.0110$ for SpliceBERT
 between leaky and clean datasets, which for the convolutional network is as large as its whole
 GC-arm contribution; the leaky datasets are also the panel's largest, with a median of 15{,}596
 pairs against 4{,}373, so that figure confounds the defect with size and is an upper bound.
-Separately, the 4-mer entered the nested fit as a
+
+The second limitation is one of scale. The 4-mer entered the nested fit as a
 log odds and the neural models as probabilities; logistic regression is not invariant to a
 nonlinear transform of a covariate. Refitting the neural arms on the logit scale increased their
 contributions by $+0.0008$ (CNN) and $+0.0030$ (SpliceBERT) on the GC arm and moved the contrasts
@@ -432,11 +444,12 @@ datasets shared with our panel (Table~\ref{tab:external}, Figure~\ref{fig:extern
 \begin{table}[htbp]
 \centering
 \caption{The same decomposition applied to the released negative sets of
-\citet{horlacher2023}, $n=45$ datasets.}
+\citet{horlacher2023}, $n=45$ datasets. The 4-mer's own AUROC is not available for their
+negative sets, so difficulty on their benchmark is read from the composition baseline.}
 \label{tab:external}
 \begin{tabular}{lccc}
 \toprule
-negative set & composition & apparent & contribution \\
+negative set & composition & composition $+$ 4-mer & contribution \\
 \midrule
 negative-1 (transcript background) & 0.8211 & 0.8606 & $+0.0395$ \\
 negative-2 (other RBPs' sites) & 0.7560 & 0.7726 & $+0.0166$ \\
@@ -446,14 +459,14 @@ negative-2 (other RBPs' sites) & 0.7560 & 0.7726 & $+0.0166$ \\
 
 The span on their benchmark was 2.381, against 2.17 for the corresponding family-matched pair in
 our own data, the GC-versus-bias-aware comparison. Their negative-2 is constructed like our
-bias-aware arm, which makes that the appropriate comparison rather than our
+bias-aware arm, which makes that the appropriate comparison and not our
 dinucleotide-versus-GC span of 2.50.
 
 The two-family structure of the preceding subsection reproduced arm for arm. The within-arm
 relation between baseline and contribution was $-0.645$ ($p=1.8\times10^{-6}$) for their
 composition-matched transcript-background arm and $-0.187$ ($p=0.22$) for their other-RBPs'-sites
 arm, against $-0.545$ and $-0.462$ for our two composition-matched arms and $-0.122$ for our
-bias-aware arm. Two things did not replicate, and both belong here rather than in the
+bias-aware arm. Two things did not replicate, and both belong here and not in the
 Limitations. The pooled relation across their two arms, the external counterpart of our
 $-0.600$, is $-0.202$ ($p=0.056$, $n=90$), which is null at their sample size. And the direction
 of the level relation is reversed: their negative-2 has both the lower baseline and the lower
@@ -472,9 +485,8 @@ and we do not present it as a confirmation.
 
 \subsection{Reporting the baseline helps in sample but does not replicate out of sample}
 
-Reporting the composition-only AUROC alongside the headline AUROC is useful only if it improves
-something measurable. We tested it in the situation it is intended for, a reader holding two
-studies that used different protocols and wishing to compare what the models contributed
+We tested the recommendation in the situation it is intended for, a reader holding two studies
+that used different protocols and wishing to compare what the models contributed
 (Figure~\ref{fig:recommendation}).
 
 On our data, normalising by headroom improved cross-protocol rank agreement in 3 of 3 protocol
@@ -483,10 +495,11 @@ agreement is scale-free and cannot be flattered by normalisation. This held for 
 classes, with mean changes in rank agreement of $+0.040$ (4-mer), $+0.094$ (convolutional
 network) and $+0.061$ (SpliceBERT).
 
-Two results qualify it. Only the GC-versus-dinucleotide improvement has an interval excluding
+The improvement is weaker than it looks. Only the GC-versus-dinucleotide improvement has an
+interval excluding
 zero ($+0.051$, CI $+0.007$ to $+0.115$); the remaining two pairs are consistent in direction
 and individually null, and the pair that reaches significance is the one in which the protocol
-label contributes 0.05\% of variance. That interval is also marginal rather than comfortable,
+label contributes 0.05\% of variance. That interval is marginal, not comfortable,
 and it does not survive adjustment for the three protocol pairs: the Bonferroni-corrected
 98.33\% interval is $-0.003$ to $+0.137$. The supporting sign evidence is weaker than it looks
 too, since three of three pairs has $p=0.125$ under an exchangeable null, and the nine cells

@@ -54,7 +54,7 @@ In the repository on GitHub:
 3. Target: `main`.
 4. Release title: `v1.0.0` (or the paper title).
 5. Description: one or two lines is enough. For example:
-   > Code, committed evidence and manuscript accompanying the preprint. All 680 verification
+   > Code, committed evidence and manuscript accompanying the preprint. All 696 verification
    > assertions pass on a clean clone.
 6. **Publish release**.
 

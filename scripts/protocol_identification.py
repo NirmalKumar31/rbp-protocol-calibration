@@ -227,7 +227,7 @@ def main():
 
     out = pd.DataFrame(rows)
     out.to_csv(TABLES / "protocol_identification.csv", index=False)
-    print(f"\nwrote protocol_identification.csv and protocol_baseline_slopes.csv")
+    print("\nwrote protocol_identification.csv and protocol_baseline_slopes.csv")
 
 
 if __name__ == "__main__":

@@ -36,7 +36,6 @@ def main():
         print(f"  {prot:9} {int(r.n_windows):6d} windows  "
               f"{r.frac_shared_with_any_other:5.1%} shared  {bar}")
 
-    import numpy as np
     vals = m.to_numpy(dtype=float).copy()
     np.fill_diagonal(vals, np.nan)
     off = vals[~np.isnan(vals)]

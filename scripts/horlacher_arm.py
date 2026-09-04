@@ -146,8 +146,6 @@ def main():
             sys.exit("no dataset built")
         t.to_csv(per, index=False)
 
-    rng = np.random.default_rng(0)
-    idx = rng.integers(0, len(t), size=(2000, len(t)))
     out = []
 
     def add(check, v, note=""):

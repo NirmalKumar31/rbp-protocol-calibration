@@ -14,7 +14,7 @@ __pycache__/
 /data/*
 # The published numbers and the evidence for them ARE the artifact, so they ship. `/results/`
 # was ignored wholesale, which meant `git ls-files results` returned 0: a cloner saw no
-# tables, no figures, and could not check one of the 86 golden assertions in a repo whose
+# tables, no figures, and could not check one of the 696 golden assertions in a repo whose
 # entire pitch is that verification is a stage.
 #
 # data/evidence/ is the per-example model scores (1120 files, 35 MB). It is under /data/,
@@ -43,3 +43,7 @@ manuscript/*.out
 manuscript/*.bbl
 manuscript/*.blg
 manuscript/*.synctex.gz
+
+# Build artefacts that were tracked by accident
+*.egg-info/
+cloud/terraform/.killswitch.zip

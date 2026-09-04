@@ -133,7 +133,7 @@ def summarise(m):
     for _, x in res_df.iterrows():
         ci = f" [{x.ci_low:+.4f}, {x.ci_high:+.4f}]" if pd.notna(x.ci_low) else ""
         log(f"  {x.check:44} {x.value:+.4f}{ci}   {x.note}")
-    log(f"\n  wrote region_heterogeneity.csv")
+    log("\n  wrote region_heterogeneity.csv")
 
 
 if __name__ == "__main__":

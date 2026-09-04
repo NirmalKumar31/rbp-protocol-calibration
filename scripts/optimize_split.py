@@ -10,7 +10,6 @@ from pathlib import Path
 import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from rbp.data import annotation as ann, splits  # noqa: E402
-from rbp.data.cobinding import peak_paths_from  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]

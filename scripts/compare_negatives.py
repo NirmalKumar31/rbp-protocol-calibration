@@ -98,13 +98,13 @@ def main():
         print(f"{lab:26} {t[f'gc_{c}'].median():12.4f} {t[f'dn_{c}'].median():14.4f} "
               f"{(t[f'dn_{c}'] - t[f'gc_{c}']).median():+9.4f}")
 
-    print(f"\nachieved match quality (L1 over 16 dinucleotide frequencies, 0-2):")
+    print("\nachieved match quality (L1 over 16 dinucleotide frequencies, 0-2):")
     print(f"  GC-matched arm:    median {t.gc_l1_pos_neg.median():.3f}")
     print(f"  dinuc-matched arm: median {t.dn_l1_pos_neg.median():.3f}")
     print(f"  random-pair reference: median {t.gc_l1_floor.median():.3f}"
           f"   <- NOT a floor; the targeted match beats it")
 
-    print(f"\n--- split by compositional extremity ---")
+    print("\n--- split by compositional extremity ---")
     for flag, lab in ((True, "extremity <= 0 (positives near their negatives)"),
                       (False, "extremity  > 0 (compositionally extreme positives)")):
         s = t[t.matchable == flag]
@@ -117,7 +117,7 @@ def main():
         print(f"  gain              {s.gc_gain.median():+.4f} -> "
               f"{s.dn_gain.median():+.4f}  ({s.gain_change.median():+.4f})")
 
-    print(f"\nDOES COMPOSITION STILL DISCRIMINATE UNDER THE STRONGER CONTROL?")
+    print("\nDOES COMPOSITION STILL DISCRIMINATE UNDER THE STRONGER CONTROL?")
     print(f"  datasets where composition alone stays above 0.60: "
           f"{int((t.dn_composition > 0.60).sum())}/{len(t)}")
     print(f"  datasets where composition alone stays above 0.70: "

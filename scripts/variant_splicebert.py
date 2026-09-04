@@ -257,7 +257,6 @@ def stage_cloud(cfg, index, force, mismatch=0, donor_task=-1):
     Same completion-marker discipline as everywhere else in this project: the result object
     IS the marker, so a task killed midway redoes its work rather than being skipped.
     """
-    import gzip
     import io
 
     import torch

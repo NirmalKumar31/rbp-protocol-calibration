@@ -3,7 +3,10 @@
 Cloud only. The laptop submits jobs and reads results; it never computes. Roughly
 **$5 of GCP credit** and **~$32 on Modal** against a $50 budget.
 
-Nothing here has been run yet. This is the procedure.
+The study has been run; this is the procedure for running it again from raw inputs. To check
+every published number without running any of it, see
+[`../SUBMISSION.md`](../SUBMISSION.md):
+`python scripts/verify.py --local results/tables` needs only a clone.
 
 ---
 
@@ -122,8 +125,8 @@ yourself, then:
 | 1 | terraform | GCP | $0 | buckets, service accounts, IAM, budget, killswitch |
 | 2 | images | Cloud Build | ~$0.50 | CPU + GPU images, weights baked in |
 | 3 | ingest **(public internet)** | Batch | ~$0.20 | genome, GENCODE, ClinVar, ENCODE peaks |
-| 4 | panel **(public internet)** | Batch | ~$0.10 | candidate datasets, both arms |
-| 5 | preprocess **all candidates** + finalize | Batch | ~$2 | matched datasets, both arms, and the pair counts |
+| 4 | panel **(public internet)** | Batch | ~$0.10 | candidate datasets, all arms |
+| 5 | preprocess **all candidates** + finalize | Batch | ~$2 | matched datasets, all arms, and the pair counts |
 | 6 | **select panel** | local | $0 | `manifest/study_panel.tsv` — *the* panel |
 | 7 | rehearsal | Batch | ~$0.60 | **R1** |
 | 8 | CNN | Batch | ~$3 | **R2** |

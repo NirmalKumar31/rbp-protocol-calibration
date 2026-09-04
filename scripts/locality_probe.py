@@ -250,7 +250,7 @@ def main():
         return cloud_one(cfg, idx, a.force)
     if a.gather:
         return summarise(cloud_gather(a.out), a.out)
-    k, C = cfg.cv["k"], 0.01
+    k = cfg.cv["k"]
     want = [m.strip() for m in a.models.split(",")]
     device = None
     if "splicebert" in want:
