@@ -248,9 +248,11 @@ differs by a factor of 1.22 between model classes measured on the same benchmark
 for a $k$-mer model}
 
 Pooled over all 282 protocol-dataset cells the contribution was inversely related to the
-composition baseline (Spearman $-0.600$, $p=6\times10^{-29}$), so much of what a protocol does
-is set how much room the baseline leaves
-(Figure~\ref{fig:baseline}).
+composition baseline (Spearman $-0.600$, protein-clustered interval $-0.698$ to $-0.495$), so
+much of what a protocol does is set how much room the baseline leaves
+(Figure~\ref{fig:baseline}). We quote an interval and not the nominal $p$, which treats the 282
+cells as independent when each dataset appears once per arm and fifteen proteins contribute two
+datasets, so between three and six correlated cells share a protein.
 
 Regressing contribution on a quadratic in the composition baseline over all 282 cells and then
 adding protocol indicators, the protocol label contributed 1.0\% of variance given the baseline
@@ -296,11 +298,13 @@ and 3.40\% for GC versus bias-aware, so the pooled 1.0\% averages a comparison t
 identified with one that is.
 
 Within arms, the relation between baseline and contribution was present for composition-matched
-negatives and not detectable otherwise: Spearman $-0.545$ (GC), $-0.462$ (dinucleotide) and
-$-0.122$ (bias-aware, not significant at this sample size). This suggests two protocol families and not three
-interchangeable protocols, with a residual of 0.004 to 0.008 AUROC between families. The
-statistic correlates a difference with its own subtrahend, which is legitimate but not invariant
-to which term is placed on the horizontal axis, and one arm does not survive the change. Putting
+negatives and not detectable otherwise, on protein-clustered intervals: Spearman $-0.545$
+($-0.704$ to $-0.371$) in the GC arm, $-0.460$ ($-0.615$ to $-0.280$) in the dinucleotide arm
+and $-0.122$ ($-0.331$ to $+0.082$) in the bias-aware arm, where the interval includes zero. Read on that axis this would
+suggest two protocol families rather than three interchangeable protocols, with a residual of
+0.004 to 0.008 AUROC between them. It does not survive a change of axis. The statistic
+correlates a difference with its own subtrahend, which is legitimate but not invariant to which
+term is placed on the horizontal axis, and one arm changes family under the change. Putting
 the composition-plus-model AUROC there instead gives $-0.315$ (GC), $+0.352$ (dinucleotide) and
 $+0.031$ (bias-aware); at the midpoint of the two, $-0.444$, $+0.025$ and $-0.046$. Under either
 alternative the dinucleotide arm behaves like the bias-aware arm and not like the GC arm, so
@@ -524,10 +528,21 @@ and we do not present it as a confirmation.
 \label{fig:external}
 \end{figure}
 
-\subsection{Reporting the baseline helps in sample but does not replicate out of sample}
+\subsection{Normalising by the baseline's headroom does not replicate out of sample}
+\label{sec:recommendation}
 
-We tested the recommendation in the situation it is intended for, a reader holding two studies
-that used different protocols and wishing to compare what the models contributed
+The recommendation this paper arrives at has two parts, and only one of them is testable. The
+first is to REPORT the composition-only AUROC obtained under the same protocol alongside every
+headline AUROC. That is a disclosure requirement rather than an empirical claim: it adds a
+number a reader can act on and removes none, so no experiment here could falsify it, and we do
+not present one. The second is to NORMALISE by that baseline's headroom, dividing the
+contribution by $1-c$, in the hope of putting contributions from different protocols on a
+comparable scale. That is a substantive claim, we pre-specified two criteria that would falsify
+it, and this subsection is the test. It is the second part that fails, and the rest of this
+subsection is about the second part only.
+
+We tested it in the situation it is intended for, a reader holding two studies that used
+different protocols and wishing to compare what the models contributed
 (Figure~\ref{fig:recommendation}).
 
 On our data, normalising by headroom improved cross-protocol rank agreement in 3 of 3 protocol
@@ -551,10 +566,11 @@ to 0.656 under normalisation and disagreement rose from 0.860 to 0.908, which ar
 criteria we specified in advance as falsifying. The change in rank agreement was $-0.050$ (CI
 $-0.222$ to $+0.140$), so at $n=45$ this is a failure to replicate rather than a refutation.
 
-We therefore recommend reporting the composition-only AUROC obtained under the same protocol
-alongside every headline AUROC, on the grounds that it is the only summary of the protocol's
-effect that a reader can act on, and we do not recommend treating any normalisation as rendering
-contributions comparable across protocols.
+The two parts therefore separate cleanly. We recommend reporting the composition-only AUROC
+obtained under the same protocol alongside every headline AUROC, on the grounds that it is the
+only summary of the protocol's effect a reader can act on, and we note that this rests on that
+argument and not on a test. We do not recommend treating any normalisation, this one included,
+as rendering contributions comparable across protocols.
 
 \begin{figure}[htbp]
 \centering

@@ -42,13 +42,16 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.stats import f as fdist
-from scipy.stats import norm
+from scipy.stats import norm, spearmanr
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 TABLES = ROOT / "results" / "tables"
 ARMS = ("gc", "dn", "neg2")
+# Same draw count as every other clustered interval in the study, so the intervals are
+# comparable and no reader has to ask which bootstrap produced which.
+N_BOOT = 4000
 R2C = np.sqrt(2.0)
 
 
@@ -68,9 +71,9 @@ def ols(X, y):
 
 def main():
     d = pd.read_csv(TABLES / "three_arm_per_dataset.csv")
-    long = pd.concat([pd.DataFrame({"ds": d.dataset, "arm": a, "comp": d[f"comp_{a}"],
-                                    "gain": d[f"gain_{a}"]}) for a in ARMS],
-                     ignore_index=True)
+    long = pd.concat([pd.DataFrame({"ds": d.dataset, "protein": d.protein, "arm": a,
+                                    "comp": d[f"comp_{a}"], "gain": d[f"gain_{a}"]})
+                      for a in ARMS], ignore_index=True)
     rows = []
 
     print("=== 1. Does protocol add anything beyond the baseline? (the naive test) ===")
@@ -144,7 +147,6 @@ def main():
         print(f"    {a:5s} residual {resid:+.4f}")
 
     # THE SPEARMAN IS PARTLY BETWEEN-ARM, and a statistician will decompose it, so do it here.
-    from scipy.stats import spearmanr
     rho_all, _ = spearmanr(long.comp, long.gain)
     cen = long.copy()
     cen["comp"] = cen.comp - cen.groupby("arm").comp.transform("mean")
@@ -159,6 +161,37 @@ def main():
         rows.append({"check": f"spearman(baseline, gain), within {a} arm", "value": float(r),
                      "note": f"p={pv:.3f}"})
         print(f"    within {a:5s} {r:+.3f}  p={pv:.3f}")
+
+    # A p-VALUE ON 282 CELLS IS NOT A p-VALUE ON 282 OBSERVATIONS. Each of the 94 datasets
+    # appears once per arm, and fifteen proteins contribute two datasets, so the pooled
+    # Spearman's nominal p treats between 3 and 6 correlated cells per protein as independent.
+    # Every headline interval in this paper resamples proteins; this one did not, and it is the
+    # smallest p in the paper, which is exactly the wrong place to leave an inflated one.
+    # Percentile interval over proteins, all cells of each sampled protein, same 4000 draws.
+    rng = np.random.default_rng(7)
+    proteins = long.protein.unique()
+    by_prot = {q: g for q, g in long.groupby("protein")}
+    draws = {"pooled": [], **{a: [] for a in ARMS}}
+    for _ in range(N_BOOT):
+        pick = rng.choice(proteins, size=len(proteins), replace=True)
+        b = pd.concat([by_prot[q] for q in pick], ignore_index=True)
+        r, _ = spearmanr(b.comp, b.gain)
+        draws["pooled"].append(r)
+        for a in ARMS:
+            m = b.arm == a
+            r, _ = spearmanr(b.comp[m], b.gain[m])
+            draws[a].append(r)
+    for key, v in draws.items():
+        lo, hi = np.percentile(v, [2.5, 97.5])
+        label = "pooled" if key == "pooled" else f"within {key} arm"
+        # CI bounds as their own NUMERIC columns, not folded into the note string:
+        # audit_manuscript.py builds its haystack from numeric columns, so a bound that lives
+        # only inside "[-0.698, -0.495]" is unsourceable the moment the paper quotes it.
+        rows.append({"check": f"spearman(baseline, gain) {label}, protein-clustered CI",
+                     "value": float(np.median(v)), "ci_low": float(lo), "ci_high": float(hi),
+                     "note": f"{N_BOOT} protein draws"})
+        print(f"  {label:18s} clustered median {np.median(v):+.3f}  "
+              f"[{lo:+.3f}, {hi:+.3f}]")
 
     pd.DataFrame(rows).to_csv(TABLES / "baseline_confounding.csv", index=False)
     print("\nwrote baseline_confounding.csv")

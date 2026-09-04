@@ -15,6 +15,6 @@ clean_median_pairs,2184,median pairs over the datasets that were not retrained
 encode_candidate_experiments_K562,139,distinct experiments in config/panel_full.tsv
 encode_candidate_experiments_HepG2,105,distinct experiments in config/panel_full_HepG2.tsv
 eligible_datasets,189,rows of config/panel_final_HepG2_dinuc.tsv + config/panel_final_K562_dinuc.tsv
-verify_assertions,696,written by scripts/verify.py
-verify_assertions_passed,696,written by scripts/verify.py
-verify_domain_checks,695,written by scripts/verify.py
+verify_assertions,701,written by scripts/verify.py
+verify_assertions_passed,701,written by scripts/verify.py
+verify_domain_checks,700,written by scripts/verify.py

@@ -762,6 +762,16 @@ r1l_baseline_confounding:
   residual_dn:   {value: 0.0247, tol: 0.008}
   residual_neg2: {value: -0.0143, tol: 0.008}
   residuals_must_be_ordered: true
+  # THE POOLED SPEARMAN, CLUSTERED. Its nominal p treated 282 cells as independent when each
+  # dataset appears once per arm and fifteen proteins carry two datasets. It was the smallest
+  # p in the paper, which is the worst place to leave an inflated one. The relation survives:
+  # what is gated is that the pooled and both composition-matched intervals EXCLUDE zero while
+  # the bias-aware interval CONTAINS it, because that pattern is the claim, not the endpoints.
+  spearman_clustered_pooled:  {value: -0.604, tol: 0.03}
+  spearman_clustered_gc:      {value: -0.545, tol: 0.04}
+  spearman_clustered_dn:      {value: -0.460, tol: 0.04}
+  spearman_clustered_neg2:    {value: -0.122, tol: 0.04}
+  spearman_clustered_signs_must_hold: true
 
 # --- R1m: no rescaling of AUROC removes the protocol dependence --------------------------
 #
@@ -1329,7 +1339,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 695
+  min_domain_checks: 700
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline

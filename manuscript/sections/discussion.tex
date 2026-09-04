@@ -34,17 +34,22 @@ that covariate restored.
 The relation between the composition baseline a protocol leaves and the contribution a model
 subsequently shows was strong for composition-matched negatives, both in our data and
 independently in that of \citet{horlacher2023}, and not detectable for negatives drawn from the
-sites of other proteins. A residual difference between the two groups survived adjustment for the
-baseline. On the 4-mer measurement this points to what the negative window is, more than to how
-tightly
-it is matched: contributions appear comparable within a group of protocols that draw negatives
-from the same kind of object, and less so between such groups. Three
-qualifications apply, and together they are why we present this as a feature of one measurement.
-It was recovered from the 4-mer and did not reproduce for either
-neural model. The statistic is not invariant to which term is placed on its horizontal axis, and
-under the two alternatives the dinucleotide arm joins the bias-aware arm and not the GC arm,
-so the partition that survives every choice separates the GC arm from the other two. And on
-\citet{horlacher2023}'s benchmark the pooled relation is null.
+sites of other proteins. It is tempting to read a grouping off that result: two protocol
+families, divided by what kind of object the negative window is rather than by how tightly it is
+matched, with contributions comparable within a family and not between families. We do not think
+the data identify such a grouping, and say so because the reading is the natural one and it is
+the one our own figure invites.
+
+What defeats it is that the grouping is not stable. The statistic correlates a difference with
+its own subtrahend, so it depends on which term is placed on the horizontal axis, and under two
+of the three defensible choices the dinucleotide arm groups with the bias-aware arm instead of
+with the GC arm. The GC and dinucleotide protocols draw their negatives from the same kind of
+object, so a partition that separates them cannot be a partition by kind of object, and the only
+statement that survives every choice of axis is the weaker one that the GC arm is the outlier of
+the three. Two further qualifications point the same way: the pattern was recovered from the
+4-mer and reproduced for neither neural model, and on \citet{horlacher2023}'s benchmark the
+pooled relation is null. What we take from this subsection is therefore the gradient itself, for
+which the evidence is strong, and not a taxonomy of protocols built on top of it.
 
 Protocol dependence can be reduced by fitting a transformation but not by choosing one from
 among the standard set. Eight standard reparameterisations reduced the span without closing it,
@@ -114,7 +119,7 @@ Every magnitude reported here is indexed to a mono- and dinucleotide baseline. T
 dependence is not so indexed.
 
 The relation in the title holds throughout our own data, across three arms and three model
-classes, and does not hold on the one independent benchmark we tested. On
+classes, and does not hold on the one externally constructed benchmark we tested. On
 \citet{horlacher2023}'s two negative sets the harder arm by both AUROCs in Table~\ref{tab:external} also yields
 the smaller contribution, so difficulty and contribution move together there. Their two arms
 belong to different protocol families, which is the structure that would predict it, but that
@@ -134,6 +139,18 @@ model classes at $n=94$ on the two composition-matched arms, and for the 4-mer a
 protein-clustered for the first and over datasets for the second. No model larger than 20~M
 parameters was tested, and no published RBP-specific method: the three classes are a capacity
 ladder, not a survey of the methods a benchmark would rank.
+
+Three design parameters were fixed once and never varied, so nothing here speaks to their
+influence. The class ratio is 1:1 in every arm, one negative per positive, where a genome-wide
+screen faces a far smaller positive fraction; AUROC is invariant to prevalence so the reported
+quantities are not biased by this, but the nested fit is estimated at a balance no application
+sees, and a precision-based estimand would move. The window is 101~nt throughout, and window
+length is precisely the resource the composition baseline spends: a longer window gives
+mononucleotide and dinucleotide frequencies more sequence to estimate from, which would be
+expected to raise the baseline and shrink the contribution in every arm, though not necessarily
+by the same amount in each. And cross-validation uses a single frozen chromosome partition, so
+the fold-to-fold spans quoted throughout describe variability within one partition and not
+across the choice of partition.
 
 Two limitations concern the provenance of the neural scores. For 20 of 94 datasets in the
 dinucleotide arm
@@ -163,10 +180,22 @@ gene-type filter, so a window spanning an annotation boundary can be labelled ei
 affects a matching covariate and not an outcome, and it is the same annotation for both
 classes in the two arms that match on it.
 
-The verification harness asserts values and not the provenance of the code that produced
-them, and the fold-partition defect above is of exactly the class that this distinction permits:
-it was identified by inspection and by none of the 696 assertions, as was the region
-asymmetry of Section~\ref{sec:region}. Its manuscript audit traces every number in this text,
+The verification harness needs describing precisely, because its headline number invites more
+credit than it earns. Its 701 assertions compare each published value against a frozen
+expectations file that was generated from the same run those values come from. They are
+therefore regression coverage: they detect drift, corruption and silently skipped checks, and
+they cannot independently confirm that the original run was correct. The two assertions that do
+more are the end-to-end rebuilds, the 285 AUROCs recomputed from committed per-example scores
+and the headline contrast recomputed from raw sequence, because each re-derives a value along a
+different path instead of comparing it against a record of itself. Those two, and not the count,
+are the reproducibility claim worth making. A second asymmetry is worth naming: everything
+downstream of the neural scores is bit-reproducible, while the scores themselves are not,
+because initialisation was unseeded, so a reader who reruns the sweep will obtain slightly
+different scores and then identical numbers from every step after them. The harness also asserts
+values and not the provenance of the code that produced them, and the fold-partition defect
+above is of exactly the class that distinction permits: it was identified by inspection and by
+none of the 701 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit
 cannot tell whether a number is attached to the right claim, so a real value printed on the

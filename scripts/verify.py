@@ -1388,6 +1388,32 @@ def verify_baseline_confounding(T, g):
                "differ by more than the arithmetic", f"dn {rd:+.4f}, neg2 {rn:+.4f}",
                "dn > 0 > neg2")
 
+    # THE CLUSTERED SPEARMAN. Point estimates, and then the pattern of the intervals, which is
+    # what the paper actually claims: the relation is present in both composition-matched arms
+    # and not detectable in the bias-aware one. Gating the endpoints alone would pass a run in
+    # which every interval had widened to include zero.
+    # Golden keys spelled out and not built with an f-string: test_golden_keys_are_read.py
+    # greps this file for each leaf name, and a constructed key is one nobody can find.
+    ci = {}
+    for arm, gspec in (("pooled", spec["spearman_clustered_pooled"]),
+                       ("within gc arm", spec["spearman_clustered_gc"]),
+                       ("within dn arm", spec["spearman_clustered_dn"]),
+                       ("within neg2 arm", spec["spearman_clustered_neg2"])):
+        k = f"spearman(baseline, gain) {arm}, protein-clustered CI"
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            continue
+        near(k, float(q.loc[k, "value"]), gspec)
+        ci[arm] = (float(q.loc[k, "ci_low"]), float(q.loc[k, "ci_high"]))
+    if len(ci) == 4 and spec["spearman_clustered_signs_must_hold"]:
+        excl = {a: hi < 0 for a, (lo, hi) in ci.items()}
+        record(excl["pooled"] and excl["within gc arm"] and excl["within dn arm"]
+               and not excl["within neg2 arm"],
+               "clustered intervals: negative for pooled/gc/dn, spanning zero for neg2",
+               ", ".join(f"{a.replace('within ', '').replace(' arm', '')} "
+                         f"{'excl' if e else 'incl'}" for a, e in excl.items()),
+               "pooled/gc/dn exclude 0, neg2 includes 0")
+
 
 def verify_scale_sweep(T, g):
     """R1m: the search for a protocol-independent rescaling, and its failure."""

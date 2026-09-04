@@ -13,6 +13,11 @@ for f in f10_three_protocols f11_scale_sweep f12_protocol_or_baseline f9_deep_co
   cp "../results/figures/$f.pdf" "figures/$f.pdf"
 done
 
+# Supplementary Table S1 is cited in Data availability, so it ships WITH the manuscript and
+# not only in results/. A submission whose supplementary file is a repository path is not a
+# submission.
+cp ../results/tables/supplementary_table_s1.csv supplementary_table_s1.csv
+
 command -v pdflatex >/dev/null || { echo "pdflatex not found; install MacTeX or TeX Live"; exit 1; }
 pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null
 pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null

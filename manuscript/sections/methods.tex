@@ -259,6 +259,17 @@ from a bootstrap that resamples \emph{proteins} and takes all datasets of each s
 4000 draws. Dataset-level intervals are 1.05 to 1.23 times narrower and are not reported as
 headline values.
 
+Two analyses are confirmatory and are the only ones we adjust. The first is the primary
+contrast, the difference in nested contribution between protocols, which the study was built to
+estimate. The second is the recommendation test of Section~\ref{sec:recommendation}, whose two
+falsifying criteria were fixed before the external data were scored and whose interval is
+Bonferroni-corrected over the three protocol pairs. Everything else here is exploratory. That
+includes the baseline attribution, the family partition, the order-three contrast, the
+within-panel reversal and the caliper-matched nulls, all of which we report as point estimates
+with intervals rather than as decisions, and none of which is adjusted for the number of
+analyses performed. Readers should treat an exploratory interval that just excludes zero
+accordingly.
+
 Per-dataset significance counts are also reported at a design effect of 1.35 applied to the
 DeLong standard error, which is intended to cover two things the estimator does not: that it
 conditions on two score vectors as fixed when both are fitted, and that it treats spatially
@@ -278,7 +289,7 @@ published per-window score files do not carry.
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 696 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 701 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example
