@@ -564,6 +564,74 @@ dataset, SpliceBERT against the 4-mer; it is larger for SpliceBERT in all 94.}
 \label{fig:models}
 \end{figure}
 
+\subsection{The protocol ordering does not depend on AUROC, but its magnitude does}
+\label{sec:estimands}
+
+Every quantity so far is an AUROC increment, and an AUROC increment is bounded above by
+$1-c$ for a baseline $c$, which is the objection Section~\ref{sec:families} spends its length
+answering. If the ordering is an artefact of that ceiling it should weaken or vanish on a scale
+with no ceiling. We therefore recomputed the same nested comparison on four further estimands,
+from the same two out-of-fold predictors so nothing is refitted (Table~\ref{tab:estimands}):
+the likelihood-ratio statistic $2(\ell_{\text{full}} - \ell_{\text{comp}})$, which is unbounded
+above; McFadden's $R^2$ increment, which normalises it by the null deviance; the average-precision
+increment, which is prevalence-sensitive rather than rank-only; and the integrated
+discrimination improvement, a calibration-sensitive summary from the risk-prediction literature.
+
+The ordering is the same on all five, for all three model classes: dinucleotide matching yields
+the most, GC matching next, the bias-aware protocol least, in 15 of 15 estimand-by-model cells.
+It survives on the deviance scale in particular, where no ceiling exists, so the direction of
+the protocol effect is not an artefact of measuring in AUROC.
+
+The magnitude is another matter, and it is the honest cost of this exercise. The 4-mer's
+three-protocol span is 5.42-fold in AUROC and 2.09-fold in deviance, 2.13 in McFadden, 3.70 in
+average precision and 2.40 in IDI; for the convolutional network the same figures run 7.42 down
+to 3.09, and for SpliceBERT 3.72 down to 2.06. The unbounded scales give the smaller spans in
+every case, which is what the ceiling objection predicts, so the five-fold figure this paper
+reports is a property of the AUROC scale and roughly a two-fold effect on scales without a
+ceiling. What is scale-free is the ordering, not the size.
+
+One diagnostic is not an increment and answers a sharper question. Regressing each model's score
+on the composition block and taking the AUROC of the residual asks whether the part of the score
+orthogonal to composition discriminates at all. It does, in every arm: 0.63, 0.60 and 0.58 for
+the 4-mer under dinucleotide, GC and bias-aware negatives, 0.67, 0.66 and 0.63 for the
+convolutional network and 0.77, 0.76 and 0.72 for SpliceBERT. So a small increment is not the
+same as an absent signal, and the same ordering appears here too.
+
+\begin{table}[htbp]
+\centering
+\caption{The same nested comparison on five estimands, panel means over $n=94$ datasets. The
+ordering dinucleotide $>$ GC $>$ bias-aware holds in all 15 estimand-by-model cells. Spans are
+the largest arm mean over the smallest. Deviance and McFadden are computed on the scale the
+model is fitted on and are unbounded above, so they carry no $1-c$ ceiling.}
+\label{tab:estimands}
+\small
+\begin{tabular}{llcccc}
+\toprule
+estimand & model & dinucleotide & GC & bias-aware & span \\
+\midrule
+AUROC increment & 4-mer & 0.0663 & 0.0265 & 0.0122 & 5.42 \\
+ & CNN & 0.0837 & 0.0330 & 0.0113 & 7.42 \\
+ & SpliceBERT & 0.1735 & 0.0890 & 0.0466 & 3.72 \\
+\midrule
+$\Delta$ deviance & 4-mer & 967 & 761 & 462 & 2.09 \\
+ & CNN & 1659 & 1185 & 536 & 3.09 \\
+ & SpliceBERT & 3524 & 2944 & 1656 & 2.13 \\
+\midrule
+McFadden $R^2$ increment & 4-mer & 0.0520 & 0.0380 & 0.0244 & 2.13 \\
+ & CNN & 0.0784 & 0.0523 & 0.0240 & 3.27 \\
+ & SpliceBERT & 0.1905 & 0.1543 & 0.0925 & 2.06 \\
+\midrule
+average precision increment & 4-mer & 0.0551 & 0.0276 & 0.0149 & 3.70 \\
+ & CNN & 0.0755 & 0.0355 & 0.0131 & 5.78 \\
+ & SpliceBERT & 0.1580 & 0.0917 & 0.0497 & 3.18 \\
+\midrule
+IDI & 4-mer & 0.0669 & 0.0448 & 0.0279 & 2.40 \\
+ & CNN & 0.1038 & 0.0666 & 0.0320 & 3.25 \\
+ & SpliceBERT & 0.2419 & 0.1851 & 0.1129 & 2.14 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \subsection{One structural feature of the calibration replicates on an externally constructed
 benchmark}
 
@@ -609,6 +677,26 @@ contribution, so on their benchmark apparent difficulty and measured contributio
 same direction rather than in opposite directions. A cross-family residual is consistent with
 that and a single-family headroom relation is not, but the ordering was not predicted in advance
 and we do not present it as a confirmation.
+
+That second failure was previously read off the composition baseline, which is not the quantity
+the relation in the title is defined on, so we also measured the 4-mer's own AUROC on their
+negative sets. It confirms the failure on the correct axis and sharpens it. Their negative-2 is
+harder for the 4-mer than their negative-1, 0.7647 against 0.8594 and harder in 41 of 45
+datasets, and it also yields the smaller contribution, so the two move together. Per dataset the
+picture is not a reversed relation but no relation: the change in the model's own AUROC and the
+change in contribution point in opposite directions in only 11 of 45 datasets, at Spearman
+$-0.005$ ($p=0.97$). In our own data the same two quantities point oppositely in 88 of 94
+datasets for the GC-to-dinucleotide step and 57 of 94 for GC-to-bias-aware. So the inversion is
+a strong per-dataset regularity within this panel and is absent on the one benchmark we did not
+build.
+
+One qualification on our own side, since the same statistic supplies it. Within our panel the
+inversion is a statement about DIRECTION and not about covarying magnitudes: the
+GC-to-dinucleotide step moves the two oppositely in 88 of 94 datasets, but across datasets the
+correlation between how much difficulty rose and how much contribution rose is $+0.385$
+($p=1.3\times10^{-4}$), not negative. The datasets where a protocol costs the most apparent
+AUROC are not the datasets where it buys the most contribution, and nothing here claims they
+are.
 
 
 \begin{figure}[htbp]

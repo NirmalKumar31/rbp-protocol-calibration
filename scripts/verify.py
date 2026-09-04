@@ -2253,6 +2253,58 @@ def verify_fold_integrity(T, g):
                "than disclosed", int(nl), spec["leaky_datasets"]["value"])
 
 
+def verify_estimands(T, g):
+    """B1: is the protocol ordering a property of AUROC, or of the comparison?"""
+    print("\nestimands  (does the ordering survive leaving the ROC?)")
+    d = T.get("estimands.csv")
+    if d is None:
+        return record(False, "estimands.csv present", "MISSING",
+                      "run scripts/estimands.py --store ../rbp-store")
+    spec = g["estimands"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    # THE HEADLINE. Five estimands, three model classes, one ordering.
+    n = get("estimands on which the protocol ordering holds for every model")
+    if n is not None:
+        record(int(n) == spec["n_estimands_ordered"],
+               "dinucleotide > GC > bias-aware on EVERY estimand for EVERY model class, so "
+               "the direction of the protocol effect is not an artefact of measuring in AUROC",
+               f"{int(n)}/5", f"{spec['n_estimands_ordered']}/5")
+
+    # AND THE MAGNITUDE, which is scale-dependent and must not be quoted as if it were not.
+    spans = {}
+    for model, key in (("kmer", spec["deviance_span_kmer"]),
+                       ("cnn", spec["deviance_span_cnn"]),
+                       ("splicebert", spec["deviance_span_splicebert"])):
+        v = [get(f"delta_deviance, {a} arm, {model}") for a in ("dn", "gc", "neg2")]
+        if None in v or min(v) <= 0:
+            continue
+        spans[model] = max(v) / min(v)
+        near(f"delta-deviance span, {model}", spans[model], key)
+    if spans:
+        at_least("the deviance span stays clear of 1, so 'roughly two-fold on an unbounded "
+                 "scale' is a smaller effect than the AUROC figure and not an absent one",
+                 min(spans.values()), spec["min_deviance_span"])
+
+    # THE RESIDUAL DIAGNOSTIC. A small increment is not an absent signal.
+    res = [float(q.loc[k, "value"]) for k in q.index
+           if str(k).startswith("residual_auroc,")]
+    if res:
+        near("residual AUROC, kmer, dinucleotide arm",
+             get("residual_auroc, dn arm, kmer") or float("nan"),
+             spec["residual_auroc_kmer_dn"])
+        at_least("orthogonalising every model score against the composition block still "
+                 "leaves discrimination above chance in every arm, so a small increment does "
+                 "not mean an absent signal", min(res),
+                 spec["residual_auroc_must_exceed_chance"])
+
+
 def verify_nested_scale(T, g):
     """1b/1c: the covariate scale and the standardisation window, both measured."""
     print("\nnested scale  (does the covariate scale or the standardisation window matter?)")
@@ -2404,6 +2456,17 @@ def verify_standalone_auroc(T, g):
         v = must(label)
         if v is not None:
             near(label, v, key)
+    for label, key in (
+            ("datasets where difficulty and contribution move oppositely, GC to dinucleotide",
+             spec["opposite_gc_to_dn"]),
+            ("datasets where difficulty and contribution move oppositely, GC to bias-aware",
+             spec["opposite_gc_to_neg2"]),
+            ("spearman(delta model-alone, delta gain), GC to dinucleotide",
+             spec["magnitude_corr_gc_to_dn"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+
     nh, ne = (must("models for which dinucleotide matching is the hardest"),
               must("models for which the bias-aware arm is the easiest"))
     if nh is not None:
@@ -3452,7 +3515,7 @@ def main():
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
                verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_design_effect, verify_standalone_auroc, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
                verify_strand_audit, verify_recompute,
-               verify_nested_scale,
+               verify_estimands, verify_nested_scale,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

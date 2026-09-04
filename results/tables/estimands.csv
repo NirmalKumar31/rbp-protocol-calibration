@@ -1,0 +1,80 @@
+check,value,n,note
+"auroc_gain, dn arm, kmer",0.06626403675115056,94,
+"auroc_gain, gc arm, kmer",0.026513098340627497,94,
+"auroc_gain, neg2 arm, kmer",0.012231944163197669,94,
+"protocol ordering holds, auroc_gain, kmer",1.0,3,dn 0.06626 gc 0.02651 neg2 0.01223
+"auroc_gain, dn arm, cnn",0.08365362130760694,94,
+"auroc_gain, gc arm, cnn",0.033004539403900725,94,
+"auroc_gain, neg2 arm, cnn",0.01126872515825379,94,
+"protocol ordering holds, auroc_gain, cnn",1.0,3,dn 0.08365 gc 0.033 neg2 0.01127
+"auroc_gain, dn arm, splicebert",0.1735310137999413,94,
+"auroc_gain, gc arm, splicebert",0.08902656237648787,94,
+"auroc_gain, neg2 arm, splicebert",0.0466140278896648,94,
+"protocol ordering holds, auroc_gain, splicebert",1.0,3,dn 0.1735 gc 0.08903 neg2 0.04661
+"delta_deviance, dn arm, kmer",966.7477478659173,94,
+"delta_deviance, gc arm, kmer",761.4802028988154,94,
+"delta_deviance, neg2 arm, kmer",462.2633972112932,94,
+"delta_deviance rounded, dn arm, kmer",967.0,846,
+"delta_deviance rounded, gc arm, kmer",761.0,846,
+"delta_deviance rounded, neg2 arm, kmer",462.0,846,
+"protocol ordering holds, delta_deviance, kmer",1.0,3,dn 966.7 gc 761.5 neg2 462.3
+"delta_deviance, dn arm, cnn",1659.0815158878522,94,
+"delta_deviance, gc arm, cnn",1184.9460793267842,94,
+"delta_deviance, neg2 arm, cnn",536.270844055397,94,
+"delta_deviance rounded, dn arm, cnn",1659.0,846,
+"delta_deviance rounded, gc arm, cnn",1185.0,846,
+"delta_deviance rounded, neg2 arm, cnn",536.0,846,
+"protocol ordering holds, delta_deviance, cnn",1.0,3,dn 1659 gc 1185 neg2 536.3
+"delta_deviance, dn arm, splicebert",3523.8663599051347,94,
+"delta_deviance, gc arm, splicebert",2943.9487299230104,94,
+"delta_deviance, neg2 arm, splicebert",1655.984005294683,94,
+"delta_deviance rounded, dn arm, splicebert",3524.0,846,
+"delta_deviance rounded, gc arm, splicebert",2944.0,846,
+"delta_deviance rounded, neg2 arm, splicebert",1656.0,846,
+"protocol ordering holds, delta_deviance, splicebert",1.0,3,dn 3524 gc 2944 neg2 1656
+"mcfadden_gain, dn arm, kmer",0.05202552090071727,94,
+"mcfadden_gain, gc arm, kmer",0.03804036336659386,94,
+"mcfadden_gain, neg2 arm, kmer",0.024442272643529554,94,
+"protocol ordering holds, mcfadden_gain, kmer",1.0,3,dn 0.05203 gc 0.03804 neg2 0.02444
+"mcfadden_gain, dn arm, cnn",0.07843186463073322,94,
+"mcfadden_gain, gc arm, cnn",0.0522730216206744,94,
+"mcfadden_gain, neg2 arm, cnn",0.023955761415108728,94,
+"protocol ordering holds, mcfadden_gain, cnn",1.0,3,dn 0.07843 gc 0.05227 neg2 0.02396
+"mcfadden_gain, dn arm, splicebert",0.19047754174173143,94,
+"mcfadden_gain, gc arm, splicebert",0.15433158052449744,94,
+"mcfadden_gain, neg2 arm, splicebert",0.0925387613418577,94,
+"protocol ordering holds, mcfadden_gain, splicebert",1.0,3,dn 0.1905 gc 0.1543 neg2 0.09254
+"ap_gain, dn arm, kmer",0.05511238237505715,94,
+"ap_gain, gc arm, kmer",0.027618261364139262,94,
+"ap_gain, neg2 arm, kmer",0.014885971328653729,94,
+"protocol ordering holds, ap_gain, kmer",1.0,3,dn 0.05511 gc 0.02762 neg2 0.01489
+"ap_gain, dn arm, cnn",0.07548712495145421,94,
+"ap_gain, gc arm, cnn",0.03552690552708699,94,
+"ap_gain, neg2 arm, cnn",0.013058926258960012,94,
+"protocol ordering holds, ap_gain, cnn",1.0,3,dn 0.07549 gc 0.03553 neg2 0.01306
+"ap_gain, dn arm, splicebert",0.15798469176830965,94,
+"ap_gain, gc arm, splicebert",0.09172299573068789,94,
+"ap_gain, neg2 arm, splicebert",0.04969269371427144,94,
+"protocol ordering holds, ap_gain, splicebert",1.0,3,dn 0.158 gc 0.09172 neg2 0.04969
+"idi, dn arm, kmer",0.0669385285645294,94,
+"idi, gc arm, kmer",0.04480021205596919,94,
+"idi, neg2 arm, kmer",0.027930953362701422,94,
+"protocol ordering holds, idi, kmer",1.0,3,dn 0.06694 gc 0.0448 neg2 0.02793
+"idi, dn arm, cnn",0.10378270040162671,94,
+"idi, gc arm, cnn",0.06657269393901412,94,
+"idi, neg2 arm, cnn",0.03197974050914311,94,
+"protocol ordering holds, idi, cnn",1.0,3,dn 0.1038 gc 0.06657 neg2 0.03198
+"idi, dn arm, splicebert",0.241948169626085,94,
+"idi, gc arm, splicebert",0.18507414817002052,94,
+"idi, neg2 arm, splicebert",0.11294269924154912,94,
+"protocol ordering holds, idi, splicebert",1.0,3,dn 0.2419 gc 0.1851 neg2 0.1129
+"residual_auroc, dn arm, kmer",0.631366479685168,94,
+"residual_auroc, gc arm, kmer",0.6033862320375506,94,
+"residual_auroc, neg2 arm, kmer",0.5822443228083589,94,
+"residual_auroc, dn arm, cnn",0.6669183659706984,94,
+"residual_auroc, gc arm, cnn",0.6619219219097373,94,
+"residual_auroc, neg2 arm, cnn",0.6253032752660168,94,
+"residual_auroc, dn arm, splicebert",0.7734537068862948,94,
+"residual_auroc, gc arm, splicebert",0.759262271756647,94,
+"residual_auroc, neg2 arm, splicebert",0.7213639482125692,94,
+estimands on which the protocol ordering holds for every model,5.0,5,

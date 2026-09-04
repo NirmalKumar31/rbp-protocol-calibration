@@ -88,6 +88,16 @@ the sense in which no protocol-free measure of contribution is available. The ob
 that no transformation works but that a transformation which works has to be refitted for each
 measurement, which is precisely what a comparable quantity cannot require.
 
+Nor is it escapable by leaving the ROC. The same comparison on the likelihood-ratio statistic,
+McFadden's $R^2$ increment, the average-precision increment and the integrated discrimination
+improvement gives the same ordering in all fifteen estimand-by-model cells, including on the
+deviance scale, which is unbounded above and so carries none of the $1-c$ ceiling that a
+sceptical reading attributes the effect to. What the estimand does change is the size: the
+4-mer's three-protocol span is 5.42-fold in AUROC and about two-fold on the unbounded scales,
+and the unbounded scales are smaller in every case. So the direction of the protocol effect is a
+property of the comparison and the five-fold figure is a property of the AUROC scale, and this
+paper's headline magnitude should be read as the latter.
+
 The composition baseline used here stops at order two, matching what a
 dinucleotide-preserving shuffle would hold fixed. That is defensible, and it is a choice, so we
 measured what it costs.
@@ -145,10 +155,12 @@ dependence is not so indexed.
 
 The relation in the title holds throughout our own data, across three arms and three model
 classes, and does not hold on the one externally constructed benchmark we tested. On
-\citet{horlacher2023}'s two negative sets the harder arm by both AUROCs in Table~\ref{tab:external} also yields
-the smaller contribution, so difficulty and contribution move together there. Their two arms
-belong to different protocol families, which is the structure that would predict it, but that
-was not a prediction we made in advance.
+\citet{horlacher2023}'s two negative sets the arm that is harder for the 4-mer by its own AUROC
+also yields the smaller contribution, so difficulty and contribution move together there. Per
+dataset there is no relation at all rather than a reversed one, at Spearman $-0.005$, against
+opposite movement in 88 of 94 datasets within our panel. Their two arms belong to different
+protocol families, which is the structure that would predict it, but that was not a prediction
+we made in advance.
 
 Achieved matching is not exact matching. The GC matcher's operative acceptance bound is 0.15
 and not its nominal 0.05, holding the nominal tolerance for 94.8\% of pairs, and the
@@ -204,7 +216,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 739 assertions compare each published value against a frozen
+credit than it earns. Its 749 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -217,7 +229,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 739 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 749 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit

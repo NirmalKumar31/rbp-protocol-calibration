@@ -82,7 +82,74 @@ branches share no inputs and draw on **different quota pools** (GCP vCPU vs Moda
 
 ---
 
-## 2. The two-cloud split, and why
+## 2. The two-cloud split, as a measured decision
+
+The split is not a preference. It is what the quotas allow, and every number below was read
+off the live project on 2026-09-04 with billing **active**, so none of it is an artefact of an
+unfunded account.
+
+### The GPU wall
+
+```
+$ gcloud compute project-info describe --project rbp-repro-2026
+  CPUS_ALL_REGIONS   limit 12    usage 0
+  GPUS_ALL_REGIONS   limit  0    usage 0
+```
+
+`GPUS_ALL_REGIONS` is the **aggregate** cap across every region, and it is zero. The regional
+quotas are more interesting than that number suggests, and they are why the wall is
+inescapable rather than merely inconvenient:
+
+| accelerator | regional limit (us-central1, us-west1) | usable? |
+|---|---|---|
+| NVIDIA V100 | 1, and 1 preemptible | **no** — the global cap is 0 and it binds |
+| NVIDIA T4 | 0, including preemptible and VWS | no |
+| NVIDIA L4 | not listed, i.e. 0 | no |
+| NVIDIA A100 | not listed, i.e. 0 | no |
+
+So the regional quota grants one V100 and the global quota forbids allocating it. An increase
+request is auto-denied with `NOT_ENOUGH_USAGE_HISTORY`, which is unsatisfiable by construction:
+usage history requires running GPUs, and running GPUs requires the quota.
+
+**Vertex AI does not route around it.** Its per-region allocation on this project is 1 vCPU,
+and the smallest machine type that accepts an accelerator needs more than that, so no GPU
+machine shape fits inside the CPU allowance. Two independent caps, both binding.
+
+### What that leaves
+
+CPU work has a real allowance — 12 vCPU globally — so the CPU-bound stages run on GCP Batch,
+which is what `cloud/submit_cpu_sweep.sh` is for. GPU work has none, at any price, so it goes
+to Modal, which has no quota gate.
+
+### The GPU cost, measured rather than quoted
+
+Modal A10G bills at $1.10/GPU-h. What the work actually costs was measured over the bias-aware
+arm's 940 recorded fold-runs, from the `seconds` field of each `metrics.json`:
+
+| model | $ per Mpair trained |
+|---|---|
+| CNN (7,089 parameters) | 14.58 |
+| SpliceBERT (19.78 M, fully fine-tuned) | 27.25 |
+
+SpliceBERT costs 1.87x the CNN per pair, which matters because a single blended rate was wrong
+by 2.6x in each direction: pricing a CNN sweep at the SpliceBERT rate quoted $11.47 for work
+that measured $2.47. `cloud/modal/modal_gc_sweep.py` therefore carries a per-model rate and
+refuses to estimate for a model it has no measurement for.
+
+The estimator was then tested on work it had not seen. The 20-dataset dinucleotide retrain was
+predicted at **$7.07** from these rates and billed **$6.99** over 6.35 GPU-h — 1% out.
+
+### Why this is the interesting artefact
+
+The accelerator choice was measured too, and it is not the obvious one. A10G is 1.98x a T4 for
+1.42x the price, so it wins on cost per unit work; an A100 measured only 2.89x an A10G, because
+a 20M-parameter model with a 101 nt input does not saturate one, so its ~4x price is wasted.
+The cheapest correct choice is the middle of the range, and that is only knowable by
+benchmarking rather than by reading a spec sheet.
+
+---
+
+## 2b. The two-cloud split, in diagrams
 
 ```mermaid
 flowchart LR

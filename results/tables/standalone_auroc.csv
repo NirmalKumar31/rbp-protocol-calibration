@@ -21,4 +21,8 @@ check,value,n,ci_low,ci_high,note
 models for which dinucleotide matching is the hardest,3.0,3,,,
 models for which the bias-aware arm is the easiest,2.0,3,,,by the model's OWN AUROC; by the composition baseline it is all 3
 "splicebert bias-aware minus GC, model alone",-0.0038782767284138986,94,,,
+"datasets where difficulty and contribution move oppositely, GC to dinucleotide",88.0,94,,,
+"spearman(delta model-alone, delta gain), GC to dinucleotide",0.3849655022938266,94,,,p=1.28e-04
+"datasets where difficulty and contribution move oppositely, GC to bias-aware",57.0,94,,,
+"spearman(delta model-alone, delta gain), GC to bias-aware",-0.2687642235306867,94,,,p=8.81e-03
 "model-alone AUROC drop, gc to dn",0.1102043014378804,94,,,lower in 94/94 datasets

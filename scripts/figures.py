@@ -170,7 +170,7 @@ def f0():
         a3 = arms[0]
         for key, col, lab in (("dn", COLOR["dinuc"], "dinucleotide-matched"),
                               ("gc", COLOR["gc"], "GC-matched"),
-                              ("neg2", "#7a5195", "neg2 (other RBPs' sites)")):
+                              ("neg2", COLOR["neg2"], "bias-aware")):
             v = a3[f"comp_{key}"]
             ax[2].hist(v, bins=np.linspace(0.5, 1.0, 26), histtype="step", linewidth=1.5,
                        color=col, label=f"{lab}  {v.mean():.3f}")
@@ -650,7 +650,7 @@ def f10():
         return
     d = t[0]
     arms = [("dn", "dinucleotide\nmatched"), ("gc", "GC\nmatched"),
-            ("neg2", "other RBPs'\nsites (neg2)")]
+            ("neg2", "bias-aware\n(other RBPs' sites)")]
     col = {"dn": COLOR["dinuc"], "gc": COLOR["gc"], "neg2": COLOR["neg2"]}
     # TWO PANELS, NOT THREE. The old panel b -- contribution against the composition baseline
     # over all 282 cells -- is the same plot as Figure 3a, which belongs to the subsection that
@@ -680,7 +680,7 @@ def f10():
     ax[1].scatter(d.gain_gc, d.gain_dn, s=12, color=COLOR["dinuc"], alpha=0.7,
                   edgecolor="white", linewidth=0.25, zorder=3, label="dinuc vs GC")
     ax[1].scatter(d.gain_gc, d.gain_neg2, s=12, color=COLOR["neg2"], alpha=0.7,
-                  edgecolor="white", linewidth=0.25, zorder=3, label="neg2 vs GC")
+                  edgecolor="white", linewidth=0.25, zorder=3, label="bias-aware vs GC")
     ax[1].set_xlim(lim)
     ax[1].set_ylim(lim)
     ax[1].set_xlabel("nested contribution, GC-matched")
@@ -766,8 +766,8 @@ def f12():
     # the panel that separates "the baseline does it" from "the protocol label does it".
     hi = (d.comp_neg2 > d.comp_gc).values
     labels, vals, los, his = [], [], [], []
-    for lab, key in (("neg2 raises\nthe baseline", "concordant"),
-                     ("neg2 LOWERS\nthe baseline", "discordant")):
+    for lab, key in (("bias-aware raises\nthe baseline", "concordant"),
+                     ("bias-aware LOWERS\nthe baseline", "discordant")):
         k = f"neg2 minus gc gain, {key} datasets"
         if k not in s.index:
             ax[1].axis("off")
@@ -789,7 +789,7 @@ def f12():
         ax[1].set_xticks(x)
         ax[1].set_xticklabels(labels, fontsize=8)
         ax[1].set_xlim(-0.5, len(vals) - 0.1)
-        ax[1].set_ylabel("neg2 minus GC, nested contribution")
+        ax[1].set_ylabel("bias-aware minus GC, nested contribution")
         ax[1].grid(axis="x", visible=False)
         ax[1].set_title("b  the deficit follows the baseline, not the label", loc="left",
                         fontsize=9)
@@ -931,7 +931,7 @@ def f15():
 
     # (a) in sample: rank agreement raw -> headroom, three protocol pairs.
     pairs = [("gc", "dn"), ("gc", "neg2"), ("dn", "neg2")]
-    labs = ["GC vs\ndinuc", "GC vs\nneg2", "dinuc vs\nneg2"]
+    labs = ["GC vs\ndinuc", "GC vs\nbias-aware", "dinuc vs\nbias-aware"]
     for i, (a, b) in enumerate(pairs):
         k1 = f"rank agreement, raw, {a} vs {b}"
         k2 = f"rank agreement, headroom, {a} vs {b}"

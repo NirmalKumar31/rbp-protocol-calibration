@@ -165,6 +165,31 @@ def main():
         print(f"  SpliceBERT bias-aware minus GC: "
               f"{alone['splicebert']['neg2'] - alone['splicebert']['gc']:+.4f}")
 
+    # B8's COUNTERPART ON OUR OWN DATA. horlacher_arm.py measures, per dataset, whether a
+    # change in the MODEL's own AUROC and the change in contribution point opposite ways. That
+    # is the title relation at the per-dataset level, and it was only ever reported here as a
+    # panel-mean ordering. Computed here for both of our protocol steps so the external
+    # comparison is like for like.
+    #
+    # THE SIGN AND THE MAGNITUDE SAY DIFFERENT THINGS, and both are emitted. The step from GC
+    # to dinucleotide matching moves the two oppositely in 88 of 94 datasets, but the
+    # correlation between HOW MUCH difficulty rose and HOW MUCH contribution rose is POSITIVE.
+    # The inversion is a statement about direction, not about covarying magnitudes, and a
+    # reader is entitled to know that the paper is not claiming the second.
+    for src, tgt, lab in (("gc", "dn", "GC to dinucleotide"),
+                          ("gc", "neg2", "GC to bias-aware")):
+        da = mm.loc[ix, f"auroc_{tgt}"] - mm.loc[ix, f"auroc_{src}"]
+        dg = (three.set_index("dataset").loc[ix, f"gain_{tgt}"]
+              - three.set_index("dataset").loc[ix, f"gain_{src}"])
+        rr, pp = spearmanr(da, dg)
+        opp = int(((da < 0) & (dg > 0)).sum() + ((da > 0) & (dg < 0)).sum())
+        out += [{"check": f"datasets where difficulty and contribution move oppositely, {lab}",
+                 "value": opp, "n": len(ix)},
+                {"check": f"spearman(delta model-alone, delta gain), {lab}",
+                 "value": float(rr), "n": len(ix), "note": f"p={pp:.2e}"}]
+        print(f"  {lab:22} opposite in {opp}/{len(ix)}   "
+              f"spearman {rr:+.3f} (p={pp:.2e})")
+
     drop = float(m.auroc_gc.mean() - m.auroc_dn.mean())
     out.append({"check": "model-alone AUROC drop, gc to dn", "value": drop, "n": len(m),
                 "note": f"lower in {int((m.auroc_dn < m.auroc_gc).sum())}/{len(m)} datasets"})

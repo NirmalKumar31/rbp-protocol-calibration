@@ -43,6 +43,8 @@ from scipy.stats import spearmanr
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from sklearn.metrics import roc_auc_score  # noqa: E402
+
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
 
@@ -136,6 +138,12 @@ def main():
                 rec[f"full_{tag}"] = g.auroc_with_score
                 rec[f"gain_{tag}"] = g.delta
                 rec[f"n_{tag}"] = g.n
+                # B8. THE MODEL'S OWN AUROC, which this table did not carry and which is the
+                # quantity the title relation is DEFINED on. Without it, "difficulty" on their
+                # benchmark was read off the composition baseline while ours was read off
+                # model-alone AUROC, so the external test compared two different relations and
+                # its non-replication could not be interpreted. One roc_auc_score call.
+                rec[f"alone_{tag}"] = float(roc_auc_score(d.label.values[m], sc[m]))
             if ok:
                 rows.append(rec)
                 log(f"[{i:3d}/{len(sub)}] {r.dataset:18s} "
@@ -203,6 +211,38 @@ def main():
                 f"gain diff {dg.values[m].mean():+.4f}")
     log("  -> the gradient replicates; the SIGN does not reverse, so on their benchmark the")
     log("     protocol label carries information beyond the baseline. R1n is limited, not lost.")
+
+    # B8. THE TITLE RELATION, ON THE QUANTITY IT IS ACTUALLY DEFINED ON.
+    #
+    # Everything above measures difficulty by the COMPOSITION baseline, because this table had
+    # no model-alone column. Our own claim is about the MODEL's own AUROC. So the external
+    # "non-replication" compared two different relations, and could not have been evidence
+    # either way. With alone_n1 and alone_n2 the comparison is finally like for like: which of
+    # their two arms is harder for the 4-mer, and does the harder one yield more?
+    if {"alone_n1", "alone_n2"} <= set(t.columns):
+        for tag, name in (("n1", "negative-1"), ("n2", "negative-2")):
+            add(f"model alone, {name}", t[f"alone_{tag}"])
+        harder_n2 = int((t.alone_n2 < t.alone_n1).sum())
+        out.append({"check": "datasets where negative-2 is HARDER for the 4-mer",
+                    "value": harder_n2, "ci_low": np.nan, "ci_high": np.nan, "n": len(t)})
+        # The inversion, per dataset: harder by the model's own AUROC AND a larger
+        # contribution. Ours holds this way in 88 of 94 for the GC-to-dinucleotide step.
+        da, dg2 = t.alone_n2 - t.alone_n1, t.gain_n2 - t.gain_n1
+        inv = int(((da < 0) & (dg2 > 0)).sum() + ((da > 0) & (dg2 < 0)).sum())
+        ra, pa = spearmanr(da, dg2)
+        out += [{"check": "datasets where difficulty and contribution move OPPOSITELY, "
+                          "model-alone axis, their data",
+                 "value": inv, "ci_low": np.nan, "ci_high": np.nan, "n": len(t)},
+                {"check": "within-dataset spearman(delta model-alone, delta gain), their data",
+                 "value": float(ra), "ci_low": np.nan, "ci_high": np.nan, "n": len(t),
+                 "note": f"p={pa:.2e}; POSITIVE means they move together"}]
+        log("\n  B8, the relation on the model-alone axis (the one the title is about):")
+        log(f"    model alone   negative-1 {t.alone_n1.mean():.4f}   "
+            f"negative-2 {t.alone_n2.mean():.4f}")
+        log(f"    negative-2 harder for the 4-mer in {harder_n2}/{len(t)} datasets")
+        log(f"    opposite movement in {inv}/{len(t)};  spearman {ra:+.3f} (p={pa:.2e})")
+        log("    a POSITIVE spearman here means difficulty and contribution move TOGETHER on")
+        log("    their benchmark, which is the non-replication -- now measured on our own axis.")
 
     pd.DataFrame(out).to_csv(TABLES / "horlacher_arm.csv", index=False)
     log("\nwrote horlacher_arm.csv and horlacher_per_dataset.csv")
