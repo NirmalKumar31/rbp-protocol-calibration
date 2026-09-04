@@ -15,6 +15,10 @@ clean_median_pairs,2184,median pairs over the datasets that were not retrained
 encode_candidate_experiments_K562,139,distinct experiments in config/panel_full.tsv
 encode_candidate_experiments_HepG2,105,distinct experiments in config/panel_full_HepG2.tsv
 eligible_datasets,189,rows of config/panel_final_HepG2_dinuc.tsv + config/panel_final_K562_dinuc.tsv
+pairs_dn_arm,457998,sum of pairs over match_quality_per_dataset.csv
+pairs_gc_arm,456734,sum of pairs over match_quality_per_dataset.csv
+pairs_neg2_arm,456734,sum of pairs over match_quality_per_dataset.csv
+pairs_dn_minus_gc,1264,"difference of those two sums, the arms' retained-positive gap"
 verify_assertions,706,written by scripts/verify.py
 verify_assertions_passed,706,written by scripts/verify.py
 verify_domain_checks,705,written by scripts/verify.py

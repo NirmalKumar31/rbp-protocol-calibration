@@ -127,6 +127,18 @@ def main():
         add("eligible_datasets", n,
             "rows of " + " + ".join(f"config/{q.name}" for q in elig))
 
+    # Per-arm pair totals and the gap between them. A column SUM is in the float haystack but
+    # a difference of two sums is not, and the 1,264-pair gap between the dinucleotide arm and
+    # the other two is a number the Methods has to account for.
+    mq = ROOT / "results" / "tables" / "match_quality_per_dataset.csv"
+    if mq.exists():
+        t = pd.read_csv(mq).groupby("arm").pairs.sum()
+        for a, v in t.items():
+            add(f"pairs_{a}_arm", v, "sum of pairs over match_quality_per_dataset.csv")
+        if {"dn", "gc"} <= set(t.index):
+            add("pairs_dn_minus_gc", t["dn"] - t["gc"],
+                "difference of those two sums, the arms' retained-positive gap")
+
     # What verify.py actually ran, recorded by verify.py rather than transcribed from its
     # console output, so a manuscript claiming a coverage it no longer has fails the audit.
     vs = ROOT / "results" / "tables" / "verify_summary.csv"

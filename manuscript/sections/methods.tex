@@ -114,16 +114,18 @@ bias-aware arms and 457{,}998 in the dinucleotide arm (Table~\ref{tab:match}).
 \begin{table}[htbp]
 \centering
 \caption{Achieved match quality between each positive and its assigned negative, all pairs.
-Columns two to five describe the absolute GC difference between the pair; $L_1$ is over the
-sixteen dinucleotide frequencies, on a 0 to 2 scale.}
+Columns three to six describe the absolute GC difference between the pair; $L_1$ is over the
+sixteen dinucleotide frequencies, on a 0 to 2 scale. The 0.05 column is a common yardstick and
+is the GC matcher's nominal tolerance; the dinucleotide matcher has no GC tolerance to hold.}
 \label{tab:match}
-\begin{tabular}{lcccccc}
+\small
+\begin{tabular}{lrcccccc}
 \toprule
-arm & med.\ $|\Delta$GC$|$ & p90 & p99 & max & within 0.05 & med.\ $L_1$ \\
+arm & pairs & med.\ $|\Delta$GC$|$ & p90 & p99 & max & $|\Delta$GC$|\le0.05$ & med.\ $L_1$ \\
 \midrule
-GC-matched & 0.0297 & 0.0495 & 0.1089 & 0.1486 & 94.8\% & 0.500 \\
-dinucleotide-matched & 0.0198 & 0.0693 & 0.1485 & 0.4159 & 85.0\% & 0.220 \\
-bias-aware & 0.1387 & 0.3169 & 0.4555 & 0.6733 & 20.4\% & 0.700 \\
+GC-matched & 456{,}734 & 0.0297 & 0.0495 & 0.1089 & 0.1486 & 94.8\% & 0.500 \\
+dinucleotide-matched & 457{,}998 & 0.0198 & 0.0693 & 0.1485 & 0.4159 & 85.0\% & 0.220 \\
+bias-aware & 456{,}734 & 0.1387 & 0.3169 & 0.4555 & 0.6733 & 20.4\% & 0.700 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -133,6 +135,25 @@ The GC matcher holds its nominal tolerance for 94.8\% of pairs and its observed 
 of 0.220 rather than zero: the matcher improves composition distance 2.27-fold relative to the
 GC arm but does not eliminate it. The bias-aware arm is not composition-matched at all, with a
 median GC gap 4.7 times the GC arm's.
+
+The dinucleotide arm matches GC better than the GC arm does at the median, 0.0198 against
+0.0297, and worse in the tail, a maximum of 0.4159 against 0.1486 and 85.0\% within 0.05
+against 94.8\%. Both follow from the two matchers' objectives and neither is an error. GC
+content is very nearly a linear functional of the sixteen dinucleotide counts, so a
+nearest-neighbour search that minimises $L_1$ over all sixteen pins GC incidentally and tightly
+for a typical pair, whereas the GC matcher performs a tolerance test and accepts the first
+candidate inside it, leaving the achieved gap spread over the whole acceptance interval rather
+than driven to zero. The tails invert for the complementary reason: the GC matcher imposes a
+hard cap and so cannot exceed 0.15, while the dinucleotide matcher imposes no maximum distance
+and assigns greedily, so a positive reached late in its group, once the nearby candidates are
+used, takes the nearest remaining one however far away that is. The two arms therefore differ
+in which moment of the GC distribution they control, and the asymmetry the design rests on is
+in the degrees of freedom each protocol constrains, not in which achieves the smaller GC gap.
+
+The pair counts differ by 1{,}264 between the dinucleotide arm and the other two. A positive is
+retained only when its matcher finds an acceptable negative, the two matchers fail on different
+windows, and the bias-aware arm inherits the GC arm's retained set; the resulting overlap
+between the composition-matched arms is quantified in the Limitations.
 
 \subsection{Cross-validation}
 
