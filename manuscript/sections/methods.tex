@@ -81,7 +81,9 @@ sampled 1:1 without replacement, excluding any donor window within 500~nt of any
 own positive windows. Our version deviates from \citet{horlacher2023} in two ways: our donor
 pool is the study panel (40 to 48 donor proteins per dataset, median 45) and not a full
 ENCODE survey, and exclusion is by distance from the target's 101~nt windows, not from its
-full peak intervals. Sampling is performed within fold, so every pair stays inside one
+full peak intervals. Both the donor pool and the target's positives are read from the GC arm's
+window tables, so this arm inherits the GC matcher's retained positive set and its pair count is
+identical to that arm's. Sampling is performed within fold, so every pair stays inside one
 cross-validation fold. These negatives are transcribed, accessible to crosslinking and
 strand-correct by construction, and are not composition-matched in any respect.
 
@@ -179,7 +181,11 @@ The nested contribution of a model is
 \end{equation*}
 Both terms were fitted by $L_2$-penalised logistic regression ($C=1$, lbfgs, at most 3000
 iterations), once per fold on that fold's training rows, and evaluated as pooled out-of-fold
-linear predictors on identical rows and folds. The two were compared by DeLong's paired
+linear predictors on identical rows and folds. The model-score column is the out-of-fold score
+for every row, training rows included, so the nested model is never fitted on an in-sample
+score; had it been, the fitted and evaluated covariate would sit on different scales and the
+mismatch would grow with how much the underlying model overfits, which differs sharply between
+a 256-column penalised logistic and a fully fine-tuned transformer. The two were compared by DeLong's paired
 estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired
 estimator is necessary here because the two score vectors are fitted on overlapping training
 data and evaluated on identical rows, so they are strongly correlated and treating them as

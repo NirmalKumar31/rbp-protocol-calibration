@@ -10,7 +10,8 @@ Figure~\ref{fig:three}).
 nested contribution, under three negative-set protocols. The nested contribution is the
 composition-plus-4-mer column minus the composition-alone
 column by construction. The 4-mer's own AUROC is what a study would report as its headline.
-Model, positives, folds and estimator are identical across arms; $n=94$ datasets.}
+Model, folds and estimator are identical across arms; positives are identical in 10 of 94
+datasets and share a median Jaccard of 0.997, as the Limitations set out. $n=94$ datasets.}
 \label{tab:three}
 \small
 \begin{tabular}{lcccc}
@@ -29,7 +30,8 @@ datasets (paired Wilcoxon $p<10^{-15}$), from 0.7981 to 0.6879, while raising th
 contribution from $+0.0265$ to $+0.0663$. The contrast in contribution was $+0.0398$ ($95\%$ CI
 $+0.0325$ to $+0.0477$, protein-clustered; positive in 88 of 94 datasets). Evaluated by its own
 AUROC the model appears to have deteriorated; evaluated by contribution it appears to have
-improved almost threefold. Across the three arms the contribution spanned 5.42-fold ($95\%$ CI
+improved by a factor of 2.50 in panel means, or 2.94 as the geometric mean of the 88
+per-dataset ratios that are defined. Across the three arms the contribution spanned 5.42-fold ($95\%$ CI
 4.43 to 6.58, protein-clustered).
 
 The bias-aware protocol did not behave as we predicted. Because both classes are genuine
@@ -238,7 +240,7 @@ differs by a factor of 1.22 between model classes measured on the same benchmark
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\textwidth]{figures/f11_scale_sweep}
-\caption{Fold span in nested contribution across the three protocols under eight monotone reparameterisations of the same 282 protocol-dataset cells. Points are the span and bars are 95\% percentile intervals from a bootstrap over the 79 proteins (4000 draws); the dashed line marks protocol independence. Somers' $D$ is an affine map of AUROC and returns the raw value by construction, serving as an internal control. The smallest span, 2.00 (1.67--2.46), is obtained by dividing by the headroom of the baseline.}
+\caption{Fold span in nested contribution across the three protocols under eight monotone rescalings of the same 282 protocol-dataset cells. Seven of the eight are shown; normalising by the excess over chance is omitted because its span of 18.2 is off scale. Points are the span and bars are 95\% percentile intervals from a bootstrap over the 79 proteins (4000 draws); the dashed line marks protocol independence. Somers' $D$ is an affine map of AUROC and returns the raw value by construction, serving as an internal control. The smallest span, 2.00 (1.67--2.46), is obtained by dividing by the headroom of the baseline.}
 \label{fig:scale}
 \end{figure}
 
@@ -377,7 +379,12 @@ three model classes themselves span 2.65-fold (dinucleotide), 3.36-fold (GC) and
 (bias-aware), which is the like-for-like comparison: the protocol effect is of the same order as
 the effect of changing model class, not larger than it. The two-arm contrast was
 $+0.0398$ (CI $+0.0325$ to $+0.0477$) for the 4-mer, $+0.0530$ (CI $+0.0440$ to $+0.0627$) for
-the convolutional network and $+0.0864$ (CI $+0.0778$ to $+0.0951$) for SpliceBERT. On the ratio
+the convolutional network and $+0.0864$ (CI $+0.0778$ to $+0.0951$) for SpliceBERT. The bias-aware arm also reorders two of the three model classes: the 4-mer's $+0.0122$ there
+exceeds the convolutional network's $+0.0113$, where the network is ahead of it in both other
+arms. The difference is $+0.0010$ with a protein-clustered interval of $-0.0016$ to $+0.0034$,
+so what the protocol does is not so much reverse the ranking as destroy it, leaving two model
+classes that the other two protocols separate confidently indistinguishable. Ranking methods is
+what a benchmark is for, so this is the most direct cost we can show. On the ratio
 scale the ordering reverses, with multipliers of 3.08, 3.51 and 2.38 (geometric mean over the 77
 datasets positive in both arms for all three models), so the contrast does not increase along this ladder. The three classes differ in
 architecture, receptive field, pretraining and parameter count at once, so this is evidence
