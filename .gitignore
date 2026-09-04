@@ -47,3 +47,4 @@ manuscript/*.synctex.gz
 # Build artefacts that were tracked by accident
 *.egg-info/
 cloud/terraform/.killswitch.zip
+.DS_Store
