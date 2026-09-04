@@ -183,12 +183,15 @@ AUROC is compressive near unity, so a contribution measured against a baseline o
 arithmetically smaller than the same contribution measured against 0.63, and part of the
 5.42-fold span comes from the scale itself (Figure~\ref{fig:scale}).
 
-We compared eight rescalings of the same 282 protocol-dataset cells. Seven are monotone
-transformations of the contribution itself; the eighth, division by the baseline's headroom, is
-not a transformation of the contribution at all but a normalisation by a second quantity, and it
-is kept in the same comparison because it is what a reader would reach for. The span was reduced
-but not eliminated by any of them. Somers' $D$ \citep{somers1962}, an affine map of AUROC, returns
-5.42 by construction and serves as an internal control. Links that stretch the upper tail
+We compared eight rescalings of the same 282 protocol-dataset cells, and they are of two kinds.
+Six take the increment on a transformed AUROC scale: the raw difference, Somers' $D$
+\citep{somers1962}, the binormal $d'$, and the logit, arcsine and complementary log-log links.
+Two are not transformations of the contribution at all but normalisations of it by a
+baseline-dependent quantity, namely division by the headroom $1-c$ and by the excess over
+chance $c-0.5$. Both are kept in the comparison because they are what a reader reaches for.
+Five of the eight reduced the span without closing it, two are controls that return the raw
+span by construction, and one increased it. Somers' $D$ is an affine map of AUROC and so
+returns 5.42 exactly, alongside the raw difference, which is the reference. Links that stretch the upper tail
 reduced the span in proportion to how far they stretch it: arcsine 3.99, complementary log-log
 3.94, binormal $d'$ 3.18, logit 2.72. The smallest span, 2.00 (CI 1.67 to 2.46), was obtained by
 dividing the contribution by the headroom of its own baseline, $1$ minus the composition AUROC.
@@ -202,28 +205,44 @@ pairing gave a null distribution with median 1.064 and 95th percentile 1.175, so
 span lies outside what sampling alone produces.
 
 Division by headroom belongs to a family of baseline-dependent normalisations, the $p=1$ member
-of
-$g/(1-c)^{p}$, where $g$ is the contribution and $c$ the composition AUROC, and the minimum of
-the sweep above falls on the $p=1$ member. Over the family the span falls to 1.004 at $p=1.544$
-(Table~\ref{tab:exponent}), so a monotone rescaling that equalises these three protocols does
-exist.
+of $g/(1-c)^{p}$, where $g$ is the contribution and $c$ the composition AUROC, and the minimum
+of the sweep above falls on the $p=1$ member. Over the family the span falls to 1.004 at
+$p=1.544$ (Table~\ref{tab:exponent}, first row), which reads as an exponent that equalises the
+three protocols. We retract that reading. It does not survive the choice of aggregation, and the
+reason is the denominator.
+
+Every span in this paper aggregates by taking, for each arm, the mean over datasets of that
+dataset's ratio, and then the largest of the three arm means over the smallest. When $p=0$ the
+ratio is just the contribution and the aggregation is innocuous. As $p$ grows it is not, because
+$1-c$ is small on many cells: it reaches 0.0267 in the bias-aware arm and 0.0335 in the GC arm,
+62 of the 282 cells fall below 0.15 and 10 below 0.05, so a mean of $g/(1-c)^{p}$ is dominated
+by a handful of high-baseline datasets, and increasingly so with $p$. Aggregating in any way
+that is not a mean of a ratio removes the effect. The median of the per-dataset ratios bottoms
+out at 1.238 at $p=2.17$, and the ratio of the panel means, $\overline{g}$ over
+$\overline{(1-c)^{p}}$, at 1.278 at $p=2.64$. Neither approaches unity anywhere in the family.
+The equalising exponent is therefore a property of one aggregation interacting with a near-zero
+denominator, not a coordinate in which these three protocols agree.
 
 \begin{table}[htbp]
 \centering
 \caption{Fold span across the three protocols for $g/(1-c)^{p}$, where $g$ is the nested
-contribution and $c$ the composition-only AUROC. An exponent that equalises the three protocols
-exists in sample.}
+contribution and $c$ the composition-only AUROC, under three ways of aggregating the same 282
+cells. Only the mean of per-dataset ratios, the aggregation used throughout this paper,
+approaches unity; it is also the one a denominator of 0.027 can dominate. The final column is
+the minimum over $p$ on $[0, 6]$ and the exponent attaining it.}
 \label{tab:exponent}
-\begin{tabular}{lccccccc}
+\begin{tabular}{lccccccccc}
 \toprule
-$p$ & 0 & 0.5 & 1.0 & 1.25 & 1.544 & 1.75 & 2.0 \\
+$p$ & 0 & 0.5 & 1.0 & 1.25 & 1.544 & 1.75 & 2.0 & min & at $p$ \\
 \midrule
-span & 5.42 & 3.43 & 2.00 & 1.48 & 1.004 & 1.34 & 1.95 \\
+mean of ratios    & 5.42 & 3.43 & 2.00 & 1.48 & 1.004 & 1.34 & 1.95 & 1.004 & 1.54 \\
+median of ratios  & 5.09 & 3.92 & 2.61 & 2.34 & 1.70 & 1.37 & 1.29 & 1.238 & 2.17 \\
+ratio of means    & 5.42 & 3.62 & 2.55 & 2.17 & 1.82 & 1.61 & 1.44 & 1.278 & 2.64 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-That exponent describes this benchmark only. Fitted to the two
+Even taken at face value the exponent describes this benchmark only. Fitted to the two
 negative sets of \citet{horlacher2023} the equalising exponent is 3.649, and our exponent leaves
 their benchmark at 2.340 against the 2.381 it started from. A normalisation strong enough to
 equalise one benchmark therefore has to be refitted on the next.

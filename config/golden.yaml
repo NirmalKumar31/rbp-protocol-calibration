@@ -1339,7 +1339,7 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 700
+  min_domain_checks: 705
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1901,6 +1901,16 @@ r1u_transport:
   #     ever finds the two benchmarks agreeing on an exponent, the claim must be restated.
   #  3. The external falsification must be reported whichever way it points.
   in_sample_exponent_must_be_reported: true
+  # THE OTHER HALF OF THE SAME FACT. The exponent closes the span only under a mean of
+  # per-dataset ratios, which a headroom of 0.0267 can dominate. Under the median and under the
+  # ratio of panel means it never approaches 1. Gate both directions so neither the awkward
+  # in-sample minimum nor its explanation can be dropped.
+  min_span_median:            {value: 1.238, tol: 0.05}
+  min_span_ratio_of_means:    {value: 1.278, tol: 0.06}
+  min_headroom:               {value: 0.0267, tol: 0.004}
+  min_cells_below_headroom_015: 50
+  min_span_under_robust_aggregation: 1.15
+  aggregation_artefact_must_hold: true
   min_exponent_ratio: 1.8
   external_falsification_must_be_reported: true
 

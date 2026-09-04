@@ -62,8 +62,73 @@ def log(m):
 
 
 def fold_range(d, arms, p):
+    """The published aggregation: mean over datasets of the per-dataset ratio, then max/min.
+
+    KEEP THIS AS IT IS. It is the quantity every published span refers to and changing it
+    silently would move a headline. What it hides is measured in aggregation_sweep() below.
+    """
     m = [(d[f"gain_{a}"] / np.power(1 - d[f"comp_{a}"], p)).mean() for a in arms]
     return max(m) / min(m) if min(m) > 0 else np.inf
+
+
+def fold_range_median(d, arms, p):
+    """Median of the per-dataset ratio instead of its mean."""
+    m = [(d[f"gain_{a}"] / np.power(1 - d[f"comp_{a}"], p)).median() for a in arms]
+    return max(m) / min(m) if min(m) > 0 else np.inf
+
+
+def fold_range_of_means(d, arms, p):
+    """Ratio of panel means: mean(g) over mean((1-c)^p), never a mean of a ratio."""
+    m = [d[f"gain_{a}"].mean() / np.power(1 - d[f"comp_{a}"], p).mean() for a in arms]
+    return max(m) / min(m) if min(m) > 0 else np.inf
+
+
+AGGS = (("mean of per-dataset ratios", fold_range),
+        ("median of per-dataset ratios", fold_range_median),
+        ("ratio of panel means", fold_range_of_means))
+
+
+def aggregation_sweep(d, arms, out):
+    """DOES THE EQUALISING EXPONENT SURVIVE THE CHOICE OF AGGREGATION? It does not.
+
+    g/(1-c)^p is a RATIO, and 1-c reaches 0.0267 on this panel with 62 of 282 cells below
+    0.15, so a handful of cells dominate any mean of that ratio. The published span is such a
+    mean. Under it the span touches 1.004 at p = 1.544, which the paper read as an equalising
+    exponent existing in sample. Under either aggregation that is not a mean of a ratio it
+    never approaches 1: the median bottoms out at 1.24 and the ratio of panel means at 1.28.
+    The exponent that equalises the three protocols is therefore an artefact of one
+    aggregation interacting with a near-zero denominator, and the paper now says so.
+    """
+    log("\n=== 1b. is the equalising exponent an artefact of the aggregation? ===\n")
+    log(f"  {'p':>7}  " + "  ".join(f"{n:>28}" for n, _ in AGGS))
+    for pw in (0.0, 0.5, 1.0, 1.25, 1.544, 1.75, 2.0):
+        vals = [fn(d, arms, pw) for _, fn in AGGS]
+        log(f"  {pw:7.3f}  " + "  ".join(f"{v:28.3f}" for v in vals))
+        for (name, _), v in zip(AGGS, vals, strict=True):
+            out.append({"check": f"span at p={pw:g}, {name}", "value": float(v)})
+
+    log("")
+    for name, fn in AGGS:
+        # fn bound as a default: a late-binding closure over the loop variable happens to
+        # work here only because minimize_scalar is called at once, and that is not a
+        # property to rely on.
+        r = minimize_scalar(lambda pw, fn=fn: fn(d, arms, pw), bounds=(0.0, 6.0),
+                            method="bounded")
+        out += [{"check": f"minimum span over p, {name}", "value": float(r.fun)},
+                {"check": f"exponent at minimum span, {name}", "value": float(r.x)}]
+        log(f"  {name:30s} minimum {r.fun:.4f} at p = {r.x:.3f}")
+
+    # THE DENOMINATOR, because that is the whole mechanism.
+    h = np.concatenate([1 - d[f"comp_{a}"] for a in arms])
+    out += [{"check": "min headroom 1-c over all cells", "value": float(h.min())},
+            {"check": "cells with headroom below 0.15", "value": int((h < 0.15).sum())},
+            {"check": "cells with headroom below 0.05", "value": int((h < 0.05).sum())},
+            {"check": "cells in the headroom distribution", "value": int(len(h))}]
+    for a in arms:
+        out.append({"check": f"min headroom 1-c, {a} arm",
+                    "value": float((1 - d[f"comp_{a}"]).min())})
+    log(f"\n  headroom 1-c: min {h.min():.4f}, {int((h < 0.15).sum())} of {len(h)} cells "
+        f"below 0.15, {int((h < 0.05).sum())} below 0.05")
 
 
 def main():
@@ -79,9 +144,11 @@ def main():
         log(f"  {p:6.2f} {fold_range(d, OURS, p):11.3f}")
     r = minimize_scalar(lambda p: fold_range(d, OURS, p), bounds=(0.2, 3.0), method="bounded")
     p_ours, min_ours = float(r.x), float(r.fun)
-    out += [{"check": "fold range at the headroom coordinate, p = 1", "value": fold_range(d, OURS, 1.0)},
+    out += [{"check": "fold range at the headroom coordinate, p = 1",
+             "value": fold_range(d, OURS, 1.0)},
             {"check": "equalising exponent on our protocols", "value": p_ours},
             {"check": "fold range at our equalising exponent", "value": min_ours}]
+    aggregation_sweep(d, OURS, out)
     log(f"\n  ARGMIN p = {p_ours:.3f} gives {min_ours:.4f}x -- a protocol-free coordinate")
     log("  EXISTS in sample, so 'no rescaling recovers one' is FALSE as worded.")
 

@@ -2048,6 +2048,35 @@ def verify_transport(T, g):
                             "paper cannot claim that no rescaling reaches a protocol-free "
                             "quantity", f"{v:.3f}x at p = 1.544", "< 1.1x")
 
+    # 1b. AND IT MUST BE SHOWN TO BE AN AGGREGATION ARTEFACT. g/(1-c)^p is a ratio and 1-c
+    # reaches 0.0267 here, so a MEAN of that ratio is dominated by a few high-baseline cells
+    # and increasingly so with p. That mean is the published aggregation and it is the only one
+    # that touches 1. Both halves are gated: the mean-of-ratios minimum must still fall below
+    # 1.1, so the inconvenient in-sample fact cannot be suppressed, AND the two aggregations
+    # that are not a mean of a ratio must stay clear of 1, which is what makes it an artefact
+    # rather than a coordinate. If they ever converge, the retraction has to be revisited.
+    mean_min = must("minimum span over p, mean of per-dataset ratios")
+    med_min = must("minimum span over p, median of per-dataset ratios")
+    rom_min = must("minimum span over p, ratio of panel means")
+    for label, key in (
+            ("minimum span over p, median of per-dataset ratios", spec["min_span_median"]),
+            ("minimum span over p, ratio of panel means", spec["min_span_ratio_of_means"]),
+            ("min headroom 1-c over all cells", spec["min_headroom"])):
+        v = must(label)
+        if v is not None:
+            near(label, v, key)
+    n_low = must("cells with headroom below 0.15")
+    if n_low is not None:
+        at_least("cells whose headroom is small enough to dominate a mean of a ratio",
+                 int(n_low), spec["min_cells_below_headroom_015"])
+    if None not in (mean_min, med_min, rom_min) and spec["aggregation_artefact_must_hold"]:
+        floor = spec["min_span_under_robust_aggregation"]
+        record(mean_min < 1.1 and med_min > floor and rom_min > floor,
+               "the equalising exponent closes the span ONLY under a mean of ratios, so it is "
+               "an aggregation artefact and the paper's retraction stands",
+               f"mean {mean_min:.3f}, median {med_min:.3f}, ratio-of-means {rom_min:.3f}",
+               f"mean < 1.1 and both others > {floor}")
+
     # 2. AND IT MUST NOT TRANSPORT. This is now the paper's claim, so it is the thing that has
     # to be checked -- not a floor.
     pa, pt = must("equalising exponent on our protocols"), \

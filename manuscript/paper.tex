@@ -1,4 +1,4 @@
-% Apparent difficulty and measured model contribution move in opposite directions
+% Negative-set construction moves measured model contribution more than five-fold
 % bioRxiv preprint. Subject area Bioinformatics. Type New Results. Licence CC BY 4.0.
 %
 % Build:  pdflatex paper && pdflatex paper      (no bibtex; references are a thebibliography)
@@ -45,9 +45,13 @@
 \tolerance=1500
 \emergencystretch=2em
 
-\title{\bfseries Apparent difficulty and measured model contribution move in opposite
-directions: a three-protocol calibration of negative-set construction across 94 ENCODE eCLIP
-datasets}
+% THE TITLE LEADS WITH WHAT SURVIVES. It used to assert that apparent difficulty and measured
+% contribution move in opposite directions, which is the one headline relation the Limitations
+% report failing to replicate on the external benchmark. The five-fold span holds for all three
+% model classes and both composition-matched arms; the inverse direction keeps its place in the
+% abstract, with its non-replication attached.
+\title{\bfseries Negative-set construction moves measured model contribution more than
+five-fold: a three-protocol calibration across 94 ENCODE eCLIP datasets}
 
 \author{Nirmalkumar Thirupallikrishnan Kesavan\\[2pt]
 \normalsize Northeastern University, Boston, MA, USA\\
@@ -72,11 +76,12 @@ contribution from 0.027 to 0.066. A bias-aware protocol drawing negatives from o
 discrimination of the three and the smallest contribution, 0.012.
 Apparent difficulty and measured contribution therefore move in opposite directions
 throughout this panel, spanning 5.4-fold for a 4-mer and between 3.8 and 7.6-fold across three model
-classes measured on identical rows; on the one independent benchmark we tested they move
-together, so the direction is a property of these three protocols and not a general law. Eight
-standard monotone reparameterisations reduced the 4-mer's span to a floor of 2.0
-without closing it, and an exponent fitted to close it did not transport to an independent
-benchmark. Dividing by the baseline's headroom improved cross-protocol agreement on our own
+classes measured on identical rows; on the one externally constructed benchmark we tested they
+move together, so the direction is a property of these three protocols and not a general law.
+Of eight standard coordinates, five reduced the 4-mer's span without closing it, reaching a
+floor of 2.0, two are controls that return the raw span by construction, and one increased it
+more than threefold; an exponent fitted to close the span survived neither a change of
+aggregation nor transport to that benchmark. Dividing by the baseline's headroom improved cross-protocol agreement on our own
 data but failed, out of sample, the falsification test we had specified for it in advance. We
 therefore recommend reporting the composition-only AUROC obtained under the same protocol
 alongside every headline AUROC, and not comparing contributions measured under different
@@ -109,7 +114,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 reproducible offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 701 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 706 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. One quantity is an exception and is marked as such in the text: the design effect, whose
 block bootstrap needs the genomic coordinates that the published per-window score files do not

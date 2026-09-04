@@ -52,13 +52,17 @@ pooled relation is null. What we take from this subsection is therefore the grad
 which the evidence is strong, and not a taxonomy of protocols built on top of it.
 
 Protocol dependence can be reduced by fitting a transformation but not by choosing one from
-among the standard set. Eight standard reparameterisations reduced the span without closing it,
-and the smallest of them, division by the baseline's headroom, is the pair of AUROCs we recommend
-reporting, expressed as a single number. An exponent that closes the span does exist, but it
-does not transport. The exponent fitted to
-our three protocols leaves an independent benchmark essentially where it started; the exponent
-fitted to that benchmark is 2.4 times ours; and the exponent differs by a factor of 1.22
-between model classes measured on the same data. This is
+among the standard set. Of the eight coordinates we compared, five reduced the span without
+closing it, two are controls that return the raw span by construction, and one increased it more
+than threefold. The smallest of the five, division by the baseline's headroom, is a
+normalisation rather than a transformation of the contribution, and is the pair of AUROCs we
+recommend reporting expressed as a single number. An exponent that closes the span appears
+to exist and does not survive inspection: it closes only under the one aggregation that a
+near-zero headroom can dominate, and under two aggregations that cannot it never approaches
+unity. Nor does it transport. The exponent fitted to our three protocols leaves an externally
+constructed benchmark essentially where it started; the exponent fitted to that benchmark is
+2.4 times ours; and the exponent differs by a factor of 1.22 between model classes measured on
+the same data. This is
 the sense in which no protocol-free measure of contribution is available. The obstacle is not
 that no transformation works but that a transformation which works has to be refitted for each
 measurement, which is precisely what a comparable quantity cannot require.
@@ -181,7 +185,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 701 assertions compare each published value against a frozen
+credit than it earns. Its 706 assertions compare each published value against a frozen
 expectations file that was generated from the same run those values come from. They are
 therefore regression coverage: they detect drift, corruption and silently skipped checks, and
 they cannot independently confirm that the original run was correct. The two assertions that do
@@ -194,7 +198,7 @@ because initialisation was unseeded, so a reader who reruns the sweep will obtai
 different scores and then identical numbers from every step after them. The harness also asserts
 values and not the provenance of the code that produced them, and the fold-partition defect
 above is of exactly the class that distinction permits: it was identified by inspection and by
-none of the 701 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
+none of the 706 assertions, as was the region asymmetry of Section~\ref{sec:region}. Its
 manuscript audit traces every number in this text,
 decimal values and bare counts alike, to a committed table, a configuration value or a
 constructed object, and no unsourced number remains. Two limits are worth stating. The audit
