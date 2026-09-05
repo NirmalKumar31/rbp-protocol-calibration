@@ -1,0 +1,16 @@
+check,value,n,ci_low,ci_high,note
+datasets,94.0,94,,,
+"order-2 noise floor, gc arm",0.011862218628239761,94,0.008710116393159746,0.015452109469160468,true value is zero by construction
+"floor as a fraction of the published contribution, gc arm",0.4476308916316891,94,,,
+"datasets with a positive floor, gc arm",92.0,94,,,
+"order-2 noise floor, dn arm",0.013719419775640507,94,0.011401196085762826,0.016301305547817814,true value is zero by construction
+"floor as a fraction of the published contribution, dn arm",0.20692940838070148,94,,,
+"datasets with a positive floor, dn arm",93.0,94,,,
+"order-2 noise floor, neg2 arm",0.011054727079938641,94,0.008523064550754564,0.013714521631970537,true value is zero by construction
+"floor as a fraction of the published contribution, neg2 arm",0.9061251704867738,94,,,
+"datasets with a positive floor, neg2 arm",91.0,94,,,
+floor ordering reproduces the published ordering,1.0,94,,,floor dn>gc>neg2; published dn>gc>neg2
+span of the floor across arms,1.2410455433619494,94,,,
+published contribution span across arms,5.434426229508196,94,,,
+floor span as a fraction of the contribution span,0.2283673548871159,94,,,
+largest floor-to-contribution ratio over the three arms,0.9061251704867738,94,,,

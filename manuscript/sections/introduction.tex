@@ -20,8 +20,8 @@ whoever builds the benchmark controls the second. Negatives sampled uniformly fr
 differ from crosslinked positives in base composition, so a classifier responding to nucleotide
 frequency alone will score well without having learned anything sequence-specific. Matching
 negatives on GC content is the usual mitigation, but GC content is one linear functional of the
-sixteen-cell dinucleotide simplex, leaving the remaining fourteen degrees of freedom of
-compositional difference available to any model. Comparable circularity is characterised in
+sixteen-cell dinucleotide simplex, which has fifteen degrees of freedom, so fourteen of them
+remain free for any model to exploit. Comparable circularity is characterised in
 variant-effect prediction, where the assembly of the evaluation set both inflates apparent
 accuracy and reorders methods \citep{grimm2015}, and the sensitivity of genomic
 machine-learning evaluations to the definition of the negative class is recognised more
@@ -35,8 +35,9 @@ increment over an explicit composition baseline is less exposed to compositional
 than its apparent AUROC. We define the nested contribution as the difference between the
 pooled out-of-fold AUROC of a logistic model on composition features together with the model's
 score, and that of the composition features alone, fitted on the same rows and the same folds.
-Every contribution reported here is therefore an increment over an order-two baseline, the
-mono- and dinucleotide frequencies plus entropy. That choice is not innocuous, and the
+Every contribution reported here is therefore an increment over an order-two baseline: the
+mono- and dinucleotide frequencies plus sequence entropy, which is nineteen columns once one
+level is dropped from each frequency family to keep the design matrix non-singular. That choice is not innocuous, and the
 Discussion measures what a third order costs.
 
 We assembled 94 ENCODE eCLIP datasets and constructed negatives three ways: matched on GC
@@ -48,8 +49,8 @@ the bias-aware protocol does not, and only the bias-aware protocol's negatives a
 RNA. Model, positives, chromosome-blocked folds and estimator were held fixed across arms, and
 the composition baseline was refit on each arm's own windows so that no baseline was carried
 between designs. Three model classes were measured under all three protocols: a 4-mer logistic
-regression, a 7089-parameter convolutional network, and a fully fine-tuned 19.78~M-parameter
-nucleotide language model.
+regression, a 7089-parameter convolutional network, and SpliceBERT \citep{chen2024},
+a fully fine-tuned 19.78~M-parameter nucleotide language model.
 
 Apparent difficulty and measured contribution move in opposite directions. Dinucleotide matching
 reduced apparent AUROC in all 94 datasets while raising the nested contribution by a factor of

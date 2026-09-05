@@ -1355,7 +1355,7 @@ integrity:
   # 607 collect locally after the local-store shim added 10. Raised with the suite, because
   # a floor left behind is the bug this key exists to prevent: it once read 480 while the
   # suite had grown to 576.
-  min_tests_passing: 610
+  min_tests_passing: 695
   # HOW MANY CHECKS RAN, asserted, because almost every gate in verify.py is written
   # `if value is not None:` and therefore DISAPPEARS when a row is missing instead of failing.
   # Deleting five rows from one table once produced "106/106 passed". Asserting the count
@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 921
+  min_domain_checks: 935
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2495,3 +2495,29 @@ negative_set_survey:
   n_with_baseline: 0
   n_sequence_shuffle: 0
   min_coordinate: 4
+
+# THE ESTIMATOR'S FLOOR AT THE ORDER-TWO BASELINE. The order-four profile calibrates a
+# 337-column baseline; every headline here uses the nineteen-column one, so that calibration
+# bounds an estimator the paper does not use. A 2-mer supplies an EXACT null at the order we do
+# use: windows are a fixed 101 nt, so its sixteen dinucleotide counts are one hundred times the
+# frequencies, and the fifteen frequency columns plus the intercept span all sixteen. Its true
+# contribution is zero by construction.
+#
+# It measures +0.0119, +0.0137 and +0.0111. Two consequences, and they point opposite ways:
+#   THE SPAN SURVIVES. The floor spans 1.24x while the contributions span 5.43x, so it covers
+#   23% of the range it would have to explain and cannot produce the ordering.
+#   THE LEVEL DOES NOT. The floor is 90.6% of the bias-aware arm's reported +0.0122, so that
+#   arm's absolute increment is an upper bound. Gated so the qualification cannot be dropped.
+#
+# The floor happens to rank the arms in the published order. That is recorded rather than
+# hidden, because a reader who spots the coincidence should find it already addressed.
+estimator_floor:
+  n_datasets: 94
+  floor_gc:   {value: 0.0119, tol: 0.003}
+  floor_dn:   {value: 0.0137, tol: 0.003}
+  floor_neg2: {value: 0.0111, tol: 0.003}
+  min_datasets_positive: 70
+  max_floor_span: 1.60
+  max_floor_span_fraction: 0.35
+  min_worst_ratio: 0.70
+  floor_ordering_matches: 1

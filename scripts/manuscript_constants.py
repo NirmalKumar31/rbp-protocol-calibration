@@ -15,6 +15,7 @@ manuscript then fails the audit against it. The `source` column names the deriva
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -95,9 +96,16 @@ def main():
     # The retrained datasets' size, which is why a count-stratified subset picks a different
     # 20. Read from the FROZEN list and not from fold_integrity.py, which by design reports
     # no flagged datasets once the retrain has landed.
+    # THE STORE PATH IS A PARAMETER, and it was an absolute path under one author's home
+    # directory. Guarded by exists(), so on any other machine it did not fail: it silently
+    # skipped, and four manuscript constants disappeared from the table with no error and no
+    # message. A missing input that says nothing is worse than one that stops.
     frozen = ROOT / "cloud" / "modal" / "retrain_dinuc_20.txt"
-    man = Path("/Users/nirmalkumar/Deep Learning Project/rbp-store/manifest/"
-               "sweep_tasks_cnn_dinuc.tsv")
+    store = Path(os.environ.get("RBP_STORE", ROOT.parent / "rbp-store"))
+    man = store / "manifest" / "sweep_tasks_cnn_dinuc.tsv"
+    if frozen.exists() and not man.exists():
+        print(f"  note: {man} absent, so the retrain size constants are not derived. "
+            f"Set RBP_STORE if the window store lives elsewhere.")
     if frozen.exists() and man.exists():
         leaky = {ln.strip() for ln in frozen.read_text().splitlines()
                  if ln.strip() and not ln.lstrip().startswith("#")}

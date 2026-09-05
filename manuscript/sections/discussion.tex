@@ -64,7 +64,7 @@ matched, with contributions comparable within a family and not between families.
 the data identify such a grouping, and say so because the reading is the natural one and it is
 the one our own figure invites.
 
-What defeats it is that the grouping is not stable. The statistic correlates a difference with
+It fails because the grouping is not stable. The statistic correlates a difference with
 its own subtrahend, so it depends on which term is placed on the horizontal axis, and under two
 of the three defensible choices the dinucleotide arm groups with the bias-aware arm instead of
 with the GC arm. The GC and dinucleotide protocols draw their negatives from the same kind of
@@ -108,7 +108,7 @@ reporting an increment over a composition baseline is reporting a quantity index
 of that baseline, and few state which order was used. The protocol dependence survived the
 change and its magnitudes did not, so a benchmark meant to separate model classes rather than
 rank them by how much short-range composition they absorb could raise the order of its
-baseline. That recommendation carries a circularity worth stating: trinucleotide counts are
+baseline. That recommendation carries a circularity: trinucleotide counts are
 linear aggregates of 4-mer counts, so an order-three baseline is structurally unfavourable to
 $k$-mer models, and separates models by how much of their signal lies outside short-range
 composition, not by capacity as such.
@@ -172,9 +172,8 @@ measured rather than left open: rebuilding three alternative assignments under t
 balanced-mass objective and the same minimum of three chromosomes per fold, and refitting the
 4-mer on each, gives contrasts of $+0.0392$, $+0.0396$ and $+0.0393$ against $+0.0398$ on the
 partition we use. The range over the four is 0.0006, an eighth of the protein-clustered
-half-width, so the choice of partition is not carrying the result. It is worth saying that our
-partition gives the largest of the four, by 0.0006, so the headline sits at the top of that
-narrow range and not in the middle of it. Only the 4-mer can be re-partitioned this way: the
+half-width, so the choice of partition is not carrying the result. Our partition gives the largest of the four, by 0.0006, so the headline sits at the top of
+that narrow range and not in the middle of it. Only the 4-mer can be re-partitioned this way: the
 neural sweeps trained on the frozen assignment, so re-partitioning them would compare their old
 folds against new ones.
 
@@ -267,8 +266,7 @@ windows, so the two composition-matched arms' positive sets have a Jaccard simil
 median 0.9972 and minimum 0.9237 and are identical in 10 of 94 datasets. The negatives are
 therefore almost, but not exactly, the only difference between arms.
 
-We considered restricting every arm to the intersection of its positive sets and declined,
-which is a judgement worth stating rather than leaving implicit. The intersection would make
+We considered restricting every arm to the intersection of its positive sets and declined. The intersection would make
 the negatives exactly the only difference, at the cost of discarding the windows on which the
 matchers disagree. Those are not a random sample: a matcher fails where a positive's
 composition is hardest to match, so the intersection would preferentially drop the compositional
@@ -294,7 +292,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 923 assertions compare each published value against a frozen
+credit than it earns. Its 937 assertions compare each published value against a frozen
 expectations file generated from the same run those values come from, so they are regression
 coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
 original run was correct. Two assertions do more, and they are the reproducibility claim worth
@@ -306,7 +304,7 @@ Everything downstream of the neural scores is bit-reproducible; the scores thems
 because initialisation was unseeded, so a rerun gives slightly different scores and then
 identical numbers from every step after them. The harness asserts values, not the provenance of
 the code producing them, and the fold-partition defect above is exactly the class that
-distinction permits: it was found by inspection and by none of the 923 assertions, as was the
+distinction permits: it was found by inspection and by none of the 937 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces every number here, decimals and bare counts alike, to a committed

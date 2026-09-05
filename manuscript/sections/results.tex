@@ -686,8 +686,8 @@ All 564 score sets, across three arms and three model classes, are audited again
 fold assignment: every one is chromosome-grouped, with at most five chromosomes in a fold and no
 row having a same-strand neighbour within 1~kb assigned to a different fold.
 
-That was not true of an earlier version of this analysis, and the history is worth stating
-because the defect is of a kind that ordinary checks miss. For 20 of the 94 dinucleotide-arm
+That was not true of an earlier version of this analysis, and the history matters because the
+defect is of a kind that ordinary checks miss. For 20 of the 94 dinucleotide-arm
 datasets the neural scores had been produced under a stratified random partition. Fold sizes
 were preserved, so no count-based check detected it, while up to 23 chromosomes appeared in a
 single fold and up to 44.5\% of rows sat within 1~kb of a same-strand neighbour in another fold.
@@ -984,6 +984,63 @@ Panel means can still rise where the per-dataset AUROC falls on a minority of da
 is why the counts are given.}
 \label{fig:profile}
 \end{figure}
+
+
+\subsection{The estimator has a positive floor where the true contribution is zero}
+\label{sec:floor}
+
+Section~\ref{sec:orderthree} shows that a nested increment need not be zero when the truth is
+zero, but it shows it at a 337-column baseline, and every number reported here uses the
+nineteen-column one. The same construction gives an exact null at the order we actually use. A
+2-mer model scores a window by its sixteen dinucleotide counts; windows are a fixed 101~nt, so
+those counts are one hundred times the dinucleotide frequencies, and the fifteen frequency
+columns in the baseline together with the intercept span all sixteen exactly. A 2-mer's score is
+therefore a linear function of features the baseline already contains, and its true nested
+contribution is zero by construction.
+
+It does not measure zero. Fitting the 2-mer out of fold and passing its score through the same
+estimator gives $+0.0119$, $+0.0137$ and $+0.0111$ in the GC, dinucleotide and bias-aware arms
+(Table~\ref{tab:floor}). The mechanism is the one Section~\ref{sec:orderthree} identifies: a
+supervised, out-of-fold projection of information the baseline already holds is a better
+conditioned summary of that information than the penalised nineteen-column fit achieves on its
+own, so adding it improves the fit without adding anything.
+
+Two consequences follow and they point in opposite directions.
+
+The span survives. A bias that is the same in every arm cannot produce a difference between
+arms, and this one very nearly is: the floor spans 1.24-fold across the three protocols while
+the contributions span 5.43-fold, so the floor covers 23\% of the range it would have to explain.
+The protocol ordering is not manufactured by it.
+
+The level does not survive, and one arm is affected severely. The floor is 44.8\% of the GC
+arm's reported contribution, 20.7\% of the dinucleotide arm's, and 90.6\% of the bias-aware
+arm's. The bias-aware arm's $+0.0122$ is therefore not distinguishable from what this estimator
+returns on a model that contributes nothing, and every statement about that arm's absolute
+contribution should be read as an upper bound. Statements about its position relative to the
+other two arms are unaffected, since the floor is nearly common to all three.
+
+\begin{table}[htbp]
+\centering
+\caption{The nested estimator applied to a model whose information the baseline already
+contains, so the true contribution is zero. $n=94$ datasets, order-two baseline, the same rows,
+folds and estimator as every other result here. Intervals are protein-clustered.}
+\label{tab:floor}
+\begin{tabular}{lccc}
+\toprule
+arm & measured floor & 95\% interval & reported contribution \\
+\midrule
+dinucleotide & $+0.0137$ & $+0.0114$ to $+0.0163$ & $+0.0663$ \\
+GC & $+0.0119$ & $+0.0087$ to $+0.0155$ & $+0.0265$ \\
+bias-aware & $+0.0111$ & $+0.0085$ to $+0.0137$ & $+0.0122$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We report this as a property of the estimator rather than of our implementation of it. The
+quantity is the standard one in this literature: an increment in cross-validated AUROC from
+adding a model's score to a baseline. Any study computing it on a supervised score inherits the
+same floor, and none of the seven sources in Table~\ref{tab:survey} reports a calibration that
+would reveal it.
 
 \subsection{One structural feature of the calibration replicates on an externally constructed
 benchmark}

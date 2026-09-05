@@ -2028,6 +2028,73 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_estimator_floor(T, g):
+    """The estimator's floor at the order-two baseline, where the truth is exactly zero."""
+    print("\nestimator floor  (a 2-mer's score lies inside the baseline's span)")
+    d = T.get("estimator_floor.csv")
+    if d is None:
+        return record(False, "estimator_floor.csv present", "MISSING",
+                      "run scripts/estimator_floor.py --store ../rbp-store")
+    spec = g["estimator_floor"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("datasets")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+
+    # THE FLOOR IS POSITIVE IN EVERY ARM, and that is the finding. Gated as a band rather than
+    # a maximum: a floor that measured zero would mean the null is not what we think it is, and
+    # a floor far larger would mean something other than the estimator is at work.
+    for arm, key in (("gc", "floor_gc"), ("dn", "floor_dn"), ("neg2", "floor_neg2")):
+        v = get(f"order-2 noise floor, {arm} arm")
+        if v is not None:
+            near(f"order-2 noise floor, {arm} arm", v, spec[key])
+            record(v > 0, f"the floor is positive in the {arm} arm, where the true "
+                          f"contribution is zero by construction", f"{v:+.5f}", "> 0")
+        pos = get(f"datasets with a positive floor, {arm} arm")
+        if pos is not None:
+            record(pos >= spec["min_datasets_positive"],
+                   f"and positive on most datasets individually, {arm} arm, so it is a bias "
+                   f"and not scatter about zero", int(pos),
+                   f">= {spec['min_datasets_positive']}")
+
+    # THE DEFENCE OF THE SPAN, which is the reason the floor is measured PER ARM. A bias common
+    # to all three arms cannot create a difference between them. Gated as the ratio, because
+    # either number alone invites the wrong conclusion.
+    fs = get("span of the floor across arms")
+    frac = get("floor span as a fraction of the contribution span")
+    if None not in (fs, frac):
+        at_most("the floor is nearly flat across arms, so it cannot manufacture the protocol "
+                "ordering", fs, spec["max_floor_span"])
+        at_most("and covers only a small part of the span it would have to explain", frac,
+                spec["max_floor_span_fraction"])
+
+    # AND THE HONEST HALF: the level does NOT survive in the smallest arm. Gated so the paper
+    # cannot quietly drop the qualification on the bias-aware arm's absolute contribution.
+    w = get("largest floor-to-contribution ratio over the three arms")
+    if w is not None:
+        record(w >= spec["min_worst_ratio"],
+               "the floor is a large fraction of the smallest arm's reported contribution, so "
+               "that arm's absolute increment must be reported as an upper bound",
+               f"{w:.1%}", f">= {spec['min_worst_ratio']:.0%}")
+
+    # THE ORDERING COINCIDENCE, RECORDED RATHER THAN HIDDEN. The floor happens to rank the arms
+    # in the published order. That is only harmless because its span is 1.24x against 5.43x,
+    # and a reader who notices the coincidence deserves to find it already stated.
+    v = get("floor ordering reproduces the published ordering")
+    if v is not None:
+        record(int(v) == spec["floor_ordering_matches"],
+               "the floor ranks the arms in the same order as the reported contributions, "
+               "which is why its SPAN and not merely its size has to be reported",
+               int(v), spec["floor_ordering_matches"])
+
+
 def verify_negative_set_survey(T, g):
     """F5: what this literature actually does, and whether it reports a baseline."""
     print("\nnegative-set survey  (seven methods and benchmarks, read from source)")
@@ -4546,6 +4613,7 @@ def main():
                verify_gene_clustered_cv, verify_window_centring,
                verify_device_portability, verify_matching_robustness,
                verify_region_matched_neural, verify_negative_set_survey,
+               verify_estimator_floor,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)
