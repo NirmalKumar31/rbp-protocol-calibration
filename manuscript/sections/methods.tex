@@ -232,15 +232,16 @@ For test fold $i$ the nested model is fitted on the rows of the other folds, and
 scores from base models whose own training sets included fold $i$. Information about fold $i$
 therefore reaches the nested fit through the covariate, and the composition columns have no
 analogous route carrying label information; the whole-dataset standardisation described in
-Section~\ref{sec:models} is label-free and moves panel means by at most $4\times10^{-5}$. The bias is one-directional, since it can only help the score column, and it
-should grow with how much the base model overfits. We do not remove it; we measure it. A model
-whose information the baseline already contains has a true increment of zero, and what the
-estimator returns for such a model is reported in Section~\ref{sec:floor}: the floor reported there is what the estimator returns
-for a 2-mer, and it therefore includes whatever this channel contributes for a model of that
-kind, without separating it from the conditioning effect described in that section. It does not
-bound the channel for a fine-tuned transformer: by the argument just given the bias grows with
-how much the base model overfits, and a sixteen-feature model is the least overfitting case we
-could have chosen. The calibration is a floor for the estimator, not a ceiling on the leak.
+Section~\ref{sec:models} is label-free and moves panel means by at most $4\times10^{-5}$.
+We do not remove it in the published estimator; we measure it, by rerunning the estimator with
+the route closed. Section~\ref{sec:crossfit} reports that: for a 2-mer, whose true increment is
+zero, closing the route removes 96 to 99\% of what the estimator returns and lands within
+$5\times10^{-4}$ of the zero theory requires, while for the 4-mer it moves the contribution by
+under $0.0017$ and in the opposite direction. We had expected the bias to be one-directional on
+the grounds that it can only help the score column. That holds for a model the baseline spans
+and fails for one carrying information of its own, so the sign is a measurement here and not a
+prediction. Neither figure bounds the route for the convolutional network or SpliceBERT, which
+would need four times the GPU sweep and has not been run.
 
 The composition-only and composition-plus-score predictors were compared by DeLong's paired
 estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired
@@ -349,7 +350,7 @@ published per-window score files do not carry.
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 937 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 959 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

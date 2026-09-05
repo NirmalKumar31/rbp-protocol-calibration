@@ -7,7 +7,7 @@ index; nothing here is a summary of the science, which is in `manuscript/paper.p
 
 | bioRxiv asks for | file |
 |---|---|
-| Manuscript PDF | `manuscript/paper.pdf` (48 pages) |
+| Manuscript PDF | `manuscript/paper.pdf` (50 pages) |
 | Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 616 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
@@ -82,7 +82,7 @@ every table below are in `results/tables/SCHEMA.md`.
 python scripts/verify.py --local results/tables
 ```
 
-937 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+959 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 

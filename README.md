@@ -16,14 +16,14 @@ zero by construction, which is 90.4% of the smallest arm's reported value.
 
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download. 937 numeric assertions are checked
+No cloud account, no credentials, no data download. 959 numeric assertions are checked
 against committed tables. That is a regression gate on the published values, not a proof that
 each is attached to the right claim; the Limitations section says what it does not cover.
 
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e .
-PYTHONPATH=src python scripts/verify.py --local results/tables   # 937/937
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 959/959
 PYTHONPATH=src python -m pytest tests -q                          # 716, needs torch
 ```
 

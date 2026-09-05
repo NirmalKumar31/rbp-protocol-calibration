@@ -2030,6 +2030,85 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_cross_fitting(T, g):
+    """The outer-fold information route, measured by closing it.
+
+    THIS GATE EXISTS BECAUSE TWO PUBLISHED CLAIMS DIED HERE. The Methods said the bias was
+    one-directional and could only help the score column; for the 4-mer, closing the route
+    RAISES the contribution in all three arms. The Results attributed the estimator's floor to
+    conditioning; closing the route removes 96 to 99% of it. Both are asserted below as the
+    quantities that falsified them, so neither claim can come back without failing a check.
+    """
+    print("\nouter-fold route  (the estimator rerun with the route closed)")
+    d = T.get("cross_fitting.csv")
+    if d is None:
+        return record(False, "cross_fitting.csv present", "MISSING",
+                      "run scripts/cross_fitting.py --store ../rbp-store")
+    spec = g["cross_fitting"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("datasets")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+
+    # KEYS WRITTEN OUT, NOT BUILT WITH AN f-STRING. tests/unit/test_golden_keys_are_read.py
+    # greps the reader for each leaf name, so `spec[f"cf2_{arm}"]` reads as six unread keys --
+    # which is to say, as six guarantees nobody checks. Spelling them makes them greppable,
+    # which is the property that test exists to enforce.
+    for arm, k2, k4 in (("gc", "cf2_gc", "cf4_gc"), ("dn", "cf2_dn", "cf4_dn"),
+                        ("neg2", "cf2_neg2", "cf4_neg2")):
+        # THE 2-MER RECOVERS ITS KNOWN ZERO. This is the check that the cross-fitting is
+        # correct rather than merely different: the truth is zero by construction, so a
+        # procedure that lands on it is doing what it claims, and one that does not is not.
+        v = get(f"2-mer contribution fully cross-fitted, {arm} arm")
+        if v is not None:
+            near(f"2-mer cross-fitted contribution, {arm} arm", v, spec[k2])
+            record(abs(v) < 0.001,
+                   f"cross-fitting recovers the known zero in the {arm} arm, within 0.001",
+                   f"{v:+.5f}", "|v| < 0.001")
+        v4 = get(f"4-mer contribution fully cross-fitted, {arm} arm")
+        if v4 is not None:
+            near(f"4-mer cross-fitted contribution, {arm} arm", v4, spec[k4])
+
+        # THE SIGN, which is the claim that was wrong. A positive channel would mean the
+        # published value was inflated; it is negative in every arm.
+        ch = get(f"4-mer outer-fold channel, {arm} arm")
+        if ch is not None:
+            at_most(f"the 4-mer channel is not positive in the {arm} arm, so the withdrawn "
+                    f"one-directional claim stays withdrawn", ch, spec["max_channel_4mer"])
+
+        pub2 = get(f"2-mer contribution as published, {arm} arm")
+        cf2 = get(f"2-mer contribution fully cross-fitted, {arm} arm")
+        if None not in (pub2, cf2) and pub2:
+            removed = (pub2 - cf2) / pub2
+            record(removed >= spec["min_floor_removed"],
+                   f"cross-fitting removes most of the floor in the {arm} arm, so the floor is "
+                   f"the route and not conditioning", f"{removed:.3f}",
+                   f">= {spec['min_floor_removed']}")
+        low = get(f"2-mer datasets where cross-fitting LOWERS the contribution, {arm} arm")
+        if low is not None:
+            record(low >= spec["min_datasets_floor_lowered"],
+                   f"and lowers it per dataset, not only in the mean, {arm} arm", int(low),
+                   f">= {spec['min_datasets_floor_lowered']}")
+
+    # THE HEADLINE, which is what a common bias cannot manufacture and which therefore has to
+    # survive its removal. It narrows by about a ninth and does not collapse.
+    sp = get("4-mer three-arm span, as published")
+    sc = get("4-mer three-arm span, fully cross-fitted")
+    if sp is not None:
+        near("three-arm span as published", sp, spec["span_published"])
+    if sc is not None:
+        near("three-arm span fully cross-fitted", sc, spec["span_crossfitted"])
+    if None not in (sp, sc):
+        record(sc > 3.0, "the protocol span survives closing the route", f"{sc:.2f}x", "> 3x")
+
+
 def verify_estimator_floor(T, g):
     """The estimator's floor at the order-two baseline, where the truth is exactly zero."""
     print("\nestimator floor  (a 2-mer's score lies inside the baseline's span)")
@@ -4622,6 +4701,7 @@ def main():
                verify_region_annotation, verify_gene_clustered_cv, verify_window_centring,
                verify_device_portability, verify_matching_robustness,
                verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
+           verify_cross_fitting,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

@@ -1015,10 +1015,15 @@ contribution is zero by construction.
 
 It does not measure zero. Fitting the 2-mer out of fold and passing its score through the same
 estimator gives $+0.0119$, $+0.0137$ and $+0.0111$ in the GC, dinucleotide and bias-aware arms
-(Table~\ref{tab:floor}). The mechanism is the one Section~\ref{sec:orderthree} identifies: a
+(Table~\ref{tab:floor}). Two mechanisms could produce that, and they are separated in
+Section~\ref{sec:crossfit}. The first is the one Section~\ref{sec:orderthree} identifies: a
 supervised, out-of-fold projection of information the baseline already holds is a better
 conditioned summary of that information than the penalised nineteen-column fit achieves on its
-own, so adding it improves the fit without adding anything.
+own, so adding it improves the fit without adding anything. The second is the outer-fold
+information route of Section~\ref{sec:models}. Closing the second removes almost all of the
+floor, so the floor reported here is that route rather than conditioning; the discussion below
+of what the floor does and does not survive is unaffected, because it concerns the size of the
+number and not its cause.
 
 Two consequences follow and they point in opposite directions.
 
@@ -1060,6 +1065,83 @@ quantity is the standard one in this literature: an increment in cross-validated
 adding a model's score to a baseline. Any study computing it on a supervised score inherits the
 same floor, and none of the seven sources in Table~\ref{tab:survey} reports a calibration that
 would reveal it.
+
+\subsection{The floor is the estimator's own cross-fitting, and closing it recovers the zero}
+\label{sec:crossfit}
+
+Section~\ref{sec:models} names an information route that scoring out of fold does not close.
+For outer test fold $i$ the nested model is fitted on the other folds, and those rows carry base
+scores from models whose training sets included fold $i$. We attributed the floor above to a
+different cause, conditioning: a pre-fitted one-column summary is better conditioned than the
+penalised nineteen-column block and improves the fit without adding information. Both mechanisms
+predict a positive floor, both predict it shrinking with sample size, and both predict it
+appearing only for a model the baseline spans. They are separated by removing one of them.
+
+We reran the estimator with the route closed. For each outer test fold $i$, the covariate on
+every outer-training row $j$ now comes from a base model fitted on the folds excluding both $i$
+and $j$, so no information from the outer test fold reaches the fitted coefficients; the
+outer-test covariate is unchanged, being already out of fold for those rows. With five folds
+that is ten additional base fits per dataset. The composition block is untouched, so the two
+runs differ in exactly one thing. Run on the published path the same code reproduces every
+published panel mean to $5\times10^{-17}$, which is what makes the comparison like for like.
+
+The floor is almost entirely this route. Cross-fitted, the 2-mer's contribution is $+0.0005$,
+$-0.0001$ and $+0.0003$ in the GC, dinucleotide and bias-aware arms, against $+0.0119$,
+$+0.0137$ and $+0.0111$ as published: 96\%, 99\% and 97\% of it removed, on 91, 93 and 91 of the
+94 datasets individually. The remainder is not distinguishable from zero, which is the value
+theory requires, and recovering a known zero to within $5\times10^{-4}$ is the strongest
+available check that the cross-fitting is doing what it claims. Conditioning, which cross-fitting
+leaves in place, therefore accounts for almost none of the floor. The attribution in
+Section~\ref{sec:orderthree} was wrong about the mechanism while right that the floor is real.
+
+For the 4-mer the route is small and runs the other way. Cross-fitting \emph{raises} the
+contribution, by $0.0017$, $0.0008$ and $0.0016$ in the three arms, lowering it on only 4, 14
+and 2 of the 94 datasets. We had argued the bias could only help the score column; that is true
+of a model the baseline spans, where the route is the only thing the covariate can add, and
+false of one carrying real information, where the published fit pairs a training covariate and a
+test covariate from equally sized training sets and the cross-fitted fit does not. The
+directional claim is withdrawn: the sign depends on the model, and the honest statement is that
+we measured it rather than that we can predict it.
+
+The headline survives and narrows. The three-arm span for the 4-mer is 4.84-fold cross-fitted
+against 5.42-fold as published, so about a ninth of the reported span was this route and
+eight-ninths was not. That is the quantity a bias common to all three arms cannot produce, and
+it does not become one when the bias is removed.
+
+Two limits. This is the k-mer classes only: closing the route for the convolutional network and
+SpliceBERT means four times the GPU sweep, and we have not run it, so nothing here bounds the
+route for a fine-tuned transformer. And cross-fitting trades one asymmetry for another, since
+the outer-training covariate now comes from a model fitted on one fewer fold than the
+outer-test covariate; the 2-mer result bounds what that trade costs, because a covariate-strength
+artefact large enough to matter would have moved a known zero and did not.
+
+Read together with Section~\ref{sec:floor}, this changes the recommendation there in one
+respect. The floor is not an intrinsic property of the estimand; it is a property of the usual
+two-stage way of computing it, and it is removable at the cost of ten extra fits per dataset for
+a model of this size. A study reporting a nested increment should cross-fit the covariate, and
+one that does not should report what its estimator returns on a model the baseline spans.
+
+\begin{table}[htbp]
+\centering
+\caption{The outer-fold information route, measured by closing it. Contribution as published and
+fully cross-fitted, $n=94$ datasets, protein-clustered intervals. The 2-mer's true contribution
+is zero by construction; the 4-mer's is not known. Positive channel means the published value
+was inflated.}
+\label{tab:crossfit}
+\begin{tabular}{llccc}
+\toprule
+model & arm & as published & cross-fitted & channel \\
+\midrule
+4-mer & dinucleotide & $+0.0663$ & $+0.0671$ & $-0.0008$ \\
+      & GC           & $+0.0265$ & $+0.0282$ & $-0.0017$ \\
+      & bias-aware   & $+0.0122$ & $+0.0139$ & $-0.0016$ \\
+\midrule
+2-mer & dinucleotide & $+0.0137$ & $-0.0001$ & $+0.0138$ \\
+      & GC           & $+0.0119$ & $+0.0005$ & $+0.0114$ \\
+      & bias-aware   & $+0.0111$ & $+0.0003$ & $+0.0108$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{One structural feature of the calibration replicates on an externally constructed
 benchmark}

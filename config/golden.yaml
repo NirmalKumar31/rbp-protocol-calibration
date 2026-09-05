@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 935
+  min_domain_checks: 957
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2511,6 +2511,31 @@ negative_set_survey:
 #
 # The floor happens to rank the arms in the published order. That is recorded rather than
 # hidden, because a reader who spots the coincidence should find it already addressed.
+# THE OUTER-FOLD ROUTE, MEASURED BY CLOSING IT. scripts/cross_fitting.py refits the base model
+# on the folds excluding both the outer test fold and the row being scored, so no information
+# from the outer test fold reaches the nested coefficients. Two claims in earlier drafts died
+# here and the values below are what killed them: the floor is this route rather than the
+# conditioning effect the Results attributed it to, and the bias is NOT one-directional -- for
+# the 4-mer, closing the route raises the contribution.
+cross_fitting:
+  n_datasets: 94
+  # The 2-mer's true contribution is zero by construction, so a cross-fitted value near zero is
+  # the check that the procedure works. Tolerance is absolute and tight for that reason.
+  cf2_gc:   {value: 0.0005, tol: 0.0008}
+  cf2_dn:   {value: -0.0001, tol: 0.0008}
+  cf2_neg2: {value: 0.0003, tol: 0.0008}
+  # The 4-mer, whose truth is unknown. These must stay close to the published panel means.
+  cf4_gc:   {value: 0.0282, tol: 0.003}
+  cf4_dn:   {value: 0.0671, tol: 0.004}
+  cf4_neg2: {value: 0.0139, tol: 0.002}
+  # The channel for the 4-mer is NEGATIVE in every arm. Asserted as a sign, because the sign is
+  # the claim that was wrong before it was measured.
+  max_channel_4mer: 0.0005          # channel must be <= this, i.e. not meaningfully positive
+  min_floor_removed: 0.90           # fraction of the 2-mer floor the cross-fitting removes
+  min_datasets_floor_lowered: 85    # of 94, per arm
+  span_published: {value: 5.42, tol: 0.05}
+  span_crossfitted: {value: 4.84, tol: 0.10}
+
 estimator_floor:
   n_datasets: 94
   floor_gc:   {value: 0.0119, tol: 0.003}
