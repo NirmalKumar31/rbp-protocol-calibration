@@ -267,6 +267,25 @@ resulting deviation from the published per-dataset gain has a median of 0.0031 a
 the dataset grows, at Spearman $-0.909$, which identifies it as sampling noise in the draw
 rather than drift in the construction.
 
+That quantity was measured and not carried into any interval, which is a real gap: every
+protein-clustered interval in this paper resamples proteins with the negative draw held at the
+value it happened to take. We can now put a number on what it omits, for one of the three
+protocols. The bias-aware arm's negatives are other proteins' binding sites, so redrawing it
+needs no genome and no new candidate windows: the same procedure with a different seed samples
+a different set of donors from the same pool. Five independent draws give panel means of
+$+0.0122$, $+0.0128$, $+0.0125$, $+0.0123$ and $+0.0131$, the first being the published one.
+The between-draw standard error of the panel mean is 0.00037 against a between-protein standard
+error of 0.00135, so adding the two in quadrature widens the interval by 3.6\%. Per dataset the
+range across draws has median 0.0038 and maximum 0.0245. Every one of the five draws leaves this
+arm below the GC arm's $+0.0265$, so the protocol ordering does not depend on the draw that was
+taken.
+
+The two composition-matched arms cannot be redrawn the same way, because their negatives are
+new windows cut from the genome rather than existing windows reassigned, and the genome is not
+part of the released evidence. What is established is therefore that draw uncertainty is small
+where we can measure it, on the arm where an absolute effect of a given size would matter most,
+and assumed rather than shown to be comparable on the other two.
+
 One limitation concerns the provenance of the neural scores. Initialisation was unseeded across
 all 2830 committed fold-runs, at the cost quantified in Methods. A second, that 20 of the 94
 dinucleotide-arm datasets carried scores from a partition that was not chromosome-grouped, has
@@ -323,7 +342,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 990 assertions compare each published value against a frozen
+credit than it earns. Its 998 assertions compare each published value against a frozen
 expectations file generated from the same run those values come from, so they are regression
 coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
 original run was correct. Two assertions do more, and they are the reproducibility claim worth
@@ -335,7 +354,7 @@ Everything downstream of the neural scores is bit-reproducible; the scores thems
 because initialisation was unseeded, so a rerun gives slightly different scores and then
 identical numbers from every step after them. The harness asserts values, not the provenance of
 the code producing them, and the fold-partition defect above is exactly the class that
-distinction permits: it was found by inspection and by none of the 990 assertions, as was the
+distinction permits: it was found by inspection and by none of the 998 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces the numbers in this text, decimals and bare counts alike, to a

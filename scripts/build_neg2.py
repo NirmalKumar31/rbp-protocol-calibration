@@ -109,11 +109,19 @@ def draw(cand, grp, rng, match_region):
     return out, short
 
 
-def build(store, seed=7, match_region=False):
+def build(store, seed=7, match_region=False, arm=None):
+    """Build the bias-aware arm. `arm` overrides the output directory name.
+
+    THE OVERRIDE EXISTS SO A REDRAW CANNOT CLOBBER THE PUBLISHED ARM. This wrote
+    unconditionally to processed/neg2, so running it with a different seed to measure
+    draw-to-draw variability would have destroyed the negatives every published bias-aware
+    number was computed from, in place, with no copy. scripts/negative_draws.py passes
+    arm="neg2_seed11" and so on.
+    """
     cfg = cfgmod.load()
     margin = int(cfg["negatives"]["min_peak_distance"])
     gc_root = Path(store) / "processed" / "gc"
-    out_root = Path(store) / "processed" / ("neg2_rm" if match_region else "neg2")
+    out_root = Path(store) / "processed" / (arm or ("neg2_rm" if match_region else "neg2"))
     panel = pd.read_csv(ROOT / "results" / "tables" / "rehearsal_binding_gc.csv")
     rng = np.random.default_rng(seed)
 
@@ -186,12 +194,15 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--store", default=str(ROOT.parent / "rbp-store"))
     p.add_argument("--seed", type=int, default=7)
+    p.add_argument("--arm", default=None,
+                   help="output directory name under processed/. Use this for a redraw so the "
+                        "published arm is not overwritten.")
     p.add_argument("--match-region", action="store_true",
                    help="stratify the draw on transcript region, as a DIAGNOSTIC arm. This is "
                         "not Horlacher's protocol, which leaves region free; it exists to "
                         "measure how much of this arm's baseline is region mix.")
     a = p.parse_args()
-    build(a.store, a.seed, a.match_region)
+    build(a.store, a.seed, a.match_region, a.arm)
 
 
 if __name__ == "__main__":

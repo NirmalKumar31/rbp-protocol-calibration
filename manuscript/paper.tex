@@ -104,8 +104,9 @@ construction: a calibration across 94 ENCODE eCLIP datasets}
 
 % THE ABSTRACT WAS 616 WORDS until an external review measured it. SUBMISSION.md said 255,
 % which was stale by a factor of 2.4, and the review quoted the stale figure and so understated
-% the problem. Briefings in Bioinformatics, which this manuscript's structure already targets,
-% asks for about 250.
+% the problem. The venue is bioRxiv, which sets no abstract limit, so the cut is not forced by
+% the preprint; it is for the journal submission afterwards, where about 250 is typical. The
+% structure follows Briefings in Bioinformatics, which is the literature this reports on.
 %
 % What was cut, and it was not padding: the design argument that dinucleotide matching
 % constrains fifteen degrees of freedom against GC matching's one; the bias-aware arm's
@@ -172,7 +173,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 reproducible offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 990 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 998 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. One quantity is an exception and is marked as such in the text: the design effect, whose
 block bootstrap needs the genomic coordinates that the published per-window score files do not

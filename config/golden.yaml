@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 988
+  min_domain_checks: 996
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2523,6 +2523,20 @@ negative_set_survey:
 # the id it keyed on is a per-arm row index: the same id names chr12 in one arm and chr9 in the
 # other. Recomputed on genomic coordinate the median is unchanged and the minimum moves from
 # 0.9237 to 0.9164.
+# NEGATIVE-DRAW UNCERTAINTY, PROPAGATED RATHER THAN ONLY MEASURED. Every published protocol
+# used one stochastic draw and the protein bootstrap holds it fixed, so the stated intervals
+# omitted construction uncertainty. The bias-aware arm can be redrawn exactly without the genome
+# because its negatives are other proteins' binding sites, already in the store. Five draws:
+# including the draw component widens the interval by 3.6%.
+negative_draws:
+  n_datasets: 94
+  n_draws: 5
+  se_protein:  {value: 0.00135, tol: 0.0003}
+  se_draw:     {value: 0.00037, tol: 0.0002}
+  max_widening: 1.15          # combined / published interval width must stay below this
+  max_median_range: 0.006     # per-dataset range across draws
+  n_draws_below_gc: 5         # the ordering must survive every draw
+
 # TRAIN-PROTOCOL BY EVALUATION-PROTOCOL. The design changes the negatives in training and in
 # evaluation at once, so the published contrast cannot say which of the two moves the number.
 # Fitting on one arm and scoring another separates them: three quarters of the effect is in the

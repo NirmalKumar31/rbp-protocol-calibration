@@ -11,12 +11,12 @@
 # This deliberately does NOT run the pipeline. The pipeline needs GCP credentials, a genome
 # and roughly $60 of compute (docs/COST.md), which is why it is not gated here. What CI proves on a clean
 # clone is that the code imports, the tests pass, the ruff rules the project selects hold, the
-# 990 published assertions reproduce offline, the release documents still agree with the
+# 998 published assertions reproduce offline, the release documents still agree with the
 # artefacts they describe, the paper builds with no dangling reference, and the numbers nobody
 # is allowed to edit silently have not been edited silently.
 #
 # The last four of those were added after an external review pointed out that CI ran none of
-# them, so README's headline instruction -- one command, 990 checks -- was verified nowhere
+# them, so README's headline instruction -- one command, 998 checks -- was verified nowhere
 # but on the author's laptop.
 
 # THIRD-PARTY ACTIONS ARE PINNED BY COMMIT SHA, not by the moving v4/v5 tags. A tag is
@@ -94,7 +94,7 @@ jobs:
         run: python scripts/audit_manuscript.py
 
       # THE VERIFIER, WHICH CI DID NOT RUN. README tells a reader to check the paper with this
-      # one command and CI never executed it, so the claim that 990 assertions pass on a clean
+      # one command and CI never executed it, so the claim that 998 assertions pass on a clean
       # clone was tested only on the author's laptop -- which is precisely the thing this file's
       # first line says a test suite must not be. It needs no credentials and no data: the
       # committed result tables are the input.

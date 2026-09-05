@@ -12,8 +12,21 @@ index; nothing here is a summary of the science, which is in `manuscript/paper.p
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 
-**Subject area:** Bioinformatics. **Licence:** CC BY 4.0, matching the licence on `results/`
-and `data/evidence/`. **Type:** New Results.
+**Venue: bioRxiv.** **Subject area:** Bioinformatics. **Licence:** CC BY 4.0, matching the
+licence on `results/` and `data/evidence/`. **Type:** New Results.
+
+bioRxiv's requirements were checked against its submission guide rather than assumed, because
+three reviews raised length and supplement questions that turn entirely on the venue. It sets
+**no limit** on pages, abstract length, figures, tables or references, accepts a single PDF
+containing text and display items, and takes supplementary material as separate files rather
+than as a formatted supplement. Everything below therefore meets the venue as it stands.
+
+What that does NOT settle: a journal submission afterwards will impose its own limits, and the
+ones that would bite are the abstract (303 words against a typical 250) and the main text (52
+pages, 16 table environments). The long-form abstract and the guidance for cutting are kept
+where they can be found again -- see the note above `\begin{abstract}` in `paper.tex` -- and
+`results/tables/PROVENANCE.csv` already identifies which tables are secondary and would move to
+a supplement first.
 
 ## The manuscript
 
@@ -82,7 +95,7 @@ every table below are in `results/tables/SCHEMA.md`.
 python scripts/verify.py --local results/tables
 ```
 
-990 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+998 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 
@@ -103,11 +116,9 @@ dollars of compute at current prices, and is not required to check any published
    `manuscript/sections/data-availability.tex`, insert the **concept** DOI (it resolves to the
    latest version and survives future releases; the per-version DOI does not), and run
    `cd manuscript && ./build.sh`. That is the only manuscript edit required.
-2. **Confirm the target venue.** The abstract is cut to 303 words for *Briefings in
-   Bioinformatics*, which this manuscript's structure already follows and which asks for about
-   250. A venue with a longer limit should have the long version back: it carries seven
-   secondary findings this one drops, and restoring it is one revert (see the note above
-   `\begin{abstract}` in `paper.tex`).
+2. **A journal submission after the preprint** will need the abstract cut to about 250 words
+   and a main/supplement split. Neither is required by bioRxiv, and both depend on which
+   journal, so neither is done.
 
 The reference list is verified, the figures are final, and the verifier and test suite pass on
 a clean clone. This list previously read "Nothing else", which was wrong when it was written:

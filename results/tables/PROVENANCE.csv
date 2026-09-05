@@ -50,8 +50,10 @@ models_by_protocol.csv,scripts/models_by_protocol.py,s13b_local_analysis,raw-rep
 multidonor_pairs.csv,scripts/multidonor_analysis.py,,frozen-only,c329179e0980fa66,35092,not invoked by run.sh
 multidonor_specificity.csv,scripts/multidonor_analysis.py,,frozen-only,2eade86c91b834b7,2587,not invoked by run.sh
 multiplier_variance.csv,scripts/multiplier_variance.py,s13b_local_analysis,raw-reproducible,8756e2f86e4f4fd0,2135,"""$PY"" scripts/multiplier_variance.py || die ""multiplier variance"""
-neg2_build.csv,scripts/build_neg2.py,,frozen-only,84b5d76aef711de5,3830,not invoked by run.sh
+neg2_build.csv,scripts/build_neg2.py,,frozen-only,3cb33ffa42a22c16,3830,not invoked by run.sh
 neg2_rm_build.csv,scripts/build_neg2.py,,frozen-only,937f6c9f06126a56,3830,not invoked by run.sh
+negative_draws.csv,scripts/negative_draws.py,s13b_local_analysis,evidence-recomputable,91ac49eb9d45e06d,1139,"""$PY"" scripts/negative_draws.py --from-cache || die ""negative draws"""
+negative_draws_per_dataset.csv,scripts/negative_draws.py,s13b_local_analysis,frozen-cache,3b2c29bd9c813e17,12143,"""$PY"" scripts/negative_draws.py --from-cache || die ""negative draws"""
 negative_set_survey.csv,scripts/negative_set_survey.py,s13b_local_analysis,raw-reproducible,9dd2df78d7d08a7a,400,"""$PY"" scripts/negative_set_survey.py || die ""negative-set survey"""
 negative_set_survey_per_method.csv,scripts/negative_set_survey.py,s13b_local_analysis,raw-reproducible,ca9046d1773608f2,1850,"""$PY"" scripts/negative_set_survey.py || die ""negative-set survey"""
 nested_scale.csv,scripts/nested_scale.py,,frozen-only,a76765902dead1ea,3754,not invoked by run.sh

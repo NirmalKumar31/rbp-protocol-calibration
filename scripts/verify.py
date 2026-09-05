@@ -2030,6 +2030,53 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_negative_draws(T, g):
+    """Draw-to-draw variability of the negatives, and what it does to the interval.
+
+    The published intervals resample proteins with one negative draw held fixed. This is the
+    component they omit, measured on the one arm that can be redrawn without the genome.
+    """
+    print("\nnegative draws  (what one fixed draw costs the interval)")
+    d = T.get("negative_draws.csv")
+    if d is None:
+        return record(False, "negative_draws.csv present", "MISSING",
+                      "run scripts/negative_draws.py --store ../rbp-store")
+    spec = g["negative_draws"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for k, key in (("datasets", "n_datasets"), ("independent draws", "n_draws")):
+        v = get(k)
+        if v is not None:
+            record(int(v) == spec[key], k, int(v), spec[key])
+    sp = get("between-protein standard error, the published draw")
+    sd = get("between-draw standard error of the panel mean")
+    if sp is not None:
+        near("between-protein standard error", sp, spec["se_protein"])
+    if sd is not None:
+        near("between-draw standard error", sd, spec["se_draw"])
+    # THE POINT OF THE EXERCISE. If this were large the published intervals would be wrong;
+    # it is small, and asserting a ceiling is what stops that quietly changing.
+    w = get("ratio of combined to published interval width")
+    if w is not None:
+        at_most("including draw uncertainty barely widens the interval", w,
+                spec["max_widening"])
+        record(w >= 1.0, "and it does widen it rather than shrink", f"{w:.3f}", ">= 1.0")
+    mr = get("median per-dataset range across draws")
+    if mr is not None:
+        at_most("median per-dataset range across draws", mr, spec["max_median_range"])
+    nb = get("draws whose panel mean stays below the GC arm's published 0.0265")
+    if nb is not None:
+        record(int(nb) == spec["n_draws_below_gc"],
+               "the arm ordering survives every draw, not only the published one",
+               int(nb), spec["n_draws_below_gc"])
+
+
 def verify_protocol_transport(T, g):
     """Train-protocol by evaluation-protocol, which separates two things the design confounds.
 
@@ -4848,7 +4895,7 @@ def main():
              verify_device_portability, verify_matching_robustness,
              verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
              verify_cross_fitting, verify_positive_set_overlap, verify_common_positives,
-             verify_protocol_transport,
+             verify_protocol_transport, verify_negative_draws,
              verify_cache_evidence, verify_cross_tables, verify_integrity)
     n_paper = None
     for fn in (PAPER + LEGACY):
