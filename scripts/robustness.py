@@ -250,7 +250,11 @@ def main():
     p.add_argument("--what", default="all",
                    choices=["estimator", "baseline", "leakage", "all"])
     p.add_argument("--k", type=int, default=4)
-    p.add_argument("--leakage-sample", type=int, default=60)
+    # 0 MEANS ALL, AND IT IS THE DEFAULT. This defaulted to a 60-dataset random subsample, so
+    # rerunning the script overwrote the committed 94-row table with a different and smaller
+    # computation, silently. The manuscript quotes the full-panel figures.
+    p.add_argument("--leakage-sample", type=int, default=0,
+                   help="0 = every dataset in the panel; a positive N takes a random N")
     a = p.parse_args()
     cfg = cfgmod.load(a.config)
     TABLES.mkdir(parents=True, exist_ok=True)

@@ -166,8 +166,12 @@ dataset weighted equally; it was required to beat round-robin assignment, to hol
 per-dataset maximum deviation at or below 0.05, and to place no more than half of any dataset's
 data in one fold. For the neural models, fold $i$ is the test fold, fold $i+1 \bmod 5$ is
 validation and the remaining three train, so each fold is test once, validation once and
-training three times, and no additional data is spent on model selection. The 4-mer and both
-nested logistic fits need no validation fold and train on all four non-test folds.
+training three times, and no additional data is spent on model selection. The 4-mer and the two
+nested logistic fits need no validation fold and train on all four non-test folds. The neural
+models therefore see a fifth less training data than the 4-mer in the three-class comparison.
+The asymmetry runs against the result rather than towards it: both neural models are handicapped
+relative to the 4-mer and both still show larger contributions and larger protocol spans, so
+equalising it could only widen the gap we report.
 
 Every window is scored exactly once out of fold and all AUROCs are computed on the pooled
 out-of-fold score vector. Pooling, instead of averaging per-fold AUROCs, makes the
@@ -176,7 +180,7 @@ fold.
 
 Leakage between folds was audited by exact 32-mer sharing, not by clustered sequence
 identity. A 101~nt window contains 70 distinct 32-mers, and two unrelated sequences share one
-with negligible probability, and a shared 32-mer indicates common origin. Over all 94 datasets,
+with negligible probability, and a shared 32-mer indicates common origin. Over all 94 datasets of the dinucleotide arm,
 holding fold 0 out, a median of 2.0\% of held-out windows shared any 32-mer with a training
 window (maximum 24.3\%), a median of 0.08\% shared more than half of their 32-mers, and the
 median dataset contained no window sharing more than 90\%. Chromosome grouping therefore leaves
@@ -217,17 +221,21 @@ score; had it been, the fitted and evaluated covariate would sit on different sc
 mismatch would grow with how much the underlying model overfits, which differs sharply between
 a 256-column penalised logistic and a fully fine-tuned transformer. 
 
-One channel remains open and is worth naming, because it is not removed by scoring out of fold.
+One channel inside the estimator remains open and is worth naming, separately from the
+sequence homology discussed above, because it is not removed by scoring out of fold.
 For test fold $i$ the nested model is fitted on the rows of the other folds, and those rows carry
 scores from base models whose own training sets included fold $i$. Information about fold $i$
 therefore reaches the nested fit through the covariate, and the composition columns have no
 analogous route carrying label information; the whole-dataset standardisation described in
-Section~\ref{sec:estimands} is label-free and moves panel means by $4\times10^{-5}$. The bias is one-directional, since it can only help the score column, and it
+Section~\ref{sec:models} is label-free and moves panel means by at most $4\times10^{-5}$. The bias is one-directional, since it can only help the score column, and it
 should grow with how much the base model overfits. We do not remove it; we measure it. A model
 whose information the baseline already contains has a true increment of zero, and what the
-estimator returns for such a model is reported in Section~\ref{sec:floor}: the floor reported there is an upper bound that
-includes this channel along with the conditioning effect described in that section, and we do
-not separate the two.
+estimator returns for such a model is reported in Section~\ref{sec:floor}: the floor reported there is what the estimator returns
+for a 2-mer, and it therefore includes whatever this channel contributes for a model of that
+kind, without separating it from the conditioning effect described in that section. It does not
+bound the channel for a fine-tuned transformer: by the argument just given the bias grows with
+how much the base model overfits, and a sixteen-feature model is the least overfitting case we
+could have chosen. The calibration is a floor for the estimator, not a ceiling on the leak.
 
 The composition-only and composition-plus-score predictors were compared by DeLong's paired
 estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired

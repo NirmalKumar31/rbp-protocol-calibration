@@ -207,7 +207,9 @@ windows. Every one is a gene \emph{name} shared across chromosomes rather than a
 72 such names in GENCODE v45, 36 are pseudo-autosomal chrX/chrY pairs and the remainder are
 multi-copy small-RNA families, the widest sharing one name across 24 chromosomes. Near-identical
 sequence at those loci does sit on both sides of a chromosome split. Family-level similarity
-is the one leakage channel this design does not close, at a scale of 176 windows in 2.7 million.
+is the leakage channel in the data that this design does not close, at a scale of 176
+windows in 2.7 million. A second channel, inside the estimator rather than the data, is
+described in Methods.
 Refitting the 4-mer under gene-clustered folds built to the same balanced-mass objective, which
 splits a median of 22.9 chromosomes across folds and is therefore the \emph{less} conservative
 design, gives contributions of $+0.0269$ and $+0.0664$ against $+0.0265$ and $+0.0663$, and a
@@ -220,8 +222,8 @@ its peak's midpoint, peaks are not points, and Section~\ref{sec:methods-models} 
 signal sits a median 23~nt off that centre. The choice is demonstrably not aligned with the
 signal. The comparison usually asked for, summit-centred against midpoint-centred windows,
 cannot be made here: narrowPeak reserves column 10 for a point-source summit and it is $-1$ in
-every row of every file we checked, ten of the panel's ninety-five: no summit exists to
-centre on. We
+every row of each of the ten panel files we checked, so no summit was
+available to centre on in any of them. We
 therefore compared the three centres the interval does provide, on ten size-stratified datasets
 rebuilt from the genome in both composition-matched arms: the midpoint, the peak's 5' boundary
 in transcript orientation, which is where the crosslink sits, and the midpoint displaced 25~nt
@@ -327,26 +329,27 @@ the code producing them, and the fold-partition defect above is exactly the clas
 distinction permits: it was found by inspection and by none of the 937 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
-The manuscript audit traces every number here, decimals and bare counts alike, to a committed
-table, a configuration value or a constructed object, and no number of three or more decimals remains unsourced. Four
-limits bound it. It cannot tell whether a number is attached to the right claim, so a real value
-on the wrong line passes. Its power is set by how densely sourced values fill the space it
-searches, 28.1\% of the four-decimal grid over $[0.5, 1.0]$ and 29.3\% of the integer range
-the paper's counts occupy, so a fabrication escapes roughly one time in three; the audit reports
-that occupancy on every run and these figures are its current output rather than a recollection
-of it. And because it matches values against tables rather than claims
+The manuscript audit traces the numbers in this text, decimals and bare counts alike, to a
+committed table, a configuration value or a constructed object, and none of those it checks
+remains unsourced. Three limits bound it, and a fourth bounds what it looks at. It cannot tell
+whether a number is attached to the right claim, so a real value on the wrong line passes. Its power is set by how densely sourced values fill the space it
+searches, which is under a third of the four-decimal grid over $[0.5, 1.0]$ and under a third of
+the integer range it scans, so a fabricated value there escapes something like one time in
+three. Those densities are given coarsely on purpose: they move whenever a table is added,
+including by the commit that adds one, so an exact figure written here is stale by construction.
+The audit prints the current values on every run and those are the authority. And because it matches values against tables rather than claims
 against runs, it passed a stale statement of this section's own coverage: the count above was
 quoted from an earlier run while a larger number of assertions were executing. That one is now
 checked against the live total on every run, which is the only class of number here that goes
-stale whenever the harness grows. And it checks only values of three or more decimals and counts
-of ten or more, so one- and two-decimal figures and small counts are outside its reach
-altogether.
+stale whenever the harness grows. And its scope is narrower than "every number": it checks values of three or
+more decimals and counts of ten or more, so one- and two-decimal figures and small counts are
+outside it altogether.
 
 That density is also why AUROCs are quoted here to four decimal places, which is finer than the
 measurement warrants. A single dataset's AUROC carries a DeLong standard error in the third
 decimal, so the fourth digit of any per-dataset value is not a claim about binding. It is a
-traceability device: the three-decimal grid over the range these values occupy is 94.2\%
-full, so a three-decimal number matches some committed table almost by chance and the audit
+traceability device: the three-decimal grid over the range these values occupy is more than
+nine tenths full, so a three-decimal number matches some committed table almost by chance and the audit
 protects it hardly at all, while at four decimals the same check has real power. Panel-level
 quantities, which average over 94 datasets, do support the precision they are given.
 
