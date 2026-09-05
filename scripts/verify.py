@@ -2030,6 +2030,59 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_common_positives(T, g):
+    """The contrast run on the positives both composition-matched arms retain.
+
+    The design claim is that only the negatives change; the matchers reject different positives,
+    so it is nearly true rather than true. This is the sensitivity that settles whether the
+    difference matters, and it is gated on the SHIFTS rather than only on the levels, because a
+    shift is the quantity the objection is about.
+    """
+    print("\ncommon positives  (negatives as exactly the only difference)")
+    d = T.get("common_positives.csv")
+    if d is None:
+        return record(False, "common_positives.csv present", "MISSING",
+                      "run scripts/common_positives.py --store ../rbp-store")
+    spec = g["common_positives"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("datasets")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+    v = get("positives dropped by intersecting, fraction of the GC arm's")
+    if v is not None:
+        near("fraction of positives dropped by intersecting", v, spec["frac_dropped"])
+    for arm, kg, ks in (("gc", "gain_common_gc", "shift_gc"),
+                        ("dn", "gain_common_dn", "shift_dn")):
+        v = get(f"contribution on common positives, {arm} arm")
+        if v is not None:
+            near(f"contribution on common positives, {arm} arm", v, spec[kg])
+        s = get(f"shift from intersecting, {arm} arm")
+        if s is not None:
+            near(f"shift from intersecting, {arm} arm", s, spec[ks])
+            at_most(f"intersecting moves the {arm} arm by less than a thousandth", abs(s), 0.001)
+    rc, rf = get("dn/gc ratio on common positives"), get("dn/gc ratio on all retained positives")
+    if rc is not None:
+        near("dn/gc ratio on common positives", rc, spec["ratio_common"])
+    if rf is not None:
+        near("dn/gc ratio on all retained positives", rf, spec["ratio_full"])
+    if None not in (rc, rf):
+        record(rc > 2.0 and rf > 2.0,
+               "the protocol effect survives making the negatives the only difference",
+               f"{rc:.2f}x vs {rf:.2f}x", "both > 2x")
+    p88 = get("datasets where the contrast stays positive on common positives")
+    if p88 is not None:
+        record(int(p88) == spec["n_contrast_positive"],
+               "and on the same number of datasets individually", int(p88),
+               spec["n_contrast_positive"])
+
+
 def verify_positive_set_overlap(T, g):
     """How much the two composition-matched arms' POSITIVE sets differ.
 
@@ -4731,6 +4784,7 @@ def main():
                verify_device_portability, verify_matching_robustness,
                verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
            verify_cross_fitting, verify_positive_set_overlap,
+           verify_common_positives,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

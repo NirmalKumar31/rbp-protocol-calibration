@@ -2,7 +2,7 @@
 
 ## 1.0.0 — the preprint release
 
-The state the manuscript describes. 964 numeric assertions pass offline against committed
+The state the manuscript describes. 976 numeric assertions pass offline against committed
 tables; 716 tests; the paper builds with no LaTeX warning.
 
 ### The finding

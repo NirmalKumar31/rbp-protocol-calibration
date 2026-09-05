@@ -113,6 +113,12 @@ def abstract_words():
 def collected_tests():
     """Tests pytest actually collects here, not a number typed into the README.
 
+    THIS COUNT MOVES WHEN A SCRIPT IS ADDED, not only when a test is. Two suites parametrise
+    over files -- test_no_hardcoded_project.py over every tracked .py, .sh, .yaml and .json,
+    test_figure_output.py over every figure PDF -- so adding scripts/common_positives.py adds a
+    test case without anyone writing one. That is surprising the first time and is why the
+    number is derived here rather than trusted where it is typed.
+
     Returns None where the whole suite cannot be collected -- no torch, or a caller passing
     --ignore -- for the reason tests/unit/test_suite_size.py gives at length: a subset compared
     against a whole-suite figure is a meaningless comparison that fails builds for the wrong

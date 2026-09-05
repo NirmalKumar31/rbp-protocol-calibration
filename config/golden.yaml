@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 962
+  min_domain_checks: 974
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2523,6 +2523,21 @@ negative_set_survey:
 # the id it keyed on is a per-arm row index: the same id names chr12 in one arm and chr9 in the
 # other. Recomputed on genomic coordinate the median is unchanged and the minimum moves from
 # 0.9237 to 0.9164.
+# THE COMMON-POSITIVE SENSITIVITY. The review's P1.1: the protocols do not vary ONLY the
+# negatives, because the matchers reject different positives, and a qualitative reason for
+# declining the analysis is not the analysis. Run, and it changes nothing: 0.23% of positives
+# dropped, the dn/gc ratio moves 2.499 -> 2.511.
+common_positives:
+  n_datasets: 94
+  frac_dropped:       {value: 0.0023, tol: 0.0005}
+  gain_common_gc:     {value: 0.0265, tol: 0.0010}
+  gain_common_dn:     {value: 0.0666, tol: 0.0015}
+  shift_gc:           {value: 0.0000, tol: 0.0003}
+  shift_dn:           {value: 0.0003, tol: 0.0003}
+  ratio_common:       {value: 2.511, tol: 0.030}
+  ratio_full:         {value: 2.499, tol: 0.030}
+  n_contrast_positive: 88
+
 positive_set_overlap:
   n_datasets: 94
   median_jaccard: {value: 0.9972, tol: 0.0005}

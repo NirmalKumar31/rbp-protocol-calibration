@@ -16,15 +16,15 @@ zero by construction, which is 90.4% of the smallest arm's reported value.
 
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download. 964 numeric assertions are checked
+No cloud account, no credentials, no data download. 976 numeric assertions are checked
 against committed tables. That is a regression gate on the published values, not a proof that
 each is attached to the right claim; the Limitations section says what it does not cover.
 
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e . -c constraints.txt   # pins the versions the results used
-PYTHONPATH=src python scripts/verify.py --local results/tables   # 964/964
-PYTHONPATH=src python -m pytest tests -q                          # 718, needs torch
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 976/976
+PYTHONPATH=src python -m pytest tests -q                          # 719, needs torch
 ```
 
 `verify.py` re-derives every published value from the committed result tables and fails if any
@@ -71,7 +71,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          718 tests, no network or cloud; 2 modules need torch
+tests/          719 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes

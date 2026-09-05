@@ -97,52 +97,45 @@ a calibration across 94 ENCODE eCLIP datasets}
 \linenumbers
 \maketitle
 
+% THE ABSTRACT WAS 616 WORDS until an external review measured it. SUBMISSION.md said 255,
+% which was stale by a factor of 2.4, and the review quoted the stale figure and so understated
+% the problem. Briefings in Bioinformatics, which this manuscript's structure already targets,
+% asks for about 250.
+%
+% What was cut, and it was not padding: the design argument that dinucleotide matching
+% constrains fifteen degrees of freedom against GC matching's one; the bias-aware arm's
+% per-dataset detail; that the arm is easiest for the 4-mer and the CNN but not for SpliceBERT;
+% the reversal of baseline attribution between model classes; the eight reparameterisations;
+% the four-construction span of 20.62-fold; and that five of the seven surveyed sources build
+% negatives by relocating genomic intervals. Every one is in the Results.
+%
+% The long version is preserved on the working-notes branch and in the history of this file.
+% Restoring it is one revert, and a venue with a longer limit should have it.
 \begin{abstract}
 \noindent
-Sequence models for RNA-binding proteins are evaluated against constructed negative windows,
-and how those windows are chosen is usually treated as a detail. Across 94 paired ENCODE
-eCLIP datasets we held the model, the peak set, the chromosome-blocked folds and the estimator
-fixed, varied only how the negatives were built, and measured each model's nested contribution
-over a 19-feature composition baseline refit under each protocol. Replacing GC-matched with dinucleotide-matched negatives lowered the 4-mer's own AUROC from a
-panel mean of 0.798 to 0.688 and raised its measured contribution from 0.027 to 0.066.
-The fall held in every one of the 94 datasets individually and the rise in 88 of them, not
-only in the panel means.
-The direction is implied by the design,
-since dinucleotide matching constrains fifteen degrees of freedom of composition against GC
-matching's one, so only the magnitude is informative. A bias-aware protocol
-drawing negatives from other proteins' binding sites left the highest composition baseline of
-the three and the smallest contribution, 0.012, and there nineteen composition features beat the
-4-mer outright in 53 of 94 datasets. It is also the easiest discrimination for the 4-mer and the
-convolutional network, though not for SpliceBERT, which finds GC matching marginally easier.
-Across the three protocols apparent difficulty and measured contribution move in opposite
-directions, spanning 5.42-fold for a 4-mer and 3.7 to
-7.4-fold across three model classes on identical rows. A fourth construction shows what the
-protocol is acting on. Dinucleotide-preserving shuffling makes each negative a permutation of
-its own positive, so the composition baseline takes the same value on both members of every pair
-and sits at exactly 0.5000 in all 94 datasets. The
-contribution there is $+0.2523$, which with the baseline pinned at a half is the model's own
-AUROC less a half rather than an independent measurement. Across the four constructions the
-span is 20.62-fold. For a 4-mer what a negative-set protocol moves is the
-composition baseline, and the contribution follows; for the convolutional network the two
-attributions reverse. On the one externally constructed
-benchmark we tested they move together, so the relation is a property of the protocols compared
-here and not a general law. No standard way of re-expressing an AUROC difference closed the span. We tried eight: the raw difference, Somers' D,
-discriminability, the logit, arcsine and complementary log-log scales, and division by the
-baseline's remaining headroom or by its excess over chance; five shrank the span but not below
-two-fold, two are controls that return it unchanged by construction, and one widened it. An
-exponent fitted so as to close it survived neither a change of aggregation nor transfer to an
-externally constructed benchmark. At an order-three baseline most of the 4-mer's contribution disappears and the
-span widens, so the quantity is indexed by the baseline's order as well as the protocol. Headroom division improved cross-protocol agreement on our own data but failed, out of sample,
-a falsification test specified in advance. The estimator also has a floor. Applied to a model whose information the baseline already
-contains, so that the true contribution is zero by construction, it returns $+0.0111$ to
-$+0.0137$: nearly constant across protocols, so the protocol ordering is not manufactured by it, but 90.4\%
-of the smallest arm's reported contribution, so absolute increments of this size are not
-distinguishable from it. In a survey of seven widely used methods and benchmarks, five construct
-negatives by relocating genomic intervals, which leaves composition unconstrained, none reports a
-composition-only AUROC beside its headline, and none reports a calibration that would reveal the
-floor. We therefore recommend reporting the composition-only AUROC obtained
-under the same protocol alongside every headline AUROC, and not comparing contributions measured
-under different protocols.
+Sequence models for RNA-binding proteins are evaluated against constructed negative windows, and
+how those windows are chosen is usually treated as a detail. Across 94 paired ENCODE eCLIP
+datasets we held the model, the peak set, the chromosome-blocked folds and the estimator fixed,
+varied only how the negatives were built, and measured each model's nested contribution over a
+19-feature composition baseline refit under each protocol.
+
+The measured contribution moves 5.42-fold across three protocols for a 4-mer (95\% CI 4.43 to
+6.58), and 3.7 to 7.4-fold across three model classes on identical rows and folds. A model's
+apparent AUROC moves the opposite way: replacing GC-matched with dinucleotide-matched negatives
+lowers the 4-mer's own AUROC from a panel mean of 0.798 to 0.688 in every one of the 94 datasets,
+while raising its measured contribution from 0.027 to 0.066 in 88 of them. Under
+dinucleotide-preserving shuffling the baseline sits at exactly 0.5000 and the contribution
+becomes the model's own AUROC less a half.
+
+The estimator also has a floor. Applied to a 2-mer, whose true contribution is zero because the
+baseline spans its features, it returns $+0.011$ to $+0.014$, which is 90.4\% of the smallest
+protocol's reported value. That floor is not intrinsic to the estimand: it is the estimator's own
+incomplete cross-fitting, and generating the score covariate outside the outer test fold removes
+96 to 99\% of it and recovers the known zero to within $5\times10^{-4}$.
+
+In a survey of seven widely used methods and benchmarks, none reports a composition-only AUROC
+beside its headline. We recommend reporting one obtained under the same protocol, cross-fitting
+the covariate, and not comparing contributions measured under different protocols.
 \end{abstract}
 
 \noindent\textbf{Keywords:} RNA-binding proteins; eCLIP; benchmarking; negative-set
@@ -171,7 +164,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 reproducible offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 964 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 976 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. One quantity is an exception and is marked as such in the text: the design effect, whose
 block bootstrap needs the genomic coordinates that the published per-window score files do not

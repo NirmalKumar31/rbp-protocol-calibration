@@ -291,16 +291,24 @@ windows identified by genomic coordinate, with median 0.9972 and minimum 0.9164,
 identical in 10 of 94 datasets. The negatives are therefore almost, but not exactly, the only
 difference between arms.
 
-We considered restricting every arm to the intersection of its positive sets and declined. The intersection would make
-the negatives exactly the only difference, at the cost of discarding the windows on which the
-matchers disagree. Those are not a random sample: a matcher fails where a positive's
-composition is hardest to match, so the intersection would preferentially drop the compositional
-extremes that the dinucleotide matcher works hardest on, and it would do so from the arm whose
-contribution is largest. Removing a discrepancy of under three parts in a thousand by deleting
-the observations most informative about the effect trades a small bias for a larger one, and the
-three-arm results in Section~\ref{sec:models} are already computed on rows intersected across
-all three model classes, so the comparison that carries the paper's headline is on identical
-rows regardless.
+We ran the contrast on the intersection of the two arms' positive sets, which makes the
+negatives exactly the only difference, and it changes nothing that matters. Intersecting drops
+0.23\% of positives. The GC arm's panel mean is unmoved at $+0.0265$, the dinucleotide arm's
+rises from $+0.0663$ to $+0.0666$, their difference goes from $+0.0398$ to $+0.0401$, their
+ratio from 2.50 to 2.51, and the contrast stays positive on the same 88 of 94 datasets. Both
+sides of that comparison are computed by the same code from the same files, differing only in
+the intersection, because differencing against the published value instead would have folded in
+a $4\times10^{-6}$ shift from row ordering alone.
+
+We report it as a sensitivity and not as the primary analysis, for the reason we originally gave
+for not running it. The windows the matchers disagree on are not a random sample: a matcher
+fails where a positive's composition is hardest to match, so the intersection preferentially
+drops the compositional extremes the dinucleotide matcher works hardest on, and drops them from
+the arm whose contribution is largest. That is an argument about which estimate answers the
+question asked, not about whether the result holds, and the measurement above settles the
+second. The three-arm results in Section~\ref{sec:models} are in any case computed on rows
+intersected across all three model classes, so the comparison carrying the paper's headline is
+on identical rows regardless.
 
 We applied no significance filter of our own to the positives, and none was available: as
 Methods reports, ENCODE's released peak files are already thresholded at the criteria of
@@ -315,7 +323,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 964 assertions compare each published value against a frozen
+credit than it earns. Its 976 assertions compare each published value against a frozen
 expectations file generated from the same run those values come from, so they are regression
 coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
 original run was correct. Two assertions do more, and they are the reproducibility claim worth
@@ -327,7 +335,7 @@ Everything downstream of the neural scores is bit-reproducible; the scores thems
 because initialisation was unseeded, so a rerun gives slightly different scores and then
 identical numbers from every step after them. The harness asserts values, not the provenance of
 the code producing them, and the fold-partition defect above is exactly the class that
-distinction permits: it was found by inspection and by none of the 964 assertions, as was the
+distinction permits: it was found by inspection and by none of the 976 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces the numbers in this text, decimals and bare counts alike, to a
