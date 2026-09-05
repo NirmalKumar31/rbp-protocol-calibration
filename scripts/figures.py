@@ -46,7 +46,7 @@ COLOR = {"composition": "#8c8c8c", "kmer": "#4878a8", "cnn": "#e08214",
          "splicebert": "#276419", "gc": "#b2182b", "dinuc": "#2166ac",
          "neg2": "#e7298a", "theirs": "#762a83",
          "grey_mid": "#969696", "grey_light": "#d9d9d9"}
-LABEL = {"composition": "composition (19 feat)", "kmer": "k-mer LR", "cnn": "CNN",
+LABEL = {"composition": "composition (19 feat)", "kmer": "4-mer LR", "cnn": "CNN",
          "splicebert": "SpliceBERT"}
 
 plt.rcParams.update({"figure.dpi": 150, "font.size": 9, "axes.grid": True,
@@ -753,7 +753,10 @@ def f12():
     # (a) every arm-dataset cell: the gain falls as the baseline the protocol leaves rises.
     for key, col, lab in (("dn", COLOR["dinuc"], "dinucleotide-matched"),
                           ("gc", COLOR["gc"], "GC-matched"),
-                          ("neg2", COLOR["neg2"], "neg2")):
+                          # "neg2" is the internal arm key and had leaked into the legend as
+                          # display text, while the panel beside it said "bias-aware". A reader
+                          # has no way to know they are the same arm.
+                          ("neg2", COLOR["neg2"], "bias-aware")):
         ax[0].scatter(d[f"comp_{key}"], d[f"gain_{key}"], s=13, color=col, alpha=0.7,
                       edgecolor="white", linewidth=0.25, label=lab, zorder=3)
     ax[0].axhline(0, color="#404040", linewidth=0.8)
@@ -767,7 +770,7 @@ def f12():
     hi = (d.comp_neg2 > d.comp_gc).values
     labels, vals, los, his = [], [], [], []
     for lab, key in (("bias-aware raises\nthe baseline", "concordant"),
-                     ("bias-aware LOWERS\nthe baseline", "discordant")):
+                     ("bias-aware lowers\nthe baseline", "discordant")):
         k = f"neg2 minus gc gain, {key} datasets"
         if k not in s.index:
             ax[1].axis("off")
@@ -888,7 +891,7 @@ def f14():
         ("ours\nGC", *clustered(d, "comp_gc", "gain_gc"), COLOR["gc"]),
         ("ours\ndinuc", *clustered(d, "comp_dn", "gain_dn"), COLOR["dinuc"]),
         ("theirs\nneg-1", *clustered(h, "comp_n1", "gain_n1"), COLOR["theirs"]),
-        ("ours\nneg2", *clustered(d, "comp_neg2", "gain_neg2"), COLOR["grey_mid"]),
+        ("ours\nbias-aware", *clustered(d, "comp_neg2", "gain_neg2"), COLOR["grey_mid"]),
         ("theirs\nneg-2", *clustered(h, "comp_n2", "gain_n2"), COLOR["grey_light"]),
     ]
     x = np.arange(len(bars))
