@@ -319,6 +319,19 @@ from a bootstrap that resamples \emph{proteins} and takes all datasets of each s
 4000 draws. Dataset-level intervals are 1.03 to 1.23 times narrower and are not reported as
 headline values.
 
+What that bootstrap resamples is proteins, and nothing else, so every interval in this paper is
+conditional on the rest of the design being held at the value it took. Six things are held
+fixed and are therefore absent from the stated widths, each quantified where it is discussed:
+the deterministic selection of 95 of 189 candidate datasets, which is a systematic subset by pair rank and not a probability sample; one
+negative draw per protocol, whose redraw moves an individual dataset by up to 0.0079 and a
+panel mean by 0.0031; one chromosome-to-fold partition; unseeded neural initialisation, worth
+about 0.001 on a panel mean; the choice of model and hyperparameters; and the small difference
+in retained positives between arms. The largest of these, the negative draw, is of the same
+order as the smaller effects reported here, and a design that propagated all six would give
+wider intervals than any stated below. We report the conditional interval because repeating the
+stochastic stages enough times to integrate over them was not affordable, not because the
+conditioning is negligible.
+
 Two analyses are confirmatory and are the only ones we adjust. The first is the primary
 contrast, the difference in nested contribution between protocols, which the study was built to
 estimate. The second is the recommendation test of Section~\ref{sec:recommendation}, whose two

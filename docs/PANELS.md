@@ -39,14 +39,19 @@ task count and the pool size are now asserted separately and explicitly.
 
 ## Which panel answers which question
 
+This table listed the earlier study's claims -- the four-model comparison, ISM locality, ClinVar
+specificity -- which are not what this paper reports. The current ones:
+
 | claim | panel | why that one |
 |---|---|---|
-| composition share, 94.8% → 67.8% | `GC` 94 | paired across arms; a dataset in only one cannot be differenced |
-| cost of matching, −0.1095 | `GC` 94 | same reason |
-| four-model comparison | `STUDY` 95 | the only set where all four models exist on identical splits |
-| ISM locality | `STUDY` 95 | needs SpliceBERT weights |
-| ClinVar specificity, +0.0645 | `VARIANT-POWERED` 44 | a per-dataset AUROC needs both classes and enough of the rare one |
-| the trivial positional baseline | `VARIANT-POWERED` 44 | compared against the model on identical datasets |
+| the three-arm span, 5.42-fold | `GC` 94 | paired across arms; a dataset present in only one cannot be differenced |
+| the reversal, 94/94 down and 88/94 up | `GC` 94 | same reason: it is a per-dataset paired comparison |
+| three model classes, spans 5.42 / 7.42 / 3.72 | `GC` 94 | identical rows and folds for all three, which is the whole point of the contrast |
+| the estimator floor, +0.0119 / +0.0137 / +0.0111 | `GC` 94 | measured with the same estimator on the same rows it calibrates |
+| cross-fitting, floor to within 0.001 of zero | `GC` 94 | same rows again; the comparison is to the published value on those rows |
+| the shuffled fourth arm, baseline exactly 0.5000 | `GC` 94 | negatives are permutations of the positives, so the panel is the positives' |
+| positive-set overlap, median Jaccard 0.9972 | `GC` 94 | a property of the two composition-matched arms, so only datasets in both |
+| the external benchmark | Horlacher 45 | a different construction entirely; not a subset of anything above |
 
 ## The rules that prevent the confusion
 
@@ -65,7 +70,8 @@ than drawn, so the procedure guarantees range coverage but cannot be assumed fre
 against any structure that happens to be ordered by pair count or by the tie-break. Every
 interval in the paper is conditional on this panel.
 
-**3. Report the unpowered stratum too.** The ClinVar specificity result is claimed on the 44
+**3. Report the unpowered stratum too.** This rule comes from the earlier variant-scoring
+study, whose ClinVar specificity result is claimed on the 44
 adequately powered datasets. The all-82 stratum shows nothing (gap −0.011, p=0.87) and is
 asserted in `golden.yaml` precisely so that it is never quietly omitted. Stratifying by power
 is legitimate here because the effect grows with power (rho=+0.52) while the wrong-protein

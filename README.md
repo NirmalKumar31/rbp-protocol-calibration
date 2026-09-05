@@ -22,7 +22,7 @@ each is attached to the right claim; the Limitations section says what it does n
 
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
-python -m pip install -e .
+python -m pip install -e . -c constraints.txt   # pins the versions the results used
 PYTHONPATH=src python scripts/verify.py --local results/tables   # 964/964
 PYTHONPATH=src python -m pytest tests -q                          # 718, needs torch
 ```

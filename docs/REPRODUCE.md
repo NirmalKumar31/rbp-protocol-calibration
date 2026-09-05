@@ -164,14 +164,25 @@ yourself, then:
 | 4 | panel **(public internet)** | Batch | ~$0.10 | candidate datasets, all arms |
 | 5 | preprocess **all candidates** + finalize | Batch | ~$2 | matched datasets, all arms, and the pair counts |
 | 6 | **select panel** | local | $0 | `manifest/study_panel.tsv` — *the* panel |
-| 7 | rehearsal | Batch | ~$0.60 | **R1** |
-| 8 | CNN | Batch | ~$3 | **R2** |
-| 9 | **SpliceBERT** | **Modal** | **~$31** | **R2** |
-| 10 | locality | Modal | ~$0.30 | **R3** |
-| 11 | variants **(public internet)** | Batch | ~$0.30 | assignments + phyloP |
-| 12 | ClinVar + mismatch control | Modal | ~$0.60 | **R4** |
+| 7 | rehearsal | Batch | ~$0.60 | the k-mer baseline on the whole panel |
+| 8 | CNN | Batch | ~$3 | per-window scores, dinucleotide arm |
+| 9 | **SpliceBERT** | **Modal** | **~$31** | per-window scores, dinucleotide arm |
+| 10 | locality | Modal | ~$0.30 | *earlier study; not used by this paper* |
+| 11 | variants **(public internet)** | Batch | ~$0.30 | *earlier study; not used by this paper* |
+| 12 | ClinVar + mismatch control | Modal | ~$0.60 | *earlier study; not used by this paper* |
 | 13 | aggregate + figures | Batch | ~$0.10 | tables, figures |
 | 14 | **verify** | local | $0 | pass/fail against golden numbers |
+
+Stages 10 to 12 belong to the earlier variant-scoring study. They are still in `run.sh` because
+the code and its tests are still here and still pass, and removing a working stage to tidy a
+table is how a pipeline stops being the thing that produced the results. Nothing this paper
+reports depends on them; `results/tables/PROVENANCE.csv` names the producing stage for every
+committed table, so the mapping is checkable rather than described.
+
+**Stages 8 and 9 cover the dinucleotide arm only.** The GC and bias-aware sweeps ran through
+`cloud/modal/modal_gc_sweep.py` with `RBP_ARM` set, outside this stage graph, and their
+per-window scores are committed under `data/evidence/`. That is the concrete content of the
+distinction in `PROVENANCE.csv` between `raw-reproducible` and `evidence-recomputable`.
 
 Paid stages ask before spending. `RBP_YES=1` skips the prompt once you have decided.
 
@@ -223,13 +234,21 @@ inference (measured at max 1.1e-4 per variant) — and nothing more.
 Where a claim is about unanimity or ordering, the **count** is checked rather than the mean,
 because that is what the paper asserts:
 
-- R1: every dataset must fall, and the gain over composition must **at least double** under
-  the harder control. If that ratio inverts, the paper's thesis is false regardless of how
-  close the other numbers land.
-- R2: the four-model ordering must hold exactly.
-- R3: SpliceBERT more concentrated on ≥85%, and **significantly reversed on zero**.
-- R4: the ladder must be monotone, and matched must exceed mismatched by ≥0.60, or the
-  signal is not binding-specific and R4 must be withdrawn.
+These were written for the earlier four-model, ISM and ClinVar study and named its claims.
+They now name this paper's, which are different claims about different quantities.
+
+- **The reversal.** The 4-mer's own AUROC must fall from GC-matched to dinucleotide-matched
+  negatives in all 94 datasets, and its contribution must rise in 88. If those move the same
+  way the paper's central observation is gone, whatever the panel means say.
+- **The span.** The three-arm contribution span must stay above 3-fold and the ordering
+  dinucleotide > GC > bias-aware must hold. A span near 1 would mean protocol choice does not
+  matter, which is the null this paper argues against.
+- **The floor.** Applied to a 2-mer, whose true contribution is zero by construction, the
+  estimator must return a positive value in every arm, and that value must be nearly flat
+  across arms. Flat is what protects the span; positive is the finding.
+- **Cross-fitting.** Closing the outer-fold route must remove most of the floor and land within
+  0.001 of zero for the 2-mer. That is the check that the correction works, because the target
+  is known. For the 4-mer the channel must not be positive: it was claimed to be, and is not.
 
 **Exit 0 means the science reproduced.** Exit 1 names the claim that broke. A pipeline that
 completes and quietly produces different science is worse than one that crashes, because

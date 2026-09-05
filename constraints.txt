@@ -1,0 +1,27 @@
+# Versions the published results were produced with.
+#
+# WHY THIS EXISTS. README tells a reader to `pip install -e .`, and pyproject declares lower
+# bounds only -- numpy>=1.26 and so on -- so that command is free to resolve a numpy released
+# next year. docker/requirements-cpu.txt has been pinned all along, but the container is not
+# what a reader verifying the paper runs.
+#
+#   pip install -e . -c constraints.txt
+#
+# Not a full lock file. It pins what the results depend on numerically and leaves transitive
+# packaging dependencies to resolve, which is the trade a lock file makes in the other
+# direction: a full lock would be reproducible and would break on any platform whose wheels
+# differ, and this repository is verified on macOS, on Linux CI and in two containers.
+#
+# Regenerate with:  pip freeze | grep -iE '^(numpy|pandas|scipy|scikit-learn|pyyaml|torch|transformers|matplotlib)='
+numpy==2.5.2
+pandas==3.0.5
+scipy==1.18.0
+scikit-learn==1.9.0
+pyfaidx==0.9.0.4
+pyBigWig==0.3.25
+PyYAML==6.0.3
+requests==2.34.2
+matplotlib==3.11.1
+pytest==9.1.1
+google-cloud-storage==2.19.0
+google-cloud-bigquery==3.27.0
