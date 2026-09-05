@@ -8,7 +8,7 @@ settings of one control. They asked three different questions, and each answer i
 interpretable against the question it answers.
 
 How much a sequence model adds over sequence composition is therefore not a property of the
-model alone. Holding the model, the positives, the folds and the estimator fixed, and varying
+model alone. Holding the model, the peak set, the folds and the estimator fixed, and varying
 only how the negative windows were assembled, the measured contribution of a 4-mer varied
 5.4-fold, and between 3.7 and 7.4-fold across three model classes.
 
@@ -208,7 +208,7 @@ $0.0003$, so the coarser choice costs almost nothing and the grouping variable i
 the result.
 
 The window centre is a fourth such parameter and the largest of them. Every window is centred on
-its peak's midpoint, peaks are not points, and Section~\ref{sec:models} shows the discriminative
+its peak's midpoint, peaks are not points, and Section~\ref{sec:methods-models} shows the discriminative
 signal sits a median 23~nt off that centre. The choice is demonstrably not aligned with the
 signal. The comparison usually asked for, summit-centred against midpoint-centred windows,
 cannot be made here: narrowPeak reserves column 10 for a point-source summit and it is $-1$ in

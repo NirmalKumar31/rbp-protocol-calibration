@@ -124,7 +124,7 @@ IDENTIFIER = re.compile(r"(doi:|zenodo\.|10\.\d{4,}/|ENC[A-Z]{2}\d|GSE\d|v\d+\.\
 
 
 
-def haystack():
+def haystack(allow_golden=False):
     """Values a manuscript could legitimately be quoting: assertions and aggregates."""
     # Keyed by decimal place: a manuscript writing "1.036" must match a table holding
     # 1.0357967, so the comparison happens at the TOKEN's own precision. Dropping this was a
@@ -150,7 +150,17 @@ def haystack():
         else:
             add(o)
 
-    walk(yaml.safe_load(GOLDEN.read_text()))
+    # GOLDEN.YAML IS A SECOND OPINION, NOT A SOURCE, and treating it as one hid seven stale
+    # numbers. Its expectation values carry tolerances wide enough to admit a changed result, so
+    # after the Phase 1 retrain a manuscript number that still matched the PRE-retrain golden
+    # value was reported as traced while the table beneath it had moved. The audit was
+    # certifying agreement with its own frozen expectations rather than with the data.
+    #
+    # Golden values are therefore added only under --allow-golden, which exists so the two
+    # haystacks can be compared. The default is tables, config and constructed objects, which
+    # are the things a number in this paper is supposed to come from.
+    if allow_golden:
+        walk(yaml.safe_load(GOLDEN.read_text()))
 
     for p in sorted(TABLES.glob("*.csv")) + sorted(TABLES.glob("*.tsv")):
         if p.name == SELF:
@@ -174,7 +184,7 @@ def haystack():
     return vals
 
 
-def int_haystack():
+def int_haystack(allow_golden=False):
     """Counts a manuscript could legitimately be quoting.
 
     A count is a property of a table's SHAPE, not an aggregate of its values, so none of the
@@ -204,7 +214,8 @@ def int_haystack():
         else:
             add(o)
 
-    walk(yaml.safe_load(GOLDEN.read_text()))
+    if allow_golden:
+        walk(yaml.safe_load(GOLDEN.read_text()))
     cfgp = ROOT / "config" / "params.yaml"
     if cfgp.exists():
         walk(yaml.safe_load(cfgp.read_text()))
@@ -241,10 +252,19 @@ def int_haystack():
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--allow-golden", action="store_true",
+                    help="also treat golden.yaml's expectation values as sources. Off by "
+                         "default: they carry tolerances, so a manuscript number can match a "
+                         "STALE golden value and be reported as traced while the table it "
+                         "should come from has moved. Seven numbers survived a retrain that "
+                         "way. Use it only to compare the two haystacks.")
+    a = ap.parse_args()
     if not MANUSCRIPT:
         raise SystemExit(f"no manuscript sources under {MANUSCRIPT_DIR}")
-    vals = haystack()
-    ints = int_haystack()
+    vals = haystack(a.allow_golden)
+    ints = int_haystack(a.allow_golden)
     sat = {d: len({v for v in vals[d] if 0.5 <= v <= 1.0}) / (10 ** d * 0.5 + 1)
            for d in (3, 4)}
     # The integer false-negative rate over the range the paper's counts actually occupy.

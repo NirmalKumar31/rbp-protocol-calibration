@@ -164,7 +164,7 @@ and a total variation distance of 0.0000. The composition baseline falls from 0.
 and the contribution from $+0.0122$ to $+0.0092$, so 46\% of the arm's baseline excess over the
 GC arm is region mix and the rest is not. The ordering is unchanged: the region-matched arm
 still carries the highest composition baseline of the three and still yields the lowest
-contribution, and the span against the dinucleotide arm widens from 5.42 to 7.20.
+contribution.
 
 That repair was available for the 4-mer alone until now, which left the obvious objection open:
 a convolutional network or a pretrained language model might depend on transcript region in a
@@ -177,7 +177,9 @@ measured on the same arm.
 
 The answer does not change for any model class, and the correction moves the result the wrong way
 for a confound. With region matched the contributions are $+0.0092$, $+0.0100$ and $+0.0352$ for
-the 4-mer, the convolutional network and SpliceBERT, and the region-matched arm still gives the
+the 4-mer, the convolutional network and SpliceBERT; the first two lie below the estimator floor
+of Section~\ref{sec:floor} and should be read as upper bounds rather than as measured
+increments, and the region-matched arm still gives the
 smallest of the three protocols for every one of them. The span against the dinucleotide arm
 \emph{widens} in all three cases, from 5.42 to 7.20, from 7.42 to 8.40 and from 3.72 to 4.93. A
 result driven by the region confound would have narrowed when the confound was removed.
@@ -323,14 +325,14 @@ their benchmark at 2.340 against the 2.381 it started from. A normalisation stro
 equalise one benchmark therefore has to be refitted on the next.
 
 Extending the sweep to the other two model classes qualifies the headline figure. The floor over
-the eight reparameterisations is 2.00 for the 4-mer, 2.91 for the convolutional network and 1.68
+the eight reparameterisations is 2.00 for the 4-mer, 2.78 for the convolutional network and 1.65
 for SpliceBERT: no model class reaches protocol independence among fixed coordinates and all
 three exceed the equal-means null, but 2.00 is the 4-mer's floor, and each model class has its
 own. The
-fitted exponent also performs worse for the neural models, reaching 1.213 for the convolutional
-network and 1.124 for SpliceBERT against 1.004 for the 4-mer, and the equalising exponent itself
-differs by a factor of 1.22 between model classes measured on the same benchmark (1.544, 1.843,
-1.507).
+fitted exponent also performs worse for the neural models, reaching 1.241 for the convolutional
+network and 1.133 for SpliceBERT against 1.004 for the 4-mer, and the equalising exponent itself
+differs by a factor of 1.21 between model classes measured on the same benchmark (1.544, 1.793
+and 1.485).
 
 
 \begin{figure}[htbp]
@@ -420,9 +422,10 @@ $\mathrm{var}$(baseline) is 0.61 in the dinucleotide arm against 0.09 and 0.03 i
 neither axis is uncontaminated there.
 
 These analyses do not generalise across model classes (Table~\ref{tab:generalise}). For the
-convolutional network the ordering reverses, the protocol label contributing 6.25\% of variance
-against the baseline's 2.34\%. For SpliceBERT the within-arm relation is strong in all three
-arms, including the bias-aware arm at $-0.568$ where the 4-mer shows $-0.122$, so no two-family
+convolutional network the ordering reverses, the protocol label contributing 4.60\% of variance
+against the baseline's 3.47\%, a narrower gap than the 4-mer's in the other direction. For
+SpliceBERT the within-arm relation is strong in all three arms, including the bias-aware arm at
+$-0.568$ where the 4-mer shows $-0.122$, so no two-family
 structure is apparent in that measurement. The variance attribution, the within-panel reversal
 and the family structure hold for the 4-mer measurement and should not be read as properties
 of the quantity.
@@ -438,8 +441,8 @@ baseline and contribution, by model class ($n=94$).}
 model & protocol $\mid$ base & base $\mid$ protocol & dinuc & GC & bias-aware \\
 \midrule
 4-mer & 1.00\% & 11.05\% & $-0.462$ & $-0.545$ & $-0.122$ \\
-CNN & 6.25\% & 2.34\% & $-0.120$ & $-0.410$ & $+0.075$ \\
-SpliceBERT & 1.07\% & 24.06\% & $-0.583$ & $-0.767$ & $-0.568$ \\
+CNN & 4.60\% & 3.47\% & $-0.185$ & $-0.410$ & $+0.075$ \\
+SpliceBERT & 1.12\% & 25.62\% & $-0.604$ & $-0.767$ & $-0.568$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -630,7 +633,7 @@ arms. The difference is $+0.0010$ with a protein-clustered interval of $-0.0016$
 so what the protocol does is not so much reverse the ranking as destroy it, leaving two model
 classes that the other two protocols separate confidently indistinguishable. Ranking methods is
 what a benchmark is for, so this is the most direct cost we can show. On the ratio
-scale the ordering reverses, with multipliers of 3.08, 3.51 and 2.38 (geometric mean over the 77
+scale the 4-mer and the CNN swap, with multipliers of 3.08, 3.35 and 2.33 (geometric mean over the 77
 datasets positive in both arms for all three models), so the contrast does not increase along this ladder. The three classes differ in
 architecture, receptive field, pretraining and parameter count at once, so this is evidence
 that the effect is not specific to a bag-of-$k$-mers measurement, and not a controlled
@@ -682,7 +685,7 @@ of transplant, $+0.0452$ carrying an increment from a high-baseline arm to a low
 $-0.0259$ in reverse. We report the raw contrast, which requires no transplant, link or
 transportability assumption.
 
-All 564 score sets, across three arms and three model classes, are audited against the frozen
+All 564 score sets, across three arms and both neural model classes, are audited against the frozen
 fold assignment: every one is chromosome-grouped, with at most five chromosomes in a fold and no
 row having a same-strand neighbour within 1~kb assigned to a different fold.
 
@@ -733,8 +736,8 @@ SpliceBERT. (a) Nested contribution in each composition-matched arm, per model; 
 protein-clustered percentile intervals, as in panel (b). (b) The two-arm contrast per model, with 95\% percentile
 intervals from a bootstrap over the 79 proteins taking all datasets of each sampled protein
 (4000 draws). The hatched band spans the protocol effect obtained by transplanting a
-discriminability increment in either direction, $+0.0188$ to $+0.0314$ for the 4-mer, $+0.0213$
-to $+0.0412$ for the convolutional network and $+0.0253$ to $+0.0543$ for SpliceBERT: every
+discriminability increment in either direction, $+0.0188$ to $+0.0314$ for the 4-mer, $+0.0202$
+to $+0.0388$ for the convolutional network and $+0.0246$ to $+0.0525$ for SpliceBERT: every
 member keeps the sign, so the contrast is not an artefact of AUROC compression, but its width is
 why we report the raw contrast and decline the decomposition in the text. (c) The contrast per
 dataset, SpliceBERT against the 4-mer; it is larger for SpliceBERT in all 94.}
@@ -951,7 +954,9 @@ times the contribution the same estimator reports for the same model at order tw
 truth known, that is the instrument's error, and it is larger than most of the increments this
 literature publishes.
 
-The cause is measurable and it confines the problem. A 337-column baseline overfits at these
+The cause is measurable, and it explains why the effect is largest here rather than why it is
+absent elsewhere: Section~\ref{sec:floor} finds a smaller floor at order two, where the baseline
+is still improving. A 337-column baseline overfits at these
 sample sizes: the baseline's own out-of-fold AUROC \emph{falls} from order three to order four
 on 52, 34 and 64 of the 94 datasets, while from order one to order two it falls on 2, 3 and 1.
 A pre-fit model score is a one-column, well-regularised summary of the same information, so
@@ -966,7 +971,8 @@ This qualifies the recommendation above. Raising the order of a composition base
 the comparison until the baseline itself stops fitting, and on panels of this size that happens
 before order four. A study raising its baseline should report whether the baseline's own
 out-of-fold performance still improves, which costs nothing and is the diagnostic that separates
-a sharper instrument from a broken one.
+a sharper instrument from a broken one. That diagnostic is necessary and not sufficient: the
+next section shows a floor at order two, where the baseline is still improving.
 
 \begin{figure}[htbp]
 \centering
@@ -1009,15 +1015,19 @@ Two consequences follow and they point in opposite directions.
 
 The span survives. A bias that is the same in every arm cannot produce a difference between
 arms, and this one very nearly is: the floor spans 1.24-fold across the three protocols while
-the contributions span 5.43-fold, so the floor covers 23\% of the range it would have to explain.
+the contributions span 5.42-fold, so the floor covers 23\% of the range it would have to explain.
 The protocol ordering is not manufactured by it.
 
-The level does not survive, and one arm is affected severely. The floor is 44.8\% of the GC
-arm's reported contribution, 20.7\% of the dinucleotide arm's, and 90.6\% of the bias-aware
+The level does not survive, and one arm is affected severely. The floor is 44.7\% of the GC
+arm's reported contribution, 20.7\% of the dinucleotide arm's, and 90.4\% of the bias-aware
 arm's. The bias-aware arm's $+0.0122$ is therefore not distinguishable from what this estimator
 returns on a model that contributes nothing, and every statement about that arm's absolute
-contribution should be read as an upper bound. Statements about its position relative to the
-other two arms are unaffected, since the floor is nearly common to all three.
+contribution should be read as an upper bound. The arm's position relative to the other two is
+unaffected, since the floor is nearly common to all three, but relative magnitudes are not: a
+floor-subtracted span would be far larger than the reported one, which is why we report the
+span without subtracting it. The 23\% figure above is a ratio of fold-spans, so a floor with no
+across-arm variation at all would read 18\% rather than zero; it bounds the contribution of the
+floor to the span conservatively rather than exactly.
 
 \begin{table}[htbp]
 \centering

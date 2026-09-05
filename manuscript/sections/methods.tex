@@ -19,8 +19,8 @@ $0.70$ for SpliceBERT under dinucleotide matching. A size-truncated panel would 
 confound panel membership with the measured quantity. The retained panel spans the 0th to 99th
 percentile of the candidate size distribution. Of the 95, 94 also cleared the floor
 in the GC arm and constitute the paired panel used for every three-protocol result, giving 282
-protocol-dataset cells. All 95 are used only for the comparison of standalone model AUROCs
-quoted in the Introduction, which needs no GC-arm counterpart. Panel membership was written once
+protocol-dataset cells. The 95th carries no three-protocol result, since it did not clear the
+out-of-fold pair floor in the GC arm, and every analysis reported here is on the 94. Panel membership was written once
 to a manifest that every downstream stage reads. Supplementary Table S1 lists every dataset with
 its ENCFF file and ENCSR experiment accession.
 
@@ -239,6 +239,7 @@ out-of-fold model AUROC flatters composition sufficiently to reverse the compari
 individual datasets.
 
 \subsection{Models}
+\label{sec:methods-models}
 
 \paragraph{4-mer logistic regression.} Raw 4-mer counts over the RNA sequence (98 per window,
 256 columns) into $L_2$-penalised logistic regression ($C=1$). One model per fold, out-of-fold

@@ -39,8 +39,15 @@ from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": "gc", "dn": "dinuc", "neg2": "neg2"}
-# The published order-two panel means, for the ratio the section exists to report.
-PUBLISHED = {"gc": 0.0265, "dn": 0.0663, "neg2": 0.0122}
+def published_means():
+    """The order-two panel means, READ from the table rather than typed here.
+
+    They were hard-coded to the rounded values the paper prints, which put this section's span
+    at 5.43 where every other section says 5.42, and shifted the floor-to-signal ratios by a
+    tenth of a point. A number that appears in two sections must come from one place.
+    """
+    t = pd.read_csv(TABLES / "three_arm_per_dataset.csv")
+    return {a: float(t[f"gain_{a}"].mean()) for a in ("gc", "dn", "neg2")}
 
 
 
@@ -113,6 +120,7 @@ def main():
                     "ci_high": float(np.percentile(b, 97.5)), "n": len(t), "note": note})
         return float(v.mean())
 
+    PUBLISHED = published_means()
     log(f"\n=== the estimator's floor at the ORDER-TWO baseline, n = {len(t)}, "
         f"{len(uniq)} proteins ===")
     log("    a 2-mer's score lies in the baseline's span, so the truth is exactly zero\n")

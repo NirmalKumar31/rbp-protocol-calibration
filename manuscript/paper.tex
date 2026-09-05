@@ -71,8 +71,9 @@ and how those windows are chosen is usually treated as a detail. Across 94 paire
 eCLIP datasets we held the model, the peak set, the chromosome-blocked folds and the estimator
 fixed, varied only how the negatives were built, and measured each model's nested contribution
 over a 19-feature composition baseline refit under each protocol. Replacing GC-matched with dinucleotide-matched negatives lowered the 4-mer's own AUROC from a
-panel mean of 0.798 to 0.689 and raised its measured contribution from 0.027 to 0.066.
-Both changes held in every one of the 94 datasets individually, not only in the panel mean.
+panel mean of 0.798 to 0.688 and raised its measured contribution from 0.027 to 0.066.
+The fall held in every one of the 94 datasets individually and the rise in 88 of them, not
+only in the panel means.
 The direction is implied by the design,
 since dinucleotide matching constrains fifteen degrees of freedom of composition against GC
 matching's one, so only the magnitude is informative. A bias-aware protocol
@@ -88,19 +89,20 @@ its own positive, so the composition baseline takes the same value on both membe
 and sits at exactly 0.5000 in all 94 datasets. The
 contribution there is $+0.2523$, which with the baseline pinned at a half is the model's own
 AUROC less a half rather than an independent measurement. Across the four constructions the
-span is 20.62-fold. What a negative-set protocol moves is the
-composition baseline, and the contribution follows. On the one externally constructed
+span is 20.62-fold. For a 4-mer what a negative-set protocol moves is the
+composition baseline, and the contribution follows; for the convolutional network the two
+attributions reverse. On the one externally constructed
 benchmark we tested they move together, so the relation is a property of the protocols compared
-here and not a general law. No standard way of re-expressing an AUROC difference closed the span. We tried eight, including
-the logit and probit scales, discriminability, and division by the baseline's remaining
-headroom, the distance from the baseline AUROC to one; five shrank the span but not below
+here and not a general law. No standard way of re-expressing an AUROC difference closed the span. We tried eight: the raw difference, Somers' D,
+discriminability, the logit, arcsine and complementary log-log scales, and division by the
+baseline's remaining headroom or by its excess over chance; five shrank the span but not below
 two-fold, two are controls that return it unchanged by construction, and one widened it. An
 exponent fitted so as to close it survived neither a change of aggregation nor transfer to an
 independent benchmark. At an order-three baseline most of the 4-mer's contribution disappears and the
 span widens, so the quantity is indexed by the baseline's order as well as the protocol. Headroom division improved cross-protocol agreement on our own data but failed, out of sample,
 a falsification test specified in advance. The estimator also has a floor. Applied to a model whose information the baseline already
 contains, so that the true contribution is zero by construction, it returns $+0.0111$ to
-$+0.0137$: nearly constant across protocols, so the span is not manufactured by it, but 90.6\%
+$+0.0137$: nearly constant across protocols, so the span is not manufactured by it, but 90.4\%
 of the smallest arm's reported contribution, so absolute increments of this size are not
 distinguishable from it. In a survey of seven widely used methods and benchmarks, five construct
 negatives by relocating genomic intervals, which leaves composition unconstrained, none reports a
