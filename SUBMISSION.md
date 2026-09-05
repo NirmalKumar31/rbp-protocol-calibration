@@ -59,6 +59,9 @@ claiming it.
 
 ## Supplementary material
 
+Column definitions, units, missing-value conventions and the protocol-suffix mapping for
+every table below are in `results/tables/SCHEMA.md`.
+
 | item | file |
 |---|---|
 | Table S1, panel and ENCODE accessions | `results/tables/supplementary_table_s1.csv` |

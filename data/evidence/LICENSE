@@ -1,0 +1,18 @@
+CC BY 4.0
+=========
+
+The contents of this directory are released under the Creative Commons
+Attribution 4.0 International licence.
+
+  Deed:       https://creativecommons.org/licenses/by/4.0/
+  Legal code: https://creativecommons.org/licenses/by/4.0/legalcode
+
+The repository's code is under MIT instead; see ../LICENSE at the repository
+root, which also lists the third-party sources these files are derived from and
+the terms each of those carries. Those attributions are a condition of use here
+and are not waived by this file.
+
+No genomic sequence is redistributed. The committed evidence carries window
+identifiers, labels, fold assignments and model scores only; the window tables
+themselves are regenerated from the ENCODE accessions in
+results/tables/supplementary_table_s1.csv.

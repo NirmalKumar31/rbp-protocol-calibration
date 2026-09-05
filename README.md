@@ -73,7 +73,7 @@ scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
 tests/          716 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
-results/tables/ every number in the paper
+results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes
 ```
 
