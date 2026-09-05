@@ -340,7 +340,8 @@ def main():
         for what in (["assign", "score", "phylop"] if a.what == "all" else [a.what]):
             done = TABLES / STAGE_OUTPUT[what]
             if done.exists() and not a.force:
-                log(f"skipping {what}: {done.name} already exists ({done.stat().st_size / 1e6:.1f} MB)")
+                log(f"skipping {what}: {done.name} already exists "
+                    f"({done.stat().st_size / 1e6:.1f} MB)")
                 continue
             run_existing(what)
     except SystemExit as e:

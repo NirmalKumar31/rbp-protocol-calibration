@@ -36,6 +36,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from deep_model_contrast import MIN_COVERAGE, MODELS, oof  # noqa: E402
+
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
@@ -185,9 +186,9 @@ def main():
     if ra.exists() and "kmer" in models and len(t) > 50:
         rq = pd.read_csv(ra).set_index("check")
         for here, there, label in (
-                (f"gain_kmer", "nested contribution, pipeline region-matched arm",
+                ("gain_kmer", "nested contribution, pipeline region-matched arm",
                  "contribution"),
-                (f"comp_kmer", "composition alone, pipeline region-matched arm", "baseline")):
+                ("comp_kmer", "composition alone, pipeline region-matched arm", "baseline")):
             if there in rq.index:
                 d = float(t[here].mean()) - float(rq.loc[there, "value"])
                 out.append({"check": f"4-mer {label} minus region_asymmetry.py's, "

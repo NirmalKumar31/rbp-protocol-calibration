@@ -82,14 +82,14 @@ def main():
     cv = st.pstdev(lens) / st.mean(lens)
     print(f"  sentence length  mean {st.mean(lens):.1f}  median {st.median(lens)}  "
           f"sd {st.pstdev(lens):.1f}  CV {cv:.3f}")
-    print(f"    short (<12w) {sum(l < 12 for l in lens):4d}   "
-          f"long (>40w) {sum(l > 40 for l in lens):4d}")
+    print(f"    short (<12w) {sum(n < 12 for n in lens):4d}   "
+          f"long (>40w) {sum(n > 40 for n in lens):4d}")
     if cv < 0.45:
         print("    FLAG: cadence is too uniform; add short declarative sentences")
 
     # 2. SIGNPOSTING RATE.
     hits = Counter()
-    for f, s in allsents:
+    for _f, s in allsents:
         for w in SIGNPOST:
             if re.search(rf"\b{re.escape(w)}\b", s):
                 hits[w] += 1

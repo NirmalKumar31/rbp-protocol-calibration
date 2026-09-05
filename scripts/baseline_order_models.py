@@ -37,6 +37,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from baseline_order import REPRO_TOL, composition  # noqa: E402
 from deep_model_contrast import MIN_COVERAGE, MODELS, arm_roots, oof  # noqa: E402
+
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores  # noqa: E402
@@ -46,6 +47,19 @@ from rbp.utils.log import log  # noqa: E402
 TABLES = ROOT / "results" / "tables"
 ORDERS = (2, 3)
 
+
+
+
+def _top3_share(t, model, arm):
+    """Percent of an arm's total order-3 contribution held by its three largest datasets.
+
+    Pulled out of the log line it used to be written inline in, where the same 60-character
+    subexpression appeared four times and the statement ran to 226 characters. Concentration,
+    not a mean: a panel mean can be carried by three datasets and this says when it is.
+    """
+    v = t[f"{model}_gain3_{arm}"].to_numpy(float)
+    pos = np.sort(v[v > 0])[::-1]
+    return 100 * pos[:3].sum() / pos.sum() if pos.size else float("nan")
 
 
 def main():
@@ -285,7 +299,7 @@ def main():
             mult = t[f"{model}_gain{order}_dn"].mean() / t[f"{model}_gain{order}_gc"].mean()
             out.append({"check": f"{model} dn/gc multiplier, order-{order} baseline",
                         "value": float(mult), "n": len(t)})
-        log("  order-%d multipliers: " % order + "  ".join(
+        log(f"  order-{order} multipliers: " + "  ".join(
             f"{m} {t[f'{m}_gain{order}_dn'].mean() / t[f'{m}_gain{order}_gc'].mean():.2f}x"
             for m in MODELS))
 
@@ -340,7 +354,7 @@ def main():
                             "value": float(share / (3 / pos.size)), "n": len(t),
                             "note": "top-3 share / uniform share, panel-size invariant"})
         log(f"    {arm:5s} " + "  ".join(
-            f"{m} {100 * np.sort(t[f'{m}_gain3_{arm}'].to_numpy(float)[t[f'{m}_gain3_{arm}'].to_numpy(float) > 0])[::-1][:3].sum() / t[f'{m}_gain3_{arm}'].to_numpy(float)[t[f'{m}_gain3_{arm}'].to_numpy(float) > 0].sum():.0f}%"
+            f"{m} {_top3_share(t, m, arm):.0f}%"
             for m in MODELS))
 
     pd.DataFrame(out).to_csv(TABLES / "baseline_order_models.csv", index=False)

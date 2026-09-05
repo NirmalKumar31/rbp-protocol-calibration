@@ -176,12 +176,14 @@ def main():
              "note": f"p = {p_block:.4f}; permutes protein labels between datasets"},
             {"check": "excess over the block-preserving null, protein", "value": float(pb),
              "n": len(t), "note": f"p = {p_block:.4f}"}]
-    print(f"\n  dataset as the factor: {100 * ds_share:.1f}%  vs protein's {100 * obs['protein']:.1f}%")
+    print(f"\n  dataset as the factor: {100 * ds_share:.1f}%  "
+          f"vs protein's {100 * obs['protein']:.1f}%")
     print("  -> protein (79 levels) is nearly the dataset factor (94 levels), so the")
     print("     wholesale null is too permissive. Against a null that permutes protein")
     print("     labels BETWEEN datasets and keeps each (dataset x model) block intact:")
     print(f"     null {100 * null_block.mean():.1f}% [{100 * np.percentile(null_block, 2.5):.1f}, "
-          f"{100 * np.percentile(null_block, 97.5):.1f}]   excess {100 * pb:+.1f}%  p={p_block:.4f}")
+          f"{100 * np.percentile(null_block, 97.5):.1f}]   "
+          f"excess {100 * pb:+.1f}%  p={p_block:.4f}")
 
     # THE DIRECT TEST, which is stronger than any share: does the SAME protein get the same
     # multiplier in the other cell line? Fifteen proteins are assayed in both.
@@ -193,7 +195,8 @@ def main():
         rho, pv = spearmanr(both[cells[0]], both[cells[1]])
         out += [{"check": "cross-cell-line correlation of the log multiplier", "value": r,
                  "n": len(both), "note": f"{both.index.get_level_values(0).nunique()} proteins "
-                                         f"in both lines, x {both.index.get_level_values(1).nunique()} models"},
+                                         f"in both lines, x "
+                                         f"{both.index.get_level_values(1).nunique()} models"},
                 {"check": "cross-cell-line spearman of the log multiplier", "value": float(rho),
                  "n": len(both), "note": f"p = {pv:.4f}"}]
 

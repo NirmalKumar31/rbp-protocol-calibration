@@ -131,7 +131,8 @@ def report(d):
     log(f"  donors STRONGER than target: {(adv > 0).sum()}/{len(d)} "
         f"({d[adv > 0].target.nunique()} targets have >=1)")
     lr = np.log10(d.donor_pairs / d.target_pairs)
-    log(f"log10 donor/target pairs: min {lr.min():+.2f} median {lr.median():+.2f} max {lr.max():+.2f}")
+    log(f"log10 donor/target pairs: min {lr.min():+.2f} "
+        f"median {lr.median():+.2f} max {lr.max():+.2f}")
     log(f"jaccard: median {d.jaccard.median():.4f} max {d.jaccard.max():.4f}")
     n_bal = sum(1 for _, g in d.groupby("target")
                 if (g.donor_qual > g.target_qual).sum() >= MIN_STRONGER)

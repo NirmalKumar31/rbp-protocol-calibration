@@ -150,7 +150,8 @@ def main():
             # GENCODE and the ENCODE peaks use "chr1"; mixing them makes every sequence
             # lookup silently return nothing.
             if not names[0].startswith("chr"):
-                raise SystemExit(f"FATAL: chromosome names are '{names[0]}'-style, not chr-prefixed")
+                raise SystemExit(f"FATAL: chromosome names are '{names[0]}'-style, "
+                                 "not chr-prefixed")
             log(f"  indexed {len(names)} sequences, first is {names[0]}")
             for f in (fa_local, Path(str(fa_local) + ".fai")):
                 log(f"  uploading {f.name} ({f.stat().st_size / 1e9:.2f} GB)")

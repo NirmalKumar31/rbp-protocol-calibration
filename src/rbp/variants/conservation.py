@@ -38,8 +38,9 @@ import pandas as pd
 # The estimators, the bootstrap and BH live in rbp.stats because the composition control
 # in eval/nested.py needs exactly the same ones. Re-exported here under their original
 # names so callers and tests are unaffected by the move.
-from ..stats import METHODS, benjamini_hochberg, firth_fit  # noqa: F401
-from ..stats import bootstrap_indices, coef_se as _coef_se, standardise as _z, wald_p
+from ..stats import METHODS, benjamini_hochberg, bootstrap_indices, firth_fit, wald_p  # noqa: F401
+from ..stats import coef_se as _coef_se
+from ..stats import standardise as _z
 
 BOOT = 2000
 CI = (2.5, 97.5)

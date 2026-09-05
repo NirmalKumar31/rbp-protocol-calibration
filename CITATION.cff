@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: >-
+  What a sequence model appears to contribute is set by how the
+  negatives were built
+message: >-
+  If you use this software or its released evidence, please cite
+  the preprint. The DOI below is a placeholder until the Zenodo
+  deposit exists; SUBMISSION.md tracks that as the last
+  outstanding release step.
+type: software
+authors:
+  - given-names: Nirmalkumar
+    family-names: Thirupallikrishnan Kesavan
+    email: thirupallikrishnan.n@northeastern.edu
+    affiliation: Northeastern University
+repository-code: 'https://github.com/NirmalKumar31/rbp-protocol-calibration'
+abstract: >-
+  A calibration study across 94 paired ENCODE eCLIP datasets.
+  Holding the model, the peak set, the chromosome-blocked folds
+  and the estimator fixed and varying only how negative windows
+  are constructed moves a model's measured nested contribution
+  5.42-fold, while its apparent AUROC moves the opposite way. The
+  estimator also returns a positive increment for a model whose
+  information the composition baseline already contains, where
+  the true contribution is zero by construction, and that floor
+  is 90.4 percent of the smallest protocol's reported value.
+keywords:
+  - RNA-binding proteins
+  - eCLIP
+  - negative sets
+  - benchmark calibration
+  - sequence models
+license: MIT
+version: 1.0.0

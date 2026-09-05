@@ -36,9 +36,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
+from rbp.utils import cloud as cloudcfg  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.variants import assign  # noqa: E402
-from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "results" / "tables"
@@ -156,7 +156,7 @@ def stage_score(cfg, limit):
     how = cfg["variants"]["delta"]
 
     client = storage.Client(project=PROJECT)
-    from rbp.models import registry     # torch-importing; see module docstring
+    from rbp.models import registry  # torch-importing; see module docstring
     handle = registry.build("splicebert", cfg)          # built once, reloaded per fold
 
     groups = list(a.groupby(["protein", "cell"]))
@@ -212,9 +212,8 @@ def stage_tables(cfg, limit):
     # module-level import would crash every cloud container on a dependency it never uses.
     import gzip
 
-    from pyfaidx import Fasta
-
     from google.cloud import storage
+    from pyfaidx import Fasta
 
     a = pd.read_csv(TABLES / "variant_assignments.csv")
     have = deep_panel()
@@ -335,7 +334,7 @@ def _score(cfg, bucket, cell, prot, wcell, wprot, out, torch):
     t = pd.read_csv(io.BytesIO(gzip.decompress(raw)), sep="\t")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    from rbp.models import registry     # torch-importing; see module docstring
+    from rbp.models import registry  # torch-importing; see module docstring
     handle = registry.build("splicebert", cfg)
     tmp = Path("/tmp/ckpt")
     ckpts = fetch_folds(storage.Client(project=PROJECT), wcell, wprot, tmp)

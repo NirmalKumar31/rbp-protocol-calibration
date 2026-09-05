@@ -5,9 +5,12 @@
     python scripts/eda.py --what figures
     python scripts/eda.py --what all
 """
-import argparse, sys
+import argparse
+import sys
 from pathlib import Path
+
 import pandas as pd
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from rbp.eval import eda  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
@@ -86,7 +89,9 @@ def main():
         piv = chrom.pivot_table(index="chrom", values="per_mb", aggfunc="mean")
         print("\n=== peaks per Mb, averaged over proteins (top 8 / bottom 4) ===")
         piv = piv.sort_values("per_mb", ascending=False)
-        print(piv.head(8).to_string()); print("  ..."); print(piv.tail(4).to_string())
+        print(piv.head(8).to_string())
+        print("  ...")
+        print(piv.tail(4).to_string())
         cb = TAB / "cobinding_matrix.csv"
         if cb.exists():
             cl, _ = eda.protein_clusters(pd.read_csv(cb, index_col=0))

@@ -38,8 +38,9 @@ import sys
 # package is not importable unless we say where it lives.
 sys.path.insert(0, os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "src"))
-from rbp.utils import cloud as cloudcfg  # noqa: E402
 import modal
+
+from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 APP = "rbp-sweep"
 PROJECT = cloudcfg.project()

@@ -177,8 +177,9 @@ def build(store, seed=7, match_region=False):
     r.to_csv(ROOT / "results" / "tables" / name, index=False)
     log(f"\nbuilt {made} datasets -> {out_root}")
     log(f"  median pairs {int(r.pairs.median()):,}, total {int(r.pairs.sum()):,}")
-    log(f"  positives dropped for want of a same-fold donor: {int(r.unmatched_positives.sum()):,}"
-        f" ({100 * r.unmatched_positives.sum() / (r.pairs.sum() + r.unmatched_positives.sum()):.2f}%)")
+    dropped = int(r.unmatched_positives.sum())
+    pct = 100 * dropped / (r.pairs.sum() + dropped)
+    log(f"  positives dropped for want of a same-fold donor: {dropped:,} ({pct:.2f}%)")
 
 
 def main():

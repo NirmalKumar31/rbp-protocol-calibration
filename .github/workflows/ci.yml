@@ -1,4 +1,4 @@
-# CI, because "575 tests pass" is a claim until something other than the author runs them.
+# CI, because "706 tests pass" is a claim until something other than the author runs them.
 #
 # A council reviewer looked for .github/ first, found nothing, and discounted the whole
 # testing story on the spot. That is the correct reaction: a suite nobody runs on a clean
@@ -9,8 +9,15 @@
 # locally, and every time the cause was that the two ran different commands.
 #
 # This deliberately does NOT run the pipeline. The pipeline needs GCP credentials, a genome
-# and about $50. What CI can prove on a clean clone is that the code imports, the tests pass,
-# and the numbers nobody is allowed to edit silently have not been edited silently.
+# and roughly $24 of compute, which is why it is not gated here. What CI proves on a clean
+# clone is that the code imports, the tests pass, the ruff rules the project selects hold, the
+# 937 published assertions reproduce offline, the release documents still agree with the
+# artefacts they describe, the paper builds with no dangling reference, and the numbers nobody
+# is allowed to edit silently have not been edited silently.
+#
+# The last four of those were added after an external review pointed out that CI ran none of
+# them, so README's headline instruction -- one command, 937 checks -- was verified nowhere
+# but on the author's laptop.
 
 name: ci
 
@@ -67,3 +74,55 @@ jobs:
         env:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project
         run: PY=python ./cloud/package_repo.sh /tmp/repo.tgz
+
+      # THE VERIFIER, WHICH CI DID NOT RUN. README tells a reader to check the paper with this
+      # one command and CI never executed it, so the claim that 937 assertions pass on a clean
+      # clone was tested only on the author's laptop -- which is precisely the thing this file's
+      # first line says a test suite must not be. It needs no credentials and no data: the
+      # committed result tables are the input.
+      - name: published values verify offline
+        env:
+          GOOGLE_CLOUD_PROJECT: ci-no-such-project
+          PYTHONPATH: src
+        run: python scripts/verify.py --local results/tables
+
+      # Counts a release document states about the release, derived from the release. An
+      # external review found eight stale ones -- pages, references, tables, assertion counts --
+      # and every one was in a file no gate read.
+      - name: release documents are consistent with the artefacts
+        env:
+          PYTHONPATH: src
+        run: python scripts/release_consistency.py
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: ruff
+        run: |
+          pip install ruff
+          ruff check .
+      # bash -n only. shellcheck is not installed here on purpose: it reports on style as well
+      # as syntax and a first run would fail the build on a hundred pre-existing SC2086s, which
+      # would mean turning it off again the same day. Syntax is the property worth gating.
+      - name: shell syntax
+        run: for f in $(git ls-files '*.sh'); do bash -n "$f" || exit 1; done
+
+  manuscript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: texlive
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended \
+            texlive-science lmodern
+      # build.sh fails rather than warns on an undefined reference or citation, which is the
+      # property being gated: a paper that builds with a dangling \ref renders "??" and nobody
+      # notices until it is a preprint.
+      - name: paper builds
+        run: cd manuscript && ./build.sh

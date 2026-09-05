@@ -31,11 +31,11 @@ warnings.filterwarnings("ignore")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-import numpy as np                                                      # noqa: E402
-import pandas as pd                                                     # noqa: E402
-from scipy.stats import wilcoxon                                        # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from scipy.stats import wilcoxon  # noqa: E402
 
-from rbp.eval import baseline, nested                                   # noqa: E402
+from rbp.eval import baseline, nested  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"

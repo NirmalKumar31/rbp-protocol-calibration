@@ -1,4 +1,5 @@
-"""R1n: is it the protocol, or the baseline it leaves? A referee found a way to ask. It is the baseline.
+"""R1n: is it the protocol, or the baseline it leaves? A referee found a way to ask.
+It is the baseline.
 
     python scripts/protocol_or_baseline.py
 
@@ -148,9 +149,12 @@ def main():
     for pair in (("gc", "dn"), ("gc", "neg2"), ("dn", "neg2")):
         L = long[long.arm.isin(pair)]
         cc, yy = L.comp.values, L.gain.values
+        # yy is rebound each iteration and this closure reads it late, which is the
+        # pattern B023 names. It is safe only because _ss is called below inside this same
+        # iteration and never stored; if that ever stops being true, so does the safety.
         def _ss(X):
-            bb, *_ = np.linalg.lstsq(X, yy, rcond=None)
-            r = yy - X @ bb
+            bb, *_ = np.linalg.lstsq(X, yy, rcond=None)  # noqa: B023
+            r = yy - X @ bb  # noqa: B023
             return float(r @ r)
         Xb2 = np.column_stack([np.ones(len(cc)), cc, cc ** 2])
         D2 = pd.get_dummies(L.arm, drop_first=True).values.astype(float)

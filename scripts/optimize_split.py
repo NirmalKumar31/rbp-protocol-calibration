@@ -5,11 +5,15 @@ rather than leakage. Prints the assignment to paste into config/params.yaml.
 
     python scripts/optimize_split.py
 """
-import argparse, sys
+import argparse
+import sys
 from pathlib import Path
+
 import numpy as np
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from rbp.data import annotation as ann, splits  # noqa: E402
+from rbp.data import annotation as ann  # noqa: E402
+from rbp.data import splits
 from rbp.utils import config as cfgmod  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,7 +21,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def report(name, names, counts, assign, target):
     loss, worst = splits.assignment_loss(counts, assign, target)
-    totals = counts.sum(axis=1, keepdims=True); totals[totals == 0] = 1
+    totals = counts.sum(axis=1, keepdims=True)
+    totals[totals == 0] = 1
     props = np.hstack([counts[:, assign == k].sum(axis=1, keepdims=True) / totals
                        for k in range(3)])
     print(f"\n=== {name}  (loss {loss:.4f}, worst deviation {worst:.3f}) ===")

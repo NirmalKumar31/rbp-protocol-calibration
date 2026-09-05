@@ -41,9 +41,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
+from rbp.utils import cloud as cloudcfg  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
-from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 WORK = Path(os.environ.get("WORK_DIR", "/tmp/rbp"))
 # ONE MANIFEST PER JOB, keyed by a tag.

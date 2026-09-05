@@ -116,8 +116,9 @@ def main():
     print(f"  median AUROC (disruptive vs neutral): "
           f"{ok.auroc_disruptive_vs_neutral.median():.3f}")
     if len(passed) < len(ok):
+        _missed = ok[~ok.index.isin(passed.index)]
         print(f"\n  FAILED: "
-              f"{', '.join(ok[~ok.index.isin(passed.index)].protein + ':' + ok[~ok.index.isin(passed.index)].cell)}")
+              f"{', '.join(_missed.protein + ':' + _missed.cell)}")
         print("  a failure here means the delta score cannot detect a disruption we "
               "planted, so any null result for that protein is uninterpretable")
     print("\nwrote results/tables/positive_control.csv")

@@ -31,7 +31,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from rbp.eval import baseline, extremity as ex, nested  # noqa: E402
+from rbp.eval import baseline, nested  # noqa: E402
+from rbp.eval import extremity as ex
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "results" / "tables"

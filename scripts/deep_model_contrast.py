@@ -14,7 +14,8 @@ the same code path and full datasets, and the only intended difference is how th
 windows were chosen. Nothing here is capped, subsampled or early-stopped differently between
 arms, because any of those would confound protocol with training.
 
-FOLD PROVENANCE, and it is not uniform across arms. For **20 of the 94 dinucleotide-arm datasets** the
+FOLD PROVENANCE, and it is not uniform across arms. For **20 of the 94 dinucleotide-arm
+datasets** the
 committed CNN and SpliceBERT scores were produced under a stratified random partition rather
 than config/folds.tsv's chromosome grouping -- fold SIZES preserved, so invisible to any count
 check, but up to 23 chromosomes per fold and up to 44.5% of rows having a same-strand neighbour

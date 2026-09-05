@@ -51,9 +51,27 @@ if [ "$FAST" = "0" ]; then
   echo "  package verified"
 fi
 
-# Not in the workflow, because it needs the committed tables and takes longer than CI should.
-# Run here anyway: it is the check that actually protects the published numbers.
-step "verifier (local only, not in the workflow)"
+# THIS IS NOW IN THE WORKFLOW TOO. It used to carry the note "not in the workflow, because it
+# needs the committed tables and takes longer than CI should", which was wrong on both counts:
+# the tables are committed, so a clean clone has them, and the run takes under a minute. The
+# effect of leaving it out was that README's headline instruction was gated nowhere.
+step "verifier"
 "$PY" scripts/verify.py --local results/tables | tail -2 || fail "verify.py"
+
+step "release documents are consistent with the artefacts"
+"$PY" scripts/release_consistency.py || fail "release_consistency.py"
+
+step "ruff"
+if "$PY" -m ruff --version >/dev/null 2>&1; then
+  "$PY" -m ruff check . || fail "ruff"
+else
+  echo "  SKIP: ruff not installed here (pip install ruff). CI runs it regardless."
+fi
+
+step "shell syntax"
+for f in $(git ls-files '*.sh' 2>/dev/null || find . -name '*.sh' -not -path './.git/*'); do
+  bash -n "$f" || fail "bash -n $f"
+done
+echo "  all shell scripts parse"
 
 printf '\nALL CI-LOCAL CHECKS PASSED\n'

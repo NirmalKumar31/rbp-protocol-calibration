@@ -442,7 +442,8 @@ def gene_concentration(datasets, gene_index, gene_at):
             "windows_per_gene_median": float(vc.median()) if vc.size else np.nan,
             "windows_per_gene_max": int(vc.iloc[0]) if vc.size else 0,
             "busiest_gene": vc.index[0] if vc.size else None,
-            "top10_gene_share": round(float(vc.head(10).sum() / len(named)), 4) if named else np.nan,
+            "top10_gene_share": (round(float(vc.head(10).sum() / len(named)), 4)
+                                 if named else np.nan),
             "gini": round(_gini(vc.values), 4) if vc.size else np.nan,
             # windows are between fully independent (n_windows) and fully dependent
             # (n_genes); both bounds are reported rather than picking one

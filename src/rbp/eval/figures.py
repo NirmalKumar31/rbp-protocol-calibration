@@ -6,6 +6,7 @@ rainbow. Grid and axes stay recessive so the data is what reads.
 """
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -147,7 +148,7 @@ def split_proportions(summary, out, target=(0.64, 0.16, 0.20)):
     colors = (POS, "#7FA8CC", NEG)
     fig, ax = plt.subplots(figsize=(7.4, 0.34 * len(d) + 1.6))
     left = np.zeros(len(d))
-    for (col, c, t, name) in zip(d.columns, colors, target, ("train", "val", "test")):
+    for (col, c, _t, name) in zip(d.columns, colors, target, ("train", "val", "test")):
         ax.barh(y, d[col], left=left, height=0.66, color=c, label=name,
                 edgecolor="white", linewidth=0.8)
         left += d[col].values

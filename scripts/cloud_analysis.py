@@ -115,7 +115,8 @@ def panel_description(bucket):
         p.to_csv(TABLES / "candidate_sizes.csv", index=False)
         log(f"candidate pool: {len(p)} datasets, pairs {int(p.pairs.min())}-"
             f"{int(p.pairs.max())}; panel covers percentile "
-            f"{(p.pairs < d.pairs.min()).mean() * 100:.0f}-{(p.pairs < d.pairs.max()).mean() * 100:.0f}")
+            f"{(p.pairs < d.pairs.min()).mean() * 100:.0f}-"
+            f"{(p.pairs < d.pairs.max()).mean() * 100:.0f}")
 
     both = int((d.protein.value_counts() == 2).sum())
     log(f"panel: {len(d)} datasets, {d.protein.nunique()} proteins ({both} in both lines), "
@@ -275,8 +276,8 @@ def variant_specificity(bucket):
     ~0.69 throughout. A spurious effect does not behave that way. Every stratum is reported
     here, including the one that shows nothing.
     """
-    from sklearn.metrics import roc_auc_score
     from scipy.stats import mannwhitneyu, spearmanr, wilcoxon
+    from sklearn.metrics import roc_auc_score
 
     from rbp.variants import conservation as cons
 
@@ -537,8 +538,8 @@ def donor_overlap(bucket):
     DONORS for target overlap, or it under-reports. That screening requirement is part of the
     method, not a caveat about this dataset.
     """
-    from sklearn.metrics import roc_auc_score
     from scipy.stats import spearmanr, wilcoxon
+    from sklearn.metrics import roc_auc_score
 
     asg = fetch(bucket, "results/tables/variant_assignments.csv")
     sb = fetch_prefix(bucket, "variants/scores_sb/")
@@ -625,8 +626,8 @@ def specificity_attacks(bucket):
        decays smoothly (0.851 / 0.818 / 0.733), which makes it a real positional-prevalence
        effect rather than a lucky binning.
     """
-    from sklearn.metrics import roc_auc_score
     from scipy.stats import wilcoxon
+    from sklearn.metrics import roc_auc_score
 
     from rbp.variants import conservation as cons
 
@@ -799,7 +800,8 @@ def robustness(bucket):
                         "ci_low": lo, "ci_high": hi, "n": len(d),
                         "note": "ratio of means, dataset bootstrap"})
         # The DIFFERENCE is the claim, so it gets its own interval.
-        pt = share(d, "auroc_gc", "composition_auroc_gc") - share(d, "auroc_dn", "composition_auroc_dn")
+        pt = (share(d, "auroc_gc", "composition_auroc_gc")
+              - share(d, "auroc_dn", "composition_auroc_dn"))
         boot = []
         for _ in range(2000):
             q = d.iloc[rng.integers(0, len(d), len(d))]
@@ -875,7 +877,8 @@ def robustness(bucket):
     panel = fetch(bucket, "results/tables/panel_summary.csv")
     if per is not None and panel is not None:
         from scipy.stats import spearmanr
-        m = per.merge(panel[["dataset", "pairs"]], on="dataset", how="left").dropna(subset=["pairs"])
+        m = (per.merge(panel[["dataset", "pairs"]], on="dataset", how="left")
+                .dropna(subset=["pairs"]))
         gap = m.auroc_matched - m.auroc_mismatched
         rho, pv = spearmanr(np.log10(m.pairs), gap)
         out.append({"check": "specificity gap vs log10(dataset size)", "value": rho,
@@ -897,7 +900,8 @@ def robustness(bucket):
         v["block"] = (v.vid.str.split(":").str[0] + "_" +
                       (v.vid.str.split(":").str[1].astype(int) // 1_000_000).astype(str))
         u = v.sort_values("delta", key=abs, ascending=False).drop_duplicates("vid")
-        u = u.merge(cvt[["vid", "conservation"]], on="vid", how="left").dropna(subset=["conservation"])
+        u = (u.merge(cvt[["vid", "conservation"]], on="vid", how="left")
+              .dropna(subset=["conservation"]))
 
         def loo_rate(df, key):
             """Group pathogenic rate EXCLUDING the variant itself."""

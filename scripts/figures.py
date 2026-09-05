@@ -308,7 +308,7 @@ def f3():
             ("contrast, PLACEBO (same n, random)", "placebo\n(random)", "#b0b0b0"),
             ("contrast, PLACEBO stratified on region x GC", "placebo\n(region-matched)",
              "#8c8c8c")]
-    for i, (k, lab, c) in enumerate(bars):
+    for i, (k, _lab, c) in enumerate(bars):
         ax[0].bar(i, v(k), width=0.62, color=c, edgecolor="white", linewidth=1.2, zorder=3)
         ax[0].errorbar(i, v(k), yerr=err(k), color="#333333", capsize=3, lw=1.2, zorder=4)
     ax[0].axhline(v("contrast, full data"), color="#333333", lw=0.8, ls=":", zorder=2)
@@ -321,7 +321,7 @@ def f3():
     parts = [("change from placebo", "cost of\ndropping pairs", "#b0b0b0"),
              ("locus-mix component", "locus\nmix", "#8c8c8c"),
              ("STRAND-SPECIFIC EXCESS (stratified)", "strand", COLOR["splicebert"])]
-    for i, (k, lab, c) in enumerate(parts):
+    for i, (k, _lab, c) in enumerate(parts):
         ax[1].bar(i, v(k), width=0.6, color=c, edgecolor="white", linewidth=1.2, zorder=3)
         ax[1].errorbar(i, v(k), yerr=err(k), color="#333333", capsize=3, lw=1.2, zorder=4)
         ax[1].text(i, v(k) - 0.0011, f"{v(k):+.4f}", ha="center", va="top", fontsize=7.5)
@@ -506,11 +506,14 @@ def f8():
     gc, dn, sc = t
     m = gc.merge(dn, on="dataset", suffixes=("_gc", "_dn"))
     q = sc.set_index("check")
-    val = lambda k: float(q.loc[k, "value"])
-    err = lambda k: [[val(k) - float(q.loc[k, "ci_low"])], [float(q.loc[k, "ci_high"]) - val(k)]]
+    def val(k):
+        return float(q.loc[k, "value"])
+    def err(k):
+        return [[val(k) - float(q.loc[k, "ci_low"])], [float(q.loc[k, "ci_high"]) - val(k)]]
 
     r2 = np.sqrt(2.0)
-    dp = lambda a: r2 * norm.ppf(np.clip(a, 1e-6, 1 - 1e-6))
+    def dp(a):
+        return r2 * norm.ppf(np.clip(a, 1e-6, 1 - 1e-6))
     for a in ("gc", "dn"):
         m[f"dd_{a}"] = dp(m[f"with_score_auroc_{a}"]) - dp(m[f"composition_auroc_{a}"])
         m[f"dfull_{a}"] = dp(m[f"with_score_auroc_{a}"])
@@ -534,7 +537,7 @@ def f8():
             ("contrast attributable to SCALE alone", "AUROC\ncompression", "#b0b0b0"),
             ("CONTRAST, protocol effect net of scale", "protocol effect\n(what survives)",
              COLOR["splicebert"])]
-    for i, (k, lab, c) in enumerate(keys):
+    for i, (k, _lab, c) in enumerate(keys):
         ax[1].bar(i, val(k), width=0.62, color=c, edgecolor="white", linewidth=1.2, zorder=3)
         ax[1].errorbar(i, val(k), yerr=err(k), color="#333333", capsize=3, lw=1.2, zorder=4)
         ax[1].text(i, float(q.loc[k, "ci_high"]) + 0.0016, f"{val(k):+.4f}",
@@ -716,7 +719,7 @@ def f11():
     rows.sort(key=lambda r: -float(d.loc[r[1], "value"]))
 
     fig, ax = plt.subplots(figsize=(6.6, 3.4))
-    for i, (lab, k) in enumerate(rows):
+    for i, (_lab, k) in enumerate(rows):
         v = float(d.loc[k, "value"])
         lo, hi = float(d.loc[k, "ci_low"]), float(d.loc[k, "ci_high"])
         best = "headroom" in k
@@ -860,7 +863,8 @@ def f14():
     ax[0].set_xlabel("contribution, negative-1 (transcript background)")
     ax[0].set_ylabel("contribution, negative-2 (other RBPs' sites)")
     below = int((h.gain_n2 < h.gain_n1).sum())
-    ax[0].set_title(f"a  {below}/{len(h)} below the diagonal, {h.gain_n1.mean() / h.gain_n2.mean():.2f}x",
+    ax[0].set_title(f"a  {below}/{len(h)} below the diagonal, "
+                    f"{h.gain_n1.mean() / h.gain_n2.mean():.2f}x",
                     loc="left", fontsize=9)
 
     # (b) THE WITHIN-ARM GRADIENT, in their data and ours, WITH PROTEIN-CLUSTERED INTERVALS.
@@ -964,7 +968,7 @@ def f15():
              "external rank agreement, headroom"),
             ("disagreement", "external scale-free disagreement, raw",
              "external scale-free disagreement, headroom")]
-    for i, (lab, kr, kh) in enumerate(keys):
+    for i, (_lab, kr, kh) in enumerate(keys):
         if kr not in tr.index:
             continue
         v1, v2 = float(tr.loc[kr, "value"]), float(tr.loc[kh, "value"])

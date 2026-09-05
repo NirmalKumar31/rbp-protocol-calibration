@@ -50,7 +50,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from rbp.data import annotation as ann  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"

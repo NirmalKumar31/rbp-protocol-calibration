@@ -73,9 +73,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 TABLES = ROOT / "results" / "tables"
 
-from rbp.stats import coef_se                                          # noqa: E402
-from rbp.variants import conservation as cons                          # noqa: E402
+from rbp.stats import coef_se  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
+from rbp.variants import conservation as cons  # noqa: E402
 
 N_BOOT = 2000
 SEED = 0

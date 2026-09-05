@@ -77,14 +77,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-import numpy as np                                                      # noqa: E402
-import pandas as pd                                                     # noqa: E402
-from scipy.stats import wilcoxon                                        # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from scipy.stats import wilcoxon  # noqa: E402
+from strand_placebo import pair_key, stratified_pick, subset  # noqa: E402
 
-from rbp.eval import baseline, nested                                   # noqa: E402
-from rbp.utils import config as cfgmod                                  # noqa: E402
+from rbp.eval import baseline, nested  # noqa: E402
+from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
-from strand_placebo import pair_key, stratified_pick, subset            # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 EXTERNAL = ROOT / "data" / "external"
@@ -462,7 +462,8 @@ def summarise(m):
     add("contrast, expressed-negative pairs", m.c_expr.mean(), "c_expr",
         note=f"mean {kept:.1%} of GC pairs retained")
     add("contrast, PLACEBO (same n, random)", m.c_placebo.mean(), "c_placebo",
-        note=f"{int(m.get('placebo_sd_gc', pd.Series([np.nan])).notna().sum())} rows with seed sd recorded")
+        note=f"{int(m.get('placebo_sd_gc', pd.Series([np.nan])).notna().sum())} rows "
+             "with seed sd recorded")
     add("contrast, PLACEBO stratified on region", m.c_placebo_strat.mean(), "c_placebo_strat",
         note="matched to the retained set's region marginals; PRIMARY")
     add("change from restriction", (m.c_expr - m.c_full).mean(), "d_expr",

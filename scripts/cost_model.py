@@ -15,7 +15,8 @@ effective epoch count under early stopping. Both are swept, so the output is a r
 with the assumptions visible rather than a single figure to be taken on faith.
 
     python scripts/cost_model.py --folds 5
-    python scripts/cost_model.py --folds 5 --census config/panel_census.tsv,config/panel_census_HepG2.tsv
+    python scripts/cost_model.py --folds 5 \\
+      --census config/panel_census.tsv,config/panel_census_HepG2.tsv
 """
 
 import argparse
@@ -95,7 +96,7 @@ def main():
     total = sum(f for *_, f in arch)
 
     print(f"{'model':16} {'params(M)':>10} {'PFLOPs':>10} {'share':>7}")
-    for name, label, pm, f in sorted(arch, key=lambda r: -r[3]):
+    for _name, label, pm, f in sorted(arch, key=lambda r: -r[3]):
         print(f"{label:16} {pm:10.2f} {f/1e15:10.1f} {100*f/total:6.1f}%")
     print(f"{'TOTAL':16} {'':10} {total/1e15:10.1f}\n")
 

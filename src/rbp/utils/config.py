@@ -23,7 +23,7 @@ class Config(dict):
         p = ROOT / self["paths"][key]
         for part in parts:
             p = p / str(part)
-        p.parent.mkdir(parents=True, exist_ok=True) if p.suffix else p.mkdir(parents=True, exist_ok=True)
+        (p.parent if p.suffix else p).mkdir(parents=True, exist_ok=True)
         return p
 
 

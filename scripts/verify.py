@@ -501,7 +501,8 @@ def verify_multidonor(T, g):
     v = cell(ALL, "intercept | advantage+size")
     if v is not None:
         near("all-panel intercept (the null)", v, spec["all_panel_intercept"])
-        record(not (cell(ALL, "intercept | advantage+size", "ci_low") > 0) if not spec["all_panel_intercept_ci_excludes_zero"] else True,
+        record(True if spec["all_panel_intercept_ci_excludes_zero"]
+               else not (cell(ALL, "intercept | advantage+size", "ci_low") > 0),
                "all-panel intercept CI INCLUDES zero, as reported",
                cell(ALL, "intercept | advantage+size", "ci_low"), "<= 0")
     # and the specification fragility, also asserted rather than hidden
@@ -509,7 +510,8 @@ def verify_multidonor(T, g):
     if v is not None:
         near("powered intercept once power is adjusted", v,
              spec["powered_intercept_with_power"])
-        record(not (cell(POW, "intercept | advantage+size+power", "ci_low") > 0) if not spec["powered_intercept_with_power_ci_excludes_zero"] else True,
+        record(True if spec["powered_intercept_with_power_ci_excludes_zero"]
+               else not (cell(POW, "intercept | advantage+size+power", "ci_low") > 0),
                "power-adjusted intercept CI INCLUDES zero, as reported",
                cell(POW, "intercept | advantage+size+power", "ci_low"), "<= 0")
 
@@ -2675,7 +2677,8 @@ def verify_order_profile(T, g):
         early = get(f"baseline AUROC fell from order 1 to 2, {arm} arm")
         late = get(f"baseline AUROC fell from order 3 to 4, {arm} arm")
         if None not in (early, late):
-            record(early <= spec["max_baseline_fell_early"] and late >= spec["min_baseline_fell_late"],
+            record(early <= spec["max_baseline_fell_early"]
+                   and late >= spec["min_baseline_fell_late"],
                    f"the baseline still improves at order 2 and stops improving at order 4, "
                    f"{arm} arm, which is what makes order 4 a noise floor and order 2 a "
                    f"baseline", f"fell {int(early)}/94 then {int(late)}/94",
@@ -4603,17 +4606,22 @@ def main():
 
     for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
                verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast, verify_protocol_identification, verify_expression_control, verify_cluster_intervals, verify_three_arm, verify_baseline_confounding, verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order, verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models, verify_transport, verify_fold_integrity, verify_region_asymmetry, verify_peak_thresholds, verify_design_effect, verify_standalone_auroc, verify_match_quality, verify_score_scale, verify_multiplier_variance, verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness, verify_strand_asymmetry, verify_strand_placebo,
-               verify_strand_audit, verify_recompute,
-               verify_auroc_aggregation, verify_partition_sensitivity,
-               verify_positional_signal,
-               verify_cobinding_noise,
-               verify_estimands, verify_nested_scale, verify_shuffled_arm,
-               verify_order_profile, verify_region_annotation,
-               verify_gene_clustered_cv, verify_window_centring,
+               verify_strand_contrast, verify_region, verify_deep_contrast,
+               verify_protocol_identification, verify_expression_control,
+               verify_cluster_intervals, verify_three_arm, verify_baseline_confounding,
+               verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order,
+               verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models,
+               verify_transport, verify_fold_integrity, verify_region_asymmetry,
+               verify_peak_thresholds, verify_design_effect, verify_standalone_auroc,
+               verify_match_quality, verify_score_scale, verify_multiplier_variance,
+               verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness,
+               verify_strand_asymmetry, verify_strand_placebo, verify_strand_audit,
+               verify_recompute, verify_auroc_aggregation, verify_partition_sensitivity,
+               verify_positional_signal, verify_cobinding_noise, verify_estimands,
+               verify_nested_scale, verify_shuffled_arm, verify_order_profile,
+               verify_region_annotation, verify_gene_clustered_cv, verify_window_centring,
                verify_device_portability, verify_matching_robustness,
-               verify_region_matched_neural, verify_negative_set_survey,
-               verify_estimator_floor,
+               verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

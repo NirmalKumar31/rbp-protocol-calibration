@@ -36,6 +36,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from scale_sweep import TRANSFORMS, fold_range  # noqa: E402
+
 from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"

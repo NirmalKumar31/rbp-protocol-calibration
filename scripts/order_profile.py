@@ -46,6 +46,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from baseline_order import REPRO_TOL, composition  # noqa: E402
 from deep_model_contrast import MIN_COVERAGE, MODELS, arm_roots, oof  # noqa: E402
+
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores  # noqa: E402
@@ -252,7 +253,8 @@ def main():
                             "ci_high": float(np.percentile(b, 97.5)), "n": len(t),
                             "note": "ratio of means, protein-clustered"})
         log(f"    {arm:5s} " + "  ".join(
-            f"{m} " + "/".join(f"{t[f'{m}_gain{o}_{arm}'].mean() / t[f'{m}_gain1_{arm}'].mean():.2f}"
+            f"{m} " + "/".join(
+                f"{t[f'{m}_gain{o}_{arm}'].mean() / t[f'{m}_gain1_{arm}'].mean():.2f}"
                                for o in ORDERS[1:]) for m in MODELS))
 
     # AND THE PAPER'S OWN TWO QUANTITIES AT EVERY ORDER: the two-arm contrast and the

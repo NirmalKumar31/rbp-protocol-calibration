@@ -28,12 +28,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-import numpy as np                                                      # noqa: E402
-import pandas as pd                                                     # noqa: E402
-from scipy.stats import wilcoxon                                        # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from scipy.stats import wilcoxon  # noqa: E402
+from strand_audit import gene_index, own_strands  # noqa: E402
+from strand_placebo import n_genes  # noqa: E402
 
-from strand_audit import gene_index, own_strands
-from strand_placebo import n_genes                        # noqa: E402
 from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
@@ -132,7 +132,8 @@ def summarise(m):
         {"check": "genes overlapping a DROPPED negative",
          "value": m[["ngenes_dropped_gc", "ngenes_dropped_dn"]].mean().mean(), "n": len(m),
          "note": "why the placebo is stratified on gene density as well as region"},
-        {"check": "GC, sense-KEPT negatives", "value": m[["gc_kept_gc", "gc_kept_dn"]].mean().mean(),
+        {"check": "GC, sense-KEPT negatives",
+         "value": m[["gc_kept_gc", "gc_kept_dn"]].mean().mean(),
          "n": len(m), "note": "balanced against dropped, so GC is NOT the confound"},
         {"check": "GC, DROPPED negatives",
          "value": m[["gc_dropped_gc", "gc_dropped_dn"]].mean().mean(), "n": len(m), "note": ""},

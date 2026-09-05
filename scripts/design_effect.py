@@ -37,6 +37,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
+
 from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]

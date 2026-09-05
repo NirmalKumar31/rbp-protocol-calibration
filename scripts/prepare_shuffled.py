@@ -15,10 +15,14 @@ Shuffled sequences have no genomic location, so `chrom`/`start` carry the source
 positive's coordinates with a `shuf_` id prefix. They inherit the source's split, which
 keeps the split assignment identical to the primary arm.
 """
-import argparse, sys, time
+import argparse
+import sys
+import time
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import pandas as pd  # noqa: E402
+
 from rbp.data import shuffle as sh  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402

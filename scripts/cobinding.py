@@ -2,9 +2,12 @@
 
     python scripts/cobinding.py --config config/params.yaml
 """
-import argparse, sys
-import numpy as np
+import argparse
+import sys
 from pathlib import Path
+
+import numpy as np
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from rbp.data import cobinding  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
@@ -25,7 +28,8 @@ def main():
     print(f"{len(paths)} proteins, {size}-nt windows\n")
     m, stats = cobinding.matrix(paths, window=size)
 
-    out = Path(a.outdir); out.mkdir(parents=True, exist_ok=True)
+    out = Path(a.outdir)
+    out.mkdir(parents=True, exist_ok=True)
     m.to_csv(out / "cobinding_matrix.csv")
     stats.to_csv(out / "cobinding_stats.csv")
 

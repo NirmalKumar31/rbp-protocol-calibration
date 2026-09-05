@@ -127,7 +127,7 @@ def main():
     # 3. LONGEST PARAGRAPHS.
     allp = sorted(((n, f.name, head) for f in files for n, head in paras[f.name]),
                   reverse=True)
-    print(f"\n  longest paragraphs (a cut works on these first):")
+    print("\n  longest paragraphs (a cut works on these first):")
     for n, f, head in allp[:a.top]:
         print(f"    {n:4d}w  {f:24s} {head}")
 

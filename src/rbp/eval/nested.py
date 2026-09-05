@@ -63,8 +63,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ..stats import (bootstrap_indices, coef_se, lr_test, percentile_ci, standardise,
-                     wald_p)
+from ..stats import bootstrap_indices, coef_se, lr_test, percentile_ci, standardise, wald_p
 
 ALPHABET = "ACGU"
 DINUCS = [a + b for a in ALPHABET for b in ALPHABET]

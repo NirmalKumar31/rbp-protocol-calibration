@@ -2,9 +2,14 @@
 
     python scripts/build_annotation.py --config config/params.yaml
 """
-import argparse, gzip, pickle, sys, time
+import argparse
+import gzip
+import pickle
+import sys
+import time
 from collections import Counter
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from rbp.data import annotation as ann  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
@@ -20,7 +25,8 @@ def main():
     p.add_argument("--force", action="store_true")
     a = p.parse_args()
     cfg = cfgmod.load(a.config)
-    out = Path(a.out); out.parent.mkdir(parents=True, exist_ok=True)
+    out = Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
 
     if out.exists() and not a.force:
         print(f"cached: {out.relative_to(ROOT)}")

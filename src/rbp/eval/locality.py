@@ -93,9 +93,10 @@ def locality(df, k=5, kmer_k=5, min_distance=25, max_windows=400, seed=7,
     The k-mer is selected and the model is fit on training folds only; the windows scored
     come from the held-out fold. Returns None when no fold yields enough usable pairs.
     """
+    from sklearn.linear_model import LogisticRegression
+
     from ..data.splits import fold_roles
     from .baseline import kmer_matrix
-    from sklearn.linear_model import LogisticRegression
 
     y = df[label_col].to_numpy()
     folds = df[fold_col].to_numpy()

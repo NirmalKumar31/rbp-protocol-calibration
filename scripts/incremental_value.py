@@ -33,6 +33,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 from sklearn.metrics import roc_auc_score
+
 from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,7 +99,7 @@ def main():
 
     d["dec"] = pd.qcut(d.conservation, N_DECILES, labels=False, duplicates="drop")
     per = []
-    for k, g in d.groupby("dec"):
+    for _k, g in d.groupby("dec"):
         if g.label.nunique() == 2:
             per.append(roc_auc_score(g.label, g.prev))
     rows.append({"check": "positional rule, MIN AUROC within a phyloP decile",

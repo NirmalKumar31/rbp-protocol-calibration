@@ -31,6 +31,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.stats import kruskal, mannwhitneyu, spearmanr
+
 from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -78,7 +79,13 @@ def summarise(m):
 
     out = []
 
-    def add(check, value, lo=np.nan, hi=np.nan, n=len(m), note=""):
+    # n defaults to the row count captured here, deliberately: every row this
+    # helper writes describes the same panel. Bound to a name so the capture is
+    # visible rather than hidden in a default argument.
+    _n_default = len(m)
+
+    def add(check, value, lo=np.nan, hi=np.nan, n=None, note=""):
+        n = _n_default if n is None else n
         out.append({"check": check, "value": float(value), "ci_low": lo, "ci_high": hi,
                     "n": n, "note": note})
 
