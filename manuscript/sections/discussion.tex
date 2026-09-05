@@ -30,8 +30,8 @@ calibrate it.
 \item \textbf{The order of that baseline}, because the contribution is an increment over
   whatever the baseline captures and nothing fixes the stopping point. Ours stops at order two;
   at order three the span does not collapse, growing for two model classes and falling slightly
-  for the third, while every contribution shrinks: by about a quarter for SpliceBERT and by four
-  fifths or more for the 4-mer. The
+  for the third, while every contribution shrinks: by a quarter to a third for SpliceBERT and by
+  roughly four fifths for the 4-mer. The
   baseline's order sets the magnitude and is part of the measurement, not a detail of it.
 \item \textbf{Whether the baseline's own out-of-fold AUROC still improves} when its order is
   raised. This costs nothing, since the number is already computed, and it separates a sharper
@@ -184,8 +184,9 @@ amount in each. The third is the chromosome partition, which is frozen, and that
 measured rather than left open: rebuilding three alternative assignments under the same
 balanced-mass objective and the same minimum of three chromosomes per fold, and refitting the
 4-mer on each, gives contrasts of $+0.0392$, $+0.0396$ and $+0.0393$ against $+0.0398$ on the
-partition we use. The range over the four is 0.0006, an eighth of the protein-clustered
-half-width. The choice of partition is not carrying the result. Our partition gives the largest of the four, by 0.0006, so the headline sits at the top of
+partition we use. The range over the four is 0.00058, a thirteenth of the
+protein-clustered half-width. The choice of partition is not carrying the result. Our partition
+gives the largest of the four, by 0.00013 over the runner-up, so the headline sits at the top of
 that narrow range and not in the middle of it. Only the 4-mer can be re-partitioned this way: the
 neural sweeps trained on the frozen assignment; re-partitioning them would compare their old
 folds against new ones.

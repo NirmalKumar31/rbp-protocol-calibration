@@ -40,7 +40,10 @@ Neither occurred: composition alone was the highest of the three arms at 0.8248,
 composition plus the model was the highest at 0.8370, and the contribution was the lowest at
 $+0.0122$, or 0.53 times the GC arm (geometric mean over the 83 datasets positive in both arms;
 the ratio of panel means is 0.46). Part of this is transcript-region mix and not site
-composition; the next subsection separates the two.
+composition; the next subsection separates the two. The absolute value carries a further
+qualification established in Section~\ref{sec:floor}: this arm's $+0.0122$ is close to what the
+estimator returns for a model that contributes nothing, so it is the ordering and not the level
+that the comparison rests on.
 
 The two AUROC rankings of the three protocols agree with each other, and the ranking by
 contribution is their exact reverse. Harder discriminations do reveal more of what a model adds;
@@ -244,7 +247,7 @@ because a positive is one 101~nt window on a peak midpoint and a wide peak exten
 measured the residual directly: the fraction of bias-aware negatives whose midpoint falls inside
 a called peak of the target protein has median 0.0000, mean 0.0001 and maximum 0.0029 across the
 94 datasets. At three negatives in a thousand at worst, there is not enough mislabelling present
-to account for a deficit of 0.021.
+to account for the arm's deficit of 0.0143 against the GC arm.
 
 The direction is wrong for it as well. Sorting datasets by that residual, the third with the
 most overlap has the \emph{smallest} deficit, $-0.0078$ against $-0.0190$ for the third with the
@@ -377,8 +380,9 @@ between-dataset variation. With dataset fixed effects the two increments become 
 The bias-aware protocol usually raises the baseline relative to GC matching, but lowers it in 27
 of 94 datasets, which permits a within-panel test. Where it raised the baseline its contribution
 deficit was $-0.0212$ (CI $-0.0269$ to $-0.0157$); where it lowered the baseline the deficit was
-abolished and the point estimate changed sign, at $+0.0028$ (CI $0.0000$ to $+0.0063$, a
-dataset bootstrap; the protein-clustered interval is $+0.0002$ to $+0.0063$). Within datasets,
+abolished and the point estimate changed sign, at $+0.0028$ (CI $-0.0000$ to $+0.0063$, a
+dataset bootstrap whose interval therefore just includes zero; the protein-clustered interval is
+$+0.0002$ to $+0.0063$ and excludes it). Within datasets,
 the change in baseline and the change in contribution were related at Spearman $-0.664$
 ($p=3\times10^{-13}$).
 
@@ -776,7 +780,7 @@ computing an AUROC per fold and averaging instead, or rank-normalising each fold
 $[0,1]$ before pooling, leaves dinucleotide $>$ GC $>$ bias-aware for all three model classes in
 all three aggregations. What the choice does affect is the level, and only for the neural models:
 pooling costs the convolutional network 0.0083 of contribution in the dinucleotide arm and
-SpliceBERT 0.0083, against 0.0001 for the 4-mer. The two alternatives agree with each other to
+SpliceBERT 0.0082, against 0.0002 for the 4-mer. The two alternatives agree with each other to
 within 0.0007, which is what one would expect if the cause is the five independently trained fold
 models not sharing a scale, since averaging within fold and rank-normalising within fold are two
 different repairs for exactly that. The 4-mer, whose fold predictors are linear scores from the
