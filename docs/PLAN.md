@@ -489,3 +489,73 @@ against a $18.91 estimate; cycle usage ~$55, ~$25 cash after the $30 credits.
   **The right instrument is relocation to a supplementary note, which needs a target venue.**
 * **F5** a survey of negative-set reporting in recent RBP papers. Needs web access; not faked.
 * **Zenodo** the user's action. Placeholder at the end of data-availability.tex; use the CONCEPT DOI.
+
+---
+
+# EXECUTION LOG, 2026-09-05. FIFTH REVIEW ROUND. Supersedes everything above on conflict.
+
+**EVERYTHING IN THIS PLAN IS DONE EXCEPT ZENODO.** Phases 1-6, A1-A30, B1-B17, C1-C3, D1-D9,
+E1-E5, F3, F4, F5. F1 and F2 remain deliberately deferred as the next paper.
+
+**STATE: 937/937 verifier assertions on BOTH artefacts, 0 orphans, 699 tests, 48-page PDF builds
+clean, both branches pushed.** Modal spend for F3 was **$18.97** against a $18.91 estimate; the
+billing cycle is ~$55 usage, ~$25 cash after the $30 credits. NO further paid compute is planned.
+
+## THE BIGGEST RESULT OF THE REVIEW ROUNDS: THE ESTIMATOR HAS A FLOOR
+
+A 2-mer scores a window by its sixteen dinucleotide counts. Windows are a fixed 101 nt, so those
+counts are 100x the frequencies, and the baseline's fifteen frequency columns plus the intercept
+span all sixteen. **A 2-mer's true nested contribution is ZERO by construction, at the order
+every headline uses.** The estimator returns **+0.0119 (gc), +0.0137 (dn), +0.0111 (neg2)**,
+positive on 92/93/91 of 94 datasets.
+
+* **THE SPAN SURVIVES:** the floor spans 1.24x while contributions span 5.42x, covering 23% of
+  the range it would have to explain. It cannot create the ordering.
+* **THE LEVEL DOES NOT:** the floor is 44.7% / 20.7% / **90.4%** of the three reported
+  contributions. The bias-aware arm's +0.0122 is an UPPER BOUND and the paper says so in the
+  abstract, at the arm's first appearance, and in `sec:floor`. A gate holds the qualification.
+* Script `scripts/estimator_floor.py`, table `estimator_floor.csv`, section `sec:floor`.
+
+## THE SYSTEMIC DEFECT THAT HID SEVEN STALE NUMBERS
+
+`audit_manuscript.py` built its haystack from **golden.yaml as well as the tables**. Golden
+values carry tolerances, so after the Phase 1 retrain a manuscript number matching the PRE-retrain
+golden value was reported as TRACED while the table had moved. **golden.yaml is now behind
+`--allow-golden`, OFF BY DEFAULT.** Do not turn it back on.
+
+Thirteen stale numbers were found across two rounds this way, all the same signature: the 4-mer
+figure right and the neural ones left behind by the dinucleotide-arm retrain.
+
+## TOOLS ADDED THIS SESSION, ALL LOAD-BEARING
+
+* `scripts/style_audit.py` counts machine-prose tells (signposting, hedges, cadence CV, the
+  "not X but Y" move, "worth stating", clefts, ", so" rate). Manuscript is clean on all.
+* `scripts/prose_audit.py` finds redundancy: only THREE cross-section near-duplicate pairs, which
+  is why D1's 35-40% cut is not available from redundancy.
+* `scripts/check_image_tree.sh` runs the suite against the CONTAINER's file set. **Run it before
+  any image build.** It caught a regression one commit after being added.
+* `verify.py` now greps the manuscript for its stated assertion count and compares to the LIVE
+  run. That number goes stale every time a gate is added.
+
+## TRAPS THAT BIT ME MORE THAN ONCE
+
+1. **A figure describing the audit's own coverage is stale by construction** -- it moves when a
+   table is added, including by the commit that adds one. Those densities are now COARSE in the
+   text ("under a third", "more than nine tenths") on purpose. Do not put exact values back.
+2. `min_domain_checks` is **TWO BELOW** the printed "N/N checks passed" total, not equal to it.
+3. Raising `min_tests_passing` breaks the CONTAINER build: it collects ~680 against 699 locally
+   because file-parametrised tests see no manuscript/. `test_suite_size.py` now skips on a
+   partial tree.
+4. `robustness.py --leakage-sample` defaulted to 60 and would overwrite the committed 94-row
+   `robustness_leakage.csv`. Default is now 0 = all.
+5. Overlapping `str.replace` edits produce duplications visible ONLY in the rendered PDF. Read
+   the built PDF, not the diff.
+
+## STILL OPEN
+
+* **ZENODO** -- the user's action. Placeholder is a commented sentence at the end of
+  `manuscript/sections/data-availability.tex`. **Use the CONCEPT DOI.**
+* **D1's structural cut** only if a length-limited journal is targeted. Prose is ~17,900 words;
+  the instrument is RELOCATION to a supplementary note, not deletion. Needs a venue.
+* **F1** (anchored SMInput/RBNS negative set, 2-3 weeks) and **F2** (a published method on the
+  ladder) are the next paper, deferred on time not money.
