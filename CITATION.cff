@@ -36,7 +36,9 @@ keywords:
   - benchmark calibration
   - sequence models
 license: MIT
-version: 1.0.0
+# 0.9.0 until a tag exists. A version number in a citation file is a claim that something
+# immutable is named by it, and nothing is until the release is cut.
+version: 0.9.0
 
 preferred-citation:
   type: article

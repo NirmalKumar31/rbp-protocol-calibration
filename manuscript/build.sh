@@ -24,9 +24,31 @@ done
 cp ../results/tables/supplementary_table_s1.csv supplementary_table_s1.csv
 
 command -v pdflatex >/dev/null || { echo "pdflatex not found; install MacTeX or TeX Live"; exit 1; }
-pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null
-pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null
-echo "wrote paper.pdf ($(wc -c < paper.pdf) bytes, $(pdfinfo paper.pdf 2>/dev/null | awk '/^Pages/{print $2}') pages)"
+
+# ITERATE TO A FIXPOINT, DO NOT RUN TWICE AND HOPE. Two passes were enough on a warm tree with
+# an existing .aux and not enough on a clean export, where the second pass still ended with
+# "Label(s) may have changed. Rerun" -- so the release claimed a warning-clean build while a
+# fresh clone produced a warning. Bounded at four so a genuinely oscillating reference fails
+# loudly instead of looping.
+rerun_wanted() { grep -qE "Rerun to get|Label\(s\) may have changed" paper.log; }
+for pass in 1 2 3 4; do
+  pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null
+  rerun_wanted || break
+done
+if rerun_wanted; then
+  echo "references did not stabilise after 4 passes; something is oscillating" >&2
+  exit 1
+fi
+
+# pdfinfo is poppler and is not guaranteed present. It was called unchecked, so on a machine
+# without it the build printed "wrote paper.pdf (... bytes,  pages)" -- an empty page count in
+# the one line a reader uses to confirm the build did something.
+if command -v pdfinfo >/dev/null; then
+  pages="$(pdfinfo paper.pdf | awk '/^Pages/{print $2}') pages"
+else
+  pages="page count unavailable (pdfinfo not installed)"
+fi
+echo "wrote paper.pdf ($(wc -c < paper.pdf) bytes, $pages)"
 
 # Undefined references are silent in a nonstopmode build and fatal in a preprint.
 if grep -qE "LaTeX Warning: (Citation|Reference).*undefined" paper.log; then

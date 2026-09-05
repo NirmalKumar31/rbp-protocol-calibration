@@ -191,7 +191,7 @@ def restrict(rows, only, n_datasets):
 
 
 def stratified(rows, n_datasets):
-    """A size-unbiased subset of whole datasets, never a subset of windows.
+    """A size-stratified subset of whole datasets, never a subset of windows.
 
     Whole datasets, because the dinucleotide arm was trained on full datasets and capping
     the GC arm would confound protocol with training-set size. Size-STRATIFIED rather than

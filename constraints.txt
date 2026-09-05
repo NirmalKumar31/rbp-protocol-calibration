@@ -1,4 +1,10 @@
-# Versions the published results were produced with.
+# Versions for the OFFLINE VERIFICATION environment, which is the scope and was not stated.
+#
+# This pins what `scripts/verify.py --local results/tables` and the test suite need. It
+# deliberately does NOT pin torch, transformers, multimolecule or peft: those are needed to
+# reproduce the GPU sweeps, not to check the released numbers, and pinning them here would
+# force a large install on a reader who only wants to verify. docker/requirements-gpu.txt
+# is the environment for reproduction.
 #
 # WHY THIS EXISTS. README tells a reader to `pip install -e .`, and pyproject declares lower
 # bounds only -- numpy>=1.26 and so on -- so that command is free to resolve a numpy released

@@ -129,7 +129,7 @@ resource "google_cloudfunctions2_function" "killswitch" {
       TARGET_PROJECT = google_project.rbp.project_id
       # Deliberately BELOW the $100 budget. The budget's job is to warn; this one's job is
       # to stop, and it should stop while there is still credit left to recover with. The
-      # whole project is estimated under $11, so $40 is far above any legitimate run and
+      # whole project is estimated well under the $40 kill threshold, so $40 is far above any legitimate run and
       # far below the $300 credit.
       KILL_THRESHOLD_USD = "40"
       # Starts in dry-run: it logs what it WOULD do. Flipped to false only after the path

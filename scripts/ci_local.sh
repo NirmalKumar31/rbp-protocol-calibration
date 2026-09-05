@@ -61,8 +61,20 @@ step "manuscript numbers trace to a table (BEFORE the verifier, which reads its 
 step "verifier"
 "$PY" scripts/verify.py --local results/tables | tail -2 || fail "verify.py"
 
-step "release documents are consistent with the artefacts"
-"$PY" scripts/release_consistency.py || fail "release_consistency.py"
+step "release documents are consistent with the artefacts (full-suite job: --require-all)"
+"$PY" scripts/release_consistency.py --require-all || fail "release_consistency.py"
+
+# WHAT THIS SCRIPT STILL CANNOT REPRODUCE, and it cost two red CI runs to learn. The workflow
+# has two python environments: the `test` job installs requirements-cpu.txt with NO torch, and
+# `full-suite` adds a CPU torch wheel. This machine has torch, so running here exercises the
+# second and silently skips the first. That is exactly the drift this file exists to prevent,
+# and the failure mode is one-directional: anything that depends on torch being ABSENT passes
+# here and fails there.
+#
+# Making a torch-free venv on every run costs more than it saves, so the honest thing is to say
+# so. If you change what the `test` job runs, check the Actions log, not this script.
+echo "  NOTE: run with torch present, so this mirrors the full-suite job and not the"
+echo "        torch-free 'test' job. Check the Actions log for that one."
 
 step "every committed table has a producing script"
 "$PY" scripts/provenance.py --check || fail "provenance.py"

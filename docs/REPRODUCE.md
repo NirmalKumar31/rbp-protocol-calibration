@@ -1,7 +1,6 @@
 # Reproduce the whole study, from raw inputs to verified results
 
-Cloud only. The laptop submits jobs and reads results; it never computes. Roughly
-roughly **$60** without credits; see **[COST.md](COST.md)**, which is the only authoritative cost
+Cloud only. The laptop submits jobs and reads results; it never computes. Roughly **$60** without credits; see **[COST.md](COST.md)**, which is the only authoritative cost
 table and separates what was measured from what is forecast.
 
 The study has been run; this is the procedure for running it again from raw inputs. To check

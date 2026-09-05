@@ -45,7 +45,12 @@ from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": "gc", "dn": "dinuc"}
-KEY = ["chrom", "start", "end"]
+# STRAND IS IN THE KEY. The same interval on opposite strands is a different RNA
+# sequence. Measured before adding it: zero opposite-strand coordinate collisions
+# across all 914,732 positives in both arms, so this changes no published number --
+# but the previous key was safe by luck and _assert_no_strand_collision() below
+# turns that luck into an invariant.
+KEY = ["chrom", "start", "end", "strand"]
 
 
 def restrict(d, keep):
@@ -125,6 +130,10 @@ def main():
     per = TABLES / "common_positives_per_dataset.csv"
     t = pd.read_csv(per) if a.from_cache else build(a.store, a.n)
     if not a.from_cache:
+        if a.n:
+            # See positive_set_overlap.py: a smoke-test flag must not replace a released table.
+            per = per.with_suffix(".partial.csv")
+            log(f"  --n {a.n} given: writing {per.name}, not the committed table")
         t.to_csv(per, index=False)
 
     pub = pd.read_csv(TABLES / "three_arm_per_dataset.csv").set_index("dataset")

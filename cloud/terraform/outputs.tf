@@ -14,7 +14,7 @@ output "buckets" {
 
 output "image_repo" {
   value       = "${var.region}-docker.pkg.dev/${google_project.rbp.project_id}/${google_artifact_registry_repository.images.repository_id}"
-  description = "Prefix for image tags, e.g. <this>/cpu:latest"
+  description = "Prefix for image tags. Use a DIGEST for anything whose output is recorded: <this>/cpu@sha256:... . The :latest alias is for interactive convenience and must never be the recorded producer of a published number."
 }
 
 # EVERY PRIVILEGED IDENTITY, not the four that run jobs. This listed ingest, prep, train and
@@ -43,7 +43,7 @@ output "privileged_identities" {
     }
     killswitch = {
       email = google_service_account.killswitch.email
-      note  = "Holds roles/billing.admin at the BILLING ACCOUNT scope, which is broader than detaching one project, plus roles/viewer on the project. Whether it actually holds resourcemanager.projects.updateBillingInfo is checked at runtime by cloud/killswitch/main.py, because a dry run proves only the read."
+      note  = "Holds roles/billing.admin at the BILLING ACCOUNT scope, which is far broader than detaching one project, plus roles/viewer on the project. cloud/killswitch/main.py checks the two permissions that actually authorise an unlink -- resourcemanager.projects.deleteBillingAssignment on the project, or billing.resourceAssociations.delete on the billing account -- because a dry run proves only the read, and because updateBillingInfo is an API method name rather than a permission. Neither check proves an org policy or link lock will permit the write; only a rehearsal in a disposable project does."
     }
   }
 }

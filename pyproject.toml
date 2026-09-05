@@ -1,6 +1,6 @@
 [project]
 name = "rbp"
-version = "1.0.0"
+version = "0.9.0"
 # THE DESCRIPTION NAMED THE PREVIOUS STUDY. It read "conservation-controlled variant
 # evaluation", which is what this code was built for and is not what the paper reports; an
 # external review noticed before any reader did. Package metadata is the one description that
@@ -14,7 +14,10 @@ authors = [
 keywords = ["RNA-binding proteins", "eCLIP", "negative sets", "benchmark calibration",
             "sequence models", "ENCODE"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    # NOT Production/Stable. SECURITY.md says this is not maintained as a library and
+    # exposes no supported API, and no tagged release exists yet. 1.0.0 and "stable" are
+    # claims about support, and both were made before either was true.
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.11",

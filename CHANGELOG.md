@@ -1,9 +1,11 @@
 # Changelog
 
-## 1.0.0 — the preprint release
+## 0.9.0 — release candidate for the preprint
+
+Not tagged. `1.0.0` is reserved for the commit that is archived and given a DOI.
 
 The state the manuscript describes. 982 numeric assertions pass offline against committed
-tables; 716 tests; the paper builds with no LaTeX warning.
+tables; 725 collected tests; the paper builds warning-clean from a clean export.
 
 ### The finding
 

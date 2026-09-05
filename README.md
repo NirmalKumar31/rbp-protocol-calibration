@@ -1,8 +1,9 @@
-# What a sequence model appears to contribute is set by how the negatives were built
+# Apparent sequence-model contribution depends strongly on negative-set construction
 
-A calibration study across 94 paired ENCODE eCLIP datasets. We hold the model, the peak set, the
-chromosome-blocked folds and the estimator fixed, change only how negative windows are
-constructed, and measure each model's **nested contribution**: the out-of-fold AUROC of a
+A calibration study across 94 paired ENCODE eCLIP datasets. We hold the model class and its
+hyperparameters, the peak set, the chromosome-to-fold map and the estimator implementation
+fixed, change how negative windows are constructed, and measure each model's **nested
+contribution**: the out-of-fold AUROC of a
 logistic model on 19 composition features plus the model's score, minus the AUROC of those
 features alone.
 
@@ -26,9 +27,9 @@ each is attached to the right claim; the Limitations section says what it does n
 
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
-python -m pip install -e . -c constraints.txt   # pins the versions the results used
+python -m pip install -e . -c constraints.txt   # pins the offline-verification environment
 PYTHONPATH=src python scripts/verify.py --local results/tables   # 982/982
-PYTHONPATH=src python -m pytest tests -q                          # 719, needs torch
+PYTHONPATH=src python -m pytest tests -q                          # 725, needs torch
 ```
 
 `verify.py` re-derives every published value from the committed result tables and fails if any
@@ -76,7 +77,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          719 tests, no network or cloud; 2 modules need torch
+tests/          725 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes

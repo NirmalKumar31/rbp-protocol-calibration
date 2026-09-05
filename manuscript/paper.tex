@@ -21,8 +21,8 @@
 % Written out here rather than through \title so that the maths and line breaks in the
 % typeset title do not have to survive the trip into a PDF string.
 \hypersetup{
-  pdftitle={What a sequence model appears to contribute is set by how its negatives were built:
-            a calibration across 94 ENCODE eCLIP datasets},
+  pdftitle={Apparent sequence-model contribution depends strongly on negative-set
+            construction: a calibration across 94 ENCODE eCLIP datasets},
   pdfauthor={Nirmalkumar Thirupallikrishnan Kesavan},
   pdfsubject={Calibration of negative-set construction in RNA-binding-protein sequence model
               benchmarks},
@@ -89,8 +89,8 @@
 % a positive value where the truth is zero, went the same way: true of the common
 % implementation, and removable, which is the more useful statement. A title should not carry a
 % number that a later section of the same paper corrects.
-\title{\bfseries What a sequence model appears to contribute is set by how its negatives were
-built: a calibration across 94 ENCODE eCLIP datasets}
+\title{\bfseries Apparent sequence-model contribution depends strongly on negative-set
+construction: a calibration across 94 ENCODE eCLIP datasets}
 
 \author{Nirmalkumar Thirupallikrishnan Kesavan\\[2pt]
 \normalsize Northeastern University, Boston, MA, USA\\
@@ -120,9 +120,11 @@ built: a calibration across 94 ENCODE eCLIP datasets}
 \noindent
 Sequence models for RNA-binding proteins are evaluated against constructed negative windows, and
 how those windows are chosen is usually treated as a detail. Across 94 paired ENCODE eCLIP
-datasets we held the model, the peak set, the chromosome-blocked folds and the estimator fixed,
-varied only how the negatives were built, and measured each model's nested contribution over a
-19-feature composition baseline refit under each protocol.
+datasets we held the model class, its hyperparameters, the peak set, the chromosome-to-fold map
+and the estimator implementation fixed, varied how the negative windows were built, and measured
+each model's nested contribution over a 19-feature composition baseline. Model and baseline are
+refitted under each protocol, and matcher failures leave the retained positive sets very
+slightly different; restricting to their intersection moves the contrast by 0.0003.
 
 The measured contribution moves 5.42-fold across three protocols for a 4-mer (95\% CI 4.43 to
 6.58), and 3.7 to 7.4-fold across three model classes on identical rows. A model's apparent AUROC
@@ -137,10 +139,10 @@ computing it. Generating the score covariate outside the outer test fold reduces
 95\% in every protocol, to the zero the construction requires, and leaves the 4-mer's protocol
 span at 4.84-fold.
 
-In a survey of seven widely used methods and benchmarks, none reports a composition-only AUROC
-beside its headline. We recommend cross-fitting the score covariate, reporting a
-composition-only AUROC obtained under the same protocol, and not comparing contributions
-measured under different protocols.
+In a targeted survey of seven widely used methods and benchmarks, none reports a
+composition-only AUROC beside its headline. We recommend cross-fitting the score covariate,
+reporting a composition-only AUROC obtained under the same protocol, and not comparing
+contributions measured under different protocols.
 \end{abstract}
 
 \noindent\textbf{Keywords:} RNA-binding proteins; eCLIP; benchmarking; negative-set

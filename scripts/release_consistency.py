@@ -61,12 +61,20 @@ def _tex(paths=None):
     return "\n".join(p.read_text() for p in (paths or TEX))
 
 
+class MissingTool(RuntimeError):
+    """The artefact is present but the thing that reads it is not. Not the same as absent."""
+
+
 def pdf_pages():
+    if not PDF.exists():
+        return None
     try:
         import pypdf
-    except ImportError:
-        return None
-    return len(pypdf.PdfReader(str(PDF)).pages) if PDF.exists() else None
+    except ImportError as e:
+        # The PDF IS here; we simply cannot read it. Reporting that as "artefact absent" is how
+        # CI silently stopped checking the page count of a file sitting in the checkout.
+        raise MissingTool("paper.pdf is present but pypdf is not installed") from e
+    return len(pypdf.PdfReader(str(PDF)).pages)
 
 
 def n_references():
@@ -154,9 +162,15 @@ def collected_tests():
 
 
 FACTS = {
+    # PATTERNS THAT MISSED KNOWN-STALE CLAIMS. An audit found "706 tests pass" in the workflow
+    # header and "716 tests" in the changelog, both invisible to the two narrow forms this
+    # started with. A regex set that only matches the phrasings already in the repository
+    # certifies the phrasings, not the facts.
     "tests collected": (collected_tests, [
-        r"#\s*(\d+),? (?:passed|needs torch)",
+        r"#\s*(\d+),? (?:passed|pass|needs torch)",
         r"tests/\s+(\d+) tests",
+        r"\b(\d{3,4}) (?:collected )?tests\b",
+        r"\b(\d{3,4}) tests? pass",
     ]),
     "pages": (pdf_pages, [
         r"paper\.pdf`? \((\d+) pages\)",
@@ -169,9 +183,12 @@ FACTS = {
     "figure environments": (lambda: n_environments("figure"), [
         r"(\d+) (?:main )?figures? are typeset",
         r"the (\d+) main figures",
+        r"(\d+) figure environments",
     ]),
     "table environments": (lambda: n_environments("table"), [
         r"Tables 1 to (\d+) are typeset",
+        r"(\d+) table environments",
+        r"\d+ pages, (\d+) tables",
     ]),
     "verify checks": (n_verify_checks, [
         # Deliberately loose on the adjective. The narrow form missed "937 published
@@ -191,18 +208,37 @@ FACTS = {
 # a word or two, and failing a release on that would train everyone to ignore this script.
 TOLERANCE = {"abstract words": 4}
 
-# Facts whose absence means the run proved less than it claims. `tests collected` needs torch to
-# collect the whole suite, and the CPU CI image deliberately has none, so this used to SKIP on
-# the exact machine the check exists for.
+# Facts whose absence means the run proved less than it claims.
+#
+# THIS SET TURNED CI RED AND THAT WAS THE RIGHT BUG TO HAVE, HANDLED THE WRONG WAY. A previous
+# audit said an unavailable required fact must fail rather than pass silently, which is correct.
+# Making it fail unconditionally was not: the CPU workflow installs docker/requirements-cpu.txt,
+# which has no torch by design, so the full suite cannot be COLLECTED there and the job went red
+# on an environment limitation rather than on a stale document.
+#
+# The distinction that actually matters is between "this environment cannot derive the fact" and
+# "this environment could derive it but a dependency is missing". The first is a legitimate
+# partial run and is reported; the second is a broken environment and fails. --require-all makes
+# every fact mandatory, and the full-suite CI job passes it.
 REQUIRED = {"tests collected", "verify checks"}
 
 
-def main():
-    problems, unstated, facts, skipped_required = [], [], [], []
+def main(argv=None):
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--require-all", action="store_true",
+                    help="fail when any fact in REQUIRED cannot be derived here")
+    require_all = ap.parse_args(argv).require_all
+    problems, unstated, facts, skipped_required, broken = [], [], [], [], []
     for name, (derive, patterns) in FACTS.items():
-        truth = derive()
+        try:
+            truth = derive()
+        except MissingTool as e:
+            log(f"  {name:22} BROKEN ({e})")
+            broken.append(f"{name}: {e}")
+            continue
         if truth is None:
-            log(f"  {name:22} SKIP (artefact absent)")
+            log(f"  {name:22} SKIP (cannot be derived in this environment)")
             if name in REQUIRED:
                 skipped_required.append(name)
             continue
@@ -245,12 +281,22 @@ def main():
     # the script printed SKIP and exited zero on the one machine whose job is to catch this.
     # Named explicitly rather than "everything must derive", because a manuscript that has not
     # been built genuinely has no page count and failing on that would be noise.
+    if broken:
+        log("")
+        log("  A DEPENDENCY IS MISSING, so a fact that IS derivable here went unchecked:")
+        for s in broken:
+            log(f"    {s}")
+
     if skipped_required:
         log("")
         log("  REQUIRED FACTS COULD NOT BE DERIVED, so this run certifies less than it looks:")
         for s in skipped_required:
             log(f"    {s}")
-        log("  Install the missing dependency rather than trusting the pass.")
+        if require_all:
+            log("  --require-all was given, so this is a failure.")
+        else:
+            log("  Not a failure without --require-all: this environment is a declared subset.")
+            log("  The full-suite CI job passes --require-all and is where these are enforced.")
 
     if unstated:
         log("")
@@ -258,7 +304,7 @@ def main():
         log("  documents having stopped claiming it: " + ", ".join(unstated))
 
     log("")
-    if problems or skipped_required:
+    if problems or broken or (skipped_required and require_all):
         log(f"  {len(problems)} STALE RELEASE CLAIM(S):")
         for p in problems:
             log(f"    {p}")

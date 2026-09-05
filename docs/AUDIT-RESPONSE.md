@@ -114,7 +114,7 @@ released.
 | P1.5 | Train-fold-only standardisation as primary | measured at `4e-5`; making it primary is a full rerun |
 | P1.14 | A 2x2 train-protocol by evaluation-protocol factorial | a separate experiment, and the mechanism claim it would support is not made |
 | P1.16–17 | Input checksum manifest and cache lineage hashes | the download code records URL, size and MD5 at fetch time; those records were not committed for the published run, and claiming input integrity now would claim something not held |
-| P2.12, P2.15 | 50 pages, 14 tables | a main/supplement split needs the venue's limits |
+| P2.12, P2.15 | 50 pages, 15 table environments | a main/supplement split needs the venue's limits |
 | P0.6 | Tag and Zenodo DOI | the author's action, after the content is frozen |
 
 The first four are the next paper rather than a revision of this one: each needs the sweep rerun

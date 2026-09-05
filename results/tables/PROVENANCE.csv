@@ -1,122 +1,126 @@
 table,producing_script,run_sh_stage,status,sha256,bytes,invocation
-auroc_aggregation.csv,scripts/auroc_aggregation.py,s13b_local_analysis,frozen-only,6423fe9cfa7f903d,3454,"#   ""$PY"" scripts/auroc_aggregation.py --store ../rbp-store       # B9"
-auroc_aggregation_per_dataset.csv,scripts/auroc_aggregation.py,s13b_local_analysis,frozen-only,f5a14e788302ad97,72160,"#   ""$PY"" scripts/auroc_aggregation.py --store ../rbp-store       # B9"
+auroc_aggregation.csv,scripts/auroc_aggregation.py,,frozen-only,6423fe9cfa7f903d,3454,not invoked by run.sh
+auroc_aggregation_per_dataset.csv,scripts/auroc_aggregation.py,,frozen-only,f5a14e788302ad97,72160,not invoked by run.sh
 baseline_confounding.csv,scripts/baseline_confounding.py,s13b_local_analysis,raw-reproducible,9f81105d65508152,2604,"""$PY"" scripts/baseline_confounding.py || die ""baseline confounding"""
 baseline_order.csv,scripts/baseline_order.py,s13b_local_analysis,evidence-recomputable,655e0ea3664858e5,3372,"""$PY"" scripts/baseline_order.py --from-cache || die ""baseline order"""
 baseline_order_models.csv,scripts/baseline_order_models.py,s13b_local_analysis,evidence-recomputable,8c46254b0943f104,14923,"""$PY"" scripts/baseline_order_models.py --from-cache || die ""baseline order, model classes"""
-baseline_order_models_per_dataset.csv,scripts/baseline_order_models.py,s13b_local_analysis,evidence-recomputable,f86769073e216597,64417,"""$PY"" scripts/baseline_order_models.py --from-cache || die ""baseline order, model classes"""
-baseline_order_per_dataset.csv,scripts/baseline_order.py,s13b_local_analysis,evidence-recomputable,788447fb2806a009,9786,"""$PY"" scripts/baseline_order.py --from-cache || die ""baseline order"""
+baseline_order_models_per_dataset.csv,scripts/baseline_order_models.py,s13b_local_analysis,frozen-cache,f86769073e216597,64417,"""$PY"" scripts/baseline_order_models.py --from-cache || die ""baseline order, model classes"""
+baseline_order_per_dataset.csv,scripts/baseline_order.py,s13b_local_analysis,frozen-cache,788447fb2806a009,9786,"""$PY"" scripts/baseline_order.py --from-cache || die ""baseline order"""
 candidate_sizes.csv,scripts/cloud_analysis.py,,frozen-only,79cd9551dbf92127,5316,not invoked by run.sh
 cluster_intervals.csv,scripts/cluster_intervals.py,s13b_local_analysis,raw-reproducible,da1da712f1237a9c,1904,"""$PY"" scripts/cluster_intervals.py || die ""clustered intervals"""
-cobinding_noise.csv,scripts/cobinding_noise.py,s13b_local_analysis,frozen-only,b9a9789a4537b65a,791,"#   ""$PY"" scripts/cobinding_noise.py --store ../rbp-store   # B4, needs the peak BEDs too"
-cobinding_noise_per_dataset.csv,scripts/cobinding_noise.py,s13b_local_analysis,frozen-only,7e9b44f5a564a61a,10690,"#   ""$PY"" scripts/cobinding_noise.py --store ../rbp-store   # B4, needs the peak BEDs too"
+cobinding_noise.csv,scripts/cobinding_noise.py,,frozen-only,b9a9789a4537b65a,791,not invoked by run.sh
+cobinding_noise_per_dataset.csv,scripts/cobinding_noise.py,,frozen-only,7e9b44f5a564a61a,10690,not invoked by run.sh
 common_positives.csv,scripts/common_positives.py,s13b_local_analysis,evidence-recomputable,b92ae57035817f11,1568,"""$PY"" scripts/common_positives.py --from-cache || die ""common positives"""
-common_positives_per_dataset.csv,scripts/common_positives.py,s13b_local_analysis,evidence-recomputable,e07a88e3a3b2886d,19568,"""$PY"" scripts/common_positives.py --from-cache || die ""common positives"""
-cost_of_matching.csv,scripts/strand_contrast.py,s13b_local_analysis,raw-reproducible,0b72af61e71d84d4,20248,"""$PY"" scripts/strand_contrast.py    || die ""strand contrast"""
+common_positives_per_dataset.csv,scripts/common_positives.py,s13b_local_analysis,frozen-cache,e07a88e3a3b2886d,19568,"""$PY"" scripts/common_positives.py --from-cache || die ""common positives"""
+cost_of_matching.csv,scripts/cloud_analysis.py,,frozen-only,0b72af61e71d84d4,20248,not invoked by run.sh
 cross_fitting.csv,scripts/cross_fitting.py,s13b_local_analysis,evidence-recomputable,227af58e4ba4e158,6966,"""$PY"" scripts/cross_fitting.py --from-cache || die ""cross-fitting"""
-cross_fitting_per_dataset.csv,scripts/cross_fitting.py,s13b_local_analysis,evidence-recomputable,16faf3e01a538636,50773,"""$PY"" scripts/cross_fitting.py --from-cache || die ""cross-fitting"""
+cross_fitting_per_dataset.csv,scripts/cross_fitting.py,s13b_local_analysis,frozen-cache,16faf3e01a538636,50773,"""$PY"" scripts/cross_fitting.py --from-cache || die ""cross-fitting"""
 deep_contrast.csv,scripts/deep_model_contrast.py,s13b_local_analysis,evidence-recomputable,50ece4739bb328d3,6313,"""$PY"" scripts/deep_model_contrast.py --from-cache || die ""deep model contrast"""
-deep_contrast_per_dataset.csv,scripts/deep_model_contrast.py,s13b_local_analysis,evidence-recomputable,94975c418fc3ce5e,75771,"""$PY"" scripts/deep_model_contrast.py --from-cache || die ""deep model contrast"""
+deep_contrast_per_dataset.csv,scripts/baseline_order_models.py,s13b_local_analysis,evidence-recomputable,94975c418fc3ce5e,75771,"""$PY"" scripts/baseline_order_models.py --from-cache || die ""baseline order, model classes"""
 design_effect.csv,scripts/design_effect.py,s13b_local_analysis,evidence-recomputable,55c0e9cc94e0ce4c,541,"""$PY"" scripts/design_effect.py --from-cache    || die ""design effect"""
-design_effect_per_dataset.csv,scripts/design_effect.py,s13b_local_analysis,evidence-recomputable,ce0cf2e5b4e76b85,10747,"""$PY"" scripts/design_effect.py --from-cache    || die ""design effect"""
+design_effect_per_dataset.csv,scripts/design_effect.py,s13b_local_analysis,frozen-cache,ce0cf2e5b4e76b85,10747,"""$PY"" scripts/design_effect.py --from-cache    || die ""design effect"""
 device_portability.csv,scripts/device_portability.py,s13b_local_analysis,evidence-recomputable,d9909ba1c2ab08d0,1105,"""$PY"" scripts/device_portability.py --from-cache || die ""device portability"""
-device_portability_per_fold.csv,scripts/device_portability.py,s13b_local_analysis,evidence-recomputable,751b29f76e27a152,826,"""$PY"" scripts/device_portability.py --from-cache || die ""device portability"""
+device_portability_per_fold.csv,scripts/device_portability.py,s13b_local_analysis,frozen-cache,751b29f76e27a152,826,"""$PY"" scripts/device_portability.py --from-cache || die ""device portability"""
 donor_overlap.csv,scripts/cloud_analysis.py,,frozen-only,43b141aab1a48869,7243,not invoked by run.sh
 donor_overlap_strata.csv,scripts/cloud_analysis.py,,frozen-only,d4e8d187148fd4dd,456,not invoked by run.sh
-estimands.csv,scripts/estimands.py,s13b_local_analysis,frozen-only,5b35dd05a858a5f7,4686,"#   ""$PY"" scripts/estimands.py       --store ../rbp-store   # B1, five estimands"
-estimands_per_dataset.csv,scripts/estimands.py,s13b_local_analysis,frozen-only,630d9a4a20c96dbb,123678,"#   ""$PY"" scripts/estimands.py       --store ../rbp-store   # B1, five estimands"
+donor_tasks.tsv,scripts/donor_draw.py,,frozen-only,9f93d41b7b7e5c0a,42638,not invoked by run.sh
+estimands.csv,scripts/estimands.py,,frozen-only,5b35dd05a858a5f7,4686,not invoked by run.sh
+estimands_per_dataset.csv,scripts/estimands.py,,frozen-only,630d9a4a20c96dbb,123678,not invoked by run.sh
 estimator_floor.csv,scripts/estimator_floor.py,s13b_local_analysis,evidence-recomputable,b48cabbf2fb9fece,1239,"""$PY"" scripts/estimator_floor.py --from-cache || die ""estimator floor"""
-estimator_floor_per_dataset.csv,scripts/estimator_floor.py,s13b_local_analysis,evidence-recomputable,0c7212247eb99b57,15014,"""$PY"" scripts/estimator_floor.py --from-cache || die ""estimator floor"""
+estimator_floor_per_dataset.csv,scripts/estimator_floor.py,s13b_local_analysis,frozen-cache,0c7212247eb99b57,15014,"""$PY"" scripts/estimator_floor.py --from-cache || die ""estimator floor"""
 expression_control.csv,scripts/expression_control.py,s13b_local_analysis,evidence-recomputable,a6a38120bd8bf2e0,2440,"""$PY"" scripts/expression_control.py --from-cache || die ""expression control"""
-expression_control_per_dataset.csv,scripts/expression_control.py,s13b_local_analysis,evidence-recomputable,9db0c69caea63c2f,77420,"""$PY"" scripts/expression_control.py --from-cache || die ""expression control"""
+expression_control_per_dataset.csv,scripts/expression_control.py,s13b_local_analysis,frozen-cache,9db0c69caea63c2f,77420,"""$PY"" scripts/expression_control.py --from-cache || die ""expression control"""
 fold_integrity.csv,scripts/fold_integrity.py,s13b_local_analysis,evidence-recomputable,56c39db13feffa0b,1620,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
-fold_integrity_per_dataset.csv,scripts/fold_integrity.py,s13b_local_analysis,evidence-recomputable,1fe9ddecccfa97d8,31402,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
-gene_clustered_cv.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,frozen-only,97f8085027ebb5a1,2028,"#   ""$PY"" scripts/gene_clustered_cv.py --store ../rbp-store  # B10, needs the GENCODE GTF"
-gene_clustered_cv_per_dataset.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,frozen-only,01a9bfcb8ed368ce,26619,"#   ""$PY"" scripts/gene_clustered_cv.py --store ../rbp-store  # B10, needs the GENCODE GTF"
-horlacher_arm.csv,scripts/horlacher_arm.py,s13b_local_analysis,evidence-recomputable,8c222bcf67c7f2ee,1786,"""$PY"" scripts/horlacher_arm.py --from-cache || die ""horlacher arm"""
-horlacher_per_dataset.csv,scripts/transport_check.py,s13b_local_analysis,raw-reproducible,c7c580118f876def,8631,"""$PY"" scripts/transport_check.py || die ""transport check"""
+fold_integrity_per_dataset.csv,scripts/fold_integrity.py,s13b_local_analysis,frozen-cache,1fe9ddecccfa97d8,31402,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
+gene_clustered_cv.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,evidence-recomputable,97f8085027ebb5a1,2028,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
+gene_clustered_cv_per_dataset.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,frozen-cache,01a9bfcb8ed368ce,26619,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
+horlacher_arm.csv,scripts/horlacher_arm.py,s13b_local_analysis,frozen-cache,8c222bcf67c7f2ee,1786,"""$PY"" scripts/horlacher_arm.py --from-cache || die ""horlacher arm"""
+horlacher_per_dataset.csv,scripts/horlacher_arm.py,s13b_local_analysis,evidence-recomputable,c7c580118f876def,8631,"""$PY"" scripts/horlacher_arm.py --from-cache || die ""horlacher arm"""
 incremental_value.csv,scripts/incremental_value.py,s13b_local_analysis,raw-reproducible,17164d09432e22a9,1229,"""$PY"" scripts/incremental_value.py || die ""incremental value"""
 k_sweep.csv,scripts/k_sweep.py,s13b_local_analysis,evidence-recomputable,a65c6fe140d2990c,1128,"""$PY"" scripts/k_sweep.py --from-cache || die ""k sweep"""
-k_sweep_per_dataset.csv,scripts/k_sweep.py,s13b_local_analysis,evidence-recomputable,629ae34e413e7cef,24436,"""$PY"" scripts/k_sweep.py --from-cache || die ""k sweep"""
-locality_ism.csv,scripts/locality_probe.py,s10_locality,raw-reproducible,cc3aa844faae3767,15273,"""$PY"" scripts/locality_probe.py --gather"
+k_sweep_per_dataset.csv,scripts/k_sweep.py,s13b_local_analysis,frozen-cache,629ae34e413e7cef,24436,"""$PY"" scripts/k_sweep.py --from-cache || die ""k sweep"""
+locality_ism.csv,scripts/cloud_analysis.py,,frozen-only,cc3aa844faae3767,15273,not invoked by run.sh
 manuscript_constants.csv,scripts/manuscript_constants.py,,frozen-only,10408db0cbd05e44,1653,not invoked by run.sh
-match_quality.csv,scripts/match_quality.py,s13b_local_analysis,raw-reproducible,807a0ec378a48926,1591,"# its table is committed. Regenerate with: ""$PY"" scripts/match_quality.py"
-match_quality_per_dataset.csv,scripts/match_quality.py,s13b_local_analysis,raw-reproducible,ad7e6b6aa9d1c0cb,31903,"# its table is committed. Regenerate with: ""$PY"" scripts/match_quality.py"
-matched_four_models.csv,scripts/variant_splicebert.py,s12_clinvar,raw-reproducible,836721904cfb2c5f,11840,"""$PY"" scripts/variant_splicebert.py --what tables || die ""variant tables"""
-matching_robustness.csv,scripts/matching_robustness.py,s13b_local_analysis,frozen-only,b0502c4ef80f369e,3315,"#   ""$PY"" scripts/matching_robustness.py --store ../rbp-store  # B11, needs the genome FASTA"
-matching_robustness_per_dataset.csv,scripts/matching_robustness.py,s13b_local_analysis,frozen-only,3925ff6a38a876c1,10481,"#   ""$PY"" scripts/matching_robustness.py --store ../rbp-store  # B11, needs the genome FASTA"
+match_quality.csv,scripts/match_quality.py,,frozen-only,807a0ec378a48926,1591,not invoked by run.sh
+match_quality_per_dataset.csv,scripts/match_quality.py,,frozen-only,ad7e6b6aa9d1c0cb,31903,not invoked by run.sh
+matched_four_models.csv,scripts/cloud_analysis.py,,frozen-only,836721904cfb2c5f,11840,not invoked by run.sh
+matching_robustness.csv,scripts/matching_robustness.py,s13b_local_analysis,evidence-recomputable,b0502c4ef80f369e,3315,"""$PY"" scripts/matching_robustness.py --from-cache || die ""matching robustness"""
+matching_robustness_per_dataset.csv,scripts/matching_robustness.py,s13b_local_analysis,frozen-cache,3925ff6a38a876c1,10481,"""$PY"" scripts/matching_robustness.py --from-cache || die ""matching robustness"""
 models_by_protocol.csv,scripts/models_by_protocol.py,s13b_local_analysis,raw-reproducible,7b2234127c48edee,4803,"""$PY"" scripts/models_by_protocol.py || die ""per-model protocol analyses"""
-multidonor_pairs.csv,scripts/verify.py,s14_verify,raw-reproducible,c329179e0980fa66,35092,"""$PY"" scripts/verify.py --local results/tables || die ""THE SCIENCE DID NOT REPRODUCE (local tables) "
-multidonor_specificity.csv,scripts/verify.py,s14_verify,raw-reproducible,2eade86c91b834b7,2587,"""$PY"" scripts/verify.py --local results/tables || die ""THE SCIENCE DID NOT REPRODUCE (local tables) "
+multidonor_pairs.csv,scripts/multidonor_analysis.py,,frozen-only,c329179e0980fa66,35092,not invoked by run.sh
+multidonor_specificity.csv,scripts/multidonor_analysis.py,,frozen-only,2eade86c91b834b7,2587,not invoked by run.sh
 multiplier_variance.csv,scripts/multiplier_variance.py,s13b_local_analysis,raw-reproducible,8756e2f86e4f4fd0,2135,"""$PY"" scripts/multiplier_variance.py || die ""multiplier variance"""
 neg2_build.csv,scripts/build_neg2.py,,frozen-only,84b5d76aef711de5,3830,not invoked by run.sh
 neg2_rm_build.csv,scripts/build_neg2.py,,frozen-only,937f6c9f06126a56,3830,not invoked by run.sh
 negative_set_survey.csv,scripts/negative_set_survey.py,s13b_local_analysis,raw-reproducible,9dd2df78d7d08a7a,400,"""$PY"" scripts/negative_set_survey.py || die ""negative-set survey"""
 negative_set_survey_per_method.csv,scripts/negative_set_survey.py,s13b_local_analysis,raw-reproducible,ca9046d1773608f2,1850,"""$PY"" scripts/negative_set_survey.py || die ""negative-set survey"""
-nested_scale.csv,scripts/nested_scale.py,s13b_local_analysis,frozen-only,a76765902dead1ea,3754,"#   ""$PY"" scripts/nested_scale.py    --store ../rbp-store   # 1b/1c, the 2x2"
-nested_scale_per_dataset.csv,scripts/nested_scale.py,s13b_local_analysis,frozen-only,8daa733db6100748,362559,"#   ""$PY"" scripts/nested_scale.py    --store ../rbp-store   # 1b/1c, the 2x2"
-order_profile.csv,scripts/order_profile.py,s13b_local_analysis,frozen-only,ffa5fab2afca7034,15677,"#   ""$PY"" scripts/order_profile.py   --store ../rbp-store   # B3, orders 1-4, ~80 min"
-order_profile_per_dataset.csv,scripts/order_profile.py,s13b_local_analysis,frozen-only,26f7828108fec577,128787,"#   ""$PY"" scripts/order_profile.py   --store ../rbp-store   # B3, orders 1-4, ~80 min"
-panel_summary.csv,scripts/table_s1.py,s13b_local_analysis,raw-reproducible,886dc87ebb29cb1e,4219,"""$PY"" scripts/table_s1.py || die ""supplementary table s1"""
-partition_sensitivity.csv,scripts/partition_sensitivity.py,s13b_local_analysis,frozen-only,50a89aac3d94bde0,525,"#   ""$PY"" scripts/partition_sensitivity.py --store ../rbp-store   # B6"
-partition_sensitivity_per_partition.csv,scripts/partition_sensitivity.py,s13b_local_analysis,frozen-only,1ca3bdf97d335971,445,"#   ""$PY"" scripts/partition_sensitivity.py --store ../rbp-store   # B6"
-peak_thresholds.csv,scripts/peak_thresholds.py,s13b_local_analysis,raw-reproducible,58a6003ccaf241a7,417,"# path; its table is committed. Regenerate with: ""$PY"" scripts/peak_thresholds.py"
-peak_thresholds_per_dataset.csv,scripts/peak_thresholds.py,s13b_local_analysis,raw-reproducible,d33401bbe0f918bb,6420,"# path; its table is committed. Regenerate with: ""$PY"" scripts/peak_thresholds.py"
-positional_signal.csv,scripts/positional_signal.py,s13b_local_analysis,frozen-only,787a6be4cddc2988,481,"#   ""$PY"" scripts/positional_signal.py --store ../rbp-store       # B14"
-positional_signal_per_dataset.csv,scripts/positional_signal.py,s13b_local_analysis,frozen-only,9d3690bc319a26a5,9697,"#   ""$PY"" scripts/positional_signal.py --store ../rbp-store       # B14"
-positional_signal_profile.csv,scripts/positional_signal.py,s13b_local_analysis,frozen-only,6da645acd3758008,338631,"#   ""$PY"" scripts/positional_signal.py --store ../rbp-store       # B14"
-positive_set_overlap.csv,scripts/positive_set_overlap.py,s13b_local_analysis,evidence-recomputable,1798b7d64fa7ae77,4755,"""$PY"" scripts/positive_set_overlap.py --from-cache || die ""positive-set overlap"""
+nested_scale.csv,scripts/nested_scale.py,,frozen-only,a76765902dead1ea,3754,not invoked by run.sh
+nested_scale_per_dataset.csv,scripts/nested_scale.py,,frozen-only,8daa733db6100748,362559,not invoked by run.sh
+order_profile.csv,scripts/order_profile.py,s13b_local_analysis,evidence-recomputable,ffa5fab2afca7034,15677,"""$PY"" scripts/order_profile.py --from-cache || die ""composition-order profile"""
+order_profile_per_dataset.csv,scripts/order_profile.py,s13b_local_analysis,frozen-cache,26f7828108fec577,128787,"""$PY"" scripts/order_profile.py --from-cache || die ""composition-order profile"""
+panel_summary.csv,scripts/cloud_analysis.py,,frozen-only,886dc87ebb29cb1e,4219,not invoked by run.sh
+partition_sensitivity.csv,scripts/partition_sensitivity.py,,frozen-only,50a89aac3d94bde0,525,not invoked by run.sh
+partition_sensitivity_per_partition.csv,scripts/partition_sensitivity.py,,frozen-only,1ca3bdf97d335971,445,not invoked by run.sh
+peak_thresholds.csv,scripts/peak_thresholds.py,,frozen-only,58a6003ccaf241a7,417,not invoked by run.sh
+peak_thresholds_per_dataset.csv,scripts/peak_thresholds.py,,frozen-only,d33401bbe0f918bb,6420,not invoked by run.sh
+positional_signal.csv,scripts/positional_signal.py,,frozen-only,787a6be4cddc2988,481,not invoked by run.sh
+positional_signal_per_dataset.csv,scripts/positional_signal.py,,frozen-only,9d3690bc319a26a5,9697,not invoked by run.sh
+positional_signal_profile.csv,scripts/positional_signal.py,,frozen-only,6da645acd3758008,338631,not invoked by run.sh
+positive_set_overlap.csv,scripts/positive_set_overlap.py,s13b_local_analysis,frozen-cache,1798b7d64fa7ae77,4755,"""$PY"" scripts/positive_set_overlap.py --from-cache || die ""positive-set overlap"""
 protocol_baseline_slopes.csv,scripts/protocol_identification.py,s13b_local_analysis,raw-reproducible,eda00e0221247fe3,753,"""$PY"" scripts/protocol_identification.py || die ""protocol identification"""
 protocol_identification.csv,scripts/protocol_identification.py,s13b_local_analysis,raw-reproducible,3b4311817e92bb84,5591,"""$PY"" scripts/protocol_identification.py || die ""protocol identification"""
 protocol_or_baseline.csv,scripts/protocol_or_baseline.py,s13b_local_analysis,raw-reproducible,2dc04a1df822b797,3221,"""$PY"" scripts/protocol_or_baseline.py || die ""protocol or baseline"""
 r1_robustness.csv,scripts/r1_robustness.py,s13b_local_analysis,raw-reproducible,79717da9fb887f31,2138,"""$PY"" scripts/r1_robustness.py     || die ""replication and efficiency"""
 recommendation_works.csv,scripts/recommendation_works.py,s13b_local_analysis,raw-reproducible,af573ac92beec95d,1536,"""$PY"" scripts/recommendation_works.py || die ""recommendation test"""
 recompute.csv,scripts/recompute.py,s13b_local_analysis,raw-reproducible,256d120f4a783475,21350,"""$PY"" scripts/recompute.py         || die ""recompute from per-example evidence"""
-region_annotation.csv,scripts/region_annotation.py,s13b_local_analysis,frozen-only,cfa48d368037beb8,3827,"#   ""$PY"" scripts/region_annotation.py --store ../rbp-store   # B17, needs the GTF index"
-region_annotation_per_dataset.csv,scripts/region_annotation.py,s13b_local_analysis,frozen-only,b6b4a33271853e41,109306,"#   ""$PY"" scripts/region_annotation.py --store ../rbp-store   # B17, needs the GTF index"
+region_annotation.csv,scripts/region_annotation.py,s13b_local_analysis,evidence-recomputable,cfa48d368037beb8,3827,"""$PY"" scripts/region_annotation.py --from-cache || die ""region annotation rules"""
+region_annotation_per_dataset.csv,scripts/region_annotation.py,s13b_local_analysis,frozen-cache,b6b4a33271853e41,109306,"""$PY"" scripts/region_annotation.py --from-cache || die ""region annotation rules"""
 region_asymmetry.csv,scripts/region_asymmetry.py,s13b_local_analysis,evidence-recomputable,2044c9bfd9dfad1c,1740,"""$PY"" scripts/region_asymmetry.py --from-cache || die ""region asymmetry"""
-region_asymmetry_per_dataset.csv,scripts/region_asymmetry.py,s13b_local_analysis,evidence-recomputable,70f35837fce09e02,25279,"""$PY"" scripts/region_asymmetry.py --from-cache || die ""region asymmetry"""
+region_asymmetry_per_dataset.csv,scripts/region_asymmetry.py,s13b_local_analysis,frozen-cache,70f35837fce09e02,25279,"""$PY"" scripts/region_asymmetry.py --from-cache || die ""region asymmetry"""
 region_heterogeneity.csv,scripts/region_heterogeneity.py,s13b_local_analysis,evidence-recomputable,2cd5a454a4881890,1250,"""$PY"" scripts/region_heterogeneity.py --from-cache || die ""region heterogeneity"""
-region_heterogeneity_per_dataset.csv,scripts/region_heterogeneity.py,s13b_local_analysis,evidence-recomputable,6d17a8c85201aad8,35539,"""$PY"" scripts/region_heterogeneity.py --from-cache || die ""region heterogeneity"""
-region_matched_neural.csv,scripts/region_matched_neural.py,s13b_local_analysis,frozen-only,55cad69a671bd47e,2710,"#   ""$PY"" scripts/region_matched_neural.py --store ../rbp-store # F3, needs the neg2_rm scores"
-region_matched_neural_per_dataset.csv,scripts/region_matched_neural.py,s13b_local_analysis,frozen-only,19b6f98ba71c3da6,35956,"#   ""$PY"" scripts/region_matched_neural.py --store ../rbp-store # F3, needs the neg2_rm scores"
-rehearsal_binding_dinuc.csv,scripts/variant_splicebert.py,s12_clinvar,raw-reproducible,efe4547b047363f3,30369,"""$PY"" scripts/variant_splicebert.py --what tables || die ""variant tables"""
-rehearsal_binding_gc.csv,scripts/scale_check.py,s13b_local_analysis,raw-reproducible,b9833c600520471b,29913,"""$PY"" scripts/scale_check.py       || die ""scale check"""
-robustness.csv,scripts/r1_robustness.py,s13b_local_analysis,raw-reproducible,499e34253db41625,1847,"""$PY"" scripts/r1_robustness.py     || die ""replication and efficiency"""
+region_heterogeneity_per_dataset.csv,scripts/region_heterogeneity.py,s13b_local_analysis,frozen-cache,6d17a8c85201aad8,35539,"""$PY"" scripts/region_heterogeneity.py --from-cache || die ""region heterogeneity"""
+region_matched_neural.csv,scripts/region_matched_neural.py,s13b_local_analysis,evidence-recomputable,55cad69a671bd47e,2710,"""$PY"" scripts/region_matched_neural.py --from-cache || die ""region-matched neural"""
+region_matched_neural_per_dataset.csv,scripts/region_matched_neural.py,s13b_local_analysis,frozen-cache,19b6f98ba71c3da6,35956,"""$PY"" scripts/region_matched_neural.py --from-cache || die ""region-matched neural"""
+rehearsal_binding_dinuc.csv,scripts/cluster_intervals.py,s13b_local_analysis,raw-reproducible,efe4547b047363f3,30369,"""$PY"" scripts/cluster_intervals.py || die ""clustered intervals"""
+rehearsal_binding_gc.csv,scripts/baseline_order.py,s13b_local_analysis,evidence-recomputable,b9833c600520471b,29913,"""$PY"" scripts/baseline_order.py --from-cache || die ""baseline order"""
+robustness.csv,scripts/robustness.py,,frozen-only,499e34253db41625,1847,not invoked by run.sh
 robustness_leakage.csv,scripts/robustness.py,,frozen-only,d5091d7544807b90,7347,not invoked by run.sh
 scale_check.csv,scripts/scale_check.py,s13b_local_analysis,raw-reproducible,23ba4a929dccbaf9,3914,"""$PY"" scripts/scale_check.py       || die ""scale check"""
 scale_sweep.csv,scripts/scale_sweep.py,s13b_local_analysis,raw-reproducible,70c5c0150412c737,2432,"""$PY"" scripts/scale_sweep.py || die ""scale sweep"""
-score_scale_check.csv,scripts/score_scale_check.py,s13b_local_analysis,evidence-recomputable,abeda5fa0f3545c5,2561,"""$PY"" scripts/score_scale_check.py --from-cache || die ""score scale"""
+score_scale_check.csv,scripts/score_scale_check.py,s13b_local_analysis,frozen-cache,abeda5fa0f3545c5,2561,"""$PY"" scripts/score_scale_check.py --from-cache || die ""score scale"""
 score_scale_per_dataset.csv,scripts/score_scale_check.py,s13b_local_analysis,evidence-recomputable,3413924e1b77c478,47913,"""$PY"" scripts/score_scale_check.py --from-cache || die ""score scale"""
-shuffled_arm.csv,scripts/shuffled_arm.py,s13b_local_analysis,frozen-only,ee2d23a027b4a7fd,1816,"#   ""$PY"" scripts/shuffled_arm.py    --store ../rbp-store   # B5, the shuffled fourth arm"
-shuffled_arm_per_dataset.csv,scripts/shuffled_arm.py,s13b_local_analysis,frozen-only,7bf724a7c3f7d4b9,9541,"#   ""$PY"" scripts/shuffled_arm.py    --store ../rbp-store   # B5, the shuffled fourth arm"
+shuffled_arm.csv,scripts/shuffled_arm.py,s13b_local_analysis,evidence-recomputable,ee2d23a027b4a7fd,1816,"""$PY"" scripts/shuffled_arm.py --from-cache || die ""shuffled fourth arm"""
+shuffled_arm_per_dataset.csv,scripts/shuffled_arm.py,s13b_local_analysis,frozen-cache,7bf724a7c3f7d4b9,9541,"""$PY"" scripts/shuffled_arm.py --from-cache || die ""shuffled fourth arm"""
 standalone_auroc.csv,scripts/standalone_auroc.py,s13b_local_analysis,evidence-recomputable,9920ef3c2dfb7269,2023,"""$PY"" scripts/standalone_auroc.py --from-cache || die ""standalone auroc"""
-standalone_auroc_per_dataset.csv,scripts/standalone_auroc.py,s13b_local_analysis,evidence-recomputable,f1b01f179ae3b15c,9028,"""$PY"" scripts/standalone_auroc.py --from-cache || die ""standalone auroc"""
+standalone_auroc_per_dataset.csv,scripts/standalone_auroc.py,s13b_local_analysis,frozen-cache,f1b01f179ae3b15c,9028,"""$PY"" scripts/standalone_auroc.py --from-cache || die ""standalone auroc"""
 strand_asymmetry.csv,scripts/strand_asymmetry.py,s13b_local_analysis,evidence-recomputable,6d7dc2f176031280,1192,"""$PY"" scripts/strand_asymmetry.py --from-cache || die ""strand asymmetry"""
-strand_asymmetry_per_dataset.csv,scripts/strand_asymmetry.py,s13b_local_analysis,evidence-recomputable,3e9fc8188227d12d,16579,"""$PY"" scripts/strand_asymmetry.py --from-cache || die ""strand asymmetry"""
-strand_audit.csv,scripts/strand_audit.py,s13b_local_analysis,raw-reproducible,b895957bcdcd8572,2612,"# scripts/strand_audit.py is deliberately NOT here. It needs --gtf and --datasets, i.e. a"
-strand_audit_summary.csv,scripts/strand_audit.py,s13b_local_analysis,raw-reproducible,d3d5f3e68a599276,461,"# scripts/strand_audit.py is deliberately NOT here. It needs --gtf and --datasets, i.e. a"
+strand_asymmetry_per_dataset.csv,scripts/strand_asymmetry.py,s13b_local_analysis,frozen-cache,3e9fc8188227d12d,16579,"""$PY"" scripts/strand_asymmetry.py --from-cache || die ""strand asymmetry"""
+strand_audit.csv,scripts/strand_audit.py,,frozen-only,b895957bcdcd8572,2612,not invoked by run.sh
+strand_audit_summary.csv,scripts/strand_audit.py,,frozen-only,d3d5f3e68a599276,461,not invoked by run.sh
 strand_contrast.csv,scripts/strand_contrast.py,s13b_local_analysis,raw-reproducible,a90d19743109a522,1730,"""$PY"" scripts/strand_contrast.py    || die ""strand contrast"""
 strand_placebo.csv,scripts/strand_placebo.py,s13b_local_analysis,evidence-recomputable,11916f378dd8b965,1551,"""$PY"" scripts/strand_placebo.py --from-cache || die ""strand placebo"""
-strand_placebo_per_dataset.csv,scripts/strand_placebo.py,s13b_local_analysis,evidence-recomputable,4c606c60f75eb013,18105,"""$PY"" scripts/strand_placebo.py --from-cache || die ""strand placebo"""
-supplementary_table_s1.csv,scripts/table_s1.py,s13b_local_analysis,raw-reproducible,50466a81cf617c5f,16391,"""$PY"" scripts/table_s1.py || die ""supplementary table s1"""
-sweep_dinuc.csv,scripts/variant_splicebert.py,s12_clinvar,raw-reproducible,65b6a2c6a289a04f,37706,"""$PY"" scripts/variant_splicebert.py --what tables || die ""variant tables"""
-three_arm_contrast.csv,scripts/three_arm_contrast.py,s13b_local_analysis,evidence-recomputable,fb8a2412bfcbb1ca,2651,"""$PY"" scripts/three_arm_contrast.py --from-cache || die ""three-arm contrast"""
+strand_placebo_per_dataset.csv,scripts/strand_placebo.py,s13b_local_analysis,frozen-cache,4c606c60f75eb013,18105,"""$PY"" scripts/strand_placebo.py --from-cache || die ""strand placebo"""
+supplementary_table_s1.csv,scripts/peak_thresholds.py,,frozen-only,50466a81cf617c5f,16391,not invoked by run.sh
+sweep_dinuc.csv,scripts/four_models_table.py,,frozen-only,65b6a2c6a289a04f,37706,not invoked by run.sh
+three_arm_contrast.csv,scripts/three_arm_contrast.py,s13b_local_analysis,frozen-cache,fb8a2412bfcbb1ca,2651,"""$PY"" scripts/three_arm_contrast.py --from-cache || die ""three-arm contrast"""
 three_arm_models.csv,scripts/three_arm_models.py,s13b_local_analysis,evidence-recomputable,42f454e1e5b099d9,2250,"""$PY"" scripts/three_arm_models.py --from-cache || die ""three arm x three models"""
-three_arm_models_per_dataset.csv,scripts/three_arm_models.py,s13b_local_analysis,evidence-recomputable,a2521b810983be6b,23682,"""$PY"" scripts/three_arm_models.py --from-cache || die ""three arm x three models"""
-three_arm_per_dataset.csv,scripts/three_arm_contrast.py,s13b_local_analysis,evidence-recomputable,cabde07f145fac09,20223,"""$PY"" scripts/three_arm_contrast.py --from-cache || die ""three-arm contrast"""
+three_arm_models_per_dataset.csv,scripts/three_arm_models.py,s13b_local_analysis,frozen-cache,a2521b810983be6b,23682,"""$PY"" scripts/three_arm_models.py --from-cache || die ""three arm x three models"""
+three_arm_per_dataset.csv,scripts/baseline_confounding.py,s13b_local_analysis,raw-reproducible,cabde07f145fac09,20223,"""$PY"" scripts/baseline_confounding.py || die ""baseline confounding"""
 transport_check.csv,scripts/transport_check.py,s13b_local_analysis,raw-reproducible,17e99ea9efdddf08,3435,"""$PY"" scripts/transport_check.py || die ""transport check"""
+unattributed/backend_replication.csv,,,unattributed,c1a4f765d03237ac,1917,no producing script; see unattributed/README.md
+unattributed/substitution_baseline.csv,,,unattributed,3bbe408101c80a71,4822,no producing script; see unattributed/README.md
 unconditional_refit.csv,scripts/unconditional_refit.py,s13b_local_analysis,raw-reproducible,0c5cf2a2f73fefa6,2288,"""$PY"" scripts/unconditional_refit.py || die ""unconditional refit"""
-variant_assignments.csv,scripts/variant_splicebert.py,s12_clinvar,raw-reproducible,cc4be2d8fb452787,4713894,"""$PY"" scripts/variant_splicebert.py --what tables || die ""variant tables"""
-variant_coefficients.csv,scripts/incremental_value.py,s13b_local_analysis,raw-reproducible,ec71b74220a28554,474,"""$PY"" scripts/incremental_value.py || die ""incremental value"""
-variant_conservation.csv,scripts/variant_splicebert.py,s12_clinvar,raw-reproducible,d7b610a97136f813,1432323,"""$PY"" scripts/variant_splicebert.py --what tables || die ""variant tables"""
-variant_ladder.csv,scripts/verify.py,s14_verify,raw-reproducible,bb2112f22f660ce1,442,"""$PY"" scripts/verify.py --local results/tables || die ""THE SCIENCE DID NOT REPRODUCE (local tables) "
-variant_ladder_paired.csv,scripts/verify.py,s14_verify,raw-reproducible,039cbe2c137be618,1095,"""$PY"" scripts/verify.py --local results/tables || die ""THE SCIENCE DID NOT REPRODUCE (local tables) "
-variant_scores.csv,scripts/variant_splicebert.py,s12_clinvar,raw-reproducible,5110bde03e440c90,3522792,"""$PY"" scripts/variant_splicebert.py --what tables || die ""variant tables"""
-variant_specificity.csv,scripts/verify.py,s14_verify,raw-reproducible,1b85f83adccc3a73,13056,"""$PY"" scripts/verify.py --local results/tables || die ""THE SCIENCE DID NOT REPRODUCE (local tables) "
-variant_specificity_attacks.csv,scripts/verify.py,s14_verify,raw-reproducible,f7c481ae7aa43510,645,"""$PY"" scripts/verify.py --local results/tables || die ""THE SCIENCE DID NOT REPRODUCE (local tables) "
-variant_specificity_controls.csv,scripts/verify.py,s14_verify,raw-reproducible,ffc381405a17defc,352,"""$PY"" scripts/verify.py --local results/tables || die ""THE SCIENCE DID NOT REPRODUCE (local tables) "
-variant_specificity_refit.csv,scripts/incremental_value.py,s13b_local_analysis,raw-reproducible,9df71aab8a08bf05,410,"""$PY"" scripts/incremental_value.py || die ""incremental value"""
+variant_assignments.csv,scripts/donor_draw.py,,frozen-only,cc4be2d8fb452787,4713894,not invoked by run.sh
+variant_coefficients.csv,scripts/cloud_analysis.py,,frozen-only,ec71b74220a28554,474,not invoked by run.sh
+variant_conservation.csv,scripts/incremental_value.py,s13b_local_analysis,raw-reproducible,d7b610a97136f813,1432323,"""$PY"" scripts/incremental_value.py || die ""incremental value"""
+variant_ladder.csv,scripts/cloud_analysis.py,,frozen-only,bb2112f22f660ce1,442,not invoked by run.sh
+variant_ladder_paired.csv,scripts/cloud_analysis.py,,frozen-only,039cbe2c137be618,1095,not invoked by run.sh
+variant_scores.csv,scripts/power.py,,frozen-only,5110bde03e440c90,3522792,not invoked by run.sh
+variant_specificity.csv,scripts/cloud_analysis.py,,frozen-only,1b85f83adccc3a73,13056,not invoked by run.sh
+variant_specificity_attacks.csv,scripts/cloud_analysis.py,,frozen-only,f7c481ae7aa43510,645,not invoked by run.sh
+variant_specificity_controls.csv,scripts/cloud_analysis.py,,frozen-only,ffc381405a17defc,352,not invoked by run.sh
+variant_specificity_refit.csv,scripts/cloud_analysis.py,,frozen-only,9df71aab8a08bf05,410,not invoked by run.sh
+variant_tasks.tsv,scripts/donor_draw.py,,frozen-only,e09699b1bb536269,2160,not invoked by run.sh
 variant_threshold_curve.csv,scripts/cloud_analysis.py,,frozen-only,dc487df8279213cd,1918,not invoked by run.sh
-window_centring.csv,scripts/window_centring.py,s13b_local_analysis,frozen-only,be5fbf88ceaa1f94,2533,"#   ""$PY"" scripts/window_centring.py --store ../rbp-store    # B16, needs the genome FASTA"
-window_centring_per_dataset.csv,scripts/window_centring.py,s13b_local_analysis,frozen-only,6250e080d134fda7,6496,"#   ""$PY"" scripts/window_centring.py --store ../rbp-store    # B16, needs the genome FASTA"
+window_centring.csv,scripts/window_centring.py,s13b_local_analysis,evidence-recomputable,be5fbf88ceaa1f94,2533,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""
+window_centring_per_dataset.csv,scripts/window_centring.py,s13b_local_analysis,frozen-cache,6250e080d134fda7,6496,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""

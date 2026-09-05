@@ -19,9 +19,10 @@ in GCS.
 
 TWO ESTIMATES, AND THE CONSERVATIVE ONE IS THE ONE THAT ACTS.
 
-  upper bound   elapsed x MAX_CONTAINERS x rate. Assumes every container busy every second.
-                Always >= reality. This is what triggers the stop, because a guard that
-                under-estimates is not a guard.
+  upper bound   summed over every live sweep app: each app's elapsed time x its own
+                MAX_CONTAINERS x rate. Assumes every container busy every second, so it is
+                >= reality PROVIDED every live app is counted -- which is why it sums rather
+                than taking the oldest, and why that was a real bug and not a refinement.
 
   lower bound   GPU-seconds actually recorded by finished runs, priced at the same rate.
                 Cannot include work still in flight, so it always UNDER-states.
@@ -148,29 +149,58 @@ ARMS = ("dinuc", "gc", "neg2", "neg2_rm")
 
 
 def work_done(model, arms=ARMS):
-    """(runs, gpu_seconds) from GCS, over every arm. The receipt, not the promise."""
+    """(runs, gpu_seconds, unobserved_arms) from GCS. The receipt, not the promise.
+
+    ZERO RECEIPTS AT A PREFIX IS NOT ZERO COST. cloud/modal/modal_gc_sweep.py opens with the
+    words "with no GCS anywhere": its arms keep inputs and outputs on a Modal Volume. So adding
+    runs/gc/, runs/neg2/ and runs/neg2_rm/ to this listing did NOT make those sweeps
+    observable -- it made them contribute a confident zero to the figure called the lower bound,
+    for work that was running and being billed.
+
+    An arm with no receipts is therefore reported as unobserved rather than counted as nothing,
+    and the caller says so instead of printing a number that looks measured.
+    """
     from google.cloud import storage
     c = storage.Client(project=PROJECT)
-    n, secs = 0, 0.0
+    n, secs, unobserved = 0, 0.0, []
     for arm in arms:
+        seen = 0
         for b in c.list_blobs(DERIVED, prefix=f"runs/{arm}/"):
             if b.name.endswith("metrics.json") and f"/{model}/" in b.name:
                 m = json.loads(b.download_as_text())
                 if m.get("platform") == "modal":
-                    n += 1
+                    seen += 1
                     secs += float(m.get("seconds", 0))
-    return n, secs
+        if seen:
+            n += seen
+        else:
+            unobserved.append(arm)
+    return n, secs, unobserved
 
 
-def report(model, budget, started_epoch):
-    n, secs = work_done(model)
-    elapsed_h = (time.time() - started_epoch) / 3600 if started_epoch else 0.0
-    upper = elapsed_h * MAX_CONTAINERS * RATE
+def report(model, budget, started_epoch, live=None):
+    """Print both bounds. The upper one sums over EVERY live app.
+
+    IT USED TO USE ONE APP'S ELAPSED TIME. Each sweep application carries its own
+    max_containers=10, so two concurrent apps can hold twenty containers, and multiplying the
+    oldest app's elapsed hours by ten then produced a figure BELOW reality while the code called
+    it an upper bound and the docstring said "Always >= reality". An upper bound that can be
+    exceeded is not one; it is an estimate with a misleading name.
+    """
+    n, secs, unobserved = work_done(model)
+    if live is None:
+        live = [(None, started_epoch)] if started_epoch else []
+    now = time.time()
+    upper = sum((now - s) / 3600 * MAX_CONTAINERS * RATE for _a, s in live if s)
     lower = secs / 3600 * RATE
-    print(f"[{dt.datetime.now():%H:%M:%S}] {model}: {n} runs done on modal")
-    print(f"    upper bound  ${upper:6.2f}   (elapsed {elapsed_h:.2f} h x {MAX_CONTAINERS}"
-          f" x ${RATE:.3f})")
-    print(f"    lower bound  ${lower:6.2f}   ({secs/3600:.2f} GPU-h recorded)")
+    print(f"[{dt.datetime.now():%H:%M:%S}] {model}: {n} runs observed on modal")
+    print(f"    upper bound  ${upper:6.2f}   ({len(live)} live app(s) x {MAX_CONTAINERS} "
+          f"containers x ${RATE:.3f}/h each)")
+    print(f"    lower bound  ${lower:6.2f}   ({secs/3600:.2f} GPU-h with a receipt)")
+    if unobserved:
+        print(f"    NOT IN THE LOWER BOUND: {', '.join(unobserved)} -- no receipts at their GCS "
+              f"prefix. Those arms may run on a Modal Volume, in which case work is being done "
+              f"and billed that this figure cannot see.")
     print(f"    budget       ${budget:6.2f}")
     return upper, lower
 
@@ -234,7 +264,7 @@ def main():
         sys.exit(2)
     if not app_id:
         print("no running sweep app")
-        report(a.model, a.budget, None)
+        report(a.model, a.budget, None, [])
         return
     print(f"guarding app {app_id}, budget ${a.budget:.2f}, "
           f"burn ${MAX_CONTAINERS*RATE:.2f}/h at full fan-out\n")
@@ -242,7 +272,11 @@ def main():
         started = time.time()
 
     while True:
-        upper, lower = report(a.model, a.budget, started)
+        try:
+            live = live_apps()
+        except Unobservable:
+            live = [(app_id, started)]
+        upper, lower = report(a.model, a.budget, started, live)
         if upper >= a.budget:
             print(f"    OVER BUDGET on the upper bound (${upper:.2f} >= ${a.budget:.2f})")
             # EVERY live app, not the one being timed. Whatever is running is costing money.

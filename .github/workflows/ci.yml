@@ -1,4 +1,4 @@
-# CI, because "706 tests pass" is a claim until something other than the author runs them.
+# CI, because "the tests pass" is a claim until something other than the author runs them.
 #
 # A council reviewer looked for .github/ first, found nothing, and discounted the whole
 # testing story on the spot. That is the correct reaction: a suite nobody runs on a clean
@@ -53,7 +53,7 @@ jobs:
         # through rbp.train.data (line 10). Without these flags pytest aborts with 2 collection
         # errors and exits 2, so this workflow could never have passed -- and since there is no
         # git remote it had never run, which is how a CI file whose own first line says
-        # "'575 tests pass' is a claim until something other than the author runs them" sat
+        # whose own first line is about claims nobody checks sat
         # broken for two days.
         run: pytest tests/unit -q --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
 
@@ -124,6 +124,40 @@ jobs:
         run: git diff --exit-code -- results/tables/ || {
             echo "::error::A generated table changed. Commit the regenerated file.";
             exit 1; }
+
+  # THE FULL SUITE, WITH THE DEPENDENCIES NEEDED TO COLLECT IT. The job above installs
+  # requirements-cpu.txt, which has no torch on purpose, so it cannot collect
+  # tests/unit/test_models.py or test_train_folds.py and its count is a subset by construction.
+  # Two audits asked for this job: one because the full suite was exercised nowhere, the other
+  # because release_consistency.py cannot check a whole-suite count in a subset environment.
+  #
+  # A CPU torch wheel is enough. Nothing here needs an accelerator; the GPU is for the sweeps,
+  # which cost money and are not run in CI.
+  full-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: install with torch
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docker/requirements-cpu.txt
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install transformers
+      - name: full unit suite
+        env:
+          GOOGLE_CLOUD_PROJECT: ci-no-such-project
+          PYTHONPATH: src
+        run: pytest tests -q -rs
+      # --require-all is the point of this job: here every fact IS derivable, so a fact that
+      # cannot be derived means something is broken rather than absent.
+      - name: release documents, every fact required
+        env:
+          GOOGLE_CLOUD_PROJECT: ci-no-such-project
+          PYTHONPATH: src
+        run: python scripts/release_consistency.py --require-all
 
   lint:
     runs-on: ubuntu-latest

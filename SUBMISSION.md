@@ -8,7 +8,7 @@ index; nothing here is a summary of the science, which is in `manuscript/paper.p
 | bioRxiv asks for | file |
 |---|---|
 | Manuscript PDF | `manuscript/paper.pdf` (50 pages) |
-| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 258 words, no markup |
+| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 287 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 
@@ -103,7 +103,7 @@ dollars of compute at current prices, and is not required to check any published
    `manuscript/sections/data-availability.tex`, insert the **concept** DOI (it resolves to the
    latest version and survives future releases; the per-version DOI does not), and run
    `cd manuscript && ./build.sh`. That is the only manuscript edit required.
-2. **Confirm the target venue.** The abstract is cut to 258 words for *Briefings in
+2. **Confirm the target venue.** The abstract is cut to 287 words for *Briefings in
    Bioinformatics*, which this manuscript's structure already follows and which asks for about
    250. A venue with a longer limit should have the long version back: it carries seven
    secondary findings this one drops, and restoring it is one revert (see the note above

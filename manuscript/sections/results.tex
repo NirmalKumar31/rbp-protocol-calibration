@@ -1,8 +1,9 @@
 \subsection{The negative-set protocol changes measured contribution several-fold}
 
-Across 94 paired datasets the same 4-mer model gave three different accounts of its own
-contribution depending only on how the negative windows were built (Table~\ref{tab:three},
-Figure~\ref{fig:three}).
+Across 94 paired datasets the same 4-mer model class gave three different accounts of its own
+contribution when the negative windows were built three ways (Table~\ref{tab:three},
+Figure~\ref{fig:three}). The model is refitted under each protocol, so what is held fixed is the
+model class and its hyperparameters rather than a single fitted model.
 
 \begin{table}[htbp]
 \centering
@@ -115,7 +116,7 @@ arm.
 \includegraphics[width=\textwidth]{figures/f10_three_protocols}
 \caption{Nested contribution of a 4-mer model under three negative-set protocols, $n=94$
 datasets. (a) Panel means by protocol, $+0.0663$, $+0.0265$ and $+0.0122$, a 5.4-fold span for
-one model on one set of positives; bars are 95\% percentile intervals from a bootstrap over
+one model class on near-identical positive sets, refitted per protocol; bars are 95\% percentile intervals from a bootstrap over
 the 79 proteins, taking all datasets of each sampled protein (4000 draws), as everywhere else
 in this paper. (b) Per dataset, the contribution under each of the other two protocols against
 its value under GC matching. Dinucleotide matching lies above the diagonal in 88 of 94 datasets

@@ -22,3 +22,6 @@ pytest==9.1.1
 # Cloud clients, only needed in the container
 google-cloud-storage==2.19.0
 google-cloud-bigquery==3.27.0
+# scripts/release_consistency.py reads the built PDF's page count. Without it CI reported
+# the tracked paper.pdf as an absent artefact rather than checking it.
+pypdf==6.1.3

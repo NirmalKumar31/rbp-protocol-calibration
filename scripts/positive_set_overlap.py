@@ -39,18 +39,33 @@ TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": "gc", "dn": "dinuc"}
 
 
-def positives(path):
-    """The positive windows of one arm, as a set of (chrom, start, end).
+KEY = ["chrom", "start", "end", "strand"]
 
-    Keyed on coordinates and not on row order: the two arms retain different subsets, so the
-    files have different lengths and a positional comparison would be meaningless.
+
+def positives(path):
+    """The positive windows of one arm, as a set of (chrom, start, end, strand).
+
+    Keyed on genomic position and not on row order: the two arms retain different subsets, so
+    the files have different lengths and a positional comparison would be meaningless. That is
+    the bug the original implementation had -- it keyed on `id`, a per-arm row index -- and the
+    resulting column was a count ratio rather than a set overlap.
+
+    STRAND IS PART OF THE POSITION. Adding it changes nothing here, and that is measured rather
+    than assumed: across all 914,732 positives in both arms there are zero pairs of positives
+    sharing a coordinate on opposite strands. The assertion below keeps it that way.
     """
     d = pd.read_csv(path, sep="\t")
     p = d[d.label == 1]
-    for c in ("chrom", "start", "end"):
+    for c in KEY:
         if c not in p.columns:
             sys.exit(f"{path} has no {c} column; cannot identify a positive window by position")
-    return set(zip(p.chrom, p.start, p.end))
+    without_strand = p.groupby(KEY[:3]).ngroups
+    with_strand = p.groupby(KEY).ngroups
+    if without_strand != with_strand:
+        sys.exit(f"{path}: {with_strand - without_strand} positives share a coordinate on "
+                 f"opposite strands. Every quoted overlap figure assumed this could not happen; "
+                 f"recheck them before trusting this run.")
+    return set(zip(p.chrom, p.start, p.end, p.strand))
 
 
 def build(store, limit):
@@ -89,6 +104,13 @@ def main():
     out = TABLES / "positive_set_overlap.csv"
     t = pd.read_csv(out) if a.from_cache else build(a.store, a.n)
     if not a.from_cache:
+        if a.n:
+            # A PARTIAL RUN MUST NOT OVERWRITE THE COMMITTED TABLE. `--n 5` is a smoke test,
+            # and letting it write truncated the released 94-row table to 5 rows in place. The
+            # same shape of bug -- a sampling flag that silently replaces a full artefact --
+            # has now bitten this repository twice.
+            out = out.with_suffix(".partial.csv")
+            log(f"  --n {a.n} given: writing {out.name}, not the committed table")
         t.to_csv(out, index=False)
 
     log("")
