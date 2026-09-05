@@ -140,7 +140,7 @@ resource "google_billing_budget" "guardrail" {
   }
 
   # Alerts at 25/50/80/100% of budget. The estimate for the whole pipeline is ~$34 with a
-  # ~$51 margin (docs/26), so a $100 budget means the first alert fires at $25 -- below the
+  # ~$51 with margin (docs/COST.md), so a $100 budget means the first alert fires at $25 -- below the
   # point where anything has gone seriously wrong, and well below the credit.
   dynamic "threshold_rules" {
     for_each = [0.25, 0.5, 0.8, 1.0]

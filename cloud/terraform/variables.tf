@@ -55,7 +55,7 @@ variable "bq_location" {
 variable "budget_usd" {
   description = <<-EOT
     Hard budget for alerting, in USD. The whole pipeline is estimated at ~$34 realistic and
-    ~$51 with margin (docs/26), so 100 leaves headroom while the first alert (25%) still
+    ~$51 with margin (docs/COST.md), so 100 leaves headroom while the first alert (25%) still
     fires at $25 -- before anything has gone badly wrong.
   EOT
   type        = number

@@ -89,8 +89,9 @@ AUROCs from committed per-example scores to a maximum absolute difference of 3.3
 out-of-fold scores are committed for all three model classes and all three protocols
 (`data/evidence/`), so every cell of the model-class comparison is recomputable here.
 
-The full pipeline from raw ENCODE files needs a genome, cloud credentials and roughly 50 US
-dollars of compute, and is not required to check any published value. `run.sh` documents it.
+The full pipeline from raw ENCODE files needs a genome, cloud credentials and roughly 60 US
+dollars of compute at current prices, and is not required to check any published value.
+`run.sh` documents it and `docs/COST.md` breaks the figure down.
 
 ## Still outstanding
 

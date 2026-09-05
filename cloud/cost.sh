@@ -112,7 +112,7 @@ echo "  Credit remaining:"
 echo "  https://console.cloud.google.com/billing/${BILLING}/credits"
 echo
 echo "Budget: \$100 cap, alerts at \$25 / \$50 / \$80 / \$100 + forecast."
-echo "Estimated total for the whole pipeline: ~\$34 (docs/26)."
+echo "Estimated total for a rerun without credits: ~\$60. Breakdown: docs/COST.md."
 echo
 echo "PANIC BUTTON -- stop everything that can bill:"
 echo "  gcloud batch jobs list --project $PROJECT --location us-central1 \\"

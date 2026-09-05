@@ -1170,7 +1170,7 @@ over three pairs by three model classes are not nine independent successes becau
 drawn from the same 94 datasets and three arms. The test also fails to replicate out of sample,
 which matters more. On the 45 datasets of \citet{horlacher2023}, rank agreement fell from 0.706
 to 0.656 under normalisation and disagreement rose from 0.860 to 0.908, which are the two
-criteria we specified in advance as falsifying. The change in rank agreement was $-0.050$ (CI
+criteria we fixed before the external data were scored as falsifying. The change in rank agreement was $-0.050$ (CI
 $-0.222$ to $+0.140$), so at $n=45$ this is a failure to replicate rather than a refutation.
 
 The two parts therefore separate cleanly. We recommend reporting the composition-only AUROC
@@ -1182,6 +1182,6 @@ as rendering contributions comparable across protocols.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f15_recommendation}
-\caption{(a) Cross-protocol rank agreement between nested contributions before and after division by the headroom of the baseline, for each of the three protocol pairs in our data. Agreement improves in 3 of 3 pairs; only the GC-versus-dinucleotide improvement has a protein-clustered interval excluding zero. (b) The same test on the independent benchmark of Figure~\ref{fig:external}, $n=45$: rank agreement falls and disagreement rises under normalisation, the two criteria specified in advance as falsifying. The change in rank agreement is $-0.050$ ($-0.222$ to $+0.140$), a failure to replicate rather than a refutation.}
+\caption{(a) Cross-protocol rank agreement between nested contributions before and after division by the headroom of the baseline, for each of the three protocol pairs in our data. Agreement improves in 3 of 3 pairs; only the GC-versus-dinucleotide improvement has a protein-clustered interval excluding zero. (b) The same test on the externally constructed benchmark of Figure~\ref{fig:external}, $n=45$: rank agreement falls and disagreement rises under normalisation, the two criteria fixed before the external data were scored as falsifying. The change in rank agreement is $-0.050$ ($-0.222$ to $+0.140$), a failure to replicate rather than a refutation.}
 \label{fig:recommendation}
 \end{figure}

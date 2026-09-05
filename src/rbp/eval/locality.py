@@ -11,7 +11,7 @@ WHAT FAILED FIRST. I tried a proxy: measure how repetitive a protein's enriched 
 on the theory that dinucleotide matching necessarily puts a repeat motif into the negatives.
 It did not validate -- correlation with positive-control retention came out +0.298, the wrong
 sign. And with 8 ground-truth proteins the standard error of a correlation is about 0.45, so
-that exercise could not have validated anything either way. See docs/24.
+that exercise could not have validated anything either way.
 
 THE MEASURE HERE. Skip the motif. Ask the question the composition story actually turns on:
 

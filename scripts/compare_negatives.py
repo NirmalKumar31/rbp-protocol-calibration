@@ -8,7 +8,7 @@ THE PREDICTION I REGISTERED HERE BEFORE RUNNING IT, AND IT FAILED. I predicted t
 datasets with extremity <= 0 would barely change, because I believed GC matching had already
 reached the best achievable dinucleotide match for them. It had not: the "floor" I was
 comparing against was the distance between two RANDOM windows (0.540), and a targeted
-nearest-neighbour search reaches 0.220. See docs/24 Part 5.
+nearest-neighbour search reaches 0.220.
 
 WHAT ACTUALLY HAPPENS. Dinucleotide matching drops composition-only AUROC from 0.793 to
 0.609 and the model's AUROC from 0.819 to 0.702, so roughly 0.099 of a reported AUROC is

@@ -17,8 +17,14 @@ WHY SYSTEMATIC SAMPLING AND NOT A THRESHOLD. AUROC correlates with dataset size 
 to +0.67 across every model class. So keeping "the biggest N" would confound the panel with
 the very quantity being measured: the subset would look better than the population for a
 reason that has nothing to do with the science. Sorting by pair count and keeping every Nth
-is unbiased in size BY CONSTRUCTION -- the sample spans the full range, including the
+SPANS THE SIZE RANGE BY CONSTRUCTION -- the sample covers the full range, including the
 smallest and largest datasets.
+
+It is a DETERMINISTIC SUBSET AND NOT A PROBABILITY SAMPLE, and this docstring used to call it
+"unbiased in size by construction", which conflates the two. The phase is fixed at row 0
+rather than drawn, so nothing here rules out aliasing against structure that happens to be
+ordered by pair count. Range coverage is what the design needs and range coverage is what this
+delivers; every interval in the paper is conditional on the panel it produced.
 
 WHY THE DINUCLEOTIDE ARM DEFINES IT. The two arms do not contain the same datasets: matching
 is a search, it succeeds to different degrees, and a dataset can clear the min_pairs floor

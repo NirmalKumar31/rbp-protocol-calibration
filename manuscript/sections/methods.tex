@@ -170,13 +170,18 @@ training three times, and no additional data is spent on model selection. The 4-
 nested logistic fits need no validation fold and train on all four non-test folds. The neural
 models therefore see a fifth less training data than the 4-mer in the three-class comparison.
 The asymmetry runs against the result rather than towards it: both neural models are handicapped
-relative to the 4-mer and both still show larger contributions and larger protocol spans, so
-equalising it could only widen the gap we report.
+relative to the 4-mer and both still show larger contributions and larger protocol spans. We do
+not claim equalising it would widen the gap, which would require the contribution to be
+monotone in training-set size and we have not shown that; we claim only that the reported gap
+is not an artefact of giving the neural models more data, because they were given less.
 
 Every window is scored exactly once out of fold and all AUROCs are computed on the pooled
-out-of-fold score vector. Pooling, instead of averaging per-fold AUROCs, makes the
-estimate invariant to fold size; the least balanced dataset places 0.42 of its data in a single
-fold.
+out-of-fold score vector. Pooling, instead of averaging per-fold AUROCs, weights every window
+equally rather than every fold equally, which matters because the least balanced dataset places
+0.42 of its data in a single fold. It is not invariant to the partition: pooling ranks scores
+across folds, so a fold whose predictor is shifted relative to the others contributes
+comparisons that no within-fold analysis makes. Both alternatives, fold-averaging and
+rank-normalisation within fold before pooling, are computed and reported as sensitivities.
 
 Leakage between folds was audited by exact 32-mer sharing, not by clustered sequence
 identity. A 101~nt window contains 70 distinct 32-mers, and two unrelated sequences share one

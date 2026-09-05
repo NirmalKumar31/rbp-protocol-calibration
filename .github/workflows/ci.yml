@@ -9,7 +9,7 @@
 # locally, and every time the cause was that the two ran different commands.
 #
 # This deliberately does NOT run the pipeline. The pipeline needs GCP credentials, a genome
-# and roughly $24 of compute, which is why it is not gated here. What CI proves on a clean
+# and roughly $60 of compute (docs/COST.md), which is why it is not gated here. What CI proves on a clean
 # clone is that the code imports, the tests pass, the ruff rules the project selects hold, the
 # 937 published assertions reproduce offline, the release documents still agree with the
 # artefacts they describe, the paper builds with no dangling reference, and the numbers nobody

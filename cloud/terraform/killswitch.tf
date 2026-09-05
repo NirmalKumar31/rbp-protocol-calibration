@@ -36,7 +36,7 @@ resource "google_pubsub_topic" "billing" {
 # comment exists to warn about: a guardrail that LOOKS installed and publishes nothing is
 # worse than no guardrail, because it buys false confidence. So it is verified by
 # observation, not by inference -- see the pull-and-confirm step in
-# docs/45, and the `killswitch-probe` subscription which exists solely so that
+# cloud/killswitch/main.py, and the `killswitch-probe` subscription which exists solely so that
 # "did a real budget message arrive?" is answerable at any time.
 
 # ---------------------------------------------------------------------------------------

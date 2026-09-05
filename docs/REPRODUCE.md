@@ -1,7 +1,8 @@
 # Reproduce the whole study, from raw inputs to verified results
 
 Cloud only. The laptop submits jobs and reads results; it never computes. Roughly
-**$5 of GCP credit** and **~$32 on Modal** against a $50 budget.
+roughly **$60** without credits; see **[COST.md](COST.md)**, which is the only authoritative cost
+table and separates what was measured from what is forecast.
 
 The study has been run; this is the procedure for running it again from raw inputs. To check
 every published number without running any of it, see

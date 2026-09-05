@@ -61,8 +61,9 @@ export GOOGLE_CLOUD_PROJECT=your-project
 Full procedure: **[docs/REPRODUCE.md](docs/REPRODUCE.md)**.
 Why dataset counts differ between analyses: **[docs/PANELS.md](docs/PANELS.md)**.
 
-Cost: about **$5** of GCP and **$19** of Modal GPU for the neural sweeps, which are 95% of it.
-Every paid stage asks first.
+Cost: **~$20 of real money** was spent on the published run and **~$60** is the forecast for a
+rerun without credits. One table, with what is measured separated from what is forecast:
+**[docs/COST.md](docs/COST.md)**. Every paid stage asks first.
 
 ## Layout
 

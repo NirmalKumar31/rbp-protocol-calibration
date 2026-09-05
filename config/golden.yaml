@@ -213,7 +213,7 @@ r1_strand_contrast:
 
 # --- R1: the strand artifact, measured properly (restriction + matched placebo) ---------
 #
-# THE PRE-REGISTERED TEST, AND IT PASSED. Written into docs/61 before it was run: the contrast
+# THE PRE-REGISTERED TEST, AND IT PASSED. Fixed before it was run: the contrast
 # must keep its sign, its interval must exclude zero, and at least 60% of the published point
 # estimate must survive. Result: +0.0318 [+0.0234, +0.0415], 85% surviving.
 #
@@ -1606,7 +1606,7 @@ r4_unconditional_refit:
 
 # --- R1s: whose property is the protocol multiplier? -------------------------------------
 #
-# README.md and docs/65 asserted "a property of the PROTEIN (68.9% of variance) not the model
+# README.md asserted "a property of the PROTEIN (68.9% of variance) not the model
 # (1.5%)" from a referee agent's decomposition that lived in no script and no table. Recomputed
 # over the 262 (dataset x model) cells where both arms are positive, on the LOG multiplier, it
 # approximately reproduces -- and a permutation null changes the reading.

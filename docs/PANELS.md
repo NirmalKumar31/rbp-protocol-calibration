@@ -53,10 +53,17 @@ task count and the pool size are now asserted separately and explicitly.
 **1. Never compare across panels without saying so.** The GC-vs-dinucleotide difference uses
 the 94 both arms share, not 95 minus 94.
 
-**2. `STUDY` is a sample, so quantify the sampling.** Systematic by pair rank, which is
-unbiased in size by construction — a size-threshold sample would confound the subset with
-dataset size, and AUROC correlates with size at r = +0.13 (composition) to +0.67
-(SpliceBERT). Measured: `STUDY` spans `CANDIDATE` size percentile **0–99**, shown in `f0`.
+**2. `STUDY` is a sample, so quantify the sampling.** Systematic by pair rank, taking every
+second row of the size-sorted candidate list. That spans the full size range by construction —
+a size-threshold sample would confound the subset with dataset size, and AUROC correlates with
+size at r = +0.13 (composition) to +0.67 (SpliceBERT). Measured: `STUDY` spans `CANDIDATE` size
+percentile **0–99**, shown in `f0`.
+
+It is a deterministic cost-driven subset, not a probability sample, and the earlier wording
+here ("unbiased in size by construction") overstated that. The phase is fixed at row 0 rather
+than drawn, so the procedure guarantees range coverage but cannot be assumed free of aliasing
+against any structure that happens to be ordered by pair count or by the tie-break. Every
+interval in the paper is conditional on this panel.
 
 **3. Report the unpowered stratum too.** The ClinVar specificity result is claimed on the 44
 adequately powered datasets. The all-82 stratum shows nothing (gap −0.011, p=0.87) and is

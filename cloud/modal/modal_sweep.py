@@ -280,5 +280,5 @@ def bench(model: str = "splicebert", index: int = 1, epochs: int = 2,
         print(f"  {g:6} rc={rc}  {el:6.0f}s wall for {epochs} epochs "
               f"(includes cold start + model load + dataset fetch)")
     print("\n  wall time includes fixed overhead, so read the RATIOS not the absolutes;")
-    print("  per-epoch cost is in the GCS checkpoint (see docs/48 Part 3.1).")
+    print("  per-epoch cost is in the GCS checkpoint; rates are in docs/COST.md.")
     return out

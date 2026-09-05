@@ -386,5 +386,5 @@ resource "google_storage_bucket_iam_member" "modal_derived_write" {
 
 output "modal_service_account" {
   value       = google_service_account.modal.email
-  description = "Identity for off-GCP workers. Key is minted out of band; see docs/49."
+  description = "Identity for off-GCP workers. Key is minted out of band; see docs/REPRODUCE.md."
 }
