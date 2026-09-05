@@ -1,4 +1,4 @@
-\subsection{The negative-set protocol changes measured contribution more than five-fold}
+\subsection{The negative-set protocol changes measured contribution several-fold}
 
 Across 94 paired datasets the same 4-mer model gave three different accounts of its own
 contribution depending only on how the negative windows were built (Table~\ref{tab:three},
@@ -33,6 +33,15 @@ AUROC the model appears to have deteriorated; evaluated by contribution it appea
 improved by a factor of 2.50 in panel means, or 2.94 as the geometric mean of the 88
 per-dataset ratios in which both arms are positive. Across the three arms the contribution spanned 5.42-fold ($95\%$ CI
 4.43 to 6.58, protein-clustered).
+
+Every span in this section is the two-stage estimator described in Section~\ref{sec:models}:
+one set of out-of-fold model scores fed into a second cross-validation, which is what this
+literature computes. Section~\ref{sec:crossfit} shows that estimator carries an information
+route that a fully cross-fitted one does not, and reports what closing it does. For the 4-mer
+the span becomes 4.84-fold. We report the two-stage figures throughout because they are what
+all three model classes have and what the surveyed literature would produce, and we recommend
+the cross-fitted estimator for future work; where the distinction changes a number, both are
+given.
 
 The bias-aware protocol did not behave as we predicted. Because both classes are genuine
 crosslink sites, we expected composition alone to fall towards 0.5 and the contribution to rise.
@@ -772,7 +781,7 @@ The magnitude is another matter, and it is the honest cost of this exercise. The
 three-protocol span is 5.42-fold in AUROC and 2.09-fold in deviance, 2.13 in McFadden, 3.70 in
 average precision and 2.40 in IDI; for the convolutional network the same figures run 7.42 down
 to 3.09, and for SpliceBERT 3.72 down to 2.06. The unbounded scales give the smaller spans in
-every case, which is what the ceiling objection predicts, so the five-fold figure this paper
+every case, which is what the ceiling objection predicts, so the fivefold figure this paper
 reports is a property of the AUROC scale and roughly a two-fold effect on scales without a
 ceiling. What is scale-free is the ordering, not the size.
 
