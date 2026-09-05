@@ -270,11 +270,19 @@ def main(argv=None):
     # test census lives in no result table -- so widening that audit to README and SUBMISSION
     # correctly reported them as unsourced. Writing them here gives them the one thing they
     # were missing: a committed artefact that says what they are.
+    # A PARTIAL RUN MUST NOT REWRITE THE COMMITTED FACTS. This file is environment-dependent:
+    # the no-torch CI job cannot derive the test census, so it dropped that row, and the
+    # git-diff gate then failed on a table that was correct for the environment that wrote it.
+    # The gate was right and the writer was wrong. Only a run that derived everything may write.
     out = ROOT / "results" / "tables" / "release_facts.csv"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text("check,value,n,note\n" + "".join(
-        f"{k},{v},,derived from the built release by scripts/release_consistency.py\n"
-        for k, v in facts))
+    if skipped_required or broken:
+        log(f"  not rewriting {out.name}: this environment could not derive "
+            f"{', '.join(skipped_required + [b.split(':')[0] for b in broken])}")
+    else:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text("check,value,n,note\n" + "".join(
+            f"{k},{v},,derived from the built release by scripts/release_consistency.py\n"
+            for k, v in facts))
 
     # A REQUIRED FACT THAT COULD NOT BE DERIVED IS A FAILURE, NOT A PASS. `tests collected`
     # returns None wherever torch is absent, which is exactly the CPU environment CI runs in, so
