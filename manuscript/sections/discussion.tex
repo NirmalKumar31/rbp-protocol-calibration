@@ -172,6 +172,13 @@ panel and over datasets for the subsample. No model larger than 20~M
 parameters was tested, and no published RBP-specific method: the three classes are a capacity
 ladder, not a survey of the methods a benchmark would rank.
 
+Every model here is trained and evaluated under one protocol, so what we vary is the
+training set and the evaluation set together. A design that trained under one protocol and
+evaluated under another would separate what the evaluation set makes measurable from what the
+training set makes learnable; \citet{tourne2026} performs that transfer and we do not. Our
+claims are therefore about the protocol as a whole choice, which is how a benchmark is used,
+and not about either half of it.
+
 Three design parameters were fixed once and never varied, and nothing here speaks to their
 influence. The class ratio is 1:1 in every arm, one negative per positive, where a genome-wide screen
 faces a far smaller positive fraction. AUROC is invariant to prevalence, and the reported quantities are

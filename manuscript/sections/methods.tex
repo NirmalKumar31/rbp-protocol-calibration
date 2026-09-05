@@ -214,7 +214,19 @@ linear predictors on identical rows and folds. The model-score column is the out
 for every row, training rows included, so the nested model is never fitted on an in-sample
 score; had it been, the fitted and evaluated covariate would sit on different scales and the
 mismatch would grow with how much the underlying model overfits, which differs sharply between
-a 256-column penalised logistic and a fully fine-tuned transformer. The two were compared by DeLong's paired
+a 256-column penalised logistic and a fully fine-tuned transformer. 
+
+One channel remains open and is worth naming, because it is not removed by scoring out of fold.
+For test fold $i$ the nested model is fitted on the rows of the other folds, and those rows carry
+scores from base models whose own training sets included fold $i$. Information about fold $i$
+therefore reaches the nested fit through the covariate, and the composition columns have no
+analogous route. The bias is one-directional, since it can only help the score column, and it
+should grow with how much the base model overfits. We do not remove it; we measure it. A model
+whose information the baseline already contains has a true increment of zero, and what the
+estimator returns for such a model is reported in Section~\ref{sec:floor}: it is this channel,
+together with the conditioning effect described there, that the floor quantifies.
+
+The two were compared by DeLong's paired
 estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired
 estimator is necessary here because the two score vectors are fitted on overlapping training
 data and evaluated on identical rows, so they are strongly correlated and treating them as
