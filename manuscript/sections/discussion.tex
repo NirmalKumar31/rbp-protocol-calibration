@@ -94,7 +94,7 @@ to exist and does not survive inspection: it closes only under the one aggregati
 near-zero headroom can dominate, and under two aggregations that cannot it never approaches
 unity. Nor does it transport. The exponent fitted to our three protocols leaves an externally
 constructed benchmark essentially where it started; the exponent fitted to that benchmark is
-2.4 times ours; and the exponent differs by a factor of 1.22 between model classes measured on
+2.4 times ours; and the exponent differs by a factor of 1.21 between model classes measured on
 the same data. This is
 the sense in which no protocol-free measure of contribution is available. The obstacle is not
 that no transformation works but that a transformation which works has to be refitted for each
@@ -220,7 +220,8 @@ its peak's midpoint, peaks are not points, and Section~\ref{sec:methods-models} 
 signal sits a median 23~nt off that centre. The choice is demonstrably not aligned with the
 signal. The comparison usually asked for, summit-centred against midpoint-centred windows,
 cannot be made here: narrowPeak reserves column 10 for a point-source summit and it is $-1$ in
-every row of every ENCODE eCLIP file in this panel: no summit exists to centre on. We
+every row of every file we checked, ten of the panel's ninety-five: no summit exists to
+centre on. We
 therefore compared the three centres the interval does provide, on ten size-stratified datasets
 rebuilt from the genome in both composition-matched arms: the midpoint, the peak's 5' boundary
 in transcript orientation, which is where the crosslink sits, and the midpoint displaced 25~nt
@@ -298,11 +299,9 @@ three-arm results in Section~\ref{sec:models} are already computed on rows inter
 all three model classes, so the comparison that carries the paper's headline is on identical
 rows regardless.
 
-We applied no significance filter of our own to the positives, and none was available: ENCODE's
-released eCLIP peak files are already thresholded, and across our 95 files the minimum log2
-fold-enrichment is 3.0000 and the minimum $-\log_{10}p$ is 3.0003, matching the criteria of
-\citet{vannostrand2020}, with 91.7\% of the 463{,}091 peaks carrying ENCODE's IDR label and nine
-K562 datasets contributing non-IDR peaks. There were therefore no weak peaks to exclude. What we
+We applied no significance filter of our own to the positives, and none was available: as
+Methods reports, ENCODE's released peak files are already thresholded at the criteria of
+\citet{vannostrand2020}, so there were no weak peaks to exclude. What we
 do discard is peak \emph{width}: every positive is a fixed 101~nt window on the peak midpoint,
 so a 20~nt peak and a 2~kb peak are treated identically, and for the wider peaks the window may
 not contain the crosslink site. No expression filter was applied to negatives; that question is
@@ -329,26 +328,29 @@ distinction permits: it was found by inspection and by none of the 937 assertion
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces every number here, decimals and bare counts alike, to a committed
-table, a configuration value or a constructed object, and no unsourced number remains. Three
+table, a configuration value or a constructed object, and no number of three or more decimals remains unsourced. Four
 limits bound it. It cannot tell whether a number is attached to the right claim, so a real value
 on the wrong line passes. Its power is set by how densely sourced values fill the space it
-searches, about a quarter of both the four-decimal grid over $[0.5, 1.0]$ and the integer range
-the paper's counts occupy, so a fabrication escapes roughly one time in four; the audit reports
-that occupancy on every run. And because it matches values against tables rather than claims
+searches, 28.1\% of the four-decimal grid over $[0.5, 1.0]$ and 29.3\% of the integer range
+the paper's counts occupy, so a fabrication escapes roughly one time in three; the audit reports
+that occupancy on every run and these figures are its current output rather than a recollection
+of it. And because it matches values against tables rather than claims
 against runs, it passed a stale statement of this section's own coverage: the count above was
 quoted from an earlier run while a larger number of assertions were executing. That one is now
 checked against the live total on every run, which is the only class of number here that goes
-stale whenever the harness grows.
+stale whenever the harness grows. And it checks only values of three or more decimals and counts
+of ten or more, so one- and two-decimal figures and small counts are outside its reach
+altogether.
 
 That density is also why AUROCs are quoted here to four decimal places, which is finer than the
 measurement warrants. A single dataset's AUROC carries a DeLong standard error in the third
 decimal, so the fourth digit of any per-dataset value is not a claim about binding. It is a
-traceability device: the three-decimal grid over the range these values occupy is now about 88\%
+traceability device: the three-decimal grid over the range these values occupy is 94.2\%
 full, so a three-decimal number matches some committed table almost by chance and the audit
 protects it hardly at all, while at four decimals the same check has real power. Panel-level
 quantities, which average over 94 datasets, do support the precision they are given.
 
-Confidence intervals on a single dataset's contribution are Wald intervals on the DeLong
-standard error and not bootstrap intervals, and the Firth \citep{firth1993} coefficient
+Confidence intervals on a single dataset's contribution are Wald intervals, as Methods
+states, and the Firth \citep{firth1993} coefficient
 intervals reported in the accompanying repository resample rows, which is
 narrower than gene-level clustering would give.

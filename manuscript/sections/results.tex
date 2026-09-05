@@ -410,8 +410,10 @@ identified with one that is.
 
 Within arms, the relation between baseline and contribution was present for composition-matched
 negatives and not detectable otherwise, on protein-clustered intervals: Spearman $-0.545$
-($-0.704$ to $-0.371$) in the GC arm, $-0.460$ ($-0.615$ to $-0.280$) in the dinucleotide arm
-and $-0.122$ ($-0.331$ to $+0.082$) in the bias-aware arm, where the interval includes zero. Read on that axis this would
+($-0.704$ to $-0.371$) in the GC arm, $-0.462$ ($-0.615$ to $-0.280$) in the dinucleotide arm
+and $-0.122$ ($-0.331$ to $+0.082$) in the bias-aware arm, where the interval includes zero.
+Point estimates here are the direct statistic and the intervals are protein-clustered
+percentiles, so an interval is not centred on its point estimate. Read on that axis this would
 suggest two protocol families rather than three interchangeable protocols, with a residual of
 0.004 to 0.008 AUROC between them. It does not survive a change of axis. The statistic
 correlates a difference with its own subtrahend, which is legitimate but not invariant to which
@@ -637,7 +639,7 @@ arms. The difference is $+0.0010$ with a protein-clustered interval of $-0.0016$
 so what the protocol does is not so much reverse the ranking as destroy it, leaving two model
 classes that the other two protocols separate confidently indistinguishable. Ranking methods is
 what a benchmark is for, so this is the most direct cost we can show. On the ratio
-scale the 4-mer and the CNN swap, with multipliers of 3.08, 3.35 and 2.33 (geometric mean over the 77
+scale SpliceBERT moves from largest to smallest, with multipliers of 3.08, 3.35 and 2.33 (geometric mean over the 77
 datasets positive in both arms for all three models), so the contrast does not increase along this ladder. The three classes differ in
 architecture, receptive field, pretraining and parameter count at once, so this is evidence
 that the effect is not specific to a bag-of-$k$-mers measurement, and not a controlled
@@ -668,7 +670,7 @@ across cell lines rather than as evidence for it, and the design has too few sha
 do better. Per model the agreement is $r=0.754$ for the 4-mer and $0.766$ for
 SpliceBERT but only $0.300$ ($p=0.34$) for the convolutional network, so it is not a property of
 all three. Cell line was not detectable, although with fifteen proteins measured in both lines
-the design has little power. Model class was small but detectable ($p=0.023$), consistent with
+the design has little power. Model class was small but detectable ($p=0.034$), consistent with
 SpliceBERT's lower multiplier, and robust to the censoring induced by requiring both arms
 positive.
 
@@ -944,7 +946,8 @@ bias-aware & composition alone & 0.7959 & 0.8248 & 0.8361 & 0.8256 \\
 
 Over the three orders at which the baseline is a baseline, every contribution declines
 monotonically and the protocol dependence does not. The two-arm contrast is positive with an
-interval excluding zero in all twelve order-by-model cells, and the three-arm span runs from
+interval excluding zero in all nine order-by-model cells at these three orders, and in all twelve
+when order four is included, and the three-arm span runs from
 2.78 to 6.60 for the 4-mer, 3.98 to 8.43 for the convolutional network and 2.85 to 3.72 for
 SpliceBERT. Where the baseline stops therefore sets the magnitude of what is reported and not
 whether the protocol matters.
@@ -952,21 +955,22 @@ whether the protocol matters.
 Order four is a different object, and it is the most useful number in this section. A bag of
 4-mer counts holds no information beyond an order-four composition block: at that order the
 baseline spans the model's entire feature space, so the model's true contribution is exactly
-zero by construction. The estimator does not report zero. It reports $+0.0986$, $+0.1444$ and
-$+0.0899$ in the three arms, positive on all 94 datasets in each, which is 3.72, 2.18 and 7.35
-times the contribution the same estimator reports for the same model at order two. With the
+zero by construction. The estimator does not report zero. It reports $+0.1444$, $+0.0986$ and
+$+0.0899$ in the dinucleotide, GC and bias-aware arms, positive on all 94 datasets in each,
+which is 2.18, 3.72 and 7.35 times the contribution the same estimator reports for the same
+model at order two. With the
 truth known, that is the instrument's error, and it is larger than most of the increments this
 literature publishes.
 
 The cause is measurable, and it explains why the effect is largest here rather than why it is
-absent elsewhere: Section~\ref{sec:floor} finds a smaller floor at order two, where the baseline
-is still improving. A 337-column baseline overfits at these
+absent elsewhere. A 337-column baseline overfits at these
 sample sizes: the baseline's own out-of-fold AUROC \emph{falls} from order three to order four
-on 52, 34 and 64 of the 94 datasets, while from order one to order two it falls on 2, 3 and 1.
+on 34, 52 and 64 of the 94 datasets, in that same arm order, while from order one to order two
+it falls on 3, 2 and 1.
 A pre-fit model score is a one-column, well-regularised summary of the same information, so
 adding it repairs a fit the baseline could not achieve on its own, and the repair is credited as
 contribution. Two predictions follow and both hold: the effect should shrink as the sample grows,
-and it does, with Spearman correlations of $-0.829$, $-0.950$ and $-0.835$ between dataset size
+and it does, with Spearman correlations of $-0.950$, $-0.829$ and $-0.835$ between dataset size
 and the floor; and it should appear only for the model whose features the block spans, which is
 why the 4-mer's contribution jumps at order four while the convolutional network's and
 SpliceBERT's continue to fall.
@@ -1150,8 +1154,8 @@ different protocols and wishing to compare what the models contributed
 On our data, normalising by headroom improved cross-protocol rank agreement in 3 of 3 protocol
 pairs and reduced disagreement on a common scale in 3 of 3, by 58\%, 10\% and 48\%. Rank
 agreement is scale-free and cannot be flattered by normalisation. This held for all three model
-classes, with mean changes in rank agreement of $+0.040$ (4-mer), $+0.094$ (convolutional
-network) and $+0.061$ (SpliceBERT).
+classes, with mean changes in rank agreement of $+0.041$ (4-mer), $+0.101$ (convolutional
+network) and $+0.059$ (SpliceBERT).
 
 The improvement is weaker than it looks. Only the GC-versus-dinucleotide improvement has an
 interval excluding

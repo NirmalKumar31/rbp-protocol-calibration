@@ -164,9 +164,10 @@ artefact. The map was chosen by random-restart hill climbing on peak counts only
 or model output, minimising the summed squared deviation from equal mass per fold with every
 dataset weighted equally; it was required to beat round-robin assignment, to hold the median
 per-dataset maximum deviation at or below 0.05, and to place no more than half of any dataset's
-data in one fold. Fold $i$ is the test fold, fold $i+1 \bmod 5$ is validation and the remaining
-three train, so each fold is test once, validation once and training three times, and no
-additional data is spent on model selection.
+data in one fold. For the neural models, fold $i$ is the test fold, fold $i+1 \bmod 5$ is
+validation and the remaining three train, so each fold is test once, validation once and
+training three times, and no additional data is spent on model selection. The 4-mer and both
+nested logistic fits need no validation fold and train on all four non-test folds.
 
 Every window is scored exactly once out of fold and all AUROCs are computed on the pooled
 out-of-fold score vector. Pooling, instead of averaging per-fold AUROCs, makes the
@@ -220,13 +221,15 @@ One channel remains open and is worth naming, because it is not removed by scori
 For test fold $i$ the nested model is fitted on the rows of the other folds, and those rows carry
 scores from base models whose own training sets included fold $i$. Information about fold $i$
 therefore reaches the nested fit through the covariate, and the composition columns have no
-analogous route. The bias is one-directional, since it can only help the score column, and it
+analogous route carrying label information; the whole-dataset standardisation described in
+Section~\ref{sec:estimands} is label-free and moves panel means by $4\times10^{-5}$. The bias is one-directional, since it can only help the score column, and it
 should grow with how much the base model overfits. We do not remove it; we measure it. A model
 whose information the baseline already contains has a true increment of zero, and what the
-estimator returns for such a model is reported in Section~\ref{sec:floor}: it is this channel,
-together with the conditioning effect described there, that the floor quantifies.
+estimator returns for such a model is reported in Section~\ref{sec:floor}: the floor reported there is an upper bound that
+includes this channel along with the conditioning effect described in that section, and we do
+not separate the two.
 
-The two were compared by DeLong's paired
+The composition-only and composition-plus-score predictors were compared by DeLong's paired
 estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired
 estimator is necessary here because the two score vectors are fitted on overlapping training
 data and evaluated on identical rows, so they are strongly correlated and treating them as
@@ -326,8 +329,7 @@ primary, on the same principle applied everywhere else here, that a measurement 
 figure chosen before it was taken. The value fixed in advance was 1.35, and it is retained as a
 conservative sensitivity: 75 of 94 datasets are significant at 1.15 and 72 of 94 at 1.35,
 against 80 of 94 with no inflation at all. The choice between the two moves three datasets and
-no conclusion. This is one of two quantities in the paper that the verification harness
-cannot check
+no conclusion. This is the one quantity in the paper that the verification harness cannot check
 from the released evidence, because the block bootstrap needs the genomic coordinates that the
 published per-window score files do not carry.
 
@@ -338,7 +340,7 @@ harness runs 937 numeric assertions against a frozen expectations file, and the 
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example
-scores to a maximum absolute difference of $2.2\times10^{-16}$, and the headline contrast is
+scores to a maximum absolute difference of $3.3\times10^{-16}$, and the headline contrast is
 rebuilt from raw sequence to $1.2\times10^{-6}$. Per-window out-of-fold scores for all three
 model classes are committed, so every cell of the model-class comparison is recomputable from the
 repository alone, and is not asserted against a hand-entered table.
