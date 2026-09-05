@@ -120,29 +120,30 @@ construction: a calibration across 94 ENCODE eCLIP datasets}
 \noindent
 Sequence models for RNA-binding proteins are evaluated against constructed negative windows, and
 how those windows are chosen is usually treated as a detail. Across 94 paired ENCODE eCLIP
-datasets we held the model class, its hyperparameters, the peak set, the chromosome-to-fold map
-and the estimator implementation fixed, varied how the negative windows were built, and measured
-each model's nested contribution over a 19-feature composition baseline. Model and baseline are
-refitted under each protocol, and matcher failures leave the retained positive sets very
-slightly different; restricting to their intersection moves the contrast by 0.0003.
+datasets we held the model class, the peak set, the chromosome-to-fold map and the estimator
+fixed, varied how the negative windows were built, and measured each model's nested contribution
+over a 19-feature composition baseline. Model and baseline are refitted per protocol, and
+matcher failures leave the retained positives very slightly different; restricting to their
+intersection moves the contrast by 0.0003.
 
 The measured contribution moves 5.42-fold across three protocols for a 4-mer (95\% CI 4.43 to
-6.58), and 3.7 to 7.4-fold across three model classes on identical rows. A model's apparent AUROC
-moves the opposite way: replacing GC-matched with dinucleotide-matched negatives lowers the
-4-mer's own AUROC from a panel mean of 0.798 to 0.688 in all 94 datasets while raising its
-measured contribution from 0.027 to 0.066 in 88 of them.
+6.58), and 3.7 to 7.4-fold across three model classes, the two neural spans being exploratory
+because the corrected estimator below is affordable only for the k-mer classes. A model's
+apparent AUROC moves the opposite way: replacing GC-matched with dinucleotide-matched negatives
+lowers the 4-mer's own AUROC from 0.798 to 0.688 in all 94 datasets while raising its measured
+contribution from 0.027 to 0.066 in 88. Fitting on one protocol and scoring another shows three
+quarters of that movement is the evaluation data rather than the fitted model.
 
 The estimator also has a floor. Applied to a 2-mer, whose true contribution is zero because the
 baseline spans its features, it returns $+0.011$ to $+0.014$: 90.4\% of the smallest protocol's
-reported value. That floor is not intrinsic to the estimand but to the usual two-stage way of
-computing it. Generating the score covariate outside the outer test fold reduces it by at least
-95\% in every protocol, to the zero the construction requires, and leaves the 4-mer's protocol
-span at 4.84-fold.
+value. That floor belongs to the usual two-stage way of computing the estimate rather than to
+the estimand. Generating the score covariate outside the outer test fold cuts it by at least
+95\% in every protocol and leaves the 4-mer's span at 4.84-fold.
 
 In a targeted survey of seven widely used methods and benchmarks, none reports a
 composition-only AUROC beside its headline. We recommend cross-fitting the score covariate,
-reporting a composition-only AUROC obtained under the same protocol, and not comparing
-contributions measured under different protocols.
+reporting that baseline under the same protocol, and not comparing contributions measured under
+different protocols.
 \end{abstract}
 
 \noindent\textbf{Keywords:} RNA-binding proteins; eCLIP; benchmarking; negative-set
@@ -171,7 +172,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 reproducible offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 982 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 990 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. One quantity is an exception and is marked as such in the text: the design effect, whose
 block bootstrap needs the genomic coordinates that the published per-window score files do not

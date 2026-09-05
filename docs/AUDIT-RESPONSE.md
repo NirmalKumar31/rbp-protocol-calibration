@@ -94,7 +94,7 @@ manuscript-to-table link; nothing closed the table-to-script link. Now `run.sh` 
 **P2.6, move the narrative comments out of source.** The commentary records why a thing is the
 way it is, and in this repository most of it is a bug that cost real time. Moving it to a
 changelog puts it where nobody reads it at the moment they need it. It is also several hundred
-files of churn against a pipeline whose 982 assertions currently pass.
+files of churn against a pipeline whose 990 assertions currently pass.
 
 **P2.18, the `dn` versus `dinuc` naming drift.** Real, and documented in `SCHEMA.md` rather than
 fixed: `dn` is a column name that appears in every `check` string in `golden.yaml`, and renaming
@@ -114,7 +114,7 @@ released.
 | P1.5 | Train-fold-only standardisation as primary | measured at `4e-5`; making it primary is a full rerun |
 | P1.14 | A 2x2 train-protocol by evaluation-protocol factorial | a separate experiment, and the mechanism claim it would support is not made |
 | P1.16–17 | Input checksum manifest and cache lineage hashes | the download code records URL, size and MD5 at fetch time; those records were not committed for the published run, and claiming input integrity now would claim something not held |
-| P2.12, P2.15 | 50 pages, 15 table environments | a main/supplement split needs the venue's limits |
+| P2.12, P2.15 | 52 pages, 16 table environments | a main/supplement split needs the venue's limits |
 | P0.6 | Tag and Zenodo DOI | the author's action, after the content is frozen |
 
 The first four are the next paper rather than a revision of this one: each needs the sweep rerun

@@ -199,8 +199,11 @@ dinucleotide frequencies and the Shannon entropy of the window's base compositio
 dropped from each frequency family because frequencies sum to one and retaining all of them
 makes the design singular; dropping a level does not change the space the block spans. Every
 column is standardised over the whole dataset, not within fold; the transform is
-label-free and identical in both terms of every comparison, and cannot manufacture a
-contribution. GC content is not a feature: it is the spanned combination C$+$G, and
+label-free and identical in both terms of every comparison. It is not inert: at fixed $C$ the
+scale of a column sets its effective penalty, so a transform fitted on rows that include the
+test fold can in principle move the result. Measured, it does not, at the resolution we can
+measure: refitting every transform inside the outer training rows moves panel means by less
+than $10^{-4}$ in all six model-by-protocol cells of Section~\ref{sec:crossfit}. GC content is not a feature: it is the spanned combination C$+$G, and
 mononucleotide counts are almost, but not exactly, marginals of dinucleotide counts: over a
 window of length $L$ the dinucleotide counts sum to $L-1$ and recover each base's count only up
 to whether the terminal base is that base. The linear block therefore has rank 18 and not 15,
@@ -262,6 +265,15 @@ feature of the design might have cut the other way and does not: negatives are m
 positives, so the rows are paired, while DeLong treats the two classes as independent samples.
 Resampling matched pairs instead reproduces the DeLong standard error to within 1\% (median
 ratio 0.99 over 30 datasets), so the matching needs no correction.
+
+We nonetheless treat every per-dataset DeLong interval and significance count in this paper as
+DESCRIPTIVE uncertainty on an AUROC difference, and not as a test of the nested null. Showing
+that a penalised likelihood-ratio test rejects more often bounds the direction of the
+disagreement; it does not establish that either procedure is valid under a covariate that was
+itself fitted out of fold, a penalised baseline, matched rows and proteins contributing two
+datasets each. No claim in this paper rests on a count of significant datasets. Where a
+per-dataset count appears it describes how widely an effect is seen, and the protein-clustered
+bootstrap over point estimates is the inference.
 
 Both arms are evaluated out of fold. An in-sample composition AUROC compared against an
 out-of-fold model AUROC flatters composition sufficiently to reverse the comparison on
@@ -363,7 +375,7 @@ published per-window score files do not carry.
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 982 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 990 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

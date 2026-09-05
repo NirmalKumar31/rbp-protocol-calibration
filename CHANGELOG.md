@@ -4,8 +4,8 @@
 
 Not tagged. `1.0.0` is reserved for the commit that is archived and given a DOI.
 
-The state the manuscript describes. 982 numeric assertions pass offline against committed
-tables; 725 collected tests; the paper builds warning-clean from a clean export.
+The state the manuscript describes. 990 numeric assertions pass offline against committed
+tables; 726 collected tests; the paper builds warning-clean from a clean export.
 
 ### The finding
 

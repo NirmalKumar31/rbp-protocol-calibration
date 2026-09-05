@@ -2030,6 +2030,53 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_protocol_transport(T, g):
+    """Train-protocol by evaluation-protocol, which separates two things the design confounds.
+
+    Every arm changes the negatives in training AND in evaluation at once, so the published
+    contrast cannot say whether a smaller contribution means the model learned less or the
+    measurement changed. Fitting on one arm and scoring another separates them, for the 4-mer,
+    where it costs nothing.
+    """
+    print("\nprotocol transport  (train on one arm, evaluate on another)")
+    d = T.get("protocol_transport.csv")
+    if d is None:
+        return record(False, "protocol_transport.csv present", "MISSING",
+                      "run scripts/protocol_transport.py --store ../rbp-store")
+    spec = g["protocol_transport"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("datasets")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+
+    # THE DIAGONAL MUST BE THE PUBLISHED RESULT. Training and evaluating on the same arm is the
+    # published estimator, so if these drift the transport is measuring something else.
+    for arm, key in (("gc", "diag_gc"), ("dn", "diag_dn"), ("neg2", "diag_neg2")):
+        v = get(f"contribution, trained on {arm}, evaluated on {arm}")
+        if v is not None:
+            near(f"diagonal reproduces the within-arm contribution, {arm}", v, spec[key])
+
+    tr = get("spread across TRAINING arms, evaluation held fixed")
+    ev = get("spread across EVALUATION arms, training held fixed")
+    share = get("share of the protocol effect carried by the evaluation arm")
+    if tr is not None:
+        near("spread across training arms", tr, spec["train_spread"])
+    if ev is not None:
+        near("spread across evaluation arms", ev, spec["eval_spread"])
+    if share is not None:
+        near("share carried by the evaluation arm", share, spec["eval_share"])
+        record(share > 0.5,
+               "the protocol moves the measurement more than it moves the model",
+               f"{share:.1%}", "> 50%")
+
+
 def verify_common_positives(T, g):
     """The contrast run on the positives both composition-matched arms retain.
 
@@ -4774,31 +4821,49 @@ def main():
     print(f"golden: {m['reference_run']} established {m['established']}")
     print("=" * 78)
 
-    for fn in (verify_r1, verify_scale_check, verify_r2, verify_r3, verify_r4_paired, verify_r4,
-               verify_multidonor, verify_incremental_value, verify_unconditional_refit,
-               verify_strand_contrast, verify_region, verify_deep_contrast,
-               verify_protocol_identification, verify_expression_control,
-               verify_cluster_intervals, verify_three_arm, verify_baseline_confounding,
-               verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order,
-               verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models,
-               verify_transport, verify_fold_integrity, verify_region_asymmetry,
-               verify_peak_thresholds, verify_design_effect, verify_standalone_auroc,
-               verify_match_quality, verify_score_scale, verify_multiplier_variance,
-               verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness,
-               verify_strand_asymmetry, verify_strand_placebo, verify_strand_audit,
-               verify_recompute, verify_auroc_aggregation, verify_partition_sensitivity,
-               verify_positional_signal, verify_cobinding_noise, verify_estimands,
-               verify_nested_scale, verify_shuffled_arm, verify_order_profile,
-               verify_region_annotation, verify_gene_clustered_cv, verify_window_centring,
-               verify_device_portability, verify_matching_robustness,
-               verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
-           verify_cross_fitting, verify_positive_set_overlap,
-           verify_common_positives,
-               verify_cache_evidence, verify_cross_tables, verify_integrity):
+    # THE GATES, SPLIT BY WHICH STUDY THEY BELONG TO. "982 published assertions" was one
+    # number covering two papers: this one, and the earlier ClinVar/locality/variant study whose
+    # code and evidence are still here and still pass. An audit pointed out that quoting the
+    # combined count as this paper's evidential strength conflates them, and it does. The split
+    # is declared here and the run prints both, so the honest figure is available without
+    # deleting working checks from a repository that produced real results with them.
+    LEGACY = (verify_r3, verify_r4, verify_r4_paired, verify_multidonor, verify_positional_signal,
+              verify_strand_contrast, verify_strand_asymmetry, verify_strand_placebo,
+              verify_strand_audit, verify_expression_control, verify_cobinding_noise)
+    PAPER = (verify_r1, verify_scale_check, verify_r2,
+             verify_incremental_value, verify_unconditional_refit,
+             verify_region, verify_deep_contrast,
+             verify_protocol_identification,
+             verify_cluster_intervals, verify_three_arm, verify_baseline_confounding,
+             verify_scale_sweep, verify_protocol_or_baseline, verify_baseline_order,
+             verify_baseline_order_models, verify_models_by_protocol, verify_three_arm_models,
+             verify_transport, verify_fold_integrity, verify_region_asymmetry,
+             verify_peak_thresholds, verify_design_effect, verify_standalone_auroc,
+             verify_match_quality, verify_score_scale, verify_multiplier_variance,
+             verify_horlacher, verify_recommendation, verify_k_sweep, verify_r1_robustness,
+             verify_recompute, verify_auroc_aggregation, verify_partition_sensitivity,
+             verify_estimands,
+             verify_nested_scale, verify_shuffled_arm, verify_order_profile,
+             verify_region_annotation, verify_gene_clustered_cv, verify_window_centring,
+             verify_device_portability, verify_matching_robustness,
+             verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
+             verify_cross_fitting, verify_positive_set_overlap, verify_common_positives,
+             verify_protocol_transport,
+             verify_cache_evidence, verify_cross_tables, verify_integrity)
+    n_paper = None
+    for fn in (PAPER + LEGACY):
+        if n_paper is None and fn in LEGACY:
+            n_paper = len(checks)               # the boundary, recorded as it is crossed
         try:
             fn(T, g)
         except Exception as e:                  # a broken check is a failure, not a crash
             record(False, f"{fn.__name__} raised", type(e).__name__, "no exception", str(e)[:80])
+    if n_paper is None:
+        n_paper = len(checks)
+    # The gate loop is over. Everything recorded after this point is the harness checking
+    # itself -- the domain-check floor and the manuscript's stated assertion count -- and
+    # belongs to neither study. Counting it as legacy by subtraction put the split out by two.
+    n_domain_end = len(checks)
 
     # HOW MANY CHECKS RAN IS ITSELF A CHECK, and it is the only one that closes the whole
     # class of silent skips at once. Most gates in this file are still written
@@ -4813,6 +4878,11 @@ def main():
     n_ran = len(checks)                          # domain checks only; this one is not counted
     record(n_ran >= floor, "number of domain checks that ran", n_ran, f">= {floor}",
            "" if n_ran >= floor else "gates were SKIPPED, not passed -- look for missing rows")
+
+    # THE COMPOSITION OF THE COUNT, printed because the single total is two studies added up.
+    print(f"\n  of which {n_paper} belong to this paper, {n_domain_end - n_paper} to the "
+          f"earlier variant-scoring study whose code and evidence remain here and still pass, "
+          f"and {len(checks) - n_domain_end} are the harness checking itself")
 
     bad = [c for c in checks if not c[0]]
 
@@ -4854,7 +4924,15 @@ def main():
     try:
         pd.DataFrame([{"name": "assertions", "value": len(checks)},
                       {"name": "assertions_passed", "value": len(checks) - len(bad)},
-                      {"name": "domain_checks", "value": n_ran}]).to_csv(
+                      {"name": "domain_checks", "value": n_ran},
+                      # The split, committed so the honest figure is quotable. Without these
+                      # rows the manuscript audit reports them as unsourced, which is correct:
+                      # a number nobody records is a number nobody can check.
+                      {"name": "assertions_this_paper", "value": n_paper},
+                      {"name": "assertions_legacy_study",
+                       "value": n_domain_end - n_paper},
+                      {"name": "assertions_harness",
+                       "value": len(checks) - n_domain_end}]).to_csv(
             ROOT / "results" / "tables" / "verify_summary.csv", index=False)
     except OSError:
         pass                                     # a read-only checkout still verifies

@@ -70,6 +70,8 @@ positive_set_overlap.csv,scripts/positive_set_overlap.py,s13b_local_analysis,fro
 protocol_baseline_slopes.csv,scripts/protocol_identification.py,s13b_local_analysis,raw-reproducible,eda00e0221247fe3,753,"""$PY"" scripts/protocol_identification.py || die ""protocol identification"""
 protocol_identification.csv,scripts/protocol_identification.py,s13b_local_analysis,raw-reproducible,3b4311817e92bb84,5591,"""$PY"" scripts/protocol_identification.py || die ""protocol identification"""
 protocol_or_baseline.csv,scripts/protocol_or_baseline.py,s13b_local_analysis,raw-reproducible,2dc04a1df822b797,3221,"""$PY"" scripts/protocol_or_baseline.py || die ""protocol or baseline"""
+protocol_transport.csv,scripts/protocol_transport.py,s13b_local_analysis,evidence-recomputable,7917885125d2eee9,1561,"""$PY"" scripts/protocol_transport.py --from-cache || die ""protocol transport"""
+protocol_transport_per_dataset.csv,scripts/protocol_transport.py,s13b_local_analysis,frozen-cache,a66a2062626159ed,36126,"""$PY"" scripts/protocol_transport.py --from-cache || die ""protocol transport"""
 r1_robustness.csv,scripts/r1_robustness.py,s13b_local_analysis,raw-reproducible,79717da9fb887f31,2138,"""$PY"" scripts/r1_robustness.py     || die ""replication and efficiency"""
 recommendation_works.csv,scripts/recommendation_works.py,s13b_local_analysis,raw-reproducible,af573ac92beec95d,1536,"""$PY"" scripts/recommendation_works.py || die ""recommendation test"""
 recompute.csv,scripts/recompute.py,s13b_local_analysis,raw-reproducible,256d120f4a783475,21350,"""$PY"" scripts/recompute.py         || die ""recompute from per-example evidence"""

@@ -1,4 +1,7 @@
 name,value
-assertions,982
-assertions_passed,982
-domain_checks,980
+assertions,990
+assertions_passed,990
+domain_checks,988
+assertions_this_paper,852
+assertions_legacy_study,136
+assertions_harness,2

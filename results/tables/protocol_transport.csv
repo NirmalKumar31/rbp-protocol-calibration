@@ -1,0 +1,14 @@
+check,value,ci_low,ci_high,n,note
+datasets,94.0,94.0,94.0,94,
+"contribution, trained on gc, evaluated on gc",0.02651309834062755,0.020384564412688034,0.03309605285808232,94,diagonal is the published within-arm value
+"contribution, trained on gc, evaluated on dn",0.06028689513508274,0.04812497949375273,0.07386167185212138,94,
+"contribution, trained on gc, evaluated on neg2",0.008355849041667241,0.00620343543834527,0.010738654325447126,94,
+"contribution, trained on dn, evaluated on gc",0.02685130189460134,0.02072529189406066,0.033349703768739816,94,
+"contribution, trained on dn, evaluated on dn",0.06626403685302358,0.05407375340016355,0.07990446807945852,94,diagonal is the published within-arm value
+"contribution, trained on dn, evaluated on neg2",0.008309536120548657,0.006267448528724407,0.010631158408456633,94,
+"contribution, trained on neg2, evaluated on gc",0.012969162683935744,0.008581510554486166,0.01812780531019106,94,
+"contribution, trained on neg2, evaluated on dn",0.033850666752397576,0.023667683905578597,0.046001416760383336,94,
+"contribution, trained on neg2, evaluated on neg2",0.012231944163197693,0.009754584941553318,0.015055647482416473,94,diagonal is the published within-arm value
+"spread across TRAINING arms, evaluation held fixed",0.014124367089547524,,,94,what the training negatives did to the fitted model
+"spread across EVALUATION arms, training held fixed",0.043834756471696774,,,94,what the evaluation negatives did to the measurement
+share of the protocol effect carried by the evaluation arm,0.7563046812703684,,,94,

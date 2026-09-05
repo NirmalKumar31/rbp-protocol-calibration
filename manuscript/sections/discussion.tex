@@ -323,7 +323,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 982 assertions compare each published value against a frozen
+credit than it earns. Its 990 assertions compare each published value against a frozen
 expectations file generated from the same run those values come from, so they are regression
 coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
 original run was correct. Two assertions do more, and they are the reproducibility claim worth
@@ -335,7 +335,7 @@ Everything downstream of the neural scores is bit-reproducible; the scores thems
 because initialisation was unseeded, so a rerun gives slightly different scores and then
 identical numbers from every step after them. The harness asserts values, not the provenance of
 the code producing them, and the fold-partition defect above is exactly the class that
-distinction permits: it was found by inspection and by none of the 982 assertions, as was the
+distinction permits: it was found by inspection and by none of the 990 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces the numbers in this text, decimals and bare counts alike, to a

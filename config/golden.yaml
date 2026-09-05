@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 980
+  min_domain_checks: 988
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2523,6 +2523,20 @@ negative_set_survey:
 # the id it keyed on is a per-arm row index: the same id names chr12 in one arm and chr9 in the
 # other. Recomputed on genomic coordinate the median is unchanged and the minimum moves from
 # 0.9237 to 0.9164.
+# TRAIN-PROTOCOL BY EVALUATION-PROTOCOL. The design changes the negatives in training and in
+# evaluation at once, so the published contrast cannot say which of the two moves the number.
+# Fitting on one arm and scoring another separates them: three quarters of the effect is in the
+# evaluation data. The diagonal is asserted against the published within-arm values, because if
+# it drifts the transport is measuring something else.
+protocol_transport:
+  n_datasets: 94
+  diag_gc:      {value: 0.0265, tol: 0.0010}
+  diag_dn:      {value: 0.0663, tol: 0.0010}
+  diag_neg2:    {value: 0.0122, tol: 0.0010}
+  train_spread: {value: 0.0141, tol: 0.0020}
+  eval_spread:  {value: 0.0438, tol: 0.0030}
+  eval_share:   {value: 0.7563, tol: 0.0400}
+
 # THE COMMON-POSITIVE SENSITIVITY. The review's P1.1: the protocols do not vary ONLY the
 # negatives, because the matchers reject different positives, and a qualitative reason for
 # declining the analysis is not the analysis. Run, and it changes nothing: 0.23% of positives

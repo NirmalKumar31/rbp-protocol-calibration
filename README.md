@@ -19,17 +19,39 @@ protocol span is then **4.84-fold**, so the effect survives the correction.
 > **Report the composition-only AUROC obtained under the same protocol alongside every headline
 > AUROC. Do not compare contributions measured under different protocols.**
 
+## If you are reviewing this
+
+The primary claim is that a model's **measured** contribution over a composition baseline
+depends strongly on how the negative windows were built: 5.42-fold across three protocols for a
+4-mer, while its apparent AUROC moves the opposite way. Three quarters of that is the
+evaluation data rather than the fitted model (`sec:transport`).
+
+- **Verifiable offline, in one command, in under a minute:** every published number, against
+  committed tables. That is regression checking, not independent reproduction.
+- **Not regenerable without cloud and raw data:** the neural sweeps for two of three protocols,
+  and anything needing the 2.9 GB window store.
+  `results/tables/PROVENANCE.csv` says which of the two every released table is.
+- **Known to be incomplete:** the cross-fitted estimator we recommend is computed for the k-mer
+  classes only; the two neural spans come from the estimator we say to replace, and are
+  exploratory. Intervals condition on one negative draw and one fold partition.
+
+The panel is 95 datasets; 94 carry all three protocols, and the one that does not
+(NCBP2 in K562) is named in Supplementary Table S1. Both counts are correct and appear
+throughout for different quantities.
+
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download. 982 numeric assertions are checked
-against committed tables. That is a regression gate on the published values, not a proof that
+No cloud account, no credentials, no data download. 990 numeric assertions are checked
+against committed tables, of which **852 belong to this paper** and 136 to an earlier
+variant-scoring study whose code and evidence are still here and still pass. The verifier prints
+that split on every run, because one total covering two papers is not this paper's evidence. That is a regression gate on the published values, not a proof that
 each is attached to the right claim; the Limitations section says what it does not cover.
 
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e . -c constraints.txt   # pins the offline-verification environment
-PYTHONPATH=src python scripts/verify.py --local results/tables   # 982/982
-PYTHONPATH=src python -m pytest tests -q                          # 725, needs torch
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 990/990
+PYTHONPATH=src python -m pytest tests -q                          # 726, needs torch
 ```
 
 `verify.py` re-derives every published value from the committed result tables and fails if any
@@ -48,7 +70,7 @@ headline contrast recomputed from raw sequence.
 | **The estimator has a floor** | Applied to a model whose information the baseline already contains, so the truth is zero, it returns **+0.0119 / +0.0137 / +0.0111**. Nearly flat across arms, so the span survives; but 90.4% of the bias-aware arm's value, so that level does not |
 | **The floor is removable** | It is the outer-fold route, not conditioning. Cross-fitting the covariate cuts it by **at least 95%** and lands within 5e-4 of the known zero. The span goes 5.42 to **4.84**. Measured for the k-mer classes; the CNN and SpliceBERT would need four times the GPU sweep |
 | **The baseline's order matters too** | Raising it to order three removes most of a 4-mer's contribution and a third of SpliceBERT's; at order four the baseline overfits and the estimator's error exceeds most published increments |
-| **None of seven surveyed reports the baseline** | Of seven widely used methods and benchmarks, five build negatives by relocating genomic intervals, which leaves composition unconstrained, and **none** reports a composition-only AUROC. Seven hand-picked sources are not a systematic review, and the survey's selection rule is stated in `scripts/negative_set_survey.py` |
+| **None of seven surveyed reports the baseline** | Of seven widely used methods and benchmarks selected by hand rather than by a systematic search, five build negatives by relocating genomic intervals, which leaves composition unconstrained, and **none** reports a composition-only AUROC. Seven hand-picked sources are not a systematic review, and the survey's selection rule is stated in `scripts/negative_set_survey.py` |
 
 ## Rebuild it from raw data
 
@@ -77,7 +99,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          725 tests, no network or cloud; 2 modules need torch
+tests/          726 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes

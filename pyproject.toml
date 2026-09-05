@@ -71,7 +71,7 @@ select = ["E", "F", "I", "UP", "B"]
 # shuffler, where the ragged length is the entire point of the expression.
 #
 # The alternative, `strict=True` everywhere, would assert an invariant that several call
-# sites deliberately do not hold, against a pipeline whose 982 published assertions currently
+# sites deliberately do not hold, against a pipeline whose 990 published assertions currently
 # pass. Neither option catches a bug that exists.
 #
 # Everything else the review found IS fixed rather than suppressed: 121 violations across

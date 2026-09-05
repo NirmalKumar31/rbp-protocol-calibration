@@ -65,12 +65,15 @@ significantly positive in 80 of 94 datasets on unadjusted marginal intervals, 79
 Benjamini-Hochberg control within the panel, and 75 of 94 once the measured design effect of
 1.15 is applied, or 72 of 94 at the more conservative 1.35 fixed in advance (Methods).
 
-The direction of the GC-versus-dinucleotide contrast is implied by the design. The composition
-baseline reads local composition, and the two protocols constrain it asymmetrically: GC
-matching fixes a single linear functional of that composition, whereas dinucleotide matching
-fixes all fifteen degrees of freedom of the dinucleotide simplex. The arm that constrains
-more must leave the baseline weaker. Only the magnitude of that
-contrast is informative. The position of the bias-aware arm is not implied by the same argument.
+The direction of the GC-versus-dinucleotide contrast is what the design leads us to expect. The
+composition baseline reads local composition, and the two protocols constrain it
+asymmetrically: GC matching fixes a single linear functional of that composition, whereas
+dinucleotide matching fixes all fifteen degrees of freedom of the dinucleotide simplex, so the
+arm that constrains more is expected to leave the baseline weaker. That is an expectation and
+not a theorem: matching is approximate rather than exact, the retained positives differ
+slightly, and the baseline is penalised and fitted on finite samples, any of which can break
+the ordering on a given dataset. It holds on 88 of the 94, which is the evidence for it. The
+position of the bias-aware arm does not follow from the same argument at all.
 That protocol
 constrains none of those degrees of freedom, and its negatives are not
 composition-matched in any respect (median absolute GC difference 0.1387, against 0.0297 for
@@ -735,8 +738,9 @@ model-alone number is affected either way.
 
 The second is the standardisation window. Columns are centred and scaled over the whole dataset
 before the out-of-fold loop, so a test row's own mean and standard deviation reach its features.
-This is improper, and it is also label-free and applied identically to every arm, so the
-argument that it cannot manufacture a contribution is sound but is still an argument.
+This is improper, and it is also label-free and applied identically to every arm. That does not
+make it inert, since at fixed $C$ a column's scale sets its effective penalty, so the question
+is empirical rather than logical.
 Standardising instead on each fold's training rows changes the panel-mean contribution by at
 most 0.00004 in any arm for any model, and by at most 0.0013 on any single dataset. That is
 below the fourth decimal the paper quotes, and it is the reason the whole-dataset form is
@@ -1010,6 +1014,68 @@ is why the counts are given.}
 \label{fig:profile}
 \end{figure}
 
+
+\subsection{Three quarters of the protocol effect is in the evaluation data, not the model}
+\label{sec:transport}
+
+Each protocol changes the negatives that a model trains on and the negatives it is scored
+against, at the same time. Every contrast reported above therefore estimates the effect of
+changing the whole benchmarking protocol, and cannot say whether a smaller measured
+contribution means the model learned less from those training negatives or that the
+measurement itself moved. The two are separable at no cost for the 4-mer, by fitting on one
+arm's windows and scoring another's.
+
+The chromosome-to-fold map is frozen across arms, so the model applied to fold $i$ of the
+evaluation arm was fitted on folds $\neq i$ of the training arm and has seen none of those
+chromosomes. The training arm's k-mer vocabulary transforms the evaluation arm's sequences;
+refitting it would put the training arm's coefficients against different columns.
+
+Table~\ref{tab:transport} gives all nine combinations. Its diagonal reproduces the published
+within-arm contributions exactly, which is what makes the off-diagonal cells comparable to
+them. Holding the evaluation arm fixed and varying the training arm moves the contribution by
+0.0141; holding the training arm fixed and varying the evaluation arm moves it by 0.0438. The
+evaluation side carries 76\% of the total.
+
+The two effects are not merely unequal, they are different in kind. Training on GC-matched or
+dinucleotide-matched negatives is nearly interchangeable: evaluated on the GC arm the two give
+$+0.0265$ and $+0.0269$. Training on the bias-aware arm is not, and costs about half the
+contribution wherever it is evaluated, which is the one place a training-distribution effect is
+clearly visible: negatives drawn from other proteins' binding sites are a harder and less
+informative contrast to learn from. What the composition-matching choice moves is almost
+entirely the measurement.
+
+That is the paper's thesis stated as a decomposition rather than an association, and it
+sharpens the recommendation. A contribution measured under one protocol does not transfer to
+another mainly because the protocols disagree about what the model is being asked to
+discriminate, not because they produce different models. Reporting the composition-only AUROC
+under the same protocol is therefore the right correction: it names the evaluation problem,
+which is where the variation is.
+
+Two limits. This is the 4-mer, because transporting a fitted neural model across arms would
+need the sweeps rerun. And the off-diagonal cells evaluate a model on windows drawn under a
+protocol it was not fitted for, which is a distribution shift as well as a protocol change; the
+diagonal agreement bounds how much that costs at the point where the two coincide.
+
+\begin{table}[htbp]
+\centering
+\caption{Nested contribution of a 4-mer when the training and evaluation protocols are varied
+separately, $n=94$ datasets. Rows are the protocol whose windows the model was fitted on;
+columns are the protocol whose windows it was scored on. The diagonal is the published
+within-arm result. Varying the row moves the contribution by 0.0141, varying the column by
+0.0438.}
+\label{tab:transport}
+\begin{tabular}{lccc}
+\toprule
+& \multicolumn{3}{c}{evaluated on} \\
+\cmidrule(lr){2-4}
+trained on & GC & dinucleotide & bias-aware \\
+\midrule
+GC           & $+0.0265$ & $+0.0603$ & $+0.0084$ \\
+dinucleotide & $+0.0269$ & $+0.0663$ & $+0.0083$ \\
+bias-aware   & $+0.0130$ & $+0.0339$ & $+0.0122$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{The estimator has a positive floor where the true contribution is zero}
 \label{sec:floor}
