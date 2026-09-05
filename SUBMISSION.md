@@ -8,7 +8,7 @@ index; nothing here is a summary of the science, which is in `manuscript/paper.p
 | bioRxiv asks for | file |
 |---|---|
 | Manuscript PDF | `manuscript/paper.pdf` (48 pages) |
-| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 615 words, no markup |
+| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 616 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 
@@ -100,7 +100,7 @@ dollars of compute at current prices, and is not required to check any published
    `manuscript/sections/data-availability.tex`, insert the **concept** DOI (it resolves to the
    latest version and survives future releases; the per-version DOI does not), and run
    `cd manuscript && ./build.sh`. That is the only manuscript edit required.
-2. **The abstract is 615 words** and every venue's form caps it well below that. Cutting it is
+2. **The abstract is 616 words** and every venue's form caps it well below that. Cutting it is
    an editorial decision about which of the seven findings lead, so it is listed here rather
    than done silently.
 

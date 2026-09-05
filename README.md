@@ -24,7 +24,7 @@ each is attached to the right claim; the Limitations section says what it does n
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e .
 PYTHONPATH=src python scripts/verify.py --local results/tables   # 937/937
-PYTHONPATH=src python -m pytest tests -q                          # 706, needs torch
+PYTHONPATH=src python -m pytest tests -q                          # 716, needs torch
 ```
 
 `verify.py` re-derives every published value from the committed result tables and fails if any
@@ -71,7 +71,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          706 tests, no network or cloud; 2 modules need torch
+tests/          716 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper
 data/evidence/  per-window out-of-fold scores for all three model classes

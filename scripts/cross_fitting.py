@@ -136,6 +136,7 @@ def _pooled(comp, col_by_fold, y, folds):
 
 def _pooled_comp(comp, y, folds):
     from sklearn.metrics import roc_auc_score
+
     from rbp.eval.nested import _oof_scores
     s = _oof_scores(comp, y, folds, "l2")
     ok = np.isfinite(s)
