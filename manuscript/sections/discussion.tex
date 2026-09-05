@@ -1,6 +1,6 @@
 A negative-set protocol is a choice of question, not a setting on a difficulty dial. That is the
-single reading these results support, and it is worth stating before the numbers because the
-dial is the intuition they contradict. On a dial, a harder protocol is a more stringent test and
+single reading these results support, and it belongs before the numbers because the dial is the
+intuition they contradict. On a dial, a harder protocol is a more stringent test and
 a model that survives it has shown more. Here the protocol that made the discrimination hardest
 by AUROC produced the largest measured contribution, and the one that made it easiest produced
 the smallest, so difficulty and stringency came apart. The three protocols were not three
@@ -13,8 +13,9 @@ only how the negative windows were assembled, the measured contribution of a 4-m
 5.4-fold, and between 3.7 and 7.4-fold across three model classes.
 
 This has consequences for reporting practice, and they are specific enough to state as a
-checklist. A paper reporting a sequence model's performance on RBP binding should give three
-things alongside its headline AUROC.
+checklist. A paper reporting a sequence model's performance on RBP binding should give five
+things alongside its headline AUROC. The first three describe the measurement; the last two
+calibrate it.
 
 \begin{enumerate}\setlength{\itemsep}{2pt}
 \item \textbf{How the negatives were drawn}, in enough detail to rebuild the set: the candidate
@@ -32,6 +33,16 @@ things alongside its headline AUROC.
   for the third, while every contribution shrinks: by about a quarter for SpliceBERT and by four
   fifths or more for the 4-mer. The
   baseline's order sets the magnitude and is part of the measurement, not a detail of it.
+\item \textbf{Whether the baseline's own out-of-fold AUROC still improves} when its order is
+  raised. This costs nothing, since the number is already computed, and it separates a sharper
+  instrument from a broken one: where the baseline has stopped fitting, the increment measured
+  over it is estimator error rather than model contribution. On this panel the baseline still
+  improves at order two and has stopped by order four.
+\item \textbf{A null increment for the estimator}, obtained by passing through it a model whose
+  information the baseline already contains. Here a 2-mer serves, because its score lies in the
+  span of the dinucleotide columns, and the estimator returns $+0.0111$ to $+0.0137$ rather than
+  zero. Any increment of that size is not distinguishable from what the estimator returns for
+  nothing, and no study we surveyed reports such a calibration.
 \end{enumerate}
 
 \noindent Contributions measured under different negative-set protocols should not be compared.
@@ -71,7 +82,7 @@ with the GC arm. The GC and dinucleotide protocols draw their negatives from the
 object, so a partition separating them cannot be a partition by kind of object. The only statement
 surviving every choice of axis is the weaker one that the GC arm is the outlier of the three. Two further qualifications point the same way: the pattern was recovered from the
 4-mer and reproduced for neither neural model, and on \citet{horlacher2023}'s benchmark the
-pooled relation is null. What we take from this subsection is therefore the gradient itself, for
+pooled relation is null. We therefore take from this subsection the gradient itself, for
 which the evidence is strong, and not a taxonomy of protocols built on top of it.
 
 Protocol dependence can be reduced by fitting a transformation but not by choosing one from
@@ -93,7 +104,7 @@ Nor is it escapable by leaving the ROC. The same comparison on the likelihood-ra
 McFadden's $R^2$ increment, the average-precision increment and the integrated discrimination
 improvement gives the same ordering in all fifteen estimand-by-model cells, including on the
 deviance scale, which is unbounded above and so carries none of the $1-c$ ceiling that a
-sceptical reading attributes the effect to. What the estimand does change is the size: the
+sceptical reading attributes the effect to. The estimand does change the size: the
 4-mer's three-protocol span is 5.42-fold in AUROC and about two-fold on the unbounded scales,
 and the unbounded scales are smaller in every case. So the direction of the protocol effect is a
 property of the comparison and the five-fold figure is a property of the AUROC scale, and this
@@ -161,8 +172,8 @@ ladder, not a survey of the methods a benchmark would rank.
 
 Three design parameters were fixed once and never varied, so nothing here speaks to their
 influence. The class ratio is 1:1 in every arm, one negative per positive, where a genome-wide screen
-faces a far smaller positive fraction. AUROC is invariant to prevalence, so the reported
-quantities are not biased by this. The nested fit is nonetheless estimated at a balance no
+faces a far smaller positive fraction. AUROC is invariant to prevalence, and the reported quantities are
+not biased by this. The nested fit is nonetheless estimated at a balance no
 application sees, and a precision-based estimand would move. The window is 101~nt throughout, and window
 length is precisely the resource the composition baseline spends. A longer window gives
 mononucleotide and dinucleotide frequencies more sequence to estimate from, which should raise
@@ -196,7 +207,7 @@ the result.
 
 The window centre is a fourth such parameter and the largest of them. Every window is centred on
 its peak's midpoint, peaks are not points, and Section~\ref{sec:models} shows the discriminative
-signal sits a median 23~nt off that centre, so the choice is demonstrably not aligned with the
+signal sits a median 23~nt off that centre. The choice is demonstrably not aligned with the
 signal. The comparison usually asked for, summit-centred against midpoint-centred windows,
 cannot be made here: narrowPeak reserves column 10 for a point-source summit and it is $-1$ in
 every row of every ENCODE eCLIP file in this panel, so no summit exists to centre on. We

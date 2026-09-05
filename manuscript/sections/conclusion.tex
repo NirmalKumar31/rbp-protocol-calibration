@@ -3,10 +3,17 @@ of the negative set it was evaluated against, and on this panel the two axes mov
 other: the protocol that made the discrimination easiest by AUROC was also the one that left a
 sequence model least to add.
 
+The estimator that measures it is also not neutral. Given a model whose information the
+composition baseline already contains, so that the true increment is zero, it returns $+0.0111$
+to $+0.0137$ on these data. That floor is nearly the same in every arm, so it does not create
+the difference between protocols, but it is nine tenths of the smallest arm's reported value, so
+increments of that size say nothing about a model.
+
 For a benchmark designer this has two operational consequences. Report the composition-only
 AUROC obtained under the same protocol alongside every headline AUROC; it costs one logistic
 regression on nineteen features and it is the only summary of a protocol's effect that a reader
-can act on. And do not compare contributions measured under different negative-set protocols.
+can act on. And do not compare contributions measured under different negative-set protocols, nor read an
+increment as evidence of contribution without a null for the estimator that produced it.
 That restriction is one we can justify, where a normalisation that would remove the need for it
 is not. Of eight standard coordinates, five reduce the span without closing it, two are controls
 and one widens it. The exponent that appears to close it closes only under one way of
