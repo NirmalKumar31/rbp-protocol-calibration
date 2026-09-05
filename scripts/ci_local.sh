@@ -55,6 +55,9 @@ fi
 # needs the committed tables and takes longer than CI should", which was wrong on both counts:
 # the tables are committed, so a clean clone has them, and the run takes under a minute. The
 # effect of leaving it out was that README's headline instruction was gated nowhere.
+step "manuscript numbers trace to a table (BEFORE the verifier, which reads its output)"
+"$PY" scripts/audit_manuscript.py | tail -3 || fail "audit_manuscript.py"
+
 step "verifier"
 "$PY" scripts/verify.py --local results/tables | tail -2 || fail "verify.py"
 
@@ -63,6 +66,10 @@ step "release documents are consistent with the artefacts"
 
 step "every committed table has a producing script"
 "$PY" scripts/provenance.py --check || fail "provenance.py"
+
+step "regenerated artefacts match what is committed"
+git diff --exit-code -- results/tables/ >/dev/null || fail "a generated table changed; commit it"
+echo "  clean"
 
 step "ruff"
 if "$PY" -m ruff --version >/dev/null 2>&1; then

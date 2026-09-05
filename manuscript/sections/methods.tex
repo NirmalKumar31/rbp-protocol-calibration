@@ -235,8 +235,8 @@ analogous route carrying label information; the whole-dataset standardisation de
 Section~\ref{sec:models} is label-free and moves panel means by at most $4\times10^{-5}$.
 We do not remove it in the published estimator; we measure it, by rerunning the estimator with
 the route closed. Section~\ref{sec:crossfit} reports that: for a 2-mer, whose true increment is
-zero, closing the route removes 96 to 99\% of what the estimator returns and lands within
-$5\times10^{-4}$ of the zero theory requires, while for the 4-mer it moves the contribution by
+zero, closing the route reduces what the estimator returns by at least 95\% in every arm and
+lands within $5\times10^{-4}$ of the zero theory requires, while for the 4-mer it moves it by
 under $0.0017$ and in the opposite direction. We had expected the bias to be one-directional on
 the grounds that it can only help the score column. That holds for a model the baseline spans
 and fails for one carrying information of its own, so the sign is a measurement here and not a
@@ -363,7 +363,7 @@ published per-window score files do not carry.
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 976 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 982 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

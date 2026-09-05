@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 974
+  min_domain_checks: 980
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2558,7 +2558,12 @@ cross_fitting:
   # The channel for the 4-mer is NEGATIVE in every arm. Asserted as a sign, because the sign is
   # the claim that was wrong before it was measured.
   max_channel_4mer: 0.0005          # channel must be <= this, i.e. not meaningfully positive
-  min_floor_removed: 0.90           # fraction of the 2-mer floor the cross-fitting removes
+  min_floor_removed: 0.95           # fraction of the 2-mer floor the cross-fitting removes
+  # THE LABEL-FREE ROUTE, measured rather than argued about. A review noted that calling the
+  # result "fully cross-fitted" while standardising over the whole dataset is too strong,
+  # because at fixed C the scale sets the effective penalty. Refitting every transform inside
+  # the outer training rows changes the answer by less than 1e-4 in all six cells.
+  max_cost_of_global_scaling: 0.0001
   min_datasets_floor_lowered: 85    # of 94, per arm
   span_published: {value: 5.42, tol: 0.05}
   span_crossfitted: {value: 4.84, tol: 0.10}

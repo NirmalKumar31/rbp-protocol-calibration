@@ -21,9 +21,8 @@
 % Written out here rather than through \title so that the maths and line breaks in the
 % typeset title do not have to survive the trip into a PDF string.
 \hypersetup{
-  pdftitle={Negative-set construction moves measured model contribution more than five-fold,
-            and the estimator returns a positive value where the truth is zero: a calibration
-            across 94 ENCODE eCLIP datasets},
+  pdftitle={What a sequence model appears to contribute is set by how its negatives were built:
+            a calibration across 94 ENCODE eCLIP datasets},
   pdfauthor={Nirmalkumar Thirupallikrishnan Kesavan},
   pdfsubject={Calibration of negative-set construction in RNA-binding-protein sequence model
               benchmarks},
@@ -83,9 +82,15 @@
 % report failing to replicate on the external benchmark. The five-fold span holds for all three
 % model classes and both composition-matched arms; the inverse direction keeps its place in the
 % abstract, with its non-replication attached.
-\title{\bfseries Negative-set construction moves measured model contribution more than
-five-fold, and the estimator returns a positive value where the truth is zero:
-a calibration across 94 ENCODE eCLIP datasets}
+% THE TITLE SAID "more than five-fold" AND THAT BECAME FALSE IN THIS REPOSITORY. The span is
+% 5.42-fold under the two-stage estimator the literature uses and 4.84-fold under the
+% cross-fitted one this paper recommends, so the threshold held for the estimator being
+% criticised and not for the one being advocated. Its second clause, that the estimator returns
+% a positive value where the truth is zero, went the same way: true of the common
+% implementation, and removable, which is the more useful statement. A title should not carry a
+% number that a later section of the same paper corrects.
+\title{\bfseries What a sequence model appears to contribute is set by how its negatives were
+built: a calibration across 94 ENCODE eCLIP datasets}
 
 \author{Nirmalkumar Thirupallikrishnan Kesavan\\[2pt]
 \normalsize Northeastern University, Boston, MA, USA\\
@@ -120,22 +125,22 @@ varied only how the negatives were built, and measured each model's nested contr
 19-feature composition baseline refit under each protocol.
 
 The measured contribution moves 5.42-fold across three protocols for a 4-mer (95\% CI 4.43 to
-6.58), and 3.7 to 7.4-fold across three model classes on identical rows and folds. A model's
-apparent AUROC moves the opposite way: replacing GC-matched with dinucleotide-matched negatives
-lowers the 4-mer's own AUROC from a panel mean of 0.798 to 0.688 in every one of the 94 datasets,
-while raising its measured contribution from 0.027 to 0.066 in 88 of them. Under
-dinucleotide-preserving shuffling the baseline sits at exactly 0.5000 and the contribution
-becomes the model's own AUROC less a half.
+6.58), and 3.7 to 7.4-fold across three model classes on identical rows. A model's apparent AUROC
+moves the opposite way: replacing GC-matched with dinucleotide-matched negatives lowers the
+4-mer's own AUROC from a panel mean of 0.798 to 0.688 in all 94 datasets while raising its
+measured contribution from 0.027 to 0.066 in 88 of them.
 
 The estimator also has a floor. Applied to a 2-mer, whose true contribution is zero because the
-baseline spans its features, it returns $+0.011$ to $+0.014$, which is 90.4\% of the smallest
-protocol's reported value. That floor is not intrinsic to the estimand: it is the estimator's own
-incomplete cross-fitting, and generating the score covariate outside the outer test fold removes
-96 to 99\% of it and recovers the known zero to within $5\times10^{-4}$.
+baseline spans its features, it returns $+0.011$ to $+0.014$: 90.4\% of the smallest protocol's
+reported value. That floor is not intrinsic to the estimand but to the usual two-stage way of
+computing it. Generating the score covariate outside the outer test fold reduces it by at least
+95\% in every protocol, to the zero the construction requires, and leaves the 4-mer's protocol
+span at 4.84-fold.
 
 In a survey of seven widely used methods and benchmarks, none reports a composition-only AUROC
-beside its headline. We recommend reporting one obtained under the same protocol, cross-fitting
-the covariate, and not comparing contributions measured under different protocols.
+beside its headline. We recommend cross-fitting the score covariate, reporting a
+composition-only AUROC obtained under the same protocol, and not comparing contributions
+measured under different protocols.
 \end{abstract}
 
 \noindent\textbf{Keywords:} RNA-binding proteins; eCLIP; benchmarking; negative-set
@@ -164,7 +169,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 reproducible offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 976 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 982 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. One quantity is an exception and is marked as such in the text: the design effect, whose
 block bootstrap needs the genomic coordinates that the published per-window score files do not

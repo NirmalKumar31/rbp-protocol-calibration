@@ -40,9 +40,21 @@ TEX = [MANUSCRIPT / "paper.tex"] + SECTIONS
 # The documents that make claims about the release. The run chronicle under docs/ is excluded
 # for the reason given in audit_manuscript.py: it is pasted terminal output, and every integer
 # in it is an HTTP status or a task index.
+# EVERY PUBLIC, CITABLE OR OPERATIONAL FILE, not only the prose ones. This listed the five
+# markdown documents and the TeX, and a review then found stale "937" counts in three places in
+# .github/workflows/ci.yml, one in docs/COST.md and one in a pyproject comment, plus a stale
+# span in CITATION.cff -- every one of them outside the scan. The lesson is the same one that
+# produced this script: a checker certifies the files it looked at, and the ones it does not
+# look at are where the stale numbers go and stay.
+#
+# A workflow file and a pyproject comment are not prose, but a reader acts on them and a
+# citation file is the most quoted artefact in the repository.
 DOCS = [ROOT / "README.md", ROOT / "SUBMISSION.md",
         ROOT / "docs" / "REPRODUCE.md", ROOT / "docs" / "PANELS.md",
-        ROOT / "docs" / "ZENODO.md"] + TEX
+        ROOT / "docs" / "ZENODO.md", ROOT / "docs" / "COST.md",
+        ROOT / "docs" / "AUDIT-RESPONSE.md",
+        ROOT / "CITATION.cff", ROOT / "CHANGELOG.md", ROOT / "pyproject.toml",
+        ROOT / ".github" / "workflows" / "ci.yml"] + TEX
 
 
 def _tex(paths=None):
@@ -162,9 +174,13 @@ FACTS = {
         r"Tables 1 to (\d+) are typeset",
     ]),
     "verify checks": (n_verify_checks, [
-        r"(\d{3,4})\s+(?:numeric\s+)?(?:verification\s+)?assertions",
+        # Deliberately loose on the adjective. The narrow form missed "937 published
+        # assertions" in three files and "937 checks" in a fourth, all of which a reader
+        # acts on exactly as if they said "numeric assertions".
+        r"(\d{3,4})\s+\w*\s*assertions",
         r"All (\d{3,4}) verification checks",
         r"(\d{3,4})/\d{3,4} checks",
+        r"one command, (\d{3,4}) checks",
     ]),
     "abstract words": (abstract_words, [
         r"(\d+) words, no markup",
@@ -175,13 +191,20 @@ FACTS = {
 # a word or two, and failing a release on that would train everyone to ignore this script.
 TOLERANCE = {"abstract words": 4}
 
+# Facts whose absence means the run proved less than it claims. `tests collected` needs torch to
+# collect the whole suite, and the CPU CI image deliberately has none, so this used to SKIP on
+# the exact machine the check exists for.
+REQUIRED = {"tests collected", "verify checks"}
+
 
 def main():
-    problems, unstated, facts = [], [], []
+    problems, unstated, facts, skipped_required = [], [], [], []
     for name, (derive, patterns) in FACTS.items():
         truth = derive()
         if truth is None:
             log(f"  {name:22} SKIP (artefact absent)")
+            if name in REQUIRED:
+                skipped_required.append(name)
             continue
         facts.append((name, truth))
         tol = TOLERANCE.get(name, 0)
@@ -217,13 +240,25 @@ def main():
         f"{k},{v},,derived from the built release by scripts/release_consistency.py\n"
         for k, v in facts))
 
+    # A REQUIRED FACT THAT COULD NOT BE DERIVED IS A FAILURE, NOT A PASS. `tests collected`
+    # returns None wherever torch is absent, which is exactly the CPU environment CI runs in, so
+    # the script printed SKIP and exited zero on the one machine whose job is to catch this.
+    # Named explicitly rather than "everything must derive", because a manuscript that has not
+    # been built genuinely has no page count and failing on that would be noise.
+    if skipped_required:
+        log("")
+        log("  REQUIRED FACTS COULD NOT BE DERIVED, so this run certifies less than it looks:")
+        for s in skipped_required:
+            log(f"    {s}")
+        log("  Install the missing dependency rather than trusting the pass.")
+
     if unstated:
         log("")
         log("  NOT STATED ANYWHERE, so the pattern may have stopped matching rather than the")
         log("  documents having stopped claiming it: " + ", ".join(unstated))
 
     log("")
-    if problems:
+    if problems or skipped_required:
         log(f"  {len(problems)} STALE RELEASE CLAIM(S):")
         for p in problems:
             log(f"    {p}")

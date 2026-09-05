@@ -71,15 +71,17 @@ vms=$(q "compute instances" gcloud compute instances list --project "$PROJECT" \
   && { [ -z "$vms" ] && echo "  VMs:              none" || echo "$vms" | sed 's/^/  VM: /'; } \
   || echo "  VMs:              UNKNOWN (query failed)"
 
-batch=$(gcloud batch jobs list --project "$PROJECT" --location us-central1 \
+batch=$(q "batch jobs" gcloud batch jobs list --project "$PROJECT" --location us-central1 \
           --filter="status.state:(QUEUED OR SCHEDULED OR RUNNING)" \
-          --format="value(name.basename(),status.state)" 2>/dev/null)
-if [ -z "$batch" ]; then echo "  Batch jobs:       none active"; else echo "$batch" | sed 's/^/  Batch: /'; fi
+          --format="value(name.basename(),status.state)") \
+  && { [ -z "$batch" ] && echo "  Batch jobs:       none active" || echo "$batch" | sed 's/^/  Batch: /'; } \
+  || echo "  Batch jobs:       UNKNOWN (query failed)"
 
-vertex=$(gcloud ai custom-jobs list --project "$PROJECT" --region us-central1 \
+vertex=$(q "vertex jobs" gcloud ai custom-jobs list --project "$PROJECT" --region us-central1 \
            --filter="state:(JOB_STATE_PENDING OR JOB_STATE_RUNNING)" \
-           --format="value(displayName,state)" 2>/dev/null)
-if [ -z "$vertex" ]; then echo "  Vertex jobs:      none active"; else echo "$vertex" | sed 's/^/  Vertex: /'; fi
+           --format="value(displayName,state)") \
+  && { [ -z "$vertex" ] && echo "  Vertex jobs:      none active" || echo "$vertex" | sed 's/^/  Vertex: /'; } \
+  || echo "  Vertex jobs:      UNKNOWN (query failed)"
 
 # --- 2. Stored data, the recurring charge when idle -----------------------------------
 echo
@@ -100,9 +102,14 @@ printf "  %-12s %8.2f GB  -> ~\$%.2f/month\n" "TOTAL" \
   "$(echo "$total / 1073741824" | bc -l)" \
   "$(echo "$total / 1073741824 * 0.02" | bc -l)"
 
-imgs=$(gcloud artifacts docker images list \
-         "us-central1-docker.pkg.dev/${PROJECT}/rbp" --format="value(IMAGE)" 2>/dev/null | wc -l | tr -d ' ')
-echo "  container images: ${imgs:-0}  (~\$0.10/GB/month)"
+# A failed listing used to print "container images: 0", which reads as "nothing is stored".
+if raw_imgs=$(q "artifact registry images" gcloud artifacts docker images list \
+         "us-central1-docker.pkg.dev/${PROJECT}/rbp" --format="value(IMAGE)"); then
+  imgs=$(printf '%s' "$raw_imgs" | grep -c . || true)
+  echo "  container images: ${imgs}  (~\$0.10/GB/month)"
+else
+  echo "  container images: UNKNOWN (query failed)"
+fi
 
 # --- 3. Where to see actual billed spend ----------------------------------------------
 echo

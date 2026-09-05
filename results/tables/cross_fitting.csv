@@ -1,30 +1,48 @@
 check,value,ci_low,ci_high,n,note
 datasets,94.0,94.0,94.0,94,
-"4-mer contribution as published, gc arm",0.026513098340627497,0.020384564412687992,0.03309605285808226,94,
-"4-mer contribution fully cross-fitted, gc arm",0.028183356733551095,0.02196425433939914,0.034775391672471956,94,
-"4-mer outer-fold channel, gc arm",-0.0016702583929235975,-0.0019480325332304669,-0.0014000099440984988,94,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer contribution as published, gc arm",0.026513098340627535,0.02038456441268803,0.033096052858082294,94,
+"4-mer contribution fully cross-fitted, gc arm",0.028183356733551143,0.021964254339399178,0.034775391672472004,94,
+"4-mer cross-fitted, transforms inside the fold, gc arm",0.02819166552391799,0.021973919507285535,0.034782371515101586,94,every centring and scaling fitted on outer-training rows only
+"4-mer cost of global scaling, gc arm",-8.308790366851769e-06,-1.8897505198891695e-05,2.6346463534544396e-06,94,cross-fitted with whole-dataset scaling minus cross-fitted with within-fold scaling; the label-free route left open by the first
+"4-mer outer-fold channel, gc arm",-0.001670258392923605,-0.0019480325332304723,-0.0014000099440985014,94,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer fraction of the published value removed by cross-fitting, gc arm",-0.06299748039497048,,,94,
 "4-mer datasets where cross-fitting LOWERS the contribution, gc arm",4.0,,,94,the one-directional claim predicts all of them
-"4-mer contribution as published, dn arm",0.06626403675115056,0.0540737531033559,0.07990446807174481,94,
-"4-mer contribution fully cross-fitted, dn arm",0.06707838706778756,0.05488593469702809,0.08085630579844384,94,
-"4-mer outer-fold channel, dn arm",-0.0008143503166369887,-0.0014562713676165905,6.567031592013603e-05,94,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer contribution as published, dn arm",0.06626403675115061,0.054073753103355944,0.07990446807174485,94,
+"4-mer contribution fully cross-fitted, dn arm",0.06707838706778758,0.05488593469702814,0.08085630579844387,94,
+"4-mer cross-fitted, transforms inside the fold, dn arm",0.06709913394316022,0.054907163952631226,0.0809020951375517,94,every centring and scaling fitted on outer-training rows only
+"4-mer cost of global scaling, dn arm",-2.074687537261184e-05,-4.778555974450783e-05,6.3492830185774685e-06,94,cross-fitted with whole-dataset scaling minus cross-fitted with within-fold scaling; the label-free route left open by the first
+"4-mer outer-fold channel, dn arm",-0.0008143503166369888,-0.0014562713676165907,6.567031592013261e-05,94,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer fraction of the published value removed by cross-fitting, dn arm",-0.012289476412298887,,,94,
 "4-mer datasets where cross-fitting LOWERS the contribution, dn arm",14.0,,,94,the one-directional claim predicts all of them
-"4-mer contribution as published, neg2 arm",0.012231944163197669,0.009754584941553308,0.01505564748241648,94,
-"4-mer contribution fully cross-fitted, neg2 arm",0.01385670071803935,0.01130895144810996,0.016742907159576752,94,
-"4-mer outer-fold channel, neg2 arm",-0.0016247565548416865,-0.001984463808097681,-0.0013154329641732797,94,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer contribution as published, neg2 arm",0.012231944163197703,0.009754584941553344,0.015055647482416511,94,
+"4-mer contribution fully cross-fitted, neg2 arm",0.013856700718039397,0.011308951448110009,0.016742907159576798,94,
+"4-mer cross-fitted, transforms inside the fold, neg2 arm",0.013861921852838991,0.011311004050268084,0.01674500616135381,94,every centring and scaling fitted on outer-training rows only
+"4-mer cost of global scaling, neg2 arm",-5.221134799596715e-06,-1.4802366357393717e-05,4.949527499668318e-06,94,cross-fitted with whole-dataset scaling minus cross-fitted with within-fold scaling; the label-free route left open by the first
+"4-mer outer-fold channel, neg2 arm",-0.0016247565548416917,-0.0019844638080976757,-0.001315432964173287,94,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer fraction of the published value removed by cross-fitting, neg2 arm",-0.13282897086222029,,,94,
 "4-mer datasets where cross-fitting LOWERS the contribution, neg2 arm",2.0,,,94,the one-directional claim predicts all of them
-"2-mer contribution as published, gc arm",0.011862218628239767,0.008710116393159745,0.015452109469160473,94,
-"2-mer contribution fully cross-fitted, gc arm",0.000505698835862128,8.16214671490843e-05,0.001100690653185817,94,
-"2-mer outer-fold channel, gc arm",0.011356519792377642,0.008413489999714398,0.014722802824454517,94,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer contribution as published, gc arm",0.011862218628239813,0.008710116393159792,0.015452109469160523,94,
+"2-mer contribution fully cross-fitted, gc arm",0.0005056988358621301,8.162146714907844e-05,0.0011006906531858263,94,
+"2-mer cross-fitted, transforms inside the fold, gc arm",0.0005120598384855761,8.845262903657156e-05,0.0011035124730885463,94,every centring and scaling fitted on outer-training rows only
+"2-mer cost of global scaling, gc arm",-6.361002623446023e-06,-2.1993851964063047e-05,8.518210204465535e-06,94,cross-fitted with whole-dataset scaling minus cross-fitted with within-fold scaling; the label-free route left open by the first
+"2-mer outer-fold channel, gc arm",0.011356519792377688,0.008413489999714455,0.014722802824454559,94,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer fraction of the published value removed by cross-fitting, gc arm",0.9573689499653769,,,94,
 "2-mer datasets where cross-fitting LOWERS the contribution, gc arm",91.0,,,94,the one-directional claim predicts all of them
-"2-mer contribution as published, dn arm",0.013719419775640512,0.011401196085762821,0.01630130554781781,94,
-"2-mer contribution fully cross-fitted, dn arm",-9.337401476721792e-05,-0.0005603676332983913,0.0003014697926867175,94,
-"2-mer outer-fold channel, dn arm",0.013812793790407731,0.011416559626892227,0.016537958682533143,94,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer contribution as published, dn arm",0.013719419775640559,0.011401196085762873,0.016301305547817856,94,
+"2-mer contribution fully cross-fitted, dn arm",-9.337401476721178e-05,-0.0005603676332983923,0.00030146979268672297,94,
+"2-mer cross-fitted, transforms inside the fold, dn arm",-6.915808756019846e-05,-0.0005380723681988221,0.0003289916124378522,94,every centring and scaling fitted on outer-training rows only
+"2-mer cost of global scaling, dn arm",-2.4215927207013304e-05,-5.386325337388687e-05,7.436240124795472e-06,94,cross-fitted with whole-dataset scaling minus cross-fitted with within-fold scaling; the label-free route left open by the first
+"2-mer outer-fold channel, dn arm",0.01381279379040777,0.011416559626892272,0.016537958682533167,94,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer fraction of the published value removed by cross-fitting, dn arm",1.0068059740349224,,,94,
 "2-mer datasets where cross-fitting LOWERS the contribution, dn arm",93.0,,,94,the one-directional claim predicts all of them
-"2-mer contribution as published, neg2 arm",0.011054727079938662,0.00852306455075457,0.013714521631970535,94,
-"2-mer contribution fully cross-fitted, neg2 arm",0.00026098916741174255,-0.00011769203351613088,0.0006596673864512513,94,
-"2-mer outer-fold channel, neg2 arm",0.010793737912526915,0.008337299489075554,0.013372473002439158,94,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer contribution as published, neg2 arm",0.011054727079938704,0.008523064550754621,0.01371452163197058,94,
+"2-mer contribution fully cross-fitted, neg2 arm",0.0002609891674117487,-0.00011769203351612419,0.0006596673864512652,94,
+"2-mer cross-fitted, transforms inside the fold, neg2 arm",0.0002815561041492019,-9.808959675163338e-05,0.000681005092341532,94,every centring and scaling fitted on outer-training rows only
+"2-mer cost of global scaling, neg2 arm",-2.0566936737453203e-05,-3.478964002912265e-05,-7.567582645846834e-06,94,cross-fitted with whole-dataset scaling minus cross-fitted with within-fold scaling; the label-free route left open by the first
+"2-mer outer-fold channel, neg2 arm",0.010793737912526958,0.008337299489075592,0.01337247300243921,94,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer fraction of the published value removed by cross-fitting, neg2 arm",0.976391170444599,,,94,
 "2-mer datasets where cross-fitting LOWERS the contribution, neg2 arm",91.0,,,94,the one-directional claim predicts all of them
-"4-mer three-arm span, as published",5.4172939204970865,,,94,
-"4-mer three-arm span, fully cross-fitted",4.840862802244227,,,94,"the headline quantity, with the channel closed; NaN where an arm's mean is not positive, which makes a ratio meaningless"
-"2-mer three-arm span, as published",1.2410455433619476,,,94,
+"4-mer three-arm span, as published",5.417293920497076,,,94,
+"4-mer three-arm span, fully cross-fitted",4.840862802244213,,,94,"the headline quantity, with the channel closed; NaN where an arm's mean is not positive, which makes a ratio meaningless"
+"2-mer three-arm span, as published",1.2410455433619472,,,94,
 "2-mer three-arm span, fully cross-fitted",,,,94,"the headline quantity, with the channel closed; NaN where an arm's mean is not positive, which makes a ratio meaningless"

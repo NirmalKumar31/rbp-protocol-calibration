@@ -2165,6 +2165,15 @@ def verify_cross_fitting(T, g):
             at_most(f"the 4-mer channel is not positive in the {arm} arm, so the withdrawn "
                     f"one-directional claim stays withdrawn", ch, spec["max_channel_4mer"])
 
+        # THE OTHER ROUTE, THE LABEL-FREE ONE. Closing the label-carrying route and leaving
+        # whole-dataset scaling open is not "fully" cross-fitted, so both are computed and the
+        # difference is asserted to be nothing.
+        for kk in ("4-mer", "2-mer"):
+            g2 = get(f"{kk} cost of global scaling, {arm} arm")
+            if g2 is not None:
+                at_most(f"whole-dataset scaling costs nothing once the fold route is closed, "
+                        f"{kk}, {arm} arm", abs(g2), spec["max_cost_of_global_scaling"])
+
         pub2 = get(f"2-mer contribution as published, {arm} arm")
         cf2 = get(f"2-mer contribution fully cross-fitted, {arm} arm")
         if None not in (pub2, cf2) and pub2:

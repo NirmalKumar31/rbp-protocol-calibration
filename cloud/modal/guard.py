@@ -96,8 +96,12 @@ class Unobservable(RuntimeError):
     """The Modal CLI could not be read. NOT the same as nothing running."""
 
 
-def app_state():
-    """The running sweep app, if any: (app_id, started_epoch).
+def live_apps():
+    """EVERY live sweep app: [(app_id, started_epoch)].
+
+    Plural, because this returned the first match and stopped. Two arms can be swept at once --
+    that is what MAX_CONTAINERS=10 across four apps is for -- and the guard would then watch one
+    and let the other run unmetered, while reporting a burn rate for the pair.
 
     RAISES rather than returning (None, None) when Modal cannot be read. Those two states used
     to be identical: the returncode was never checked, so an expired token, a network failure
@@ -113,14 +117,27 @@ def app_state():
         apps = json.loads(r.stdout)
     except json.JSONDecodeError as e:
         raise Unobservable(f"modal app list returned unparseable output: {e}") from e
+    out = []
     for a in apps:
         # Modal's own field names have varied; be liberal about which key holds what.
         state = str(a.get("State") or a.get("state") or "").lower()
         desc = a.get("Description") or a.get("description") or ""
         if APP_NAME.match(desc) and state in LIVE:
-            return (a.get("app_id") or a.get("App ID"),
-                    _epoch(a.get("created_at") or a.get("Created at") or ""))
-    return None, None
+            out.append((a.get("app_id") or a.get("App ID"),
+                        _epoch(a.get("created_at") or a.get("Created at") or "")))
+    return out
+
+
+def app_state():
+    """The OLDEST live sweep, for callers that want one: (app_id, started_epoch).
+
+    Oldest rather than first-listed, because the upper bound is elapsed time times the
+    container cap, so the longest-running app is the one that bounds the spend.
+    """
+    live = live_apps()
+    if not live:
+        return None, None
+    return min(live, key=lambda x: x[1] or 0.0)
 
 
 # ARMS TO COUNT. The prefix was the literal "runs/dinuc/", so work landing under runs/gc/,
@@ -159,9 +176,31 @@ def report(model, budget, started_epoch):
 
 
 def stop(app_id):
+    """Stop one app and CONFIRM it stopped. Returns True only if it is no longer live.
+
+    The old version printed whatever the CLI said and returned. A nonzero exit, an expired
+    token or a rename would all have printed something and been read as success, which in a
+    guard means the containers keep burning while the log says STOPPING.
+    """
     print(f"    STOPPING APP {app_id}", flush=True)
     r = subprocess.run(["modal", "app", "stop", app_id], capture_output=True, text=True)
     print("   ", (r.stdout or r.stderr).strip()[:300])
+    if r.returncode != 0:
+        print(f"    STOP FAILED for {app_id}, exit {r.returncode}. STOP IT BY HAND at "
+              f"modal.com/apps", flush=True)
+        return False
+    for _ in range(6):
+        time.sleep(5)
+        try:
+            if app_id not in {a for a, _s in live_apps()}:
+                print(f"    confirmed stopped: {app_id}", flush=True)
+                return True
+        except Unobservable as e:
+            print(f"    cannot confirm the stop ({e})", flush=True)
+            return False
+    print(f"    {app_id} IS STILL LIVE 30s after a successful stop command. STOP IT BY HAND.",
+          flush=True)
+    return False
 
 
 def main():
@@ -206,7 +245,15 @@ def main():
         upper, lower = report(a.model, a.budget, started)
         if upper >= a.budget:
             print(f"    OVER BUDGET on the upper bound (${upper:.2f} >= ${a.budget:.2f})")
-            stop(app_id)
+            # EVERY live app, not the one being timed. Whatever is running is costing money.
+            try:
+                targets = [x for x, _s in live_apps()]
+            except Unobservable:
+                targets = [app_id]
+            failed = [x for x in targets if not stop(x)]
+            if failed:
+                print(f"    COULD NOT CONFIRM STOP FOR: {', '.join(failed)}")
+                sys.exit(2)
             sys.exit(1)
         if not a.watch:
             return

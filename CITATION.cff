@@ -1,12 +1,15 @@
 cff-version: 1.2.0
+# This file describes the SOFTWARE. preferred-citation below is the paper, which is what a
+# reader of the results should cite; the two carry the same title on purpose, because the
+# repository has no separate identity from the study it produced.
 title: >-
-  What a sequence model appears to contribute is set by how the
-  negatives were built
+  What a sequence model appears to contribute is set by how its
+  negatives were built: analysis code and released evidence
 message: >-
   If you use this software or its released evidence, please cite
-  the preprint. The DOI below is a placeholder until the Zenodo
-  deposit exists; SUBMISSION.md tracks that as the last
-  outstanding release step.
+  the preprint. No DOI exists yet: the Zenodo deposit is minted
+  from a tagged release, and SUBMISSION.md tracks that as the last
+  outstanding step. Add a doi: key here when it exists.
 type: software
 authors:
   - given-names: Nirmalkumar
@@ -19,11 +22,13 @@ abstract: >-
   Holding the model, the peak set, the chromosome-blocked folds
   and the estimator fixed and varying only how negative windows
   are constructed moves a model's measured nested contribution
-  5.42-fold, while its apparent AUROC moves the opposite way. The
-  estimator also returns a positive increment for a model whose
-  information the composition baseline already contains, where
-  the true contribution is zero by construction, and that floor
-  is 90.4 percent of the smallest protocol's reported value.
+  5.42-fold under the two-stage estimator this literature uses,
+  and 4.84-fold under the cross-fitted estimator the paper
+  recommends, while its apparent AUROC moves the opposite way.
+  The two-stage estimator also returns a positive increment for a
+  model whose information the composition baseline already
+  contains, where the true contribution is zero by construction;
+  cross-fitting the covariate removes at least 95 percent of it.
 keywords:
   - RNA-binding proteins
   - eCLIP
@@ -32,3 +37,16 @@ keywords:
   - sequence models
 license: MIT
 version: 1.0.0
+
+preferred-citation:
+  type: article
+  title: >-
+    What a sequence model appears to contribute is set by how its
+    negatives were built: a calibration across 94 ENCODE eCLIP
+    datasets
+  authors:
+    - given-names: Nirmalkumar
+      family-names: Thirupallikrishnan Kesavan
+      email: thirupallikrishnan.n@northeastern.edu
+      affiliation: Northeastern University
+  year: 2026

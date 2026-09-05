@@ -103,7 +103,7 @@ negatives:
 cv:
   k: 5
   # chrom -> fold, solved once for ALL datasets in both cell lines by
-  # scripts/optimize_folds.py, so the 57 proteins measured in K562 and HepG2 are
+  # scripts/optimize_folds.py, so the 15 proteins measured in BOTH K562 and HepG2 are
   # evaluated on the same chromosomes. Frozen in config/folds.tsv.
   folds: config/folds.tsv
   # Validation is the next fold cyclically, so each fold is test once, val once and

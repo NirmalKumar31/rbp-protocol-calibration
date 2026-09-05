@@ -2,7 +2,7 @@
 
 ## 1.0.0 — the preprint release
 
-The state the manuscript describes. 976 numeric assertions pass offline against committed
+The state the manuscript describes. 982 numeric assertions pass offline against committed
 tables; 716 tests; the paper builds with no LaTeX warning.
 
 ### The finding
@@ -16,7 +16,7 @@ measured nested contribution 5.42-fold, while its apparent AUROC moves the oppos
 An external audit of the release found 60 items. The substantive ones:
 
 - **The estimator's floor is the outer-fold information route, not conditioning.** Rerunning
-  with the route closed removes 96 to 99% of it and recovers the zero that theory requires to
+  with the route closed cuts it by at least 95% and recovers the zero that theory requires to
   within 5e-4. The Results had attributed it to conditioning; corrected, with the measurement
   in a new section and a gate on it.
 - **The bias is not one-directional.** The Methods claimed it "can only help the score column".

@@ -319,7 +319,15 @@ def main():
     orphans, checked, ichecked = [], 0, 0
     sources = [(m.name, m) for m in MANUSCRIPT]
     for src_name, src in sources:
+      tex = src.suffix == ".tex"
       for i, line in enumerate(src.read_text().splitlines(), 1):
+        # A LaTeX COMMENT IS NOT PUBLISHED PROSE. It is not typeset, no reader sees it, and no
+        # claim rests on it -- but it is exactly where the reasoning behind an edit gets
+        # written down, including the numbers that edit changed. The note above \begin{abstract}
+        # recording that the abstract was cut from 616 words produced two orphans on its own.
+        # A number a reader cannot see is not a number a reader can be misled by.
+        if tex and line.lstrip().startswith("%"):
+            continue
         for m in NUM.finditer(line):
             tok = m.group(1)
             if len(tok.split(".")[1]) < MIN_DECIMALS:

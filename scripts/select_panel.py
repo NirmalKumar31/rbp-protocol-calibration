@@ -104,7 +104,8 @@ def select(bucket, every, primary="dinuc"):
         raise SystemExit(
             f"panel is size-biased: kept range does not span the full distribution "
             f"(reaches 5th pct: {lo_ok}, 95th pct: {hi_ok}). Refusing to write it.")
-    log("size-unbiased: spans the 5th and 95th percentile of the full panel  OK")
+    log("spans the 5th and 95th percentile of the full panel  OK  "
+        "(range coverage, not a probability sample)")
 
     # How much of the panel also exists in the other arm, reported now so the R1 count is
     # never a surprise later.

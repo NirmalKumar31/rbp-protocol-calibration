@@ -24,7 +24,7 @@ like rather than two implementations.
 Two manuscript claims died:
 
 - The Results attributed the estimator's positive floor to *conditioning*. Cross-fitting leaves
-  conditioning in place and removes 96%, 99% and 97% of the floor, landing at `+0.0005`,
+  conditioning in place and cuts the floor by 95.7%, 100.7% and 97.6%, landing at `+0.0005`,
   `-0.0001` and `+0.0003` where theory requires exactly zero. The floor is the route.
 - The Methods said the bias "can only help the score column". For the 4-mer, closing the route
   *raises* the contribution in all three arms. Withdrawn; the sign depends on the model.
@@ -94,7 +94,7 @@ manuscript-to-table link; nothing closed the table-to-script link. Now `run.sh` 
 **P2.6, move the narrative comments out of source.** The commentary records why a thing is the
 way it is, and in this repository most of it is a bug that cost real time. Moving it to a
 changelog puts it where nobody reads it at the moment they need it. It is also several hundred
-files of churn against a pipeline whose 976 assertions currently pass.
+files of churn against a pipeline whose 982 assertions currently pass.
 
 **P2.18, the `dn` versus `dinuc` naming drift.** Real, and documented in `SCHEMA.md` rather than
 fixed: `dn` is a column name that appears in every `check` string in `golden.yaml`, and renaming

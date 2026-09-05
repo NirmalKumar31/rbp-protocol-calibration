@@ -60,5 +60,5 @@ partially complete sweep for no benefit; see the note in `cloud/modal/guard.py`.
 
 ## 4. Nothing above is required to check the paper
 
-`python scripts/verify.py --local results/tables` runs the 937 published assertions against
+`python scripts/verify.py --local results/tables` runs the 982 published assertions against
 committed tables. It costs nothing, needs no account, and is the only thing a reader has to run.

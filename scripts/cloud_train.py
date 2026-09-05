@@ -518,7 +518,7 @@ def main():
                         "control that, restrict --models and use --tag.")
     p.add_argument("--every", type=int, default=None,
                    help="keep every Nth dataset after sorting by pairs. A systematic, "
-                        "size-unbiased sample for when a budget cannot cover the panel.")
+                        "size-stratified sample for when a budget cannot cover the panel.")
     p.add_argument("--tag", default=None,
                    help="suffix for the manifest object, so one job per model set can have "
                         "its own frozen list. Workers read it via MANIFEST_TAG.")

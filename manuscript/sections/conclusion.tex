@@ -3,16 +3,23 @@ of the negative set it was evaluated against, and on this panel the two axes mov
 other: the protocol that made the discrimination easiest by AUROC was also the one that left a
 sequence model least to add.
 
-The estimator that measures it is also not neutral. Given a model whose information the
-composition baseline already contains, so that the true increment is zero, it returns $+0.0111$
-to $+0.0137$ on these data. That floor is nearly the same in every arm, so it does not create
-the difference between protocols, but it is nine tenths of the smallest arm's reported value, so
-increments of that size say nothing about a model.
+The estimator that measures it is also not neutral, and that turns out to be fixable. Given a
+model whose information the composition baseline already contains, so that the true increment is
+zero, the two-stage estimator this literature uses returns $+0.0111$ to $+0.0137$ on these data.
+That floor is nearly the same in every arm, so it does not create the difference between
+protocols, but it is nine tenths of the smallest arm's reported value, so increments of that
+size say nothing about a model. It is almost entirely one identifiable route: the score covariate
+on the training rows of each outer fold comes from base models that saw that fold. Generating the
+covariate outside the outer test fold reduces the floor by at least 95\% in every arm and
+returns the zero the construction requires, at the cost of ten extra base fits per dataset. The protocol span narrows
+from 5.42-fold to 4.84-fold and survives.
 
-For a benchmark designer this has two operational consequences. Report the composition-only
-AUROC obtained under the same protocol alongside every headline AUROC; it costs one logistic
-regression on nineteen features and it is the only summary of a protocol's effect that a reader
-can act on. And do not compare contributions measured under different negative-set protocols, nor read an
+For a benchmark designer this has two operational consequences. Cross-fit the score covariate, so that no base model
+contributing a training-row covariate has seen the outer test fold; on a model of this size that
+is ten extra fits per dataset and it removes almost all of the estimator's floor. Then report the
+composition-only AUROC obtained under the same protocol alongside every headline AUROC; it costs
+one logistic regression on nineteen features and it is the only summary of a protocol's effect
+that a reader can act on. And do not compare contributions measured under different negative-set protocols, nor read an
 increment as evidence of contribution without a null for the estimator that produced it.
 That restriction is one we can justify, where a normalisation that would remove the need for it
 is not. Of eight standard coordinates, five reduce the span without closing it, two are controls

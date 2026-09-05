@@ -1060,11 +1060,14 @@ bias-aware & $+0.0111$ & $+0.0085$ to $+0.0137$ & $+0.0122$ \\
 \end{tabular}
 \end{table}
 
-We report this as a property of the estimator rather than of our implementation of it. The
-quantity is the standard one in this literature: an increment in cross-validated AUROC from
-adding a model's score to a baseline. Any study computing it on a supervised score inherits the
-same floor, and none of the seven sources in Table~\ref{tab:survey} reports a calibration that
-would reveal it.
+We report this as a property of the two-stage way this quantity is usually computed rather than
+of our implementation of it. The quantity is the standard one in this literature: an increment
+in cross-validated AUROC from adding a model's score to a baseline. A study computing it the
+usual way, with one set of out-of-fold scores fed into a second cross-validation, inherits a
+floor of this kind; the next section shows that a study which cross-fits the covariate does not,
+so the floor is a property of the implementation and not of the estimand. Its size and sign in
+any particular study are not predictable from ours. None of the seven sources in
+Table~\ref{tab:survey} reports a calibration that would reveal it either way.
 
 \subsection{The floor is the estimator's own cross-fitting, and closing it recovers the zero}
 \label{sec:crossfit}
@@ -1087,8 +1090,9 @@ published panel mean to $5\times10^{-17}$, which is what makes the comparison li
 
 The floor is almost entirely this route. Cross-fitted, the 2-mer's contribution is $+0.0005$,
 $-0.0001$ and $+0.0003$ in the GC, dinucleotide and bias-aware arms, against $+0.0119$,
-$+0.0137$ and $+0.0111$ as published: 96\%, 99\% and 97\% of it removed, on 91, 93 and 91 of the
-94 datasets individually. The remainder is not distinguishable from zero, which is the value
+$+0.0137$ and $+0.0111$ as published, a reduction of 95.7\%, 100.7\% and 97.6\% -- the
+dinucleotide arm's cross-fitted value is very slightly negative, which is why its reduction
+exceeds a hundred per cent -- on 91, 93 and 91 of the 94 datasets individually. The remainder is not distinguishable from zero, which is the value
 theory requires, and recovering a known zero to within $5\times10^{-4}$ is the strongest
 available check that the cross-fitting is doing what it claims. Conditioning, which cross-fitting
 leaves in place, therefore accounts for almost none of the floor. The attribution in

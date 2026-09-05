@@ -112,11 +112,20 @@ def base_scores(X, y, folds):
     return published, crossfit
 
 
-def _pooled(comp, col_by_fold, y, folds):
+def _pooled(comp, col_by_fold, y, folds, within_fold=False):
     """Pooled out-of-fold AUROC of [composition | score], score supplied per outer fold.
 
     `col_by_fold[i]` is the score column to use when fold i is held out: its outer-training
     entries are what the nested model is fitted on, its test entries what it is scored with.
+
+    `within_fold` FITS EVERY TRANSFORM INSIDE THE OUTER TRAINING ROWS. With it False the
+    columns are centred and scaled over the whole dataset, which is what every published number
+    does and is label-free -- but it lets the outer-test rows' own moments set the scaling of
+    the design the model is fitted on, and at fixed C that changes the effective penalty. A
+    review pointed out that calling the result "fully cross-fitted" while doing this is too
+    strong, and it was right: closing the label-carrying route and leaving a label-free one open
+    is not the same as closing both. Both are computed so the difference is a number rather
+    than an argument.
     """
     from sklearn.metrics import roc_auc_score
     y = np.asarray(y, dtype=int)
@@ -126,19 +135,27 @@ def _pooled(comp, col_by_fold, y, folds):
         te, tr = folds == f, folds != f
         if len(np.unique(y[tr])) < 2:
             continue
-        col = col_by_fold[int(f)]
-        X = np.column_stack([comp, standardise(col)])
+        col = np.asarray(col_by_fold[int(f)], dtype=float)
+        X = np.column_stack([comp, col])
+        if within_fold:
+            mu, sd = X[tr].mean(axis=0), X[tr].std(axis=0)
+            good = sd > 0
+            Z = np.zeros_like(X)
+            Z[:, good] = (X[:, good] - mu[good]) / sd[good]
+            X = Z
+        else:
+            X = np.column_stack([comp, standardise(col)])
         beta, _ = fit_full(X[tr], y[tr], "l2")
         out[te] = np.column_stack([np.ones(te.sum()), X[te]]) @ beta
     ok = np.isfinite(out)
     return float(roc_auc_score(y[ok], out[ok]))
 
 
-def _pooled_comp(comp, y, folds):
+def _pooled_comp(comp, y, folds, within_fold=False):
     from sklearn.metrics import roc_auc_score
 
     from rbp.eval.nested import _oof_scores
-    s = _oof_scores(comp, y, folds, "l2")
+    s = _oof_scores(comp, y, folds, "l2", within_fold=within_fold)
     ok = np.isfinite(s)
     return float(roc_auc_score(np.asarray(y)[ok], s[ok]))
 
@@ -162,12 +179,19 @@ def build(store, limit):
             a_comp = _pooled_comp(comp, y, folds)
             rec[f"comp_{arm}"] = a_comp
             rec[f"n_{arm}"] = int(len(d))
+            comp_raw, _ = composition_features(seqs, True, standardise_cols=False)
+            a_comp_wf = _pooled_comp(comp_raw, y, folds, within_fold=True)
+            rec[f"comp_wf_{arm}"] = a_comp_wf
             for k in KS:
                 X, _ = kmer_matrix(list(seqs), k)
                 pubs, cf = base_scores(X, y, folds)
                 naive = {int(i): pubs for i in np.unique(folds)}
                 rec[f"k{k}_pub_{arm}"] = _pooled(comp, naive, y, folds) - a_comp
                 rec[f"k{k}_cf_{arm}"] = _pooled(comp, cf, y, folds) - a_comp
+                # The same cross-fit with every transform fitted inside the outer training
+                # rows, so no route out of the test fold remains open, label-carrying or not.
+                rec[f"k{k}_cfwf_{arm}"] = _pooled(comp_raw, cf, y, folds,
+                                                  within_fold=True) - a_comp_wf
         if not ok:
             continue
         rows.append(rec)
@@ -221,9 +245,24 @@ def main():
             cf = t[f"k{k}_cf_{arm}"].to_numpy(float)
             add(f"{k}-mer contribution as published, {arm} arm", pub)
             add(f"{k}-mer contribution fully cross-fitted, {arm} arm", cf)
+            cfwf = t[f"k{k}_cfwf_{arm}"].to_numpy(float)
+            add(f"{k}-mer cross-fitted, transforms inside the fold, {arm} arm", cfwf,
+                "every centring and scaling fitted on outer-training rows only")
+            add(f"{k}-mer cost of global scaling, {arm} arm", cf - cfwf,
+                "cross-fitted with whole-dataset scaling minus cross-fitted with within-fold "
+                "scaling; the label-free route left open by the first")
             add(f"{k}-mer outer-fold channel, {arm} arm", pub - cf,
                 "published minus cross-fitted; positive means the channel inflated the "
                 "published value")
+            # THE FRACTION OF THE FLOOR REMOVED, emitted so the manuscript's "96 to 99%" has a
+            # committed source. It did not, and the manuscript audit reported it as an orphan
+            # in three places -- correctly, since a percentage of two numbers in a table is not
+            # itself in the table.
+            if abs(pub.mean()) > 1e-9:
+                out.append({"check": f"{k}-mer fraction of the published value removed by "
+                                     f"cross-fitting, {arm} arm",
+                            "value": float((pub.mean() - cf.mean()) / pub.mean()),
+                            "ci_low": "", "ci_high": "", "n": len(t), "note": ""})
             out.append({"check": f"{k}-mer datasets where cross-fitting LOWERS the "
                                  f"contribution, {arm} arm",
                         "value": float((pub > cf).sum()), "ci_low": "", "ci_high": "",
