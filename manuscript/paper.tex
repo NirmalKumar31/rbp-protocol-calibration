@@ -31,7 +31,24 @@
                models; ENCODE},
   pdfcreator={pdfLaTeX}
 }
-\usepackage{microtype}
+% patch excludes `footnote'. lineno redefines the footnote machinery, so microtype's patch
+% for it cannot apply and warned on every build. Loading microtype after lineno does not
+% help; naming the patches that CAN apply does, and is microtype's documented way to say so
+% rather than silencing the warning channel wholesale.
+\usepackage[patch={item,eqnum,verbatim}]{microtype}
+% A 56-character \url in Code Availability cannot be broken by default and left a 2.35pt
+% overfull box. Three remedies were tried before this one. \sloppy clears it and pays with two
+% underfull boxes. \emergencystretch does nothing, because the problem is an unbreakable atom
+% wider than the remaining measure rather than a paragraph TeX cannot stretch. xurl fixes it
+% properly and is not in texlive-latex-recommended, so the build died with "File xurl.sty not
+% found" on a machine that had been building fine -- and the failed run left a paper.log with
+% no Overfull line in it, which reads exactly like success if you grep for the warning instead
+% of checking the exit status.
+%
+% This needs no package: url.sty ships inside hyperref, and \UrlBreaks tells it where a URL may
+% break. After a slash, a hyphen or a dot is enough for this one.
+\def\UrlBreaks{\do\/\do\-\do\.\do\_\do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z}
+\Urlmuskip=0mu plus 1mu\relax
 % Preprint conventions. Line numbers and 1.5 spacing are what reviewers ask for on a
 % manuscript under consideration; both are cosmetic and can be dropped for a camera-ready
 % version by commenting out these three lines.
@@ -154,7 +171,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 reproducible offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 959 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 964 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. One quantity is an exception and is marked as such in the text: the design effect, whose
 block bootstrap needs the genomic coordinates that the published per-window score files do not

@@ -306,10 +306,22 @@ def gain_over_composition(seqs, score, label, folds, method="l2",
                           score_scale="raw", within_fold=False):
     """Out-of-fold AUROC gain from adding `score` to a composition-only model.
 
-    Both arms are fit and scored out-of-fold on the same folds, then compared with
-    DeLong's test -- which is required rather than optional here, because the two score
-    vectors come from overlapping training data on identical test rows and are therefore
-    strongly correlated. Treating them as independent would inflate the interval.
+    Both arms are fit and scored out-of-fold on the same folds, then compared with DeLong's
+    PAIRED estimator. Pairing is required rather than optional: the two score vectors come from
+    overlapping training data on identical test rows, are strongly correlated, and treating them
+    as independent overstates the variance of their difference by about fourfold here.
+
+    THAT IS NOT THE SAME AS DELONG BEING VALID FOR THIS COMPARISON, and this docstring used to
+    say only the first thing while the Methods said only the second, so the code and the paper
+    read as contradicting each other. Demler et al. (2012) show DeLong's test is not valid for
+    strictly nested models, because under the null the added predictor's contribution
+    degenerates. The exposure is bounded in two ways, both stated in the Methods: every
+    panel-level interval -- which is where all the headlines are -- uses a protein-clustered
+    bootstrap and not this standard error at all, and where it IS used, for the per-dataset
+    significance counts, it is conservative against the recommended penalised likelihood-ratio
+    alternative (80 significant against 89 in the GC arm).
+
+    So: use the pairing, do not read the per-dataset p-value as a test of nested significance.
 
     TWO SPECIFICATION CHOICES, BOTH DEFAULTING TO WHAT THE PUBLISHED NUMBERS USED.
 

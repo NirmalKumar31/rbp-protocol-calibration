@@ -94,6 +94,15 @@ jobs:
           PYTHONPATH: src
         run: python scripts/release_consistency.py
 
+      # Every committed table must name the command that produces it. Three did not, and one of
+      # those three was quoted in the Discussion -- the same failure the manuscript audit exists
+      # to catch, one level up: that check closes the manuscript-to-table link and nothing
+      # closed the table-to-script link.
+      - name: every committed table has a producing script
+        env:
+          PYTHONPATH: src
+        run: python scripts/provenance.py --check
+
   lint:
     runs-on: ubuntu-latest
     steps:

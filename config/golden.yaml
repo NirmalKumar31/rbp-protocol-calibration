@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 957
+  min_domain_checks: 962
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2517,6 +2517,18 @@ negative_set_survey:
 # here and the values below are what killed them: the floor is this route rather than the
 # conditioning effect the Results attributed it to, and the bias is NOT one-directional -- for
 # the 4-mer, closing the route raises the contribution.
+# POSITIVE-SET OVERLAP. The committed table existed with no producing script and its `jaccard`
+# column was min(n)/max(n) -- a count ratio, exact to 1e-16, labelled a Jaccard index. It
+# answers "did the arms retain the same NUMBER of positives", not "the same positives", because
+# the id it keyed on is a per-arm row index: the same id names chr12 in one arm and chr9 in the
+# other. Recomputed on genomic coordinate the median is unchanged and the minimum moves from
+# 0.9237 to 0.9164.
+positive_set_overlap:
+  n_datasets: 94
+  median_jaccard: {value: 0.9972, tol: 0.0005}
+  min_jaccard:    {value: 0.9164, tol: 0.0005}
+  n_identical: 10
+
 cross_fitting:
   n_datasets: 94
   # The 2-mer's true contribution is zero by construction, so a cross-fitted value near zero is

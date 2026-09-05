@@ -2030,6 +2030,35 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_positive_set_overlap(T, g):
+    """How much the two composition-matched arms' POSITIVE sets differ.
+
+    The design claim is that only the negatives change. This is the measurement of how nearly
+    that holds, and it is gated because the table it reads had no producing script at all until
+    scripts/provenance.py went looking -- while the Discussion quoted three numbers out of it.
+    """
+    print("\npositive-set overlap  (is 'only the negatives change' true?)")
+    d = T.get("positive_set_overlap.csv")
+    if d is None:
+        return record(False, "positive_set_overlap.csv present", "MISSING",
+                      "run scripts/positive_set_overlap.py --store ../rbp-store")
+    spec = g["positive_set_overlap"]
+    record(len(d) == spec["n_datasets"], "datasets", len(d), spec["n_datasets"])
+    j = d["jaccard"].astype(float)
+    near("median Jaccard of the positive sets", float(j.median()), spec["median_jaccard"])
+    near("minimum Jaccard", float(j.min()), spec["min_jaccard"])
+    record(int((j == 1).sum()) == spec["n_identical"],
+           "datasets whose positive sets are identical", int((j == 1).sum()),
+           spec["n_identical"])
+    # THE MEASURE ITSELF. The committed column was once min(n)/max(n), which is a count ratio
+    # and agrees with a real set overlap whenever the arms happen to retain the same windows.
+    # Asserting they DISAGREE somewhere is what stops the count ratio coming back unnoticed.
+    ratio = d[["n_pos_gc", "n_pos_dn"]].min(axis=1) / d[["n_pos_gc", "n_pos_dn"]].max(axis=1)
+    record(bool(((ratio - j).abs() > 1e-6).any()),
+           "the column is a set overlap and not a count ratio", "differs on some dataset",
+           "must differ somewhere")
+
+
 def verify_cross_fitting(T, g):
     """The outer-fold information route, measured by closing it.
 
@@ -4701,7 +4730,7 @@ def main():
                verify_region_annotation, verify_gene_clustered_cv, verify_window_centring,
                verify_device_portability, verify_matching_robustness,
                verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
-           verify_cross_fitting,
+           verify_cross_fitting, verify_positive_set_overlap,
                verify_cache_evidence, verify_cross_tables, verify_integrity):
         try:
             fn(T, g)

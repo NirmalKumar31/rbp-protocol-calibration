@@ -82,7 +82,7 @@ every table below are in `results/tables/SCHEMA.md`.
 python scripts/verify.py --local results/tables
 ```
 
-959 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+964 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 

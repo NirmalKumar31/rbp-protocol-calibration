@@ -48,6 +48,41 @@ rm /tmp/rbp-modal.json
 If a `rbp-gcp` secret already exists from a previous project, **delete it first** -- Modal
 will not overwrite, and stage 9 would silently write into the old project's bucket.
 
+```bash
+modal secret list | grep rbp-gcp        # is one already there, and from when?
+modal secret delete rbp-gcp             # if so, before creating
+```
+
+### The key's lifecycle, which does not end when the run does
+
+A service-account key is a bearer credential with no expiry. GCP will not rotate it, Modal will
+not expire it, and `rm /tmp/rbp-modal.json` above deletes only the local copy -- the key itself
+stays valid in GCP and in Modal's secret store until someone revokes it. An external review
+asked for this to be written down and it was not; here it is.
+
+**Scope.** `rbp-modal` holds object read/write on the derived bucket and nothing else.
+Terraform grants no project-level role to it, so a leaked key reaches derived artefacts and not
+compute, billing or IAM. That is the blast radius to reason about.
+
+**When the run ends, revoke it.** Both halves, in this order, so a job that is still running
+fails loudly rather than silently losing its output:
+
+```bash
+modal secret delete rbp-gcp
+gcloud iam service-accounts keys list \
+  --iam-account=rbp-modal@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
+gcloud iam service-accounts keys delete KEY_ID \
+  --iam-account=rbp-modal@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
+```
+
+**Rotation, if a run spans weeks.** Create the new key, update the Modal secret, confirm one
+task succeeds, then delete the old key id. The list command above shows creation dates, and a
+key older than the run it was minted for is one nobody is tracking.
+
+**What is deliberately not automated.** Terraform contains no `google_service_account_key`
+resource, because that stores the private key in Terraform state in plaintext and the state
+bucket is a different security boundary from the secret store. The manual step is the point.
+
 ---
 
 ## Step 1. Point the pipeline at your project

@@ -61,6 +61,9 @@ step "verifier"
 step "release documents are consistent with the artefacts"
 "$PY" scripts/release_consistency.py || fail "release_consistency.py"
 
+step "every committed table has a producing script"
+"$PY" scripts/provenance.py --check || fail "provenance.py"
+
 step "ruff"
 if "$PY" -m ruff --version >/dev/null 2>&1; then
   "$PY" -m ruff check . || fail "ruff"

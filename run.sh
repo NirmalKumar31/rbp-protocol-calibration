@@ -322,6 +322,7 @@ s13b_local_analysis() {
   "$PY" scripts/negative_set_survey.py || die "negative-set survey"
   "$PY" scripts/estimator_floor.py --from-cache || die "estimator floor"
   "$PY" scripts/cross_fitting.py --from-cache || die "cross-fitting"
+  "$PY" scripts/positive_set_overlap.py --from-cache || die "positive-set overlap"
   "$PY" scripts/shuffled_arm.py --from-cache || die "shuffled fourth arm"
   "$PY" scripts/multiplier_variance.py || die "multiplier variance"
   "$PY" scripts/score_scale_check.py --from-cache || die "score scale"
