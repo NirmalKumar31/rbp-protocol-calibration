@@ -79,7 +79,32 @@ TABLES = ROOT / "results" / "tables"
 MANUSCRIPT_DIR = ROOT / "manuscript"
 # Every manuscript section is audited, not a single file: a value can be correct in one place
 # and mistyped in another, and the submitted prose is what a referee reads.
-MANUSCRIPT = sorted(MANUSCRIPT_DIR.glob("*.md")) + sorted((MANUSCRIPT_DIR / "sections").glob("*.tex"))
+#
+# paper.tex WAS NOT IN THIS LIST, and it holds the title and the abstract. The glob was
+# `*.md` in a directory that contains no .md file, plus `sections/*.tex`, so the two hundred
+# words a referee reads first were the only prose in the manuscript that no check had ever
+# traced. That is where the false "94 of 94" lived. A file list assembled by two globs is a
+# file list nobody re-reads; this one is now explicit about the root document.
+#
+# THE RELEASE DOCUMENTS ARE AUDITED TOO, for the same reason and one commit later. An external
+# review found eight stale figures -- 28 pages against 48, 768 assertions against 937, 20
+# references against 26 -- every one of them in a .md file, because the scan had only ever
+# looked at manuscript/. The numbers were not less public for being in README.md; they were
+# less checked. Anything a reader is handed and may act on is scanned.
+#
+# NOT EVERY .md, AND THE LIST IS WRITTEN OUT RATHER THAN GLOBBED. docs/architecture.md,
+# docs/cloud-setup.md and docs/operating.md are a run chronicle: pasted shell output, HTTP
+# status codes, Batch task indices, wait-loop arithmetic. Globbing docs/ pulled 40 such
+# integers in as orphans -- 403, 488, BATCH_TASK_INDEX=167 -- none of which any result table
+# could ever source, and a gate whose output is mostly false positives is a gate that gets
+# skimmed. The distinction is whether a reader would act on the number, not whether it is
+# published. A glob would silently re-acquire the chronicle the next time one is added.
+RELEASE_DOCS = [ROOT / "README.md", ROOT / "SUBMISSION.md",
+                ROOT / "docs" / "REPRODUCE.md", ROOT / "docs" / "PANELS.md",
+                ROOT / "docs" / "ZENODO.md"]
+MANUSCRIPT = ([MANUSCRIPT_DIR / "paper.tex"]
+              + sorted((MANUSCRIPT_DIR / "sections").glob("*.tex"))
+              + [p for p in RELEASE_DOCS if p.exists()])
 GOLDEN = ROOT / "config" / "golden.yaml"
 
 # This script's own output lives in results/tables/ and its `value` column IS the orphan list,
@@ -219,6 +244,26 @@ def int_haystack(allow_golden=False):
     cfgp = ROOT / "config" / "params.yaml"
     if cfgp.exists():
         walk(yaml.safe_load(cfgp.read_text()))
+
+    # THE PANEL FILES ARE THE PANEL. docs/PANELS.md exists to explain why the study's dataset
+    # counts differ between analyses, and it does that by quoting the boundary cases -- NCBP2
+    # matches 384 pairs under GC and 406 under dinucleotide, so it clears the 400 floor in one
+    # arm only. Those numbers are committed, in config/panel_{final,excluded}_*.tsv, and were
+    # orphans purely because the haystack stopped at results/tables/. A document explaining an
+    # artefact must be allowed to quote it.
+    #
+    # THE EXCLUDED FILES ONLY, and only their pairs column. Adding the FINAL panels too was
+    # tried and reverted in the same sitting: it put 312 integers into an 855-value haystack
+    # and drove the integer false-negative rate from 29.4% to 37.3%, so 422 checked counts each
+    # became measurably easier to fabricate in order to source one number in one document. That
+    # is the trade this script's docstring warns about, made in miniature. The excluded panels
+    # add about 110 values, they are where a boundary case lives by definition, and PANELS.md
+    # quotes them because explaining why a dataset was dropped IS what that file records.
+    for pf in sorted((ROOT / "config").glob("panel_excluded_*.tsv")):
+        for ln in pf.read_text().strip().splitlines()[1:]:
+            parts = ln.split("\t")
+            if len(parts) >= 3:
+                add(parts[2])
 
     for p in sorted(TABLES.glob("*.csv")) + sorted(TABLES.glob("*.tsv")):
         if p.name == SELF:

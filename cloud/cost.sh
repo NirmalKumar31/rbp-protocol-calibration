@@ -29,6 +29,30 @@ RAW="${RAW_BUCKET:-${PROJECT_ID}-raw}"
 
 set -uo pipefail
 
+# NOT set -e, deliberately: this script's job is to print every section even when one query
+# fails, and half a cost report is more useful than none. But an unreported failure is worse
+# than either, because every query below silences stderr and every "none" then reads as "no
+# money is being spent" when it may mean "we could not ask". A safety tool that cannot
+# distinguish an observed zero from a failed observation is a safety tool that lies in exactly
+# the situation it exists for.
+#
+# So failures are counted and reported, and the script exits non-zero if any occurred.
+GCLOUD_FAILURES=0
+q() {
+  # q <description> <gcloud args...>  -- stdout on success, "" and a counted warning on failure
+  local what="$1"; shift
+  local out rc
+  out=$("$@" 2>/tmp/rbp_cost_err.$$); rc=$?
+  if [ $rc -ne 0 ]; then
+    GCLOUD_FAILURES=$((GCLOUD_FAILURES + 1))
+    echo "  !! COULD NOT QUERY ${what} (exit ${rc}): $(head -c 160 /tmp/rbp_cost_err.$$)" >&2
+    rm -f /tmp/rbp_cost_err.$$
+    return 1
+  fi
+  rm -f /tmp/rbp_cost_err.$$
+  printf '%s' "$out"
+}
+
 PROJECT="${PROJECT:-${PROJECT_ID}}"
 # NO DEFAULT. A billing account ID is a credential-adjacent identifier and must not live in a
 # public repository; this used to carry the real one as a default so the script "just worked".
@@ -42,9 +66,10 @@ echo "=========================================================="
 echo
 echo "RUNNING COMPUTE (this is what can still be stopped)"
 
-vms=$(gcloud compute instances list --project "$PROJECT" \
-        --format="value(name,machineType.basename(),status)" 2>/dev/null)
-if [ -z "$vms" ]; then echo "  VMs:              none"; else echo "$vms" | sed 's/^/  VM: /'; fi
+vms=$(q "compute instances" gcloud compute instances list --project "$PROJECT" \
+        --format="value(name,machineType.basename(),status)") \
+  && { [ -z "$vms" ] && echo "  VMs:              none" || echo "$vms" | sed 's/^/  VM: /'; } \
+  || echo "  VMs:              UNKNOWN (query failed)"
 
 batch=$(gcloud batch jobs list --project "$PROJECT" --location us-central1 \
           --filter="status.state:(QUEUED OR SCHEDULED OR RUNNING)" \
@@ -61,7 +86,12 @@ echo
 echo "STORED DATA (recurring; ~\$0.02/GB/month for standard storage)"
 total=0
 for b in raw derived artifacts tfstate; do
-  bytes=$(gcloud storage du -s "gs://${PROJECT}-${b}" 2>/dev/null | awk '{print $1}')
+  # A failed du used to become 0 GB, so an auth error printed a reassuring "0.00 GB TOTAL".
+  if ! raw_du=$(q "gs://${PROJECT}-${b} size" gcloud storage du -s "gs://${PROJECT}-${b}"); then
+    printf "  %-12s  UNKNOWN (query failed)\n" "$b"
+    continue
+  fi
+  bytes=$(printf '%s' "$raw_du" | awk '{print $1}')
   bytes=${bytes:-0}
   total=$((total + bytes))
   printf "  %-12s %8.2f GB\n" "$b" "$(echo "$bytes / 1073741824" | bc -l)"
@@ -89,3 +119,10 @@ echo "  gcloud batch jobs list --project $PROJECT --location us-central1 \\"
 echo "    --format='value(name)' | xargs -I{} gcloud batch jobs delete {} --quiet"
 echo "  gcloud ai custom-jobs list --project $PROJECT --region us-central1 \\"
 echo "    --format='value(name)' | xargs -I{} gcloud ai custom-jobs cancel {} --quiet"
+
+if [ "$GCLOUD_FAILURES" -gt 0 ]; then
+  echo
+  echo "  ${GCLOUD_FAILURES} query/queries FAILED. Anything reported as none or 0 above may be"
+  echo "  unobserved rather than absent. Check credentials before trusting this report."
+  exit 1
+fi

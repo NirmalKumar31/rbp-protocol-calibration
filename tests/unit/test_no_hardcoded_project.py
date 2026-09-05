@@ -17,7 +17,20 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-FORBIDDEN = re.compile(r"rbp-composition-2026")
+# A PATTERN, NOT A NAME. This was the literal string `rbp-composition-2026` -- the project the
+# study started in -- and it stayed that way after the move to `rbp-repro-2026`. So the test
+# whose docstring says it "is the only thing that stops the habit coming back" spent the whole
+# second half of the project guarding a name nothing used any more, while the habit came back
+# under the new one: scripts/device_portability.py carried `rbp-repro-2026-derived` as an
+# argparse default, and docs/REPRODUCE.md claimed in the same breath that no such literal
+# existed anywhere in the source. An external review found it; this test could not.
+#
+# The pattern matches this project's id shape in any generation, plus the -derived and -raw
+# bucket suffixes built from it. It deliberately does NOT try to match every possible GCP
+# project id: a generic matcher would fire on `ci-no-such-project` in the CI workflow and on
+# every hyphenated word in a docstring, and a test that cries wolf gets an exemption added
+# rather than a bug fixed.
+FORBIDDEN = re.compile(r"\brbp-[a-z0-9]+-20\d\d(-derived|-raw)?\b")
 # A BILLING ACCOUNT ID IS THE THING THAT ACTUALLY MATTERS, and this test did not look for it.
 # The real one sat as a shell default in cloud/cost.sh and in a gcloud command in
 # cloud/killswitch/main.py, in a repo whose README claims "no hardcoded project id... a test
@@ -102,11 +115,55 @@ def _files():
                 yield p
 
 
+def _executable_lines(path):
+    """Line numbers whose content is code rather than narration.
+
+    THE RULE IS ABOUT WHAT RUNS, NOT ABOUT WHAT IS WRITTEN. Widening the pattern from one
+    historical project name to the id's shape turned up three more hits, and all three were
+    docstrings explaining why the old bucket returns 403 -- `src/rbp/utils/localstore.py`
+    exists BECAUSE that bucket died, and a docstring that cannot say which bucket is a
+    docstring that has been lobotomised to please a regex. The test already grants docs this
+    exemption for exactly this reason: "Docs describe a specific historical run and should
+    name it."
+
+    A comment cannot redirect a pipeline to the wrong account. An argparse default can, and
+    that is the one this test failed to catch. So comments and docstrings are narration, and
+    every other string literal is code.
+    """
+    text = path.read_text(errors="ignore")
+    if path.suffix != ".py":
+        # Shell, YAML and JSON: whole-line `#` comments only. An inline `#` inside a quoted
+        # string would be mis-stripped, so it is not attempted; over-strictness here is safe.
+        return {i for i, ln in enumerate(text.splitlines(), 1)
+                if not ln.lstrip().startswith("#")}
+    import ast
+    import io
+    import tokenize
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return set(range(1, text.count("\n") + 2))
+    docstring_spans = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            body = getattr(node, "body", [])
+            if (body and isinstance(body[0], ast.Expr)
+                    and isinstance(body[0].value, ast.Constant)
+                    and isinstance(body[0].value.value, str)):
+                docstring_spans.append((body[0].lineno, body[0].end_lineno))
+    narration = {i for a, b in docstring_spans for i in range(a, b + 1)}
+    for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+        if tok.type == tokenize.COMMENT:
+            narration.add(tok.start[0])
+    return set(range(1, text.count("\n") + 2)) - narration
+
+
 @pytest.mark.parametrize("path", sorted(_files(), key=str), ids=lambda p: str(p.name))
 def test_no_hardcoded_project_id(path):
+    code = _executable_lines(path)
     hits = [f"{i}: {ln.strip()}"
             for i, ln in enumerate(path.read_text(errors="ignore").splitlines(), 1)
-            if FORBIDDEN.search(ln)]
+            if i in code and FORBIDDEN.search(ln)]
     assert not hits, (
         f"{path.relative_to(ROOT)} hardcodes the project id:\n  " + "\n  ".join(hits) +
         "\nResolve it through rbp.utils.cloud (python) or $PROJECT_ID (shell) instead.")

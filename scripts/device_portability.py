@@ -36,6 +36,8 @@ from rbp.utils.log import log
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from rbp.utils import cloud as cloudcfg  # noqa: E402
+
 TABLES = ROOT / "results" / "tables"
 DATASET = ("K562", "ELAC2", "cnn", "neg2_rm")
 FOLDS = 5
@@ -107,7 +109,11 @@ def build(store, bucket):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--store", default=str(ROOT.parent / "rbp-store"))
-    p.add_argument("--bucket", default="rbp-repro-2026-derived")
+    # Resolved, never literal. This default WAS the literal bucket name, which made
+    # docs/REPRODUCE.md's "no hardcoded project id anywhere in the source" false, and the test
+    # that exists to prevent exactly that missed it because it was watching the previous
+    # project's name. An argparse default is source.
+    p.add_argument("--bucket", default=cloudcfg.derived_bucket())
     p.add_argument("--from-cache", action="store_true")
     a = p.parse_args()
     warnings.filterwarnings("ignore")

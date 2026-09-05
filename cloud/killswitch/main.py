@@ -22,10 +22,21 @@ RE-ENABLING IS DELIBERATELY MANUAL:
 
 If this could re-enable itself the guardrail would be pointless.
 
-TESTED BY DRY RUN, NOT BY FIRING IT. Setting KILL_THRESHOLD_USD low enough to trip on
-current spend proves the whole path -- Pub/Sub delivery, parsing, permissions, the decision
--- while DRY_RUN=true stops it at the last step. Firing it for real would take the project
-down to prove it can take the project down.
+WHAT THE DRY RUN PROVES, AND WHAT IT DOES NOT. Setting KILL_THRESHOLD_USD low enough to trip
+on current spend exercises Pub/Sub delivery, message parsing, the threshold decision, and the
+getBillingInfo READ. It stops before updateBillingInfo, so it does NOT prove the service
+account may perform the write that is the actual stop.
+
+That distinction was missing here for the whole project, and the docstring claimed the dry run
+proved "permissions" without qualification. It cannot: billing-account access and the
+project-level updateBillingInfo permission are granted separately in GCP, and this function
+only ever reads. The two are checked apart now -- `permission_check()` below asks the IAM API
+whether the caller holds the write, which is a read-only question with a real answer.
+
+Firing it for real would take the project down to prove it can take the project down, so the
+remaining honest options are the permission check below or a rehearsal in a disposable
+project. Neither is a substitute for the other: the check can pass while a deny policy or an
+org constraint blocks the call.
 """
 
 import base64
@@ -48,6 +59,32 @@ def billing():
 def is_enabled(api):
     info = api.projects().getBillingInfo(name=PROJECT_NAME).execute()
     return bool(info.get("billingAccountName", ""))
+
+
+def permission_check(api=None):
+    """Does this identity actually hold the permission that constitutes the stop?
+
+    testIamPermissions is a read: it answers "would this call be allowed" without making it.
+    Called at cold start so the answer appears in the logs of every deployment, rather than
+    being discovered at 3am by the one invocation that needed to work.
+
+    A False here means the killswitch is decorative. It does not raise, because a killswitch
+    that refuses to start is worse than one that starts and warns: the threshold logging and
+    the alerting path still have value, and an exception at import would take those too.
+    """
+    want = "resourcemanager.projects.updateBillingInfo"
+    try:
+        crm = discovery.build("cloudresourcemanager", "v1", cache_discovery=False)
+        got = crm.projects().testIamPermissions(
+            resource=PROJECT, body={"permissions": [want]}).execute()
+        ok = want in (got.get("permissions") or [])
+    except Exception as e:                                    # noqa: BLE001
+        print(f"PERMISSION CHECK FAILED TO RUN: {e}. Treat the killswitch as unproven.",
+              flush=True)
+        return None
+    print(f"permission {want}: {'HELD' if ok else 'NOT HELD -- THE KILLSWITCH CANNOT FIRE'}",
+          flush=True)
+    return ok
 
 
 def disable(api):
@@ -80,8 +117,10 @@ def handle(event):
         print("billing already disabled, nothing to do", flush=True)
         return
     if DRY_RUN:
+        held = permission_check()
         print(f"DRY RUN: would disable billing on {PROJECT} "
-              f"(cost {cost:.2f} >= {LIMIT:.2f})", flush=True)
+              f"(cost {cost:.2f} >= {LIMIT:.2f}); write permission "
+              f"{ {True: 'held', False: 'NOT HELD', None: 'unknown'}[held] }", flush=True)
         return
     print(f"DISABLING BILLING on {PROJECT}: cost {cost:.2f} >= {LIMIT:.2f}", flush=True)
     print(disable(api), flush=True)
