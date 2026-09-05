@@ -85,9 +85,14 @@ data/evidence/  per-window out-of-fold scores for all three model classes
    the build if a literal reappears. The test watches a pattern, not one historical name: it
    watched only the old project id for a while, and the current one duly reappeared in an
    argparse default underneath it.
-3. **The panel is an artefact, not a flag** (`manifest/study_panel.tsv` in the derived bucket,
-   and `config/panel_final_{cell}_{arm}.tsv` in the repository for the two composition-matched
-   arms), written once.
+3. **The panel is an artefact, not a flag.** Written once, and committed three ways so a
+   reader never has to take it on trust: `results/tables/supplementary_table_s1.csv` is the
+   study panel of record, with ENCODE accession, experiment and an `in_three_arm_panel` flag
+   per row; `config/panel_final_{cell}_{arm}.tsv` carries each arm's own membership and pair
+   counts; and `manifest/study_panel.tsv` in the derived bucket is what the cloud stages read.
+   `tests/unit/test_panel_is_committed.py` checks the first two against the committed
+   per-window scores, because for a while the bias-aware arms had no panel file at all and
+   their membership was whatever directories existed on one laptop.
 4. **Task counts come from manifests**, never typed by hand.
 5. **Completion markers are written last**, so an interrupted stage redoes its work rather than
    being skipped.

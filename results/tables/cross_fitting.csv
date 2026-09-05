@@ -1,0 +1,30 @@
+check,value,ci_low,ci_high,n,note
+datasets,3.0,3.0,3.0,3,
+"4-mer contribution as published, gc arm",0.04304650076080848,0.008574922110060834,0.10411836383167772,3,
+"4-mer contribution fully cross-fitted, gc arm",0.04453713142328793,0.00993778062632411,0.10550473174908548,3,
+"4-mer outer-fold channel, gc arm",-0.001490630662479453,-0.0017226655537673219,-0.0013628585162632767,3,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer datasets where cross-fitting LOWERS the contribution, gc arm",0.0,,,3,the one-directional claim predicts all of them
+"4-mer contribution as published, dn arm",0.0714243923482274,0.0313997050163779,0.1347963926118254,3,
+"4-mer contribution fully cross-fitted, dn arm",0.07289411897710978,0.0324648748901768,0.1364263286482188,3,
+"4-mer outer-fold channel, dn arm",-0.0014697266288823767,-0.001714073976454844,-0.001065169873798899,3,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer datasets where cross-fitting LOWERS the contribution, dn arm",0.0,,,3,the one-directional claim predicts all of them
+"4-mer contribution as published, neg2 arm",0.033518472164975055,0.013955142516334673,0.05085080741904435,3,
+"4-mer contribution fully cross-fitted, neg2 arm",0.03623609061397907,0.01647738788299591,0.05481643132456793,3,
+"4-mer outer-fold channel, neg2 arm",-0.0027176184490040147,-0.003965623905523574,-0.001664986074827235,3,published minus cross-fitted; positive means the channel inflated the published value
+"4-mer datasets where cross-fitting LOWERS the contribution, neg2 arm",0.0,,,3,the one-directional claim predicts all of them
+"2-mer contribution as published, gc arm",0.005262165197682374,0.0006462243371717635,0.009766061282402316,3,
+"2-mer contribution fully cross-fitted, gc arm",0.0036284959308157485,-6.986263718578023e-05,0.01096523488547152,3,
+"2-mer outer-fold channel, gc arm",0.0016336692668666257,-0.010319010548299756,0.009835923919588097,3,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer datasets where cross-fitting LOWERS the contribution, gc arm",2.0,,,3,the one-directional claim predicts all of them
+"2-mer contribution as published, dn arm",0.011637329167394869,0.0011103703203263482,0.02590793291920579,3,
+"2-mer contribution fully cross-fitted, dn arm",-0.0011658593742496597,-0.00457656895960068,0.0009795549739883835,3,
+"2-mer outer-fold channel, dn arm",0.012803188541644528,0.00013081534633796466,0.03048450187880647,3,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer datasets where cross-fitting LOWERS the contribution, dn arm",3.0,,,3,the one-directional claim predicts all of them
+"2-mer contribution as published, neg2 arm",0.01580774205612216,0.007406476882266033,0.025753574255250378,3,
+"2-mer contribution fully cross-fitted, neg2 arm",0.0018811550301311986,-0.0004936346864318208,0.005976698131789915,3,
+"2-mer outer-fold channel, neg2 arm",0.013926587025990958,0.0072460752372305315,0.0262472089416822,3,published minus cross-fitted; positive means the channel inflated the published value
+"2-mer datasets where cross-fitting LOWERS the contribution, neg2 arm",3.0,,,3,the one-directional claim predicts all of them
+"4-mer three-arm span, as published",2.1308964202390444,,,3,
+"4-mer three-arm span, fully cross-fitted",2.011644129982081,,,3,"the headline quantity, with the channel closed"
+"2-mer three-arm span, as published",3.00403758952387,,,3,
+"2-mer three-arm span, fully cross-fitted",-3.1122929668520505,,,3,"the headline quantity, with the channel closed"

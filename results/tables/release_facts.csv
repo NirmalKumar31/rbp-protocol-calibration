@@ -1,5 +1,5 @@
 check,value,n,note
-tests collected,706,,derived from the built release by scripts/release_consistency.py
+tests collected,716,,derived from the built release by scripts/release_consistency.py
 pages,48,,derived from the built release by scripts/release_consistency.py
 references,26,,derived from the built release by scripts/release_consistency.py
 figure environments,7,,derived from the built release by scripts/release_consistency.py
