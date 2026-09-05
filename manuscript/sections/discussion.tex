@@ -21,7 +21,7 @@ calibrate it.
 \item \textbf{How the negatives were drawn}, in enough detail to rebuild the set: the candidate
   pool, the statistic matched on and its tolerance, the achieved match quality rather than the
   nominal one, and which covariates were left free. The two arms here differ in achieved GC
-  matching in opposite directions at the median and in the tail, so a nominal tolerance does not
+  matching in opposite directions at the median and in the tail; a nominal tolerance does not
   determine what was actually held fixed.
 \item \textbf{The composition-only AUROC under that same protocol}, refit on those windows and
   those folds. It costs one logistic regression on nineteen features, and it is the only summary
@@ -41,7 +41,7 @@ calibrate it.
 \item \textbf{A null increment for the estimator}, obtained by passing through it a model whose
   information the baseline already contains. Here a 2-mer serves, because its score lies in the
   span of the dinucleotide columns, and the estimator returns $+0.0111$ to $+0.0137$ rather than
-  zero. Any increment of that size is not distinguishable from what the estimator returns for
+  zero (Section~\ref{sec:floor}). Any increment of that size is not distinguishable from what the estimator returns for
   nothing, and no study we surveyed reports such a calibration.
 \end{enumerate}
 
@@ -76,7 +76,7 @@ the data identify such a grouping, and say so because the reading is the natural
 the one our own figure invites.
 
 It fails because the grouping is not stable. The statistic correlates a difference with
-its own subtrahend, so it depends on which term is placed on the horizontal axis, and under two
+its own subtrahend, and depends on which term is placed on the horizontal axis, and under two
 of the three defensible choices the dinucleotide arm groups with the bias-aware arm instead of
 with the GC arm. The GC and dinucleotide protocols draw their negatives from the same kind of
 object, so a partition separating them cannot be a partition by kind of object. The only statement
@@ -111,13 +111,15 @@ property of the comparison and the five-fold figure is a property of the AUROC s
 paper's headline magnitude should be read as the latter.
 
 Where the composition baseline stops is an analyst's choice, and
-Section~\ref{sec:orderthree} measures what it costs. Raising it to order three removed most of
-the 4-mer's measured contribution and about a quarter to a third of SpliceBERT's, so for a
+Section~\ref{sec:orderthree} measures what it costs. Its limiting case is
+Section~\ref{sec:shuffled}: shuffling holds composition exactly, the baseline falls to a half,
+and the increment becomes the model's own AUROC. Raising it to order three removed most of
+the 4-mer's measured contribution and about a quarter to a third of SpliceBERT's. For a
 bag-of-$k$-mers model most of what is reported as contribution over composition is one further
 order of composition rather than motif recognition or any positional feature. Any study
 reporting an increment over a composition baseline is reporting a quantity indexed by the order
 of that baseline, and few state which order was used. The protocol dependence survived the
-change and its magnitudes did not, so a benchmark meant to separate model classes rather than
+change and its magnitudes did not. A benchmark meant to separate model classes rather than
 rank them by how much short-range composition they absorb could raise the order of its
 baseline. That recommendation carries a circularity: trinucleotide counts are
 linear aggregates of 4-mer counts, so an order-three baseline is structurally unfavourable to
@@ -170,7 +172,7 @@ panel and over datasets for the subsample. No model larger than 20~M
 parameters was tested, and no published RBP-specific method: the three classes are a capacity
 ladder, not a survey of the methods a benchmark would rank.
 
-Three design parameters were fixed once and never varied, so nothing here speaks to their
+Three design parameters were fixed once and never varied, and nothing here speaks to their
 influence. The class ratio is 1:1 in every arm, one negative per positive, where a genome-wide screen
 faces a far smaller positive fraction. AUROC is invariant to prevalence, and the reported quantities are
 not biased by this. The nested fit is nonetheless estimated at a balance no
@@ -183,20 +185,20 @@ measured rather than left open: rebuilding three alternative assignments under t
 balanced-mass objective and the same minimum of three chromosomes per fold, and refitting the
 4-mer on each, gives contrasts of $+0.0392$, $+0.0396$ and $+0.0393$ against $+0.0398$ on the
 partition we use. The range over the four is 0.0006, an eighth of the protein-clustered
-half-width, so the choice of partition is not carrying the result. Our partition gives the largest of the four, by 0.0006, so the headline sits at the top of
+half-width. The choice of partition is not carrying the result. Our partition gives the largest of the four, by 0.0006, so the headline sits at the top of
 that narrow range and not in the middle of it. Only the 4-mer can be re-partitioned this way: the
-neural sweeps trained on the frozen assignment, so re-partitioning them would compare their old
+neural sweeps trained on the frozen assignment; re-partitioning them would compare their old
 folds against new ones.
 
 A related question is the grouping variable rather than the partition. Windows drawn from one
-gene are correlated, so a fold assignment splitting a gene across folds would leak. Chromosome
+gene are correlated, and a fold assignment splitting a gene across folds would leak. Chromosome
 grouping is strictly coarser than gene grouping and a locus lies on one chromosome, so that
 cannot happen here, and we verified it rather than asserting it: over both
 composition-matched arms, 22 of 825{,}718 gene groups fall in more than one fold, holding 176
 windows. Every one is a gene \emph{name} shared across chromosomes rather than a locus. Of the
 72 such names in GENCODE v45, 36 are pseudo-autosomal chrX/chrY pairs and the remainder are
 multi-copy small-RNA families, the widest sharing one name across 24 chromosomes. Near-identical
-sequence at those loci does sit on both sides of a chromosome split, so family-level similarity
+sequence at those loci does sit on both sides of a chromosome split. Family-level similarity
 is the one leakage channel this design does not close, at a scale of 176 windows in 2.7 million.
 Refitting the 4-mer under gene-clustered folds built to the same balanced-mass objective, which
 splits a median of 22.9 chromosomes across folds and is therefore the \emph{less} conservative
@@ -210,7 +212,7 @@ its peak's midpoint, peaks are not points, and Section~\ref{sec:models} shows th
 signal sits a median 23~nt off that centre. The choice is demonstrably not aligned with the
 signal. The comparison usually asked for, summit-centred against midpoint-centred windows,
 cannot be made here: narrowPeak reserves column 10 for a point-source summit and it is $-1$ in
-every row of every ENCODE eCLIP file in this panel, so no summit exists to centre on. We
+every row of every ENCODE eCLIP file in this panel: no summit exists to centre on. We
 therefore compared the three centres the interval does provide, on ten size-stratified datasets
 rebuilt from the genome in both composition-matched arms: the midpoint, the peak's 5' boundary
 in transcript orientation, which is where the crosslink sits, and the midpoint displaced 25~nt
@@ -221,7 +223,7 @@ of the design parameters left open the window centre is the one that matters mos
 the partition the published choice gives the largest of the three rather than the middle.
 
 Rebuilding the published centring also measures something we had not intended to measure. Both
-matchers sample their candidate windows, so a rebuild is a fresh draw of the same construction
+matchers sample their candidate windows, and a rebuild is a fresh draw of the same construction
 rather than the same negatives, and the spread between draws is the arm's own run-to-run
 variability: at most $5.29\times10^{-5}$ per dataset in the GC arm and $7.90\times10^{-3}$ in
 the dinucleotide arm. The arm constraining fifteen degrees of freedom is the less stable of the
@@ -236,11 +238,11 @@ rebuilt twelve size-stratified datasets under six settings, crossing greedy agai
 per-bucket assignment with three pool sizes. Assignment decomposes exactly by region and
 chromosome, since a candidate can only serve a positive from the same pool, so each bucket is
 solved to optimality. The pool floor had to be scaled alongside the multiple: at the published
-floor of 1500 candidates it binds in 92.3\% of buckets, so varying the multiple alone returns
+floor of 1500 candidates it binds in 92.3\% of buckets; varying the multiple alone returns
 identical negatives and would have tested nothing.
 
 Exact assignment improves the achieved match by 0.0036 to 0.0052 in mean L1, about 2\%, and
-moves the measured contribution by at most 0.0020, so the greedy approximation is defensible on
+moves the measured contribution by at most 0.0020. The greedy approximation is defensible on
 the evidence rather than only on the argument given for it. Pool size does more: mean L1 falls
 from 0.2722 to 0.2259 between the smallest and largest pools. Across all six settings the
 contribution spans 0.0106 and the composition baseline spans 0.0446, and the two move in

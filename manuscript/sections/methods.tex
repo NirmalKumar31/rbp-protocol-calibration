@@ -37,7 +37,7 @@ files the minimum log2 fold-enrichment is 3.0000 and the minimum $-\log_{10}p$ i
 are the criteria of \citet{vannostrand2020}; 91.7\% of the 463{,}091 peaks carry ENCODE's IDR
 label. The positive set is therefore every peak ENCODE called and no weaker ones. Minus-strand
 windows are reverse-complemented
-and transcribed to RNA, so every sequence is the strand the protein sees. Windows containing an
+and transcribed to RNA; every sequence is the strand the protein sees. Windows containing an
 ambiguous base, falling outside the assembly, duplicating an existing window by start
 coordinate, or carrying no region annotation are dropped and counted. Analysis is restricted to
 chr1 to chr22 and chrX; chrY and all scaffolds and alternates are excluded.
@@ -60,7 +60,7 @@ length of each free interval. A candidate is accepted if its GC content is withi
 positive's. The matcher relaxes: after 25 unsuccessful draws the tolerance doubles to 0.10, and
 if 40 draws fail the best candidate seen is accepted provided it is within three times the
 nominal tolerance, that is 0.15. Only the target protein's own
-peaks are excluded, so a GC-matched or dinucleotide-matched negative may be another protein's
+peaks are excluded, and a GC-matched or dinucleotide-matched negative may be another protein's
 binding site. The negative inherits the positive's strand label; the consequences are quantified
 in the Results.
 
@@ -89,8 +89,8 @@ own positive windows. Our version deviates from \citet{horlacher2023} in two way
 pool is the study panel (40 to 48 donor proteins per dataset, median 45) and not a full
 ENCODE survey, and exclusion is by distance from the target's 101~nt windows, not from its
 full peak intervals. Both the donor pool and the target's positives are read from the GC arm's
-window tables, so this arm inherits the GC matcher's retained positive set and its pair count is
-identical to that arm's. Sampling is performed within fold, so every pair stays inside one
+window tables; this arm inherits the GC matcher's retained positive set and its pair count is
+identical to that arm's. Sampling is performed within fold, and every pair stays inside one
 cross-validation fold. These negatives are transcribed, accessible to crosslinking and
 strand-correct by construction, and are not composition-matched in any respect.
 
@@ -139,7 +139,7 @@ median GC gap 4.7 times the GC arm's.
 The dinucleotide arm matches GC better than the GC arm does at the median, 0.0198 against
 0.0297, and worse in the tail, a maximum of 0.4159 against 0.1486 and 85.0\% within 0.05
 against 94.8\%. Both follow from the two matchers' objectives and neither is an error. GC
-content is very nearly a linear functional of the sixteen dinucleotide counts, so a
+content is very nearly a linear functional of the sixteen dinucleotide counts, and a
 nearest-neighbour search minimising $L_1$ over all sixteen pins GC incidentally and tightly for
 a typical pair. The GC matcher instead performs a tolerance test and accepts the first candidate
 inside it, which leaves the achieved gap spread over the acceptance interval rather than driven
@@ -158,7 +158,7 @@ between the composition-matched arms is quantified in the Limitations.
 \subsection{Cross-validation}
 
 Evaluation is grouped 5-fold cross-validation over whole chromosomes. The chromosome-to-fold map
-is frozen once for all datasets in both cell lines, so the fifteen proteins measured in both
+is frozen once for all datasets in both cell lines; the fifteen proteins measured in both
 lines are evaluated on the same chromosomes and a between-line difference cannot be a partition
 artefact. The map was chosen by random-restart hill climbing on peak counts only, never on labels
 or model output, minimising the summed squared deviation from equal mass per fold with every
@@ -175,7 +175,7 @@ fold.
 
 Leakage between folds was audited by exact 32-mer sharing, not by clustered sequence
 identity. A 101~nt window contains 70 distinct 32-mers, and two unrelated sequences share one
-with negligible probability, so a shared 32-mer indicates common origin. Over all 94 datasets,
+with negligible probability, and a shared 32-mer indicates common origin. Over all 94 datasets,
 holding fold 0 out, a median of 2.0\% of held-out windows shared any 32-mer with a training
 window (maximum 24.3\%), a median of 0.08\% shared more than half of their 32-mers, and the
 median dataset contained no window sharing more than 90\%. Chromosome grouping therefore leaves
@@ -189,7 +189,7 @@ dinucleotide frequencies and the Shannon entropy of the window's base compositio
 dropped from each frequency family because frequencies sum to one and retaining all of them
 makes the design singular; dropping a level does not change the space the block spans. Every
 column is standardised over the whole dataset, not within fold; the transform is
-label-free and identical in both terms of every comparison, so it cannot manufacture a
+label-free and identical in both terms of every comparison, and cannot manufacture a
 contribution. GC content is not a feature: it is the spanned combination C$+$G, and
 mononucleotide counts are almost, but not exactly, marginals of dinucleotide counts: over a
 window of length $L$ the dinucleotide counts sum to $L-1$ and recover each base's count only up
@@ -199,7 +199,7 @@ dinucleotide columns (maximum 0.25\% over 25 datasets), and the entropy column a
 nineteenth, nonlinear direction. What the two protocols constrain is nonetheless asymmetric by
 construction, and that asymmetry is what the design argument rests on: GC matching fixes a
 single linear functional of local composition, whereas dinucleotide matching fixes all fifteen
-degrees of freedom of the dinucleotide simplex, so it leaves the baseline strictly less
+degrees of freedom of the dinucleotide simplex, and leaves the baseline strictly less
 compositional variation to exploit. The baseline is refit on each protocol's own windows and is
 never carried between protocols.
 

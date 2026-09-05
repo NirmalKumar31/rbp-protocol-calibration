@@ -55,7 +55,7 @@ Benjamini-Hochberg control within the panel, and 75 of 94 once the measured desi
 The direction of the GC-versus-dinucleotide contrast is implied by the design. The composition
 baseline reads local composition, and the two protocols constrain it asymmetrically: GC
 matching fixes a single linear functional of that composition, whereas dinucleotide matching
-fixes all fifteen degrees of freedom of the dinucleotide simplex, so the arm that constrains
+fixes all fifteen degrees of freedom of the dinucleotide simplex. The arm that constrains
 more must leave the baseline weaker. Only the magnitude of that
 contrast is informative. The position of the bias-aware arm is not implied by the same argument.
 That protocol
@@ -71,7 +71,7 @@ positive's
 strand label, accounted for $-0.0055$ (CI $-0.0089$ to $-0.0022$) of the $+0.0378$ contrast on
 the 40 datasets where the test is possible, leaving 85.4\%. Negatives drawn from untranscribed
 loci accounted for $-0.0043$ (CI $-0.0069$ to $-0.0018$) of the $+0.0414$ contrast on the 84
-datasets with expression data, leaving 89.7\%. The two mechanisms are correlated, so 0.854 and
+datasets with expression data, leaving 89.7\%. The two mechanisms are correlated, and 0.854 and
 0.897 should not be multiplied. On the transcription control, 40.1\% of negatives lie in
 untranscribed loci and 67.6\% are not transcribed on the strand the window is labelled with, but
 both fractions are balanced between the two arms, the first to within $1.2\times10^{-5}$
@@ -117,9 +117,9 @@ is the subject.}
 survives removing it}
 \label{sec:region}
 
-The bias-aware arm's position is the one result here that the design does not imply, so it is
+The bias-aware arm's position is the one result here that the design does not imply, and it is
 the one most exposed to a design asymmetry, and there is one. Both composition-matched
-protocols draw candidates of the same region class as the positive, so region carries nothing:
+protocols draw candidates of the same region class as the positive; region carries nothing:
 a classifier given only the five region dummies scores exactly 0.5000 in both arms, in all 94
 datasets. The bias-aware protocol matches fold only, and there region alone separates the two
 classes at a median AUROC of 0.748, above 0.70 in 67 of 94 datasets, with the positive and
@@ -132,16 +132,16 @@ $p=0.014$).
 Both statements rest on region labels, and the label a matched negative carries is the region
 \emph{pool} the matcher drew it from rather than a classification of the window drawn. Merged
 per-region intervals overlap, because a position can be a coding exon of one isoform and a
-3' UTR of another, so the two need not agree. Recomputing the annotation rule from the same
+3' UTR of another, and the two need not agree. Recomputing the annotation rule from the same
 GENCODE index reproduces the committed label for every one of the 2{,}251{,}282 positives across
 all three arms and differs for 10.33\% and 10.17\% of the GC and dinucleotide arms' negatives.
 It differs for 0.00\% of the bias-aware arm's, whose negatives are other proteins' positives and
 so carry genuine classifications.
 
-That distinction matters for the exact 0.5000 above, so both readings are reported. For the
+That distinction matters for the exact 0.5000 above, and both readings are reported. For the
 region the matcher enforced it is exact, and that is the right quantity for what the matcher
 did. If instead both classes are re-annotated by one rule applied afresh, the composition-matched
-arms sit at a median 0.5483 and 0.5452 rather than at a half, so they are close to
+arms sit at a median 0.5483 and 0.5452 rather than at a half: close to
 uninformative on region but not exactly so. The bias-aware arm's 0.7484 is unchanged by that
 re-annotation, since its labels were already classifications.
 
@@ -159,7 +159,7 @@ that difference is annotation-dependent by roughly a factor of two.
 
 We therefore rebuilt the arm with region matched, stratifying the donor draw on region class
 instead of drawing uniformly within the fold. Every other element of the construction is
-unchanged, and the rebuild keeps all 456{,}734 pairs, so no pair is lost to subsampling. It achieves the match exactly, at a region-only AUROC of 0.5000
+unchanged, and the rebuild keeps all 456{,}734 pairs, with no pair lost to subsampling. It achieves the match exactly, at a region-only AUROC of 0.5000
 and a total variation distance of 0.0000. The composition baseline falls from 0.8248 to 0.8052
 and the contribution from $+0.0122$ to $+0.0092$, so 46\% of the arm's baseline excess over the
 GC arm is region mix and the rest is not. The ordering is unchanged: the region-matched arm
@@ -172,7 +172,7 @@ way a bag of 4-mer counts does not, and the arm whose position the design does n
 corrected for only one model class of three. We therefore trained both neural models on the
 region-matched arm across all 94 datasets and five folds, on the same code path and hardware as
 the published sweeps, 940 fold-runs in total. The 4-mer column recomputed here reproduces the
-independently computed value above to $1.1\times10^{-16}$, so the neural columns beside it are
+independently computed value above to $1.1\times10^{-16}$, and the neural columns beside it are
 measured on the same arm.
 
 The answer does not change for any model class, and the correction moves the result the wrong way
@@ -181,7 +181,7 @@ the 4-mer, the convolutional network and SpliceBERT, and the region-matched arm 
 smallest of the three protocols for every one of them. The span against the dinucleotide arm
 \emph{widens} in all three cases, from 5.42 to 7.20, from 7.42 to 8.40 and from 3.72 to 4.93. A
 result driven by the region confound would have narrowed when the confound was removed.
-SpliceBERT loses the most to the repair, $-0.0114$ against $-0.0030$ and $-0.0013$, so the
+SpliceBERT loses the most to the repair, $-0.0114$ against $-0.0030$ and $-0.0013$: the
 pretrained model was the one leaning hardest on transcript annotation, which is the direction the
 objection anticipated even though the conclusion is unaffected.
 
@@ -200,7 +200,7 @@ baseline is still the higher (0.8184 against 0.7962 for the same datasets' GC ar
 contribution ratio is still below one at 0.641.
 
 We do not propose this arm as a fourth protocol. \citet{horlacher2023}'s negative-2 does not
-match region either, so a region-matched version of it is not the design the field proposed.
+match region either, and a region-matched version of it is not the design the field proposed.
 Its purpose is to measure how much of the arm's baseline is transcript annotation and how much is
 binding-site composition.
 
@@ -233,7 +233,7 @@ also occupy compositionally distinct sites within a region. Both contribute, and
 is about binding-site composition.
 
 One alternative explanation for the arm's deficit is not compositional at all and has to be
-excluded rather than argued away. Many RBPs co-bind the same transcripts, so a negative drawn
+excluded rather than argued away. Many RBPs co-bind the same transcripts, and a negative drawn
 from another protein's binding site may be a site the target also binds, which is a mislabelled
 positive rather than a hard negative, and label noise of that kind depresses any model's
 measured contribution on its own. The construction excludes a donor window within 500~nt of the
@@ -254,7 +254,7 @@ not point the way the explanation requires.
 
 \subsection{No standard reparameterisation removes the protocol dependence}
 
-AUROC is compressive near unity, so a contribution measured against a baseline of 0.82 is
+AUROC is compressive near unity: a contribution measured against a baseline of 0.82 is
 arithmetically smaller than the same contribution measured against 0.63, and part of the
 5.42-fold span comes from the scale itself (Figure~\ref{fig:scale}).
 

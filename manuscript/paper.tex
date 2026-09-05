@@ -79,16 +79,16 @@ matching's one, so only the magnitude is informative. A bias-aware protocol
 drawing negatives from other proteins' binding sites left the highest composition baseline of
 the three and the smallest contribution, 0.012, and there nineteen composition features beat the
 4-mer outright in 53 of 94 datasets. It is also the easiest discrimination for the 4-mer and the
-convolutional network, though not for SpliceBERT, which finds GC matching marginally easier. Apparent difficulty and measured contribution therefore
-move in opposite directions throughout this panel, spanning 5.42-fold for a 4-mer and 3.7 to
+convolutional network, though not for SpliceBERT, which finds GC matching marginally easier.
+Across the three protocols apparent difficulty and measured contribution move in opposite
+directions, spanning 5.42-fold for a 4-mer and 3.7 to
 7.4-fold across three model classes on identical rows. A fourth construction shows what the
 protocol is acting on. Dinucleotide-preserving shuffling makes each negative a permutation of
 its own positive, so the composition baseline takes the same value on both members of every pair
-and sits at exactly 0.5000 in all 94 datasets; the
-contribution there is $+0.2523$ and equals the model's own AUROC less a half. Across the four
-constructions the span is 20.62-fold, and that arm's value is an identity rather than a
-measurement: with the baseline pinned at a half, the contribution is the model's own AUROC less
-a half. What a negative-set protocol moves is the
+and sits at exactly 0.5000 in all 94 datasets. The
+contribution there is $+0.2523$, which with the baseline pinned at a half is the model's own
+AUROC less a half rather than an independent measurement. Across the four constructions the
+span is 20.62-fold. What a negative-set protocol moves is the
 composition baseline, and the contribution follows. On the one externally constructed
 benchmark we tested they move together, so the relation is a property of the protocols compared
 here and not a general law. No standard way of re-expressing an AUROC difference closed the span. We tried eight, including
