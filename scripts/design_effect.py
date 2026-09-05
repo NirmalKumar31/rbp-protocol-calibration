@@ -37,6 +37,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -49,9 +50,6 @@ N_PERM = 20
 SEED = 7
 APPLIED = 1.35
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def block_sd(chrom, start, s_full, s_comp, y, block_nt, rng):

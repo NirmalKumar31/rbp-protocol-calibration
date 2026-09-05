@@ -36,13 +36,11 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from rbp.data import encode  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 PEAKROOT = ROOT.parent / "rna-binding-proteins"
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def peak_intervals(protein, cell):

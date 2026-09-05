@@ -50,13 +50,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parent.parent
 TABLES = ROOT / "results" / "tables"
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def gene_index(gtf):

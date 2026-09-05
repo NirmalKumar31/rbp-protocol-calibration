@@ -39,6 +39,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parent.parent
 TABLES = ROOT / "results" / "tables"
@@ -64,9 +65,6 @@ REHEARSAL_TABLE = "rehearsal_binding_dinuc.csv"
 TOL = 1.0e-9          # sklearn on the same floats; anything above this is drift, not noise
 MIN_DATASETS = 90     # of 95; a few missing folds is a broken mirror, not a broken claim
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def fold_files(cell, protein, model):

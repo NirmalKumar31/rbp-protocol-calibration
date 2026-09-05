@@ -47,6 +47,7 @@ from sklearn.metrics import roc_auc_score  # noqa: E402
 
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 DATA = ROOT.parent / "rbp-store" / "external" / "samples" / "processed" / "ENCODE"
@@ -54,9 +55,6 @@ GENOME = ROOT.parent / "rna-binding-proteins" / "data" / "raw" / "GRCh38.primary
 WIN = 101
 COMP = str.maketrans("ACGTN", "TGCAN")
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def windows(fa, bed, label):

@@ -59,15 +59,13 @@ from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores, composition_features  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 DATA_ROOT = ROOT.parent / "rna-binding-proteins"
 CENTRES = ("midpoint", "five_prime", "shift25")
 ARMS = ("gc", "dn")
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def centre_of(start, end, strand, mode):

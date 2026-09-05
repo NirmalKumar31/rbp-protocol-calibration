@@ -40,13 +40,11 @@ import pandas as pd  # noqa: E402
 
 from rbp.utils import cloud as cloudcfg  # noqa: E402
 from rbp.utils.localstore import uri  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 PANEL_KEY = "manifest/study_panel.tsv"
 CELLS = ("K562", "HepG2")
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def read_arm_panels(bucket, arm):

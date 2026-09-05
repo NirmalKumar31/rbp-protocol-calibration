@@ -36,15 +36,13 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from scale_sweep import TRANSFORMS, fold_range  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ARMS = ("dn", "gc", "neg2")
 MODELS = ("kmer", "cnn", "splicebert")
 N_BOOT = 2000
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def arm_cols(d, model):

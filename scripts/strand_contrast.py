@@ -32,6 +32,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.stats import mannwhitneyu, spearmanr
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -39,9 +40,6 @@ TABLES = ROOT / "results" / "tables"
 N_BOOT = 2000
 SEED = 0
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def boot_rho(x, y, n_boot=N_BOOT, seed=SEED):

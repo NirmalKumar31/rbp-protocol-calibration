@@ -34,12 +34,10 @@ from scipy.stats import wilcoxon                                        # noqa: 
 
 from strand_audit import gene_index, own_strands
 from strand_placebo import n_genes                        # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def frac_sense(path, idx):

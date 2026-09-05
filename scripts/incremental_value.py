@@ -33,6 +33,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 from sklearn.metrics import roc_auc_score
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -40,9 +41,6 @@ TABLES = ROOT / "results" / "tables"
 N_DECILES = 10
 BLOCK = 1_000_000
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def main():

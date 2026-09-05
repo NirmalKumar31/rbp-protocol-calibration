@@ -34,12 +34,10 @@ from deep_model_contrast import MIN_COVERAGE, MODELS, arm_roots, oof  # noqa: E4
 
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.scale_sensitivity import dataset_rows  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def panel(store):

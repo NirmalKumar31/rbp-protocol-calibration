@@ -45,13 +45,11 @@ from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import composition_features  # noqa: E402
 from rbp.eval.nested import _oof_scores  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 SEED = 7
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def build(store, limit):

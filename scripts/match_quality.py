@@ -37,15 +37,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from rbp.data.negatives import dinuc_matrix  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": "processed/gc", "dn": "processed/dinuc", "neg2": "processed/neg2"}
 NOMINAL_GC = 0.05          # config negatives.gc_tolerance
 LADDER = (0.05, 0.10, 0.15)  # nominal, relaxed after 25 misses, best-seen fallback cap
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def pair_distances(d):

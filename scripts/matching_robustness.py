@@ -48,6 +48,7 @@ from rbp.eval.nested import composition_features  # noqa: E402
 from rbp.eval.nested import _oof_scores  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 DATA_ROOT = ROOT.parent / "rna-binding-proteins"
@@ -62,9 +63,6 @@ POOLS = ((4, 750), (8, 1500), (16, 3000))
 ALGOS = ("greedy", "optimal")
 MAX_COST_CELLS = 5e7          # per bucket; above this the candidate set is subsampled
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def buckets_of(positives):

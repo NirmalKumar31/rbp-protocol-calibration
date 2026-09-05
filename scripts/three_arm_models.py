@@ -29,6 +29,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -39,9 +40,6 @@ ARMS = ("dn", "gc", "neg2")
 MODELS = ("kmer", "cnn", "splicebert")
 N_BOOT = 4000
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def main():

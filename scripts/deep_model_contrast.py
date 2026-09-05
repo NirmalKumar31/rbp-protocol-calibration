@@ -54,6 +54,7 @@ from sklearn.metrics import roc_auc_score  # noqa: E402
 
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 # BOTH ARMS' PER-WINDOW SCORES ARE COMMITTED, and that is what makes this table checkable.
@@ -72,9 +73,6 @@ MODELS = ["kmer", "cnn", "splicebert"]
 MIN_COVERAGE = 0.99
 R2 = np.sqrt(2.0)
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def dprime(a):

@@ -39,6 +39,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr, wilcoxon
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -47,9 +48,6 @@ N_BOOT = 2000
 SEED = 0
 Z95 = 1.959963985
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def main():

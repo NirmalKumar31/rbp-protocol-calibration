@@ -51,6 +51,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from rbp.data import annotation as ann  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 DATA_ROOT = ROOT.parent / "rna-binding-proteins"
@@ -62,9 +63,6 @@ RULES = {
     "coding_first": ("cds", "utr5", "utr3", "exon_nc", "intron"),
 }
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def classify_many(index, chrom, mids, priority):

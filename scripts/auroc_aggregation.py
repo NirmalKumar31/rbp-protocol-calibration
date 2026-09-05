@@ -38,12 +38,10 @@ from nested_scale import panel  # noqa: E402
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import _oof_scores, composition_features  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def rank_within(s, folds):

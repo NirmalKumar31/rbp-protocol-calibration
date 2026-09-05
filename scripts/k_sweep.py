@@ -36,6 +36,7 @@ import pandas as pd                                                     # noqa: 
 from scipy.stats import wilcoxon                                        # noqa: E402
 
 from rbp.eval import baseline, nested                                   # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 KS = (3, 4, 5, 6)
@@ -44,9 +45,6 @@ REPRO_TOL = 2.0e-3
 N_BOOT = 2000
 SEED = 0
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def gain(d, k):

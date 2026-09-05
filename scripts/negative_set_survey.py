@@ -27,6 +27,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "results" / "tables"
@@ -68,9 +69,6 @@ SURVEY = [
                "binding peak located within the same transcript"),
 ]
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def main():

@@ -43,15 +43,13 @@ from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores, composition_features  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 DATA_ROOT = ROOT.parent / "rna-binding-proteins"
 ARM_DIR = {"gc": "gc", "dn": "dinuc"}
 K = 5
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def gene_labels(gene_index, chrom, mids):

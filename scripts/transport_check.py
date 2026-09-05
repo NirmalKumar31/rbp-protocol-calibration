@@ -46,6 +46,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize_scalar
 from scipy.stats import spearmanr
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -56,9 +57,6 @@ THEIRS = ("n1", "n2")
 N_BOOT = 2000
 N_NULL = 2000
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def fold_range(d, arms, p):

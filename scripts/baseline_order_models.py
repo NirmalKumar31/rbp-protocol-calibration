@@ -41,13 +41,11 @@ from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ORDERS = (2, 3)
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def main():

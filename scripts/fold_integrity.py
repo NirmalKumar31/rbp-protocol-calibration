@@ -40,6 +40,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -53,9 +54,6 @@ NEIGHBOUR_NT = 1000
 MAX_CHROMS_PER_FOLD = 5      # the frozen map's largest fold holds 5 chromosomes
 MODELS_ALL = ("kmer", "cnn", "splicebert")
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def cross_fold_neighbours(chrom, strand, start, fold):

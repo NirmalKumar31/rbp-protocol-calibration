@@ -83,6 +83,7 @@ from scipy.stats import wilcoxon                                        # noqa: 
 
 from rbp.eval import baseline, nested                                   # noqa: E402
 from rbp.utils import config as cfgmod                                  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 from strand_placebo import pair_key, stratified_pick, subset            # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
@@ -108,9 +109,6 @@ N_BOOT = 2000
 SEED = 0
 DESIGN = "expressed_negative_tpm1_sense"
 
-
-def log(m):
-    print(m, flush=True)
 
 
 # ---------------------------------------------------------------------------------------

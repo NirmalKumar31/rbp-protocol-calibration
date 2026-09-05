@@ -52,12 +52,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from rbp.utils import config as cfgmod  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 CELLS = ("K562", "HepG2")
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def load_positives(gc_root, cell, proteins):

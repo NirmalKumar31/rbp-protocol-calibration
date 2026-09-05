@@ -35,15 +35,13 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": "gc", "dn": "dinuc", "neg2": "neg2"}
 # The published order-two panel means, for the ratio the section exists to report.
 PUBLISHED = {"gc": 0.0265, "dn": 0.0663, "neg2": 0.0122}
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def build(store, limit):

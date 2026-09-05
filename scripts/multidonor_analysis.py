@@ -44,15 +44,13 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from rbp.utils import cloud as cloudcfg  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 PREFIX = "variants/scores_md/"
 BOOT = 5000
 SEED = 0
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def fetch(bucket):

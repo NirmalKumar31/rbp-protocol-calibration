@@ -75,6 +75,7 @@ TABLES = ROOT / "results" / "tables"
 
 from rbp.stats import coef_se                                          # noqa: E402
 from rbp.variants import conservation as cons                          # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 N_BOOT = 2000
 SEED = 0
@@ -82,9 +83,6 @@ BLOCK = 1_000_000
 CAL_SEEDS = 40
 CAL_RHO = np.linspace(0.0, 0.40, 21)
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def z(a):

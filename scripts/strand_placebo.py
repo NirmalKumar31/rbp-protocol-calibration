@@ -46,6 +46,7 @@ import numpy as np                                                      # noqa: 
 import pandas as pd                                                     # noqa: E402
 
 from rbp.eval import baseline, nested                                   # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 from strand_audit import gene_index, own_strands  # noqa: E402                        # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
@@ -56,9 +57,6 @@ DESIGN = "region_x_genedensity_q4"
 N_BOOT = 2000
 SEED = 0
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def pair_key(ids):

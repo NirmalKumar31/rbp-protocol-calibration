@@ -37,6 +37,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from rbp.utils import cloud as cloudcfg  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 MANIFEST = "variants/variant_tasks.tsv"
 DONORS = "variants/donor_tasks.tsv"
@@ -45,9 +46,6 @@ MIN_STRONGER = 2          # donors that must beat the target, where the pool all
 JACCARD_MAX = 0.02        # variant-set overlap ceiling; see module docstring
 SEED = 20260826
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def build(tables: Path, seed=SEED):

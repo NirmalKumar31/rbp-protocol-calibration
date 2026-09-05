@@ -50,14 +50,12 @@ from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ORDERS = (1, 2, 3, 4)
 ARMS = ("gc", "dn", "neg2")
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def build(store, limit):

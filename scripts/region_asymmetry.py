@@ -43,6 +43,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 from sklearn.metrics import roc_auc_score
+from rbp.utils.log import log
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -52,9 +53,6 @@ DIRS = {"dn": "dinuc", "gc": "gc", "neg2": "neg2"}
 SEED = 7
 EPS = 1e-9
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def region_lr_auroc(label, region):

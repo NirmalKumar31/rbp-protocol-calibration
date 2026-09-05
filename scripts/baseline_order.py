@@ -59,14 +59,12 @@ from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _counts, _oof_scores, entropy  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": "processed/gc", "dn": "processed/dinuc", "neg2": "processed/neg2"}
 REPRO_TOL = 5e-3
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def composition(seqs, max_k):
