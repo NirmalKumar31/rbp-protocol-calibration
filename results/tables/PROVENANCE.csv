@@ -13,7 +13,7 @@ cobinding_noise_per_dataset.csv,scripts/cobinding_noise.py,,frozen-only,7e9b44f5
 common_positives.csv,scripts/common_positives.py,s13b_local_analysis,evidence-recomputable,b92ae57035817f11,1568,"""$PY"" scripts/common_positives.py --from-cache || die ""common positives"""
 common_positives_per_dataset.csv,scripts/common_positives.py,s13b_local_analysis,frozen-cache,e07a88e3a3b2886d,19568,"""$PY"" scripts/common_positives.py --from-cache || die ""common positives"""
 cost_of_matching.csv,scripts/cloud_analysis.py,,frozen-only,0b72af61e71d84d4,20248,not invoked by run.sh
-cross_fitting.csv,scripts/cross_fitting.py,s13b_local_analysis,evidence-recomputable,227af58e4ba4e158,6966,"""$PY"" scripts/cross_fitting.py --from-cache || die ""cross-fitting"""
+cross_fitting.csv,scripts/cross_fitting.py,s13b_local_analysis,evidence-recomputable,15f4fd1040832b01,7350,"""$PY"" scripts/cross_fitting.py --from-cache || die ""cross-fitting"""
 cross_fitting_per_dataset.csv,scripts/cross_fitting.py,s13b_local_analysis,frozen-cache,16faf3e01a538636,50773,"""$PY"" scripts/cross_fitting.py --from-cache || die ""cross-fitting"""
 deep_contrast.csv,scripts/deep_model_contrast.py,s13b_local_analysis,evidence-recomputable,50ece4739bb328d3,6313,"""$PY"" scripts/deep_model_contrast.py --from-cache || die ""deep model contrast"""
 deep_contrast_per_dataset.csv,scripts/deep_model_contrast.py,s13b_local_analysis,frozen-cache,94975c418fc3ce5e,75771,"""$PY"" scripts/deep_model_contrast.py --from-cache || die ""deep model contrast"""

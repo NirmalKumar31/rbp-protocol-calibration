@@ -1,7 +1,7 @@
 """Stage 1b: count usable windows per protein across the full ENCODE panel.
 
 Answers the one question the whole design rests on: how many of the 139 K562 eCLIP
-RBPs clear the pre-registered inclusion filter? Runs the deterministic part of
+RBPs clear the pre-specified inclusion filter? Runs the deterministic part of
 preprocessing -- chromosome filter, window centring, region classification, dedup --
 which needs only the peak BEDs and data/interim/regions.pkl. The genome is not
 touched, so this is seconds per protein rather than minutes.

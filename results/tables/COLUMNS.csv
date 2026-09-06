@@ -148,10 +148,10 @@ cost_of_matching.csv,helps_gc,string,,,94,0,2,,,True,,scripts/cloud_analysis.py
 cost_of_matching.csv,helps_dn,string,,,94,0,2,,,True,,scripts/cloud_analysis.py
 cross_fitting.csv,check,string,,yes,47,0,47,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/cross_fitting.py
 cross_fitting.csv,value,float,,,47,1,45,-0.132829,94,94.0,The asserted quantity,scripts/cross_fitting.py
-cross_fitting.csv,ci_low,float,,,47,16,31,-0.00198446,94,94.0,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/cross_fitting.py
-cross_fitting.csv,ci_high,float,,,47,16,31,-0.00140001,94,94.0,Upper bound of the same interval as ci_low,scripts/cross_fitting.py
+cross_fitting.csv,ci_low,float,,,47,13,34,-0.00198446,94,94.0,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/cross_fitting.py
+cross_fitting.csv,ci_high,float,,,47,13,34,-0.00140001,94,94.0,Upper bound of the same interval as ci_low,scripts/cross_fitting.py
 cross_fitting.csv,n,int,count,,47,0,1,94,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/cross_fitting.py
-cross_fitting.csv,note,string,,,47,21,5,,,every centring and scaling fitted on out,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/cross_fitting.py
+cross_fitting.csv,note,string,,,47,19,6,,,every centring and scaling fitted on out,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/cross_fitting.py
 cross_fitting_per_dataset.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/cross_fitting.py
 cross_fitting_per_dataset.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/cross_fitting.py
 cross_fitting_per_dataset.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/cross_fitting.py

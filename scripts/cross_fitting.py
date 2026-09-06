@@ -284,12 +284,40 @@ def main():
             lo, hi = min(m.values()), max(m.values())
             return float(hi / lo) if lo > 0 else float("nan")
 
+        # THE SPANS NEED INTERVALS, AND THE CROSS-FITTED ONE NEEDS ONE MOST. It is the primary
+        # estimand: the published 5.42 is reported beside it for comparability with a
+        # literature that computes the two-stage form, and a primary quantity given without
+        # uncertainty while its comparability analysis has an interval reads as the reverse of
+        # the intended hierarchy. Same protein-clustered draws as everything else here, with
+        # the span recomputed inside each draw rather than the arms' intervals being combined,
+        # because a ratio of two intervals is not the interval of the ratio.
+        def span_ci(col, point, k=k):
+            # NO INTERVAL WHERE THERE IS NO POINT ESTIMATE. The 2-mer cross-fitted span is NaN
+            # because an arm's mean is not positive, which is the correct answer; the draws
+            # that happen to land positive then give ratios up to 174, and printing those
+            # beside a NaN reads as an interval for a quantity that does not exist.
+            if not np.isfinite(point):
+                return "", ""
+            b = np.array([span({a: t[f"k{k}_{col}_{a}"].to_numpy()[i].mean() for a in ARMS})
+                          for i in draws])
+            b = b[np.isfinite(b)]
+            # And no interval if the draws themselves straddle the undefined region often
+            # enough that the surviving ones are a biased subsample of them.
+            if len(b) < 0.95 * len(draws):
+                return "", ""
+            return float(np.percentile(b, 2.5)), float(np.percentile(b, 97.5))
+
+        plo, phi = span_ci("pub", span(pubm))
+        clo, chi = span_ci("cf", span(cfm))
         out.append({"check": f"{k}-mer three-arm span, as published",
-                    "value": span(pubm), "ci_low": "", "ci_high": "", "n": len(t), "note": ""})
+                    "value": span(pubm), "ci_low": plo, "ci_high": phi, "n": len(t),
+                    "note": "the two-stage estimator, retained as the comparability analysis "
+                            "because it is what the surveyed literature computes"})
         out.append({"check": f"{k}-mer three-arm span, fully cross-fitted",
-                    "value": span(cfm), "ci_low": "", "ci_high": "", "n": len(t),
-                    "note": "the headline quantity, with the channel closed; NaN where an "
-                            "arm's mean is not positive, which makes a ratio meaningless"})
+                    "value": span(cfm), "ci_low": clo, "ci_high": chi, "n": len(t),
+                    "note": "THE PRIMARY ESTIMAND for the 4-mer, with the outer-fold channel "
+                            "closed; NaN where an arm's mean is not positive, which makes a "
+                            "ratio meaningless"})
 
     r = pd.DataFrame(out)
     r.to_csv(TABLES / "cross_fitting.csv", index=False)

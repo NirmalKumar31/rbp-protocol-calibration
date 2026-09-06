@@ -2668,8 +2668,15 @@ cross_fitting:
   # the outer training rows changes the answer by less than 1e-4 in all six cells.
   max_cost_of_global_scaling: 0.0001
   min_datasets_floor_lowered: 85    # of 94, per arm
+  # THE HIERARCHY, GATED. span_crossfitted is the paper's PRIMARY estimand and span_published is
+  # the comparability analysis retained because it is what the surveyed literature computes.
+  # Both now carry intervals: a primary quantity reported without uncertainty beside a
+  # comparability analysis that has one reads as the reverse of the intended hierarchy, and
+  # the cross-fitted span had no interval at all until the hierarchy was declared.
   span_published: {value: 5.42, tol: 0.05}
   span_crossfitted: {value: 4.84, tol: 0.10}
+  span_published_ci: [4.43, 6.58]
+  span_crossfitted_ci: [3.98, 5.81]
 
 estimator_floor:
   n_datasets: 94

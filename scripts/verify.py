@@ -1292,7 +1292,7 @@ def verify_three_arm(T, g):
     # THE FALSIFIED PREDICTION, asserted in the direction the data actually went.
     if None not in comp.values() and spec["neg2_must_have_highest_composition"]:
         record(comp["neg2"] == max(comp.values()),
-               "neg2 has the HIGHEST composition baseline (the pre-registered prediction "
+               "neg2 has the HIGHEST composition baseline (the pre-specified prediction "
                "said it would be the lowest)", f"{comp['neg2']:.4f}",
                f"> {max(comp['gc'], comp['dn']):.4f}")
     if None not in gain.values() and spec["neg2_must_have_lowest_gain"]:
@@ -2487,6 +2487,40 @@ def verify_cross_fitting(T, g):
     if None not in (sp, sc):
         record(sc > 3.0, "the protocol span survives closing the route", f"{sc:.2f}x", "> 3x")
 
+    # THE PRIMARY ESTIMAND MUST CARRY AN INTERVAL. Methods names the cross-fitted span primary
+    # and the two-stage span the comparability analysis; the cross-fitted one had no interval
+    # at all while the one it supersedes did, which reads as the reverse of that hierarchy.
+    for row, key, label in (
+            ("4-mer three-arm span, as published", "span_published_ci", "two-stage"),
+            ("4-mer three-arm span, fully cross-fitted", "span_crossfitted_ci",
+             "cross-fitted")):
+        if row not in q.index:
+            continue
+        lo, hi = q.loc[row, "ci_low"], q.loc[row, "ci_high"]
+        try:
+            lo, hi = float(lo), float(hi)
+        except (TypeError, ValueError):
+            record(False, f"the {label} span has an interval", "empty",
+                   "a protein-clustered percentile interval")
+            continue
+        elo, ehi = spec[key]
+        record(abs(lo - elo) < 0.06 and abs(hi - ehi) < 0.06,
+               f"the {label} span's 95% interval", f"[{lo:.2f}, {hi:.2f}]",
+               f"[{elo:.2f}, {ehi:.2f}]")
+    # And the two must overlap: they estimate the same thing with and without one bias route,
+    # so disjoint intervals would mean the correction changed the quantity rather than the
+    # estimator.
+    try:
+        plo, phi = (float(q.loc["4-mer three-arm span, as published", c])
+                    for c in ("ci_low", "ci_high"))
+        clo, chi = (float(q.loc["4-mer three-arm span, fully cross-fitted", c])
+                    for c in ("ci_low", "ci_high"))
+        record(clo < phi and plo < chi,
+               "the primary and comparability spans' intervals overlap",
+               f"[{clo:.2f}, {chi:.2f}] vs [{plo:.2f}, {phi:.2f}]", "overlapping")
+    except (KeyError, TypeError, ValueError):
+        pass
+
 
 def verify_estimator_floor(T, g):
     """The estimator's floor at the order-two baseline, where the truth is exactly zero."""
@@ -3537,7 +3571,7 @@ def verify_transport(T, g):
         rr, rh = must("external rank agreement, raw"), must("external rank agreement, headroom")
         if rr is not None and rh is not None:
             record(rh < rr, "and it FAILS to replicate out of sample -- rank agreement falls "
-                            "under normalisation, which is this script's own pre-registered "
+                            "under normalisation, which is this script's own pre-specified "
                             "falsification criterion", f"{rr:+.3f} -> {rh:+.3f}", "falls")
 
 
@@ -4650,14 +4684,14 @@ def verify_strand_asymmetry(T, g):
 
 
 def verify_strand_placebo(T, g):
-    """The pre-registered strand test: restriction against a REGION-MATCHED placebo.
+    """The pre-specified strand test: restriction against a REGION-MATCHED placebo.
 
     The criteria in golden.yaml were fixed before the experiment ran and must
     not be loosened afterwards. The one thing that DID change is a retraction: with an
     unstratified placebo the excess excluded zero and was reported as a real artifact; matched
     on region it does not, so only a bound is asserted now.
     """
-    print("\nR1  strand placebo  (the pre-registered test)")
+    print("\nR1  strand placebo  (the pre-specified test)")
     d = T.get("strand_placebo.csv")
     if d is None:
         return record(False, "strand_placebo.csv present", "MISSING",

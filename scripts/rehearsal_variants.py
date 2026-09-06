@@ -217,7 +217,8 @@ def transfer(per):
     Correlated ACROSS datasets, with log(pairs) partialled out. Dataset size predicts
     binding AUROC and could predict the variant effect too, in which case a raw
     correlation would be size driving both rather than binding quality driving variant
-    utility. The partial correlation is the pre-registered primary.
+    utility. The partial correlation is the pre-specified primary; it was fixed in this
+    script before scoring, which is an ordering and not a registration.
     """
     b = ROOT / "results/tables/rehearsal_binding.csv"
     if not b.exists():
@@ -243,7 +244,7 @@ def transfer(per):
     print("  binding AUROC vs controlled variant coefficient:")
     print(f"    Pearson  r = {r:+.3f}")
     print(f"    Spearman   = {spearmanr(x, y).statistic:+.3f}")
-    print(f"    PARTIAL (log pairs out) = {pr:+.3f}   <- pre-registered primary")
+    print(f"    PARTIAL (log pairs out) = {pr:+.3f}   <- pre-specified primary")
     print(f"  size confound: corr(log pairs, binding AUROC) = "
           f"{np.corrcoef(lp, x)[0,1]:+.3f}, "
           f"corr(log pairs, variant coef) = {np.corrcoef(lp, y)[0,1]:+.3f}")

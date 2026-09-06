@@ -37,12 +37,14 @@ per-dataset ratios in which both arms are positive. Across the three arms the co
 
 Every span in this section is the two-stage estimator described in Section~\ref{sec:models}:
 one set of out-of-fold model scores fed into a second cross-validation, which is what this
-literature computes. Section~\ref{sec:crossfit} shows that estimator carries an information
-route that a fully cross-fitted one does not, and reports what closing it does. For the 4-mer
-the span becomes 4.84-fold. We report the two-stage figures throughout because they are what
-all three model classes have and what the surveyed literature would produce, and we recommend
-the cross-fitted estimator for future work; where the distinction changes a number, both are
-given.
+literature computes. It is not the primary estimator. Section~\ref{sec:crossfit} shows it
+carries an information route that a fully cross-fitted one does not, and that the route is
+enough to make it return $+0.011$ to $+0.014$ where the truth is zero; the primary estimand,
+defined in Methods, is the cross-fitted 4-mer span of $4.84$-fold (95\% CI $3.98$ to $5.81$).
+The two-stage figures are given throughout as the comparability analysis, because they are what
+all three model classes have, what the surveyed literature would produce, and what a reader
+recomputing this panel with the standard recipe would get. Where the distinction changes a
+number, both are given, and the cross-fitted one is the estimate.
 
 The bias-aware protocol did not behave as we predicted. Because both classes are genuine
 crosslink sites, we expected composition alone to fall towards 0.5 and the contribution to rise.

@@ -975,7 +975,11 @@ def f15():
     ax[0].set_title("a  our data: improves in 3/3, one interval clear of zero", loc="left",
                     fontsize=9)
 
-    # (b) OUT of sample, on their benchmark: both pre-registered criteria fire the wrong way.
+    # (b) OUT of sample, on their benchmark: both pre-specified criteria fire the wrong way.
+    # PRE-SPECIFIED, NOT PRE-REGISTERED. The criteria were fixed in a committed script
+    # before the external data were scored, which orders the two events. There is no
+    # registry, no locked protocol and no independent timestamp, and "pre-registered"
+    # claims all three.
     keys = [("rank agreement", "external rank agreement, raw",
              "external rank agreement, headroom"),
             ("disagreement", "external scale-free disagreement, raw",

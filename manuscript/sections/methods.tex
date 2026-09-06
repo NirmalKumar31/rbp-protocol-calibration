@@ -253,6 +253,70 @@ score; had it been, the fitted and evaluated covariate would sit on different sc
 mismatch would grow with how much the underlying model overfits, which differs sharply between
 a 256-column penalised logistic and a fully fine-tuned transformer. 
 
+\subsubsection*{The estimands, stated}
+
+Write a dataset $d$ as rows $(x_r, y_r)_{r \in R_d}$ partitioned into five chromosome-blocked
+folds $F_1, \dots, F_5$, with $j(r)$ the fold containing row $r$. Let $Z_r \in \mathbb{R}^{19}$
+be the composition block and $\hat{f}^{(-j)}$ a base model of class $m$ fitted on
+$\{r : j(r) \neq j\}$. The out-of-fold score is $s_r = \hat{f}^{(-j(r))}(x_r)$.
+
+For test fold $i$, let $g_i$ be the logistic fit of $y$ on $(Z, s)$ over $\{r : j(r) \neq i\}$
+and $h_i$ the fit of $y$ on $Z$ alone over the same rows. Pooling the out-of-fold linear
+predictors over all five folds gives the \emph{two-stage} contribution
+\begin{equation*}
+\widehat{\Delta}^{\,\mathrm{2S}}_{d,a,m}
+= \mathrm{AUROC}\!\left(\{g_{j(r)}(Z_r, s_r)\}_{r}, y\right)
+- \mathrm{AUROC}\!\left(\{h_{j(r)}(Z_r)\}_{r}, y\right).
+\end{equation*}
+
+This is what the surveyed literature computes, and it is biased upward for the reason set out
+below: for $r \notin F_i$ the covariate $s_r$ came from $\hat{f}^{(-j(r))}$ with $j(r) \neq i$,
+a model whose training set contained $F_i$, so $g_i$ is fitted on a covariate that has seen the
+fold it will be evaluated on. The \emph{cross-fitted} contribution
+$\widehat{\Delta}^{\,\mathrm{CF}}_{d,a,m}$ is identical except that on outer-training rows the
+covariate is replaced by $s_r^{(-i,-j(r))} = \hat{f}^{(-i,-j(r))}(x_r)$, from a base model
+fitted with both folds withheld. That is ten additional base fits per dataset for five folds,
+and it is the only difference between the two.
+
+The panel quantities are the unweighted means over the $D = 94$ datasets and the ratio of the
+extreme arms,
+\begin{equation*}
+\bar{\Delta}_{a,m} = \frac{1}{D}\sum_{d} \widehat{\Delta}_{d,a,m},
+\qquad
+S_m = \frac{\max_a \bar{\Delta}_{a,m}}{\min_a \bar{\Delta}_{a,m}},
+\end{equation*}
+with $a$ ranging over the three protocols. $S_m$ is defined only while all three arm means are
+positive; where one is not, we report the arm means and no ratio.
+
+\paragraph{What these condition on.} The only unit resampled by any interval in this paper is
+the protein. Every estimand above is therefore conditional on: the deterministic selection of
+95 of 189 candidate datasets by pair rank; one negative draw per protocol; one
+chromosome-to-fold partition; the model class and its hyperparameters; the neural
+initialisation; and the retained positives, which differ slightly between the GC and
+dinucleotide arms. These are properties of the estimand and not omissions from it. A quantity
+that integrated over them would be a different quantity, would be wider, and is not what is
+reported anywhere here.
+
+\paragraph{The hierarchy.} $S^{\mathrm{CF}}_{4\text{-mer}}$ is the \textbf{primary} estimand:
+$4.84$ (95\% CI $3.98$ to $5.81$). $S^{\mathrm{2S}}_{4\text{-mer}} = 5.42$ ($4.43$ to $6.58$) is
+retained as a \textbf{comparability analysis}, because it is the quantity a reader
+recomputing our panel with the standard recipe would obtain, and withdrawing it would make this
+work harder rather than easier to check against the literature it calibrates. The primary
+estimand is the cross-fitted one on the ordinary ground that where two estimators of the same
+quantity are available and one is shown to return a positive value when the truth is zero, the
+other is the estimate. Both are reported wherever the distinction changes a number.
+
+For the convolutional network and SpliceBERT only $\widehat{\Delta}^{\,\mathrm{2S}}$ exists.
+Cross-fitting them requires ten additional base fits per dataset per arm, which we did not run.
+At the rates this study measured over 940 recorded runs, \$14.58 per million pairs for the
+convolutional network and \$27.25 for SpliceBERT, one sweep of both models across all three
+arms is about \$57 and cross-fitting them is about ten times that. Every span reported for those two model
+classes is therefore \textbf{exploratory}: it is computed with an estimator this paper
+demonstrates is biased upward for a model the baseline spans, the size of that bias is measured
+only for the k-mer classes, and a higher-capacity base model has more scope to encode the
+withheld fold, not less. We do not extrapolate the k-mer correction to them, and no conclusion
+in this paper rests on the neural spans alone.
+
 One channel inside the estimator remains open and is worth naming, separately from the
 sequence homology discussed above, because it is not removed by scoring out of fold.
 For test fold $i$ the nested model is fitted on the rows of the other folds, and those rows carry
@@ -368,11 +432,17 @@ wider intervals than any stated below. We report the conditional interval becaus
 stochastic stages enough times to integrate over them was not affordable, not because the
 conditioning is negligible.
 
-Two analyses are confirmatory and are the only ones we adjust. The first is the primary
-contrast, the difference in nested contribution between protocols, which the study was built to
-estimate. The second is the recommendation test of Section~\ref{sec:recommendation}, whose two
-falsifying criteria were fixed before the external data were scored and whose interval is
-Bonferroni-corrected over the three protocol pairs. Everything else here is exploratory. That
+Two analyses are primary and are the only ones we adjust. \textbf{This study was not formally
+preregistered}: there is no public registration, locked protocol or independent timestamp for
+any of it, and an earlier draft of this paragraph called these two analyses confirmatory, which
+overstates what the preserved evidence supports. The first is the primary contrast, the
+difference in nested contribution between protocols, which the study was built to estimate. The
+second is the recommendation test of Section~\ref{sec:recommendation}, whose two falsifying
+criteria were fixed in the analysis script and committed before the external data were scored,
+and whose interval is Bonferroni-corrected over the three protocol pairs; that commit is the
+only timestamp, it is a repository commit rather than an independent registry, and it
+establishes the order of the two events and nothing stronger. Everything else here is
+exploratory. That
 includes the baseline attribution, the family partition, the order-three contrast, the
 within-panel reversal and the caliper-matched nulls, all of which we report as point estimates
 with intervals rather than as decisions, and none of which is adjusted for the number of

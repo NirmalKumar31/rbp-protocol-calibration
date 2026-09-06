@@ -28,7 +28,7 @@ AND THE SAME TEST FALSIFIES THE PAPER'S RECOMMENDATION OUT OF SAMPLE. recommenda
 names its own falsification criterion: "rank agreement falling, or disagreement rising, under
 normalisation". On Horlacher's 45 datasets both happen -- rank agreement +0.706 -> +0.656 and
 disagreement 0.860 -> 0.908. It is not significant at n = 45, so this is a failure to
-replicate rather than a refutation, but it is the paper's own pre-registered test applied to
+replicate rather than a refutation, but it is the paper's own pre-specified test applied to
 the only data this project did not build, and it points the wrong way.
 
 AND ONE THING THAT SURVIVES AND STRENGTHENS. The 2.00x floor was being compared against 1.0.

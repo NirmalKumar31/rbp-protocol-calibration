@@ -340,7 +340,7 @@ def summarise(m):
     # n=40 computation mixes panels and reported 0.8506 where the honest figure is 0.8429.
     add("fraction of the contrast surviving",
         m.corrected.mean() / m.c_full.mean(),
-        note=f"floor was 0.60, pre-registered; panel's own contrast is "
+        note=f"floor was 0.60, pre-specified; panel's own contrast is "
              f"{m.c_full.mean():+.4f}, not the n=94 +0.0397")
 
     res = pd.DataFrame(out)
