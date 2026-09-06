@@ -4,13 +4,13 @@
 
 Not tagged. `1.0.0` is reserved for the commit that is archived and given a DOI.
 
-The state the manuscript describes. 1008 numeric assertions pass offline against committed
-tables; 728 collected tests; the paper builds warning-clean from a clean export.
+The state the manuscript describes. 1012 numeric assertions pass offline against committed
+tables; 730 collected tests; the paper builds warning-clean from a clean export.
 
 ### The finding
 
-Across 94 paired ENCODE eCLIP datasets, holding the model, the peak set, the chromosome-blocked
-folds and the estimator fixed and varying only how negative windows are built moves a model's
+Across 94 paired ENCODE eCLIP datasets, holding the model class, the peak set, the
+chromosome-to-fold map and the estimator fixed and varying how negative windows are built moves a model's
 measured nested contribution 5.42-fold, while its apparent AUROC moves the opposite way.
 
 ### What the last review round changed

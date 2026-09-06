@@ -41,11 +41,37 @@ def test_a_commented_invocation_is_not_an_invocation(prov, tmp_path, monkeypatch
 
 
 def test_a_cache_is_not_recomputable_from_itself(prov):
-    """--from-cache rebuilds a summary FROM a per-dataset table. The table is an input."""
-    assert prov.classify("x_per_dataset.csv", "x", prov.EVID) == prov.CACHE
-    # And where no per-dataset sibling exists, the summary re-reads itself, so it is the cache.
-    assert prov.classify("no_such_table_xyz.csv", "no_such_table_xyz",
+    """--from-cache rebuilds a summary FROM a committed table. That table is an input.
+
+    Decided by what the script READS, not by matching filenames against the producer's stem.
+    The stem rule failed on alias names: horlacher_arm.py writes horlacher_per_dataset.csv, the
+    stems differ, and an audit found that frozen cache labelled recomputable. These two cases
+    are real rows of the manifest and are the ones that were wrong.
+    """
+    assert prov.classify("horlacher_per_dataset.csv", "horlacher_arm", prov.EVID) == prov.CACHE
+    assert prov.classify("score_scale_per_dataset.csv", "score_scale_check",
                          prov.EVID) == prov.CACHE
+    # A summary its producer does not read back stays recomputable.
+    assert prov.classify("common_positives.csv", "common_positives", prov.EVID) == prov.EVID
+
+
+def test_the_producer_is_the_writer_not_a_reader(prov):
+    """deep_contrast_per_dataset.csv is written by deep_model_contrast.py.
+
+    Ten scripts mention that filename; baseline_order_models.py reads it as an anchor. The
+    grep-based owner() picked the first alphabetically and credited the reader.
+    """
+    w = prov.writers()
+    assert w.get("deep_contrast_per_dataset.csv") == ["deep_model_contrast"], w.get(
+        "deep_contrast_per_dataset.csv")
+
+
+def test_an_f_string_write_is_found(prov):
+    """cloud_rehearsal.py writes rehearsal_binding_{arm}.csv with write_text and an f-string.
+
+    A to_csv-and-literals parser reported that table as having no producer at all.
+    """
+    assert prov.owner("rehearsal_binding_gc.csv", {}) , "f-string writer not resolved"
 
 
 def test_status_ranking_takes_the_hardest_requirement(prov):

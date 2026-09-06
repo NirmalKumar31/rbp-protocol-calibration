@@ -7,8 +7,8 @@ index; nothing here is a summary of the science, which is in `manuscript/paper.p
 
 | bioRxiv asks for | file |
 |---|---|
-| Manuscript PDF | `manuscript/paper.pdf` (52 pages) |
-| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 303 words, no markup |
+| Manuscript PDF | `manuscript/paper.pdf` (53 pages) |
+| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 312 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 
@@ -22,7 +22,7 @@ containing text and display items, and takes supplementary material as separate 
 than as a formatted supplement. Everything below therefore meets the venue as it stands.
 
 What that does NOT settle: a journal submission afterwards will impose its own limits, and the
-ones that would bite are the abstract (303 words against a typical 250) and the main text (52
+ones that would bite are the abstract (312 words against a typical 250) and the main text (53
 pages, 16 table environments). The long-form abstract and the guidance for cutting are kept
 where they can be found again -- see the note above `\begin{abstract}` in `paper.tex` -- and
 `results/tables/PROVENANCE.csv` already identifies which tables are secondary and would move to
@@ -95,7 +95,7 @@ every table below are in `results/tables/SCHEMA.md`.
 python scripts/verify.py --local results/tables
 ```
 
-1008 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+1012 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 

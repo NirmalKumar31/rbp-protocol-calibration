@@ -1,21 +1,23 @@
 check,value,ci_low,ci_high,n,note
 datasets,94.0,94.0,94.0,94,
-"held-out windows sharing any 32-mer with training, mean over all five folds",0.03339572382157999,0.026033237631424188,0.042505147577036176,94,the published figure audited fold 0 only
-"the same, worst fold of each dataset",0.040945916885936684,0.03266108569960041,0.051302674913537294,94,
-"held-out windows sharing more than half their 32-mers, worst fold",0.003939754591330984,0.0026980706028393872,0.005635992106514653,94,
-"fraction of windows the filter removes, dinucleotide arm",0.0022091260552251375,0.001564254606835141,0.002968999832745793,94,
-"fraction of windows the tightening moves, dinucleotide arm",0.01099684361342464,0.007953747663258398,0.014545548791984761,94,
-median across datasets of the per-dataset mean 32-mer sharing,0.019994905928881652,,,94,over all five held-out folds
+"held-out windows sharing any 32-mer with training, mean over all five folds",0.033395723821580035,0.026033237631424233,0.04250514757703622,94,the published figure audited fold 0 only
+"the same, worst fold of each dataset",0.04094591688593672,0.03266108569960045,0.051302674913537336,94,
+"held-out windows sharing more than half their 32-mers, worst fold",0.0039397545913310164,0.002698070602839418,0.005635992106514687,94,
+"fraction of windows the filter removes, dinucleotide arm",0.0022091260552251704,0.0015642546068351717,0.002968999832745831,94,
+"fraction of windows the exhaustive filter removes, dinucleotide arm",0.033151796610242285,0.02584543459746218,0.04212173902615992,94,
+"chromosome-plus-homology groups, median over datasets",3.0,,,94,1 means no partition can satisfy both constraints
+largest chromosome-plus-homology group as a fraction of windows,0.9756503788893567,,,94,median over datasets
+median across datasets of the per-dataset mean 32-mer sharing,0.019994905928881687,,,94,over all five held-out folds
 maximum 32-mer sharing over every dataset and fold,0.2903225806451613,,,94,"the fold-0-only audit reported 24.3%, which understated this"
-"contribution as published, gc arm",0.026513098340627504,0.020384564412688,0.03309605285808229,94,
-"contribution with echoed held-out windows removed, gc arm",0.026335068112021912,0.020236034439236307,0.03280654767832118,94,
-"contribution under homology-grouped folds, gc arm",0.02650149513947631,0.020359798830079278,0.033061766842570284,94,
-"contribution as published, dn arm",0.06626403675115053,0.054073753103355875,0.07990446807174477,94,
-"contribution with echoed held-out windows removed, dn arm",0.06587985531995712,0.05372437939159464,0.07949509861826914,94,
-"contribution under homology-grouped folds, dn arm",0.06620968785360343,0.05398379833300792,0.07991818316699048,94,
-"contribution as published, neg2 arm",0.012231944163197651,0.009754584941553283,0.015055647482416442,94,
-"contribution with echoed held-out windows removed, neg2 arm",0.012160729575197902,0.009691580009467807,0.014942531841198021,94,
-"contribution under homology-grouped folds, neg2 arm",0.012250066632998552,0.009758225756642286,0.01507997339940515,94,
-"three-arm span, as published",5.417293920497092,,,94,
-"three-arm span, filtered",5.417426225341007,,,94,
-"three-arm span, homology-grouped folds",5.404843078587951,,,94,
+"contribution as published, gc arm",0.02651309834062755,0.020384564412688034,0.03309605285808232,94,
+"contribution with echoed held-out windows removed, gc arm",0.026335068112021954,0.02023603443923634,0.03280654767832122,94,
+"contribution with ALL cross-fold sharing removed, gc arm",0.024034966594564108,0.018018876148192465,0.030530188706454676,94,
+"contribution as published, dn arm",0.06626403675115058,0.05407375310335592,0.07990446807174481,94,
+"contribution with echoed held-out windows removed, dn arm",0.06587985531995716,0.053724379391594676,0.07949509861826917,94,
+"contribution with ALL cross-fold sharing removed, dn arm",0.06180118351211196,0.04956073381325579,0.0753441330589063,94,
+"contribution as published, neg2 arm",0.012231944163197693,0.009754584941553318,0.015055647482416473,94,
+"contribution with echoed held-out windows removed, neg2 arm",0.012160729575197947,0.009691580009467848,0.014942531841198068,94,
+"contribution with ALL cross-fold sharing removed, neg2 arm",0.011793184016810404,0.009401896157067631,0.014506765410026885,94,
+"three-arm span, as published",5.4172939204970785,,,94,
+"three-arm span, filtered",5.41742622534099,,,94,
+"three-arm span, all cross-fold sharing removed",5.240415431830662,,,94,

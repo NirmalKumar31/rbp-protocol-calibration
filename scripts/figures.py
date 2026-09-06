@@ -675,7 +675,10 @@ def f10():
     # From the whiskers, not a literal: the clustered interval is wider than the .sem() this
     # panel used to draw, and a hardcoded 0.082 put the tallest value label into the title.
     ax[0].set_ylim(0, top * 1.16)
-    ax[0].set_title("a  same model, same positives: 5.4x", loc="left")
+    # NOT "same model, same positives". The model is refitted per protocol and only 10 of 94
+    # datasets have identical positive sets; the figure is the most-read place that claim
+    # appeared and was the last to be corrected.
+    ax[0].set_title("a  same model class, near-identical positives: 5.4x", loc="left")
 
     # b. per dataset, so it is not an averaging artefact
     lim = [-0.02, max(d.gain_dn.max(), d.gain_gc.max()) + 0.01]

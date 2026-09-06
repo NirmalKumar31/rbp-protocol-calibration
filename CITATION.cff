@@ -3,8 +3,8 @@ cff-version: 1.2.0
 # reader of the results should cite; the two carry the same title on purpose, because the
 # repository has no separate identity from the study it produced.
 title: >-
-  What a sequence model appears to contribute is set by how its
-  negatives were built: analysis code and released evidence
+  Apparent sequence-model contribution depends strongly on
+  negative-set construction: analysis code and released evidence
 message: >-
   If you use this software or its released evidence, please cite
   the preprint. No DOI exists yet: the Zenodo deposit is minted
@@ -20,7 +20,7 @@ repository-code: 'https://github.com/NirmalKumar31/rbp-protocol-calibration'
 abstract: >-
   A calibration study across 94 paired ENCODE eCLIP datasets.
   Holding the model, the peak set, the chromosome-blocked folds
-  and the estimator fixed and varying only how negative windows
+  and the estimator fixed and varying how negative windows
   are constructed moves a model's measured nested contribution
   5.42-fold under the two-stage estimator this literature uses,
   and 4.84-fold under the cross-fitted estimator the paper
@@ -43,8 +43,8 @@ version: 0.9.0
 preferred-citation:
   type: article
   title: >-
-    What a sequence model appears to contribute is set by how its
-    negatives were built: a calibration across 94 ENCODE eCLIP
+    Apparent sequence-model contribution depends strongly on
+    negative-set construction: a calibration across 94 ENCODE eCLIP
     datasets
   authors:
     - given-names: Nirmalkumar

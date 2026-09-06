@@ -223,6 +223,45 @@ TOLERANCE = {"abstract words": 4}
 REQUIRED = {"tests collected", "verify checks"}
 
 
+def title_equality():
+    """The paper's title, as three artefacts state it. A citation importer reads the CFF.
+
+    Not a count, so it does not fit the FACTS table, and it is exactly the class of drift that
+    table cannot catch: for a while the PDF said "depends strongly on" while both CITATION.cff
+    titles still said "is set by", so importing the citation produced a different paper.
+    """
+    import re as _re
+
+    def norm(s):
+        return _re.sub(r"\s+", " ", s).strip().rstrip(".").lower()
+
+    tex = (MANUSCRIPT / "paper.tex").read_text()
+    m = _re.search(r"\\title\{\\bfseries (.*?)\}\n", tex, _re.S)
+    if not m:
+        return []
+    paper = norm(_re.sub(r"[%\\]", " ", m.group(1)))
+    out = []
+    cff = ROOT / "CITATION.cff"
+    if cff.exists():
+        y = __import__("yaml").safe_load(cff.read_text())
+        pref = (y.get("preferred-citation") or {}).get("title", "")
+        if pref and norm(pref) != paper:
+            out.append("CITATION.cff preferred-citation title differs from the manuscript "
+                       f"title:\n      cff:   {norm(pref)}\n      paper: {paper}")
+    pdf = MANUSCRIPT / "paper.pdf"
+    if pdf.exists():
+        try:
+            import pypdf
+            meta = pypdf.PdfReader(str(pdf)).metadata or {}
+            got = norm(str(meta.get("/Title", "")))
+            if got and got != paper:
+                out.append("PDF /Title differs from the manuscript title:\n"
+                           f"      pdf:   {got}\n      paper: {paper}")
+        except ImportError:
+            pass
+    return out
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser()
@@ -311,8 +350,15 @@ def main(argv=None):
         log("  NOT STATED ANYWHERE, so the pattern may have stopped matching rather than the")
         log("  documents having stopped claiming it: " + ", ".join(unstated))
 
+    titles = title_equality()
+    if titles:
+        log("")
+        log("  TITLE MISMATCH between artefacts a citation importer reads:")
+        for x in titles:
+            log(f"    {x}")
+
     log("")
-    if problems or broken or (skipped_required and require_all):
+    if problems or broken or titles or (skipped_required and require_all):
         log(f"  {len(problems)} STALE RELEASE CLAIM(S):")
         for p in problems:
             log(f"    {p}")

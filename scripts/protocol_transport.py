@@ -155,23 +155,47 @@ def main():
             add(f"contribution, trained on {tr}, evaluated on {ev}", t[f"gain_{tr}_on_{ev}"],
                 "diagonal is the published within-arm value" if tr == ev else "")
 
-    # THE DECOMPOSITION. Both are averages of differences taken with the other factor held, so
-    # neither is a main effect from a fitted model; they are the marginal moves the design
-    # actually supports.
+    # A TWO-WAY DECOMPOSITION, WITH AN INTERACTION TERM AND AN INTERVAL.
+    #
+    # The first version of this reported ratio-of-ranges: it took the range of the three
+    # training-arm marginal means (0.0141), the range of the three evaluation-arm marginal means
+    # (0.0438), and called 0.0438/(0.0141+0.0438) = 76% "the share carried by the evaluation
+    # arm". An audit pointed out that is not a decomposition of anything. It has no interaction
+    # term, no uncertainty, and depends on the range functional and on which three arms were
+    # chosen. Two ranges summing to a whole is an arithmetic coincidence, not a partition.
+    #
+    # This is the ordinary balanced two-way sum-of-squares split, computed PER DATASET so the
+    # protein-clustered bootstrap can carry it, and reporting the interaction rather than
+    # folding it into one of the main effects.
     cols = list(ARMS)
+    M = np.stack([[[t[f"gain_{tr}_on_{ev}"].to_numpy(float) for ev in cols] for tr in cols]])
+    M = M[0]                                              # 3 x 3 x n_datasets
+    mu = M.mean(axis=(0, 1))
+    row = M.mean(axis=1) - mu                             # training main effect, 3 x n
+    col = M.mean(axis=0) - mu                             # evaluation main effect, 3 x n
+    inter = M - M.mean(axis=1)[:, None, :] - M.mean(axis=0)[None, :, :] + mu
+    ss_tr = len(cols) * (row ** 2).sum(axis=0)
+    ss_ev = len(cols) * (col ** 2).sum(axis=0)
+    ss_in = (inter ** 2).sum(axis=(0, 1))
+    tot = ss_tr + ss_ev + ss_in
+    good = tot > 0
+    add("share of variance from the TRAINING protocol", ss_tr[good] / tot[good],
+        "balanced two-way sum of squares, per dataset, protein-clustered interval")
+    add("share of variance from the EVALUATION protocol", ss_ev[good] / tot[good],
+        "balanced two-way sum of squares, per dataset, protein-clustered interval")
+    add("share of variance from their INTERACTION", ss_in[good] / tot[good],
+        "omitted entirely by the ratio-of-ranges summary this replaces")
+
+    # The marginal ranges are kept as the descriptive quantities they are, unnormalised, so a
+    # reader can see the raw movement without a ratio being read as a partition.
     tr_eff = np.mean([[t[f"gain_{a1}_on_{ev}"].mean() for a1 in cols] for ev in cols], axis=0)
     ev_eff = np.mean([[t[f"gain_{tr}_on_{a2}"].mean() for a2 in cols] for tr in cols], axis=0)
-    out.append({"check": "spread across TRAINING arms, evaluation held fixed",
+    out.append({"check": "range of training-arm marginal means",
                 "value": float(tr_eff.max() - tr_eff.min()), "ci_low": "", "ci_high": "",
-                "n": len(t), "note": "what the training negatives did to the fitted model"})
-    out.append({"check": "spread across EVALUATION arms, training held fixed",
+                "n": len(t), "note": "descriptive; not a variance component"})
+    out.append({"check": "range of evaluation-arm marginal means",
                 "value": float(ev_eff.max() - ev_eff.min()), "ci_low": "", "ci_high": "",
-                "n": len(t), "note": "what the evaluation negatives did to the measurement"})
-    tot = (tr_eff.max() - tr_eff.min()) + (ev_eff.max() - ev_eff.min())
-    if tot > 0:
-        out.append({"check": "share of the protocol effect carried by the evaluation arm",
-                    "value": float((ev_eff.max() - ev_eff.min()) / tot), "ci_low": "",
-                    "ci_high": "", "n": len(t), "note": ""})
+                "n": len(t), "note": "descriptive; not a variance component"})
 
     r = pd.DataFrame(out)
     # The SUMMARY needs the same guard as the per-dataset table: a smoke run must not replace

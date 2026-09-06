@@ -193,14 +193,23 @@ maximum of 24.3\%, which understated it: the median is unchanged over the full p
 extreme is not.
 
 Chromosome grouping therefore leaves a residue of homologous sequence across folds, and we
-control it two ways rather than only measuring it. Deleting every held-out window that shares
-more than half its 32-mers with a training window removes 0.22\% of windows and moves the panel
-means to $+0.0263$, $+0.0659$ and $+0.0122$, a span of 5.42 against the published 5.42. Pulling
-every homology component that straddles two folds wholly into one of them, which tightens the
-published partition rather than replacing it and moves a mean of 1.1\% of windows, gives
-$+0.0265$, $+0.0662$ and $+0.0123$, a span of 5.40. Neither control is a sequence-identity
-clustering with a tunable threshold, which remains the stronger instrument; both remove the
-sharing that is actually present, and the protocol effect does not depend on it.
+remove it rather than only measuring it. Deleting every held-out window that shares more than
+half its 32-mers with a training window removes 0.22\% of windows and leaves the panel means at
+$+0.0263$, $+0.0659$ and $+0.0122$, a span of 5.42. Deleting every held-out window that shares
+\emph{any} 32-mer with a training window is the strongest form available: it removes all exact
+cross-fold sharing, which the code asserts by re-indexing every 32-mer at stride one afterwards
+and failing if one still crosses a fold. That costs 3.3\% of windows and gives $+0.0240$,
+$+0.0618$ and $+0.0118$, a span of 5.24. The effect is smaller with the homology gone, by about
+7\% of the contribution and 3\% of the span, and it is plainly still there.
+
+We do not report a homology-aware re-partition, because on these data none exists. Requiring a
+split to respect chromosome blocking and also to place every 32-mer-sharing pair in one fold
+means partitioning the graph whose nodes are chromosomes and whose edges are shared 32-mers,
+and repetitive sequence makes that graph nearly complete: its largest component holds 97.6\% of
+a median dataset's windows. Deleting the offending windows, as above, is the only way to satisfy
+both constraints at once. Neither control is a sequence-identity clustering with a tunable
+threshold, which would catch diverged homology that exact matching misses and remains the
+stronger instrument.
 
 \subsection{The composition baseline and the nested contribution}
 
@@ -365,27 +374,25 @@ with intervals rather than as decisions, and none of which is adjusted for the n
 analyses performed. Readers should treat an exploratory interval that just excludes zero
 accordingly.
 
-Per-dataset significance counts are also reported at a design effect applied to the
-DeLong standard error, which is intended to cover two things the estimator does not: that it
-conditions on two score vectors as fixed when both are fitted, and that it treats spatially
-clustered windows as independent. We measured both components instead of assuming them
-(\texttt{scripts/design\_effect.py}). Resampling whole genomic blocks inflates the standard
-error of the contribution by a median factor of 1.100, and the factor is insensitive to block
-length, moving only to 1.104 at 100~kb and 1.138 at 1~Mb, so the objection that a 10~kb block
-is smaller than a gene does not bite. Permuting the model score within fold and refitting gives
-1.048. The measured product is therefore 1.15. We report the counts at that measured value as
-primary, on the same principle applied everywhere else here, that a measurement supersedes a
-figure chosen before it was taken. The value fixed in advance was 1.35, and it is retained as a
-conservative sensitivity: 75 of 94 datasets are significant at 1.15 and 72 of 94 at 1.35,
-against 80 of 94 with no inflation at all. The choice between the two moves three datasets and
-no conclusion. This is the one quantity in the paper that the verification harness cannot check
-from the released evidence, because the block bootstrap needs the genomic coordinates that the
-published per-window score files do not carry.
+Two components of that standard error were measured rather than assumed
+(\texttt{scripts/design\_effect.py}), because the DeLong estimator conditions on two fitted score
+vectors as if fixed and treats spatially clustered windows as independent. Resampling whole
+genomic blocks inflates the standard error of the contribution by a median factor of 1.100,
+insensitive to block length at 1.104 for 100~kb and 1.138 for 1~Mb, and permuting the model
+score within fold and refitting gives 1.048, for a measured product of 1.15 against the 1.35
+fixed in advance. We report those factors because they describe the estimator, and we no longer
+report the per-dataset significance counts they were used to adjust. An earlier draft gave
+counts at each inflation factor and called the measured one primary. That contradicted the
+statistical policy set out above: a variance multiplier applied to an estimator that is not
+valid against a strictly nested null does not make the resulting count a test. The prevalence
+statements in the Results are sign counts, which need no null. This block bootstrap remains the
+one quantity the verification harness cannot check from released evidence, because it needs
+genomic coordinates that the published per-window score files do not carry.
 
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 1008 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 1012 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

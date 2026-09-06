@@ -2061,9 +2061,15 @@ def verify_homology_folds(T, g):
     dr = get("fraction of windows the filter removes, dinucleotide arm")
     if dr is not None:
         at_most("the filter is a light touch", dr, spec["max_dropped_by_filter"])
-    mv = get("fraction of windows the tightening moves, dinucleotide arm")
-    if mv is not None:
-        at_most("and so is the tightening", mv, spec["max_moved_by_tightening"])
+    d0 = get("fraction of windows the exhaustive filter removes, dinucleotide arm")
+    if d0 is not None:
+        at_most("removing all sharing does not gut the data", d0, spec["max_dropped_exhaustive"])
+    cl = get("largest chromosome-plus-homology group as a fraction of windows")
+    if cl is not None:
+        record(cl >= spec["min_collapse_largest"],
+               "no partition can respect both chromosome blocking and homology, so a "
+               "regrouping control is unavailable here", f"{cl:.3f}",
+               f">= {spec['min_collapse_largest']}")
     med = get("median across datasets of the per-dataset mean 32-mer sharing")
     if med is not None:
         near("median 32-mer sharing over all five folds", med, spec["leak_any_median"])
@@ -2073,19 +2079,19 @@ def verify_homology_folds(T, g):
 
     sp = get("three-arm span, as published")
     sf = get("three-arm span, filtered")
-    sh = get("three-arm span, homology-grouped folds")
+    sh = get("three-arm span, all cross-fold sharing removed")
     if sp is not None:
         near("span as published", sp, spec["span_published"])
     if sf is not None:
         near("span with echoed windows removed", sf, spec["span_filtered"])
     if sh is not None:
-        near("span under homology-tightened folds", sh, spec["span_homology"])
-    # THE CONTROL MUST BE A TIGHTENING, NOT A DIFFERENT PARTITION. A version that reassigned
-    # folds from scratch discarded chromosome grouping and raised every contribution; if the
-    # homology span ever drifts far from the published one again, that is the first suspect.
-    if None not in (sp, sh):
-        at_most("tightening the partition barely moves the span, so homology is not carrying "
-                "the result", abs(sh - sp) / sp, 0.05)
+        near("span with all cross-fold sharing removed", sh, spec["span_nosharing"])
+    # The span must SURVIVE the strongest control, not be unchanged by it. An earlier gate
+    # asserted the two were within 5% of each other, which a broken control satisfied trivially
+    # by doing nothing; what matters is that the effect is still large after the sharing is gone.
+    if sh is not None:
+        record(sh > 3.0, "the protocol span survives deleting every cross-fold 32-mer",
+               f"{sh:.2f}x", "> 3x")
 
 
 def verify_negative_draws(T, g):
@@ -2168,18 +2174,27 @@ def verify_protocol_transport(T, g):
         if v is not None:
             near(f"diagonal reproduces the within-arm contribution, {arm}", v, spec[key])
 
-    tr = get("spread across TRAINING arms, evaluation held fixed")
-    ev = get("spread across EVALUATION arms, training held fixed")
-    share = get("share of the protocol effect carried by the evaluation arm")
+    tr = get("range of training-arm marginal means")
+    ev = get("range of evaluation-arm marginal means")
+    st = get("share of variance from the TRAINING protocol")
+    se = get("share of variance from the EVALUATION protocol")
+    si = get("share of variance from their INTERACTION")
+    if st is not None:
+        near("variance share, training protocol", st, spec["share_train"])
+    if se is not None:
+        near("variance share, evaluation protocol", se, spec["share_eval"])
+    if si is not None:
+        near("variance share, interaction", si, spec["share_inter"])
+    if None not in (st, se, si):
+        record(abs(st + se + si - 1.0) < 1e-6, "the three shares partition the variance",
+               f"{st + se + si:.6f}", "1.0")
+        record(se > st, "the evaluation protocol carries more than the training protocol",
+               f"{se:.3f} vs {st:.3f}", "eval > train")
     if tr is not None:
         near("spread across training arms", tr, spec["train_spread"])
     if ev is not None:
         near("spread across evaluation arms", ev, spec["eval_spread"])
-    if share is not None:
-        near("share carried by the evaluation arm", share, spec["eval_share"])
-        record(share > 0.5,
-               "the protocol moves the measurement more than it moves the model",
-               f"{share:.1%}", "> 50%")
+
 
 
 def verify_common_positives(T, g):
@@ -4984,11 +4999,6 @@ def main():
     record(n_ran >= floor, "number of domain checks that ran", n_ran, f">= {floor}",
            "" if n_ran >= floor else "gates were SKIPPED, not passed -- look for missing rows")
 
-    # THE COMPOSITION OF THE COUNT, printed because the single total is two studies added up.
-    print(f"\n  of which {n_paper} belong to this paper, {n_domain_end - n_paper} to the "
-          f"earlier variant-scoring study whose code and evidence remain here and still pass, "
-          f"and {len(checks) - n_domain_end} are the harness checking itself")
-
     bad = [c for c in checks if not c[0]]
 
     # AND CHECK THE MANUSCRIPT'S CLAIM AGAINST WHAT RAN. Writing the count to a table made it
@@ -5044,6 +5054,12 @@ def main():
 
     print("\n" + "=" * 78)
     print(f"{len(checks) - len(bad)}/{len(checks)} checks passed")
+    # THE COMPOSITION, printed here and not earlier. It used to print before the coverage check
+    # was appended, so it announced one harness assertion while verify_summary.csv recorded two
+    # and the three parts did not sum to the total on the line above them.
+    print(f"  {n_paper} belong to this paper, {n_domain_end - n_paper} to the earlier "
+          f"variant-scoring study whose code and evidence remain here and still pass, "
+          f"{len(checks) - n_domain_end} are the harness checking itself")
     if bad:
         print("\nFAILED CLAIMS:")
         for _, claim, got, want, note in bad:

@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 1006
+  min_domain_checks: 1010
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2533,11 +2533,19 @@ homology_folds:
   n_datasets: 94
   leak_any_median: {value: 0.0200, tol: 0.0030}
   leak_any_max:    {value: 0.2903, tol: 0.0100}
-  max_dropped_by_filter: 0.01       # the filter must be a light touch, not a rewrite
-  max_moved_by_tightening: 0.05     # mean fraction of windows the tightening moves
+  max_dropped_by_filter: 0.01       # the >50% filter must be a light touch, not a rewrite
+  max_dropped_exhaustive: 0.10      # removing ALL sharing costs more, but must not gut the data
   span_published:  {value: 5.417, tol: 0.030}
   span_filtered:   {value: 5.417, tol: 0.060}
-  span_homology:   {value: 5.405, tol: 0.060}
+  # ALL exact cross-fold sharing removed. This is the control that actually moves the number,
+  # and that is the point: the >50% filter changes nothing because little is that echoed, while
+  # deleting every window sharing a single 32-mer costs 7% of the contribution and 3% of the
+  # span. The span survives; the honest figure is 5.24 rather than 5.42.
+  span_nosharing:  {value: 5.240, tol: 0.080}
+  # No five-fold partition can respect chromosome blocking AND homology: the largest joint
+  # component holds 97.6% of a median dataset's windows. Asserted so the claim that a
+  # regrouping control is impossible here stays measured rather than remembered.
+  min_collapse_largest: 0.90
 
 # NEGATIVE-DRAW UNCERTAINTY, PROPAGATED RATHER THAN ONLY MEASURED. Every published protocol
 # used one stochastic draw and the protein bootstrap holds it fixed, so the stated intervals
@@ -2565,7 +2573,13 @@ protocol_transport:
   diag_neg2:    {value: 0.0122, tol: 0.0010}
   train_spread: {value: 0.0141, tol: 0.0020}
   eval_spread:  {value: 0.0438, tol: 0.0030}
-  eval_share:   {value: 0.7563, tol: 0.0400}
+  # THE RATIO OF THOSE TWO RANGES WAS REPORTED AS "76% carried by the evaluation arm". It is not
+  # a decomposition: no interaction term, no uncertainty, and two ranges summing to a whole is
+  # arithmetic rather than a partition. Replaced by a balanced two-way sum-of-squares split
+  # computed per dataset, which carries an interval and shows the 22% interaction the ratio hid.
+  share_train: {value: 0.152, tol: 0.020}
+  share_eval:  {value: 0.627, tol: 0.030}
+  share_inter: {value: 0.222, tol: 0.025}
 
 # THE COMMON-POSITIVE SENSITIVITY. The review's P1.1: the protocols do not vary ONLY the
 # negatives, because the matchers reject different positives, and a qualitative reason for

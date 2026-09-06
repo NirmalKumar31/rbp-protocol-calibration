@@ -11,7 +11,7 @@ model class and its hyperparameters rather than a single fitted model.
 nested contribution, under three negative-set protocols. The nested contribution is the
 composition-plus-4-mer column minus the composition-alone
 column by construction. The 4-mer's own AUROC is what a study would report as its headline.
-Model, folds and estimator are identical across arms; positives are identical in 10 of 94
+Model class, folds and estimator are identical across arms and the model is refitted under each; positives are identical in 10 of 94
 datasets and share a median Jaccard of 0.997, as the Limitations set out. $n=94$ datasets.}
 \label{tab:three}
 \small
@@ -1016,7 +1016,7 @@ is why the counts are given.}
 \end{figure}
 
 
-\subsection{Three quarters of the protocol effect is in the evaluation data, not the model}
+\subsection{Most of the protocol effect is in the evaluation data, not the fitted model}
 \label{sec:transport}
 
 Each protocol changes the negatives that a model trains on and the negatives it is scored
@@ -1034,8 +1034,10 @@ refitting it would put the training arm's coefficients against different columns
 Table~\ref{tab:transport} gives all nine combinations. Its diagonal reproduces the published
 within-arm contributions exactly, which is what makes the off-diagonal cells comparable to
 them. Holding the evaluation arm fixed and varying the training arm moves the contribution by
-0.0141; holding the training arm fixed and varying the evaluation arm moves it by 0.0438. The
-evaluation side carries 76\% of the total.
+0.0141; holding the training arm fixed and varying the evaluation arm moves it by 0.0438. A
+balanced two-way decomposition computed per dataset attributes $62.7\%$ of the variance across
+the nine cells to the evaluation protocol (95\% CI 56.6 to 68.4), $15.2\%$ to the training
+protocol (12.7 to 17.8) and $22.2\%$ to their interaction (18.2 to 26.4).
 
 The two effects are not merely unequal, they are different in kind. Training on GC-matched or
 dinucleotide-matched negatives is nearly interchangeable: evaluated on the GC arm the two give
@@ -1045,10 +1047,15 @@ clearly visible: negatives drawn from other proteins' binding sites are a harder
 informative contrast to learn from. What the composition-matching choice moves is almost
 entirely the measurement.
 
-That is the paper's thesis stated as a decomposition rather than an association, and it
-sharpens the recommendation. A contribution measured under one protocol does not transfer to
-another mainly because the protocols disagree about what the model is being asked to
-discriminate, not because they produce different models. Reporting the composition-only AUROC
+The interaction is not negligible and we do not treat it as such: a fifth of the variance is
+in how a particular training protocol meets a particular evaluation protocol, which is what the
+bias-aware row shows concretely. The comparison is also descriptive rather than causal. Off-diagonal
+cells evaluate a model on windows drawn under a protocol it was not fitted for, which is a
+distribution shift as well as a protocol change, and the contributions themselves come from the
+two-stage estimator whose information route Section~\ref{sec:crossfit} identifies. What the
+table supports is that a contribution measured under one protocol does not transfer to another
+mainly because the protocols disagree about what the model is asked to discriminate, rather
+than because they produce different models. Reporting the composition-only AUROC
 under the same protocol is therefore the right correction: it names the evaluation problem,
 which is where the variation is.
 

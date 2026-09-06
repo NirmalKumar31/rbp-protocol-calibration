@@ -19,18 +19,29 @@ THREE THINGS ARE REPORTED, IN INCREASING STRENGTH.
    delete every held-out window that shares more than half its 32-mers with a training window,
    and recompute. This removes the leakage without changing the partition, so nothing else moves.
 
-3. HOMOLOGY-TIGHTENED FOLDS, which is the control reviewers asked for. Windows are linked when
-   they share a 32-mer; any connected component of that graph straddling two chromosome folds is
-   pulled wholly into one of them. No homologous pair can then straddle a split, and chromosome
-   grouping is kept everywhere the two do not conflict. Components are small -- the largest holds
-   0.5% of a dataset's windows -- so this moves a fraction of a percent of windows.
+3. THE EXHAUSTIVE FILTER, which removes ALL cross-fold exact sharing. Delete every held-out
+   window that shares ANY 32-mer with a training window, at stride one. The partition is
+   untouched, so chromosome blocking survives by construction, and the code asserts afterwards
+   that not one indexed 32-mer crosses a fold.
 
-THE FIRST VERSION OF 3 WAS BACKWARDS AND IS WORTH RECORDING. It assigned components to folds
-from scratch, balancing size, which discarded chromosome grouping entirely: two peaks 10 kb
-apart share no 32-mer, so they became free to land on opposite sides of a split. Contributions
-rose, and presenting that as a leakage control would have invited the obvious reply that the
-partition was weaker rather than stronger. Tightening the published partition instead is
-strictly stronger than it, so if the span survives it, it survives both objections at once.
+TWO ATTEMPTS AT A FOLD-REGROUPING CONTROL FAILED AND THE SECOND FAILURE IS THE INTERESTING ONE.
+
+The first assigned homology components to folds from scratch, which silently discarded
+chromosome grouping: two peaks 10 kb apart share no 32-mer and became free to split. The second
+tried to TIGHTEN the chromosome partition by pulling straddling components into one fold. An
+audit tested it and it failed both of its own claims. It indexed a 32-mer only every eight
+bases, so it linked two windows only when their shared sequence sat at the same offset modulo
+eight in both, catching roughly one homologous pair in eight; and moving a component's windows
+left the rest of their chromosomes behind, splitting 9 to 15 chromosomes per dataset that had
+been whole. Measured on three datasets it left 560 to 981 exact 32-mers still crossing folds.
+
+A CORRECT REGROUPING IS NOT MERELY UNIMPLEMENTED, IT IS IMPOSSIBLE HERE, and that is worth
+reporting. Requiring a partition to respect chromosome blocking AND to place every
+32-mer-sharing pair in one fold means taking connected components of the graph whose nodes are
+chromosomes and whose edges are shared 32-mers. Repetitive sequence connects almost everything:
+on AQR:HepG2 and BCLAF1:HepG2 that graph has a SINGLE component holding 100% of windows, and on
+HNRNPC:K562 the largest holds 99.6%. There is no five-fold split satisfying both constraints.
+Deleting the offending windows, which is what 3 does, is the only way to satisfy both.
 """
 
 import argparse
@@ -84,7 +95,42 @@ def components(seqs):
     return list(out.values())
 
 
-def homology_folds(seqs, y, chrom_folds):
+def collapse_check(seqs, chrom):
+    """Would a partition respecting BOTH chromosome blocking and homology exist?
+
+    Nodes are chromosomes, edges join two chromosomes sharing a 32-mer, and the answer is the
+    size of the largest connected component as a fraction of the dataset. Near 1 means no such
+    five-fold partition exists, because everything is in one group.
+    """
+    chroms = sorted(set(chrom))
+    ci = {c: i for i, c in enumerate(chroms)}
+    parent = list(range(len(chroms)))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    idx = defaultdict(set)
+    for s, c in zip(seqs, chrom):
+        for j in range(len(s) - K + 1):
+            idx[s[j:j + K]].add(ci[c])
+    for v in idx.values():
+        v = list(v)
+        r0 = find(v[0])
+        for x in v[1:]:
+            rx = find(x)
+            if rx != r0:
+                parent[rx] = r0
+    grp = defaultdict(set)
+    for i in range(len(chroms)):
+        grp[find(i)].add(chroms[i])
+    biggest = max(sum(1 for c in chrom if c in g) for g in grp.values())
+    return len(grp), biggest / len(seqs)
+
+
+def _unused_homology_folds(seqs, y, chrom_folds):
     """Chromosome folds with every straddling homology component pulled into ONE fold.
 
     THIS ADDS TO THE PUBLISHED PARTITION RATHER THAN REPLACING IT, and the first version of this
@@ -183,18 +229,41 @@ def build(store, limit):
                 ok = False
                 break
 
-            # 3. Homology-grouped folds, replacing the chromosome partition.
-            hf, moved = homology_folds(seqs, y, folds)
-            if hf is None:
+            # 3. The exhaustive filter: delete any held-out window sharing ANY 32-mer with
+            # training. Same partition, so chromosome blocking is untouched, and the
+            # assertion below proves the sharing is gone rather than assuming it.
+            keep0 = np.ones(len(d), dtype=bool)
+            for fv in np.unique(fa):
+                te = fa == fv
+                ref = build_reference([s for s, m in zip(seqs, te) if not m], K)
+                frac = overlap_profile([s for s, m in zip(seqs, te) if m], ref, K)
+                keep0[np.flatnonzero(te)[frac > 0]] = False
+            if keep0.sum() > 200 and len(np.unique(y[keep0])) == 2:
+                ks = [s for s, m in zip(seqs, keep0) if m]
+                kf = fa[keep0]
+                idx = defaultdict(set)
+                for s, fv in zip(ks, kf):
+                    for j in range(len(s) - K + 1):
+                        idx[s[j:j + K]].add(int(fv))
+                crossing = sum(1 for v in idx.values() if len(v) > 1)
+                if crossing:
+                    sys.exit(f"{ds} {arm}: {crossing} 32-mers still cross folds after the "
+                             f"exhaustive filter. The filter is not doing what it claims.")
+                rec[f"gain_nosharing_{arm}"] = gain(ks, y[keep0], kf)
+                rec[f"dropped0_{arm}"] = float(1 - keep0.mean())
+            else:
                 ok = False
                 break
-            rec[f"gain_homology_{arm}"] = gain(seqs, y, hf)
-            rec[f"moved_{arm}"] = moved / len(d)
+            if arm == "dn":
+                ngrp, frac = collapse_check(seqs, list(d.chrom))
+                rec["collapse_groups"] = ngrp
+                rec["collapse_largest"] = frac
         if not ok:
             continue
         rows.append(rec)
         log(f"[{n:3d}/94] {ds:18s} dn {rec['gain_dn']:+.4f} "
-            f"filt {rec['gain_filtered_dn']:+.4f} homol {rec['gain_homology_dn']:+.4f}")
+            f"filt {rec['gain_filtered_dn']:+.4f} nosh {rec['gain_nosharing_dn']:+.4f} "
+            f"(-{100*rec['dropped0_dn']:.1f}%)")
     t = pd.DataFrame(rows)
     if t.empty:
         sys.exit("nothing built; refusing to overwrite the committed table")
@@ -238,7 +307,13 @@ def main():
     add("the same, worst fold of each dataset", t.leak_any_max)
     add("held-out windows sharing more than half their 32-mers, worst fold", t.leak_gt50_max)
     add("fraction of windows the filter removes, dinucleotide arm", t.dropped_dn)
-    add("fraction of windows the tightening moves, dinucleotide arm", t.moved_dn)
+    add("fraction of windows the exhaustive filter removes, dinucleotide arm", t.dropped0_dn)
+    out.append({"check": "chromosome-plus-homology groups, median over datasets",
+                "value": float(t.collapse_groups.median()), "ci_low": "", "ci_high": "",
+                "n": len(t), "note": "1 means no partition can satisfy both constraints"})
+    out.append({"check": "largest chromosome-plus-homology group as a fraction of windows",
+                "value": float(t.collapse_largest.median()), "ci_low": "", "ci_high": "",
+                "n": len(t), "note": "median over datasets"})
     # The two extremes the Methods quote. Reported as plain statistics over datasets rather
     # than bootstrap means, because a maximum has no useful resampling distribution.
     out.append({"check": "median across datasets of the per-dataset mean 32-mer sharing",
@@ -253,14 +328,15 @@ def main():
         add(f"contribution as published, {arm} arm", t[f"gain_{arm}"])
         add(f"contribution with echoed held-out windows removed, {arm} arm",
             t[f"gain_filtered_{arm}"])
-        add(f"contribution under homology-grouped folds, {arm} arm", t[f"gain_homology_{arm}"])
+        add(f"contribution with ALL cross-fold sharing removed, {arm} arm",
+            t[f"gain_nosharing_{arm}"])
 
     def span(cols):
         m = [t[c].mean() for c in cols]
         return float(max(m) / min(m)) if min(m) > 0 else float("nan")
 
     for tag, pat in (("as published", "gain_{}"), ("filtered", "gain_filtered_{}"),
-                     ("homology-grouped folds", "gain_homology_{}")):
+                     ("all cross-fold sharing removed", "gain_nosharing_{}")):
         out.append({"check": f"three-arm span, {tag}",
                     "value": span([pat.format(a_) for a_ in ARMS]),
                     "ci_low": "", "ci_high": "", "n": len(t), "note": ""})
