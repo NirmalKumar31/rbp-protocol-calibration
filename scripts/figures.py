@@ -191,10 +191,15 @@ def f0():
 # --- f1: the cost of the negative-set protocol -------------------------------------------
 
 def f1():
-    """The headline. Same positives, same model, two negative sets.
+    """The headline. One model class, near-identical positives, two negative sets.
 
-    Paired per dataset, because the two arms share their positives -- an unpaired plot
-    would throw away exactly the structure that makes 94/94 meaningful. The panel is 94 paired
+    NOT "same positives, same model": the model is refitted under each protocol and the two
+    arms' positive sets have a median Jaccard of 0.9972, identical in only 10 of 94 datasets.
+    The title text was corrected and this docstring was missed, which is why an audit found the
+    same wrong claim twice in one file.
+
+    Paired per dataset, because the two arms share nearly all of their positives -- an unpaired
+    plot would throw away exactly the structure that makes 94/94 meaningful. The panel is 94 paired
     datasets; earlier counts refer to the candidate pool and do not apply here.
     """
     got = need("cost_of_matching.csv")

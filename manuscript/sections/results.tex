@@ -529,8 +529,10 @@ mononucleotide frequencies, dinucleotide frequencies, GC content and sequence en
 identical between the two members of every pair. The nineteen-feature composition baseline takes
 the same value on both.
 
-We built that fourth arm on the same 94 datasets, the same positives and the same folds
-(Table~\ref{tab:shuffled}). The construction held: dinucleotide counts were preserved for every
+We built that fourth arm on the same 94 datasets and the same folds, taking its positives from
+the GC arm (Table~\ref{tab:shuffled}). Its negatives are permutations of those same positives,
+so within this arm the positive set is shared with the GC arm exactly rather than
+near-identically. The construction held: dinucleotide counts were preserved for every
 pair on the panel, and the composition feature vector was identical to nine decimal places in
 100.00\% of pairs. The composition baseline is therefore not approximately uninformative but
 exactly so, at 0.5000 in every dataset, since no threshold on a tied feature separates the

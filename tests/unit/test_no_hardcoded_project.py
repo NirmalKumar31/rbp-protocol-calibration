@@ -67,10 +67,21 @@ def _tracked():
     trap, not a safety net. The matching is substring-crude, so it can only over-exclude, and
     the git path already covers the superset.
     """
+    out = None
     try:
         out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True,
                              text=True)
     except FileNotFoundError:
+        pass
+    # A NON-ZERO EXIT IS ALSO A FAILURE, and only FileNotFoundError was caught. An unpacked
+    # archive -- a git export, a Zenodo deposit, anything without .git -- still HAS the git
+    # binary, so this ran, printed "fatal: not a git repository", exited 128, and returned an
+    # empty stdout. The loop below then yielded nothing, _TRACKED came out empty, and every
+    # .json file was skipped as untracked. The scan silently stopped checking JSON in exactly
+    # the archival case it exists to protect. Same shape as the cost script reporting an auth
+    # failure as zero spend: an unchecked return code turns "could not look" into "found
+    # nothing".
+    if out is None or out.returncode != 0:
         # .gitignore IS ITSELF ABSENT IN THE IMAGE, which is the second way this fallback
         # failed a build. Treat it as optional: where it exists there are ignored trees to
         # exclude, and where it does not there is nothing to exclude either, because the image
