@@ -108,6 +108,15 @@ def scan():
         rows.append({"check": f"diff lines containing a {kind}", "value": lines[kind],
                      "note": "both sides of the diff, so a scrub commit contributes its "
                              "removal line as well as the original addition"})
+    # The AI co-author trailer, counted rather than typed. SUBMISSION.md records that the
+    # trailer stops at a named commit and why; both numbers in that sentence came out of here
+    # after the manuscript audit refused them as untraceable, which is the rule working.
+    bodies = _git("log", "--all", "--format=%H%x00%b%x00---")
+    trailed = sum(1 for blk in bodies.split("---\n")
+                  if "Co-Authored-By: Claude" in blk)
+    rows.append({"check": "commits carrying an AI co-author trailer", "value": trailed,
+                 "note": "historical; the trailer is no longer added, see SUBMISSION.md"})
+
     total = sum(len(v) for k, v in hits.items() if k != "GCP billing account ID")
     rows.append({"check": "commits containing credential material of any kind", "value": total,
                  "note": "everything except the billing account ID, which is an identifier "

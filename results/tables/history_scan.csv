@@ -1,6 +1,6 @@
 check,value,note
-commits on HEAD,207,
-commits on all refs,217,the scan covers this set
+commits on HEAD,221,
+commits on all refs,231,the scan covers this set
 commits containing a private key block,0,the matched strings are deliberately not printed here
 commit-and-file pairs containing a private key block,0,a file touched in two commits counts twice
 diff lines containing a private key block,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
@@ -25,4 +25,5 @@ diff lines containing a OAuth access token,0,"both sides of the diff, so a scrub
 commits containing a GCP billing account ID,4,the matched strings are deliberately not printed here
 commit-and-file pairs containing a GCP billing account ID,9,a file touched in two commits counts twice
 diff lines containing a GCP billing account ID,11,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits carrying an AI co-author trailer,209,"historical; the trailer is no longer added, see SUBMISSION.md"
 commits containing credential material of any kind,0,"everything except the billing account ID, which is an identifier rather than a credential and is documented in SECURITY.md"

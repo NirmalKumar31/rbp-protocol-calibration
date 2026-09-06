@@ -150,8 +150,9 @@ dollars of compute at current prices, and is not required to check any published
    and a main/supplement split. Neither is required by bioRxiv, and both depend on which
    journal, so neither is done.
 3. **Per-commit AI co-author trailers stop after `202953d`; disclosure moves to the
-   manuscript.** 206 of the first 228 commits carry a `Co-Authored-By: Claude` trailer. That is
-   accurate but it is the wrong granularity: it makes the commit list, which is the first thing
+   manuscript.** Most commits up to that point carry a `Co-Authored-By: Claude` trailer; the
+   count is in `results/tables/history_scan.csv`, generated, because a number typed here is a
+   number that is wrong by the next commit. That is accurate but it is the wrong granularity: it makes the commit list, which is the first thing
    a visitor to the repository sees, read as though no person was involved, and it undersells
    the author's own contribution. From `202953d` the trailer is no longer added. **This is a
    change of granularity and not of disclosure**: the historical trailers are left in place, no
