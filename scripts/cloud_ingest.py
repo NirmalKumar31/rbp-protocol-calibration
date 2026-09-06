@@ -1,6 +1,6 @@
 """Stage 1+2 in the cloud: discover the panel, fetch every raw input, publish to GCS.
 
-WHY THE CLOUD FETCHES THIS RATHER THAN THE LAPTOP UPLOADING IT. The genome alone is 3.1 GB.
+Why the Cloud fetches this rather than the laptop uploading it. The genome alone is 3.1 GB.
 A home connection uploads that in tens of minutes; a GCP VM pulls it from GENCODE in about
 one. Ingress to GCS is free. And the path exercised here is the one the pipeline actually
 uses, so it is tested rather than bypassed.
@@ -10,7 +10,7 @@ python:3.13-slim, which has no gcloud CLI. Installing it would add ~200 MB to an
 374 tasks will pull. `google-cloud-storage` is already a dependency, is faster (resumable
 uploads, no subprocess per file), and can be unit tested.
 
-IDEMPOTENT BY DESIGN. Every artifact is checked for existence in GCS before downloading. A
+Idempotent by design. Every artifact is checked for existence in GCS before downloading. A
 rerun after a spot preemption fetches only what is missing, which matters because this runs
 on a preemptible VM.
 

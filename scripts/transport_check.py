@@ -2,7 +2,7 @@
 
     python scripts/transport_check.py
 
-WHAT THIS RETRACTS, AND IT IS THE PAPER'S TITLE CLAIM. R1m says "no monotone rescaling recovers
+What this retracts, and it is the paper's title claim. R1m says "no monotone rescaling recovers
 a protocol-free quantity: over eight transforms the range never falls below 2.00x". A hostile
 reader pointed out that g/(1-comp) is not a coordinate, it is the p = 1 member of a
 one-parameter family, and the sweep stopped exactly at the member that happens to be the
@@ -17,21 +17,21 @@ literally worded. The old escape hatch -- "eight standard coordinates a benchmar
 actually use" -- does not work, because g/(1-comp) has no more derivation than
 g/(1-comp)^1.544; both are argmins of the same sweep.
 
-WHAT REPLACES IT, AND IT IS A STRONGER CLAIM. The equalising exponent is a property of the
+What replaces it, and it is a stronger claim. The equalising exponent is a property of the
 benchmark, not of the quantity. Fitted on our three protocols it is 1.544. Fitted on
 Horlacher's two it is 3.649, more than twice as large -- and our exponent leaves their
 benchmark at 2.34x, barely better than the 2.38x it started from. So there is no TRANSPORTABLE
 rescaling: any normalisation strong enough to equalise one benchmark has to be refitted on the
 next one, which defeats the purpose of normalising at all.
 
-AND THE SAME TEST FALSIFIES THE PAPER'S RECOMMENDATION OUT OF SAMPLE. recommendation_works.py
+And the same test falsifies the paper's recommendation out of sample. recommendation_works.py
 names its own falsification criterion: "rank agreement falling, or disagreement rising, under
 normalisation". On Horlacher's 45 datasets both happen -- rank agreement +0.706 -> +0.656 and
 disagreement 0.860 -> 0.908. It is not significant at n = 45, so this is a failure to
 replicate rather than a refutation, but it is the paper's own pre-specified test applied to
 the only data this project did not build, and it points the wrong way.
 
-AND ONE THING THAT SURVIVES AND STRENGTHENS. The 2.00x floor was being compared against 1.0.
+And one thing that survives and strengthens. The 2.00x floor was being compared against 1.0.
 That is the wrong null: max/min over three noisy means is bounded below by 1 and biased up. The
 correct comparison is against the range you would see with EQUAL true arm means, preserving the
 real between-arm dataset pairing. That null has median 1.07 and a 95th percentile of 1.20, so
@@ -63,7 +63,7 @@ N_NULL = 2000
 def fold_range(d, arms, p):
     """The published aggregation: mean over datasets of the per-dataset ratio, then max/min.
 
-    KEEP THIS AS IT IS. It is the quantity every published span refers to and changing it
+    Keep this as it is. It is the quantity every published span refers to and changing it
     silently would move a headline. What it hides is measured in aggregation_sweep() below.
     """
     m = [(d[f"gain_{a}"] / np.power(1 - d[f"comp_{a}"], p)).mean() for a in arms]
@@ -117,7 +117,7 @@ def aggregation_sweep(d, arms, out):
                 {"check": f"exponent at minimum span, {name}", "value": float(r.x)}]
         log(f"  {name:30s} minimum {r.fun:.4f} at p = {r.x:.3f}")
 
-    # THE DENOMINATOR, because that is the whole mechanism.
+    # The denominator, because that is the whole mechanism.
     h = np.concatenate([1 - d[f"comp_{a}"] for a in arms])
     out += [{"check": "min headroom 1-c over all cells", "value": float(h.min())},
             {"check": "cells with headroom below 0.15", "value": int((h < 0.15).sum())},

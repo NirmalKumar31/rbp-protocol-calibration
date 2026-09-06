@@ -8,7 +8,7 @@ summary tables. An audit counted the tree: 135 files, 88 distinct column schemas
 `check` column. Every one of those numbers was hand-typed and every one had drifted, in the
 document whose job is to tell a reader what the columns mean.
 
-WHY IT WAS REWRITTEN. A second audit read the output and found it was not a data dictionary.
+Why it was rewritten. A second audit read the output and found it was not a data dictionary.
 It carried four fields -- table, column, dtype, example -- where the dtype came from THE FIRST
 DATA ROW ALONE and there was no definition, unit, key or missingness rule anywhere in it, while
 SUBMISSION.md advertised it as "column definitions for every released table". The first-row
@@ -17,7 +17,7 @@ are populated further down the same file. A summary table's `ci_low` is blank on
 whenever that row is a count, so the single most common interval column in the release was
 typed as having no data.
 
-WHAT A COLUMN ENTRY NOW CARRIES. dtype inferred from every non-empty value in the column;
+What a column entry now carries. dtype inferred from every non-empty value in the column;
 n_rows, n_missing and the missing rule that applies; n_distinct; min and max for numerics;
 whether the column is part of the table's key; a unit; and a definition. Definitions come from
 DEFS below, matched on the column name, because the release uses a small controlled vocabulary
@@ -41,7 +41,7 @@ from rbp.utils.log import log  # noqa: E402
 TABLES = ROOT / "results" / "tables"
 OUT = TABLES / "COLUMNS.csv"
 SUMMARY = TABLES / "COLUMNS_SUMMARY.csv"
-# THE AUDITORS' OWN OUTPUT IS NOT PART OF THE RELEASE'S DATA, and including it made the
+# The auditors' own output is not part of the release's data, and including it made the
 # dictionary churn against itself: audit_manuscript.py rewrites manuscript_orphans.csv, whose
 # `source` column is empty when there are no orphans and populated when there are, so a run
 # that found none typed the column `empty` and the next run that found one failed the
@@ -52,7 +52,7 @@ SKIP = {"COLUMNS.csv", "COLUMNS_SUMMARY.csv", "PROVENANCE.csv", "manuscript_orph
 FIELDS = ["table", "column", "dtype", "unit", "key", "n_rows", "n_missing", "n_distinct",
           "min", "max", "example", "definition", "producing_script"]
 
-# EVERY COLUMN POINTS AT CODE, EVEN WHERE PROSE DOES NOT COVER IT. 512 of the column names in
+# Every column points at code, even where prose does not cover it. 512 of the column names in
 # the release are analysis-specific and appear once or twice; writing a sentence for each by
 # hand is how the counts in SCHEMA.md went stale in the first place. The controlled vocabulary
 # above covers the recurring shapes, and PROVENANCE.csv supplies the producing script for the
@@ -228,7 +228,7 @@ def write(rows):
         w = csv.DictWriter(fh, fieldnames=FIELDS)
         w.writeheader()
         w.writerows(rows)
-    # THE COUNTS ARE AN ARTEFACT, NOT PROSE. SCHEMA.md hand-typed "135 tables, 1393 columns,
+    # The counts are an artefact, not prose. SCHEMA.md hand-typed "135 tables, 1393 columns,
     # 90 distinct schemas" in the same paragraph that said counts there are "either generated
     # or absent", and all three were wrong. SCHEMA.md now points at this file.
     c = counts(rows)

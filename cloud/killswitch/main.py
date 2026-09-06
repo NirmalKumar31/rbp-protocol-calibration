@@ -1,16 +1,16 @@
 """Disable billing on the project when spend crosses the budget. The actual hard stop.
 
-WHY THIS EXISTS. A GCP budget alert sends an email. It does not stop anything. If a job
+Why this exists. A GCP budget alert sends an email. It does not stop anything. If a job
 runs away at 3am the alert arrives, nobody reads it, and the spend continues until someone
 wakes up. The only mechanism that genuinely halts charges is detaching the project from its
 billing account, and nothing in GCP does that for you.
 
-HOW IT IS WIRED. The budget publishes a JSON message to a Pub/Sub topic every time it
+How it is wired. The budget publishes a JSON message to a Pub/Sub topic every time it
 re-evaluates -- roughly every 20-30 minutes, not only when a threshold trips. This function
 is triggered by that topic, compares actual spend against the limit, and detaches billing
 if it is over.
 
-WHAT HAPPENS WHEN IT FIRES, STATED THE WAY GOOGLE STATES IT. Every VM stops, Batch jobs
+What happens when it fires, stated the way Google states it. Every VM stops, Batch jobs
 fail, Cloud Run stops serving. Google's own documentation warns that disabling billing may
 DELETE some resources and that the deletion can be non-recoverable; it does not promise that
 buckets survive, and this docstring used to, ending on the words "never lost data". That was a
@@ -28,7 +28,7 @@ RE-ENABLING IS DELIBERATELY MANUAL:
 
 If this could re-enable itself the guardrail would be pointless.
 
-WHAT THE DRY RUN PROVES, AND WHAT IT DOES NOT. Setting KILL_THRESHOLD_USD low enough to trip
+What the dry run proves, and what it does not. Setting KILL_THRESHOLD_USD low enough to trip
 on current spend exercises Pub/Sub delivery, message parsing, the threshold decision, and the
 getBillingInfo READ. It stops before updateBillingInfo, so it does NOT prove the service
 account may perform the write that is the actual stop.
@@ -82,12 +82,12 @@ def permission_check(api=None):
     that refuses to start is worse than one that starts and warns: the threshold logging and
     the alerting path still have value, and an exception at import would take those too.
 
-    AND A TRUE HERE IS STILL NOT A REHEARSAL. testIamPermissions answers about IAM. An
+    And a true here is still not a rehearsal. testIamPermissions answers about IAM. An
     organisation policy, a deny policy or a billing-account link lock can block the write with
     every permission held. The only thing that proves the stop works is firing it in a
     disposable project.
     """
-    # THE RIGHT PERMISSION, ON THE RIGHT RESOURCE, AND THERE ARE TWO ROUTES. The first version
+    # The right permission, on the right resource, and there are two routes. The first version
     # of this asked for resourcemanager.projects.updateBillingInfo, which is the name of the API
     # METHOD and not of a permission Google grants. Unlinking a project is authorised by either
     # billing.resourceAssociations.delete on the billing account, or

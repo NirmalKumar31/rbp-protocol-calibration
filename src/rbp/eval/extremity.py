@@ -1,6 +1,6 @@
 """Compositional extremity: how unusual a protein's binding sites are, before any model.
 
-THE PROBLEM THIS SOLVES. Our negatives are matched on GC content, which constrains G+C as
+The problem this solves. Our negatives are matched on GC content, which constrains G+C as
 a single total and leaves the other fifteen degrees of freedom of dinucleotide composition
 free. So the obvious objection to any composition result is: "your finding is an artefact
 of weak matching -- match on dinucleotides and it goes away."
@@ -16,7 +16,7 @@ a protein's binding sites are relative to the sequence around them:
     extremity = median L1(positive, its matched negative)
               - median L1(negative, a random other negative)
 
-READ THE NEXT PARAGRAPH BEFORE USING THIS. The second term was originally described as
+Read the next paragraph before using this. The second term was originally described as
 "the floor" -- the best any real-sequence matching procedure could achieve -- and that
 identification is WRONG. A random pairing of windows is not the best achievable match; a
 targeted nearest-neighbour search does far better. Measured on 21 datasets: random pairing
@@ -27,7 +27,7 @@ panel was already optimally matched and that dinucleotide matching could not imp
 matching. It can, and it does: composition-only AUROC falls from 0.793 to 0.609 under
 dinucleotide-matched negatives.
 
-WHAT EXTREMITY IS STILL GOOD FOR. It remains a useful RELATIVE measure of how far a
+What extremity is still good for. It remains a useful RELATIVE measure of how far a
 protein's binding sites sit from ordinary sequence in its own neighbourhood, and the
 empirical relationships are unaffected because they were measured, not derived. Across 187
 datasets it correlates +0.697 with a model's eventual AUROC, +0.755 with what a
@@ -41,7 +41,7 @@ It does NOT predict how much an individual dataset resists matching. An earlier 
 this docstring claimed +0.243 for that, measured on 21 datasets; the full 99-dataset K562
 panel gives -0.119, i.e. flipped sign and weak either way. Withdrawn.
 
-WHAT IT IS NOT. It is not a bound on achievable match quality, and it is not a substitute
+What it is not. It is not a bound on achievable match quality, and it is not a substitute
 for actually building matched negatives. Establishing how much of a model's performance is
 composition requires the matched arm; extremity only tells you where to expect trouble.
 """

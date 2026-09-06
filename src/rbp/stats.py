@@ -171,7 +171,7 @@ def lr_test(X_reduced, X_full, y, method="firth"):
     model, so the penalty cancels instead of biasing the statistic. Verified against the
     uniform null in tests/unit/test_nested.py.
 
-    NON-CONVERGENCE IS REPORTED IN BOTH DIRECTIONS, and it was not always. A negative
+    Non-convergence is reported in both directions, and it was not always. A negative
     statistic cannot happen for nested models sharing an objective, so it signals a
     convergence failure and is clipped to zero, i.e. reported as no evidence. An INFINITE
     statistic is the same failure with the opposite sign, and it used to pass straight

@@ -2,7 +2,7 @@
 
     python scripts/horlacher_arm.py --n 40
 
-WHY THIS IS THE MOST VALUABLE REMAINING EXPERIMENT. Every result so far is measured on windows
+Why this is the most valuable remaining experiment. Every result so far is measured on windows
 this project built. The obvious referee reply is "you re-derived a known effect on your own
 data, with your own sampler, and your own reimplementation of the prior art's protocol." This
 answers it: the same nested decomposition, on Horlacher et al. 2023's published negative sets,
@@ -19,7 +19,7 @@ issue #2. 223 ENCODE experiments x 5 folds of single-nucleotide crosslink sites 
 Both negative sets are expression-controlled by construction, which is the axis on which this
 project's own negatives are weaker than the prior art it cites (R1j: 40.1% untranscribed).
 
-WHAT IS DIFFERENT FROM OUR ARMS, and it must be stated rather than glossed. Their positives
+What is different from our arms, and it must be stated rather than glossed. Their positives
 are not ours: they use their own peak calling, their own 20,000-peak cap and their own
 replicate-overlap rule. Their folds are not ours. So this is NOT a fourth arm on the same
 positives; it is the same MEASUREMENT on a different benchmark. The comparison that means
@@ -136,7 +136,7 @@ def main():
                 rec[f"full_{tag}"] = g.auroc_with_score
                 rec[f"gain_{tag}"] = g.delta
                 rec[f"n_{tag}"] = g.n
-                # B8. THE MODEL'S OWN AUROC, which this table did not carry and which is the
+                # B8. the model's own AUROC, which this table did not carry and which is the
                 # quantity the title relation is DEFINED on. Without it, "difficulty" on their
                 # benchmark was read off the composition baseline while ours was read off
                 # model-alone AUROC, so the external test compared two different relations and
@@ -210,7 +210,7 @@ def main():
     log("  -> the gradient replicates; the SIGN does not reverse, so on their benchmark the")
     log("     protocol label carries information beyond the baseline. R1n is limited, not lost.")
 
-    # B8. THE TITLE RELATION, ON THE QUANTITY IT IS ACTUALLY DEFINED ON.
+    # B8. the title relation, on the quantity it is actually defined on.
     #
     # Everything above measures difficulty by the COMPOSITION baseline, because this table had
     # no model-alone column. Our own claim is about the MODEL's own AUROC. So the external

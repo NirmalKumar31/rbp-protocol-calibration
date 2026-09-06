@@ -1,6 +1,6 @@
 """Every pair of colours that shares a panel must be separable, including under CVD.
 
-WHY THIS IS A TEST AND NOT A JUDGEMENT. The separation is computable, so it is computed. The
+Why this is a test and not a judgement. The separation is computable, so it is computed. The
 first run of this check failed on three pairs, and all three failed at NORMAL vision, which
 means full-colour readers could not distinguish them either:
 

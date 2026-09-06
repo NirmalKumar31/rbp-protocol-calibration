@@ -3,19 +3,19 @@
     python scripts/matching_robustness.py --n 15
     python scripts/matching_robustness.py --from-cache
 
-TWO FREE PARAMETERS IN THE DINUCLEOTIDE ARM, both chosen once and never varied. Candidates are
+Two free parameters in the dinucleotide arm, both chosen once and never varied. Candidates are
 drawn at 8 per positive (`pool_multiple=8`), and each positive takes the nearest unused
 candidate in a GREEDY pass over positives in bucket order. Greedy is defended in
 `negatives.py` on the grounds that an exact assignment "buys very little here and costs a great
 deal", which was an assertion. This measures it, over three pool sizes and both algorithms.
 
-WHAT THE EXACT VERSION IS AND IS NOT. Assignment decomposes exactly by (region, chromosome),
+What the exact version is and is not. Assignment decomposes exactly by (region, chromosome),
 because a candidate can only serve a positive drawn from the same pool, so the global problem is
 a set of small independent ones and `linear_sum_assignment` solves each to optimality. It is
 optimal within the sampled candidate pool, not over the genome: a larger pool is a different
 problem, which is why pool size is varied alongside it rather than held fixed.
 
-THE PREDICTION, and it is the paper's own thesis applied to itself. Better matching raises the
+The prediction, and it is the paper's own thesis applied to itself. Better matching raises the
 composition baseline, and a higher baseline leaves less for a model to add. So a better
 assignment should REDUCE the measured contribution rather than leave it alone, and the size of
 that reduction is how much of the headline is an artefact of one implementation choice. A
@@ -312,7 +312,7 @@ def main():
                             "n": len(s)})
             out.append({"check": f"pairs matched, {algo} at {mult}x",
                         "value": int(s.matched.sum()), "n": len(s)})
-            # HOW OFTEN THE MULTIPLE IS INERT. At the published setting the floor binds in
+            # How often the multiple is inert. At the published setting the floor binds in
             # almost every bucket, which is why 4x, 8x and 16x with a fixed floor return the
             # same negatives. This is the number that makes the parameter's scaling honest.
             out.append({"check": f"fraction of buckets where the pool floor binds, {algo} "
@@ -341,7 +341,7 @@ def main():
             f"{(m.comp_opt - m.comp).mean():+.4f}, contribution "
             f"{(m.gain_opt - m.gain).mean():+.4f}")
 
-    # THE RANGE OF THE HEADLINE OVER THE SIX SETTINGS, which is what a reader needs: how much
+    # The range of the headline over the six settings, which is what a reader needs: how much
     # of the dinucleotide arm's contribution is the protocol and how much is one afternoon's
     # implementation choice.
     means = {k: float(v.gain.mean()) for k, v in cells.items()}
@@ -357,7 +357,7 @@ def main():
         f"({min(means.values()):+.4f} to {max(means.values()):+.4f}) and the composition "
         f"baseline {max(comps.values()) - min(comps.values()):.4f}")
 
-    # AND THE DIRECTION, which is the paper's thesis applied to its own free parameters: a
+    # And the direction, which is the paper's thesis applied to its own free parameters: a
     # better match raises the baseline and a higher baseline leaves a smaller contribution.
     # Measured across all six settings as a correlation, so it is one number and not a story
     # told about six.

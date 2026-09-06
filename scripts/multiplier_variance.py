@@ -6,11 +6,11 @@ PURPOSE. The claim that the protocol multiplier is a property of the protein rat
 model rests on a variance decomposition. This computes it, so that the claim is sourced to code
 rather than asserted, and gates the result.
 
-WHAT IS DECOMPOSED. One cell per (dataset, model): the LOG multiplier log(gain_dn / gain_gc),
+What is decomposed. One cell per (dataset, model): the LOG multiplier log(gain_dn / gain_gc),
 defined only where both arms are positive, because a ratio across zero is not a multiplier.
 Logs because the quantity is a ratio and its arithmetic mean is not the thing anyone means.
 
-WHY A PERMUTATION NULL IS NOT OPTIONAL HERE. Protein has 79 levels on ~230 cells. Model class
+Why a permutation null is not optional here. Protein has 79 levels on ~230 cells. Model class
 has 3 and cell line has 2. A factor with 79 levels absorbs a large share of any variance,
 including variance in pure noise, so "protein explains 68.9%" and "model explains 1.5%" are not
 comparable numbers as stated -- most of the gap is degrees of freedom. Each factor's share is
@@ -18,7 +18,7 @@ therefore reported next to the share the SAME factor gets on relabelled data, an
 statistic is the excess over that null. This is the project's own lesson: a control is not
 evidence until something has tried to break it.
 
-AND WHY ONE NULL IS NOT ENOUGH, which an adversarial statistician caught in the first version
+And why one null is not enough, which an adversarial statistician caught in the first version
 of this script. Permuting y wholesale destroys the protein effect AND the within-dataset
 correlation among the two or three model cells that share the same windows, labels and folds.
 Because 79 proteins sit on 94 datasets, the protein factor is very nearly the DATASET factor
@@ -103,7 +103,7 @@ def main():
         for k in factors:
             null[k].append(null_shares[k])
 
-    # THE SECOND NULL, and it is the one that answers the question actually being asked.
+    # The second null, and it is the one that answers the question actually being asked.
     # Wholesale permutation of y breaks the protein effect AND the within-dataset correlation
     # among the model cells that share windows, labels and folds. Since 79 proteins sit on 94
     # datasets, protein is very nearly the DATASET factor -- so that null is far too permissive.
@@ -153,7 +153,7 @@ def main():
                 "n": len(t)})
     print(f"  {'residual':10s} {'':7s} {100 * obs['residual']:7.1f}%")
 
-    # THE CLAIM, IN THE FORM IT CAN BE MADE. Not "protein explains 46x more than model class"
+    # The claim, in the form it can be made. Not "protein explains 46x more than model class"
     # -- that comparison is mostly degrees of freedom -- but that protein beats its own null
     # and model class does not beat its own.
     pe = obs["protein"] - np.mean(null["protein"])
@@ -164,7 +164,7 @@ def main():
     print("  -> the comparable statistic is the excess over each factor's OWN null,")
     print("     because 79 levels absorb variance that 3 levels cannot")
 
-    # PROTEIN IS NEARLY THE DATASET FACTOR, and the excess over the wholesale null was
+    # Protein is nearly the dataset factor, and the excess over the wholesale null was
     # therefore about five-fold too generous. Both numbers are reported.
     pb = obs["protein"] - null_block.mean()
     p_block = float((null_block >= obs["protein"]).mean())
@@ -185,7 +185,7 @@ def main():
           f"{100 * np.percentile(null_block, 97.5):.1f}]   "
           f"excess {100 * pb:+.1f}%  p={p_block:.4f}")
 
-    # THE DIRECT TEST, which is stronger than any share: does the SAME protein get the same
+    # The direct test, which is stronger than any share: does the SAME protein get the same
     # multiplier in the other cell line? Fifteen proteins are assayed in both.
     both = t.pivot_table(index=["protein", "model"], columns="cell", values="log_mult")
     both = both.dropna()
@@ -200,7 +200,7 @@ def main():
                 {"check": "cross-cell-line spearman of the log multiplier", "value": float(rho),
                  "n": len(both), "note": f"p = {pv:.4f}"}]
 
-        # AND THE SAME TEST AT THE RIGHT CLUSTER LEVEL. Those rows are fifteen proteins by
+        # And the same test at the right cluster level. Those rows are fifteen proteins by
         # three models sharing windows, labels and folds, so the p-value over 40 rows is
         # anti-conservative and contradicts this project's own rule of resampling proteins.
         # Collapsing over models costs an order of magnitude in p and is reported as primary.
@@ -208,7 +208,7 @@ def main():
         cr, cp = pearsonr(col[cells[0]], col[cells[1]])
         csr, csp = spearmanr(col[cells[0]], col[cells[1]])
 
-        # B13. AN INTERVAL, BECAUSE n IS 15. A correlation quoted with a p and no interval at
+        # B13. an interval, BECAUSE n IS 15. A correlation quoted with a p and no interval at
         # this sample size invites the reader to treat the point estimate as the finding. The
         # Fisher z interval is wide enough to make the honest reading obvious, and a
         # bias-corrected bootstrap over the same fifteen proteins is reported beside it so the

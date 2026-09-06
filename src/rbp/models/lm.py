@@ -60,7 +60,7 @@ def build_from_spec(spec, train_cfg):
     Everything -- repo, class, head shape, LoRA rank -- comes from config, so this
     function holds no model-specific knowledge.
 
-    THE REVISION IS PASSED HERE TOO, AND IT WAS NOT. docker/bake_weights.py has honoured an
+    The revision is passed here too, and it was not. docker/bake_weights.py has honoured an
     optional `revision:` key for as long as it has existed, with a comment explaining that
     without one `from_pretrained` resolves whatever the hub's `main` points at on the day it
     runs. This function, which is the RUNTIME path every sweep actually goes through, ignored

@@ -1,12 +1,12 @@
 """Where the cloud lives. One source of truth for project and bucket names.
 
-WHY THIS FILE EXISTS. Eighteen files hardcoded the string "rbp-composition-2026". That is
+Why this file exists. Eighteen files hardcoded the string "rbp-composition-2026". That is
 invisible for as long as you only ever run in that project, and it is a total failure the
 first time somebody tries to reproduce the work somewhere else -- which is the whole point
 of a reproducible pipeline. A hardcoded project id is not a small tidiness problem, it is
 the difference between "runs anywhere" and "runs on the author's account".
 
-RESOLUTION ORDER, most specific first:
+Resolution order, most specific first:
 
     1. the explicit argument, if a caller passes one
     2. the environment: GOOGLE_CLOUD_PROJECT / DERIVED_BUCKET / RAW_BUCKET
@@ -104,7 +104,7 @@ STUDY_PANEL_KEY = "manifest/study_panel.tsv"
 def study_panel(bucket=None):
     """The (cell, protein) pairs the study runs on, or None if not yet defined.
 
-    THE ORDERING THIS ENCODES. `pairs` is only known after preprocessing, because it counts
+    The ordering this encodes. `pairs` is only known after preprocessing, because it counts
     the positives that could actually be matched to a negative. So the panel cannot be
     selected before prep -- prep runs on every candidate, finalize writes the pair counts,
     and only then can a size-ranked sample be taken. Every stage AFTER that filters through

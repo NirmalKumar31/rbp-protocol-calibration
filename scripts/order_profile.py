@@ -3,14 +3,14 @@
     python scripts/order_profile.py                 # recompute, ~40 min
     python scripts/order_profile.py --from-cache    # summary only
 
-THE OBJECTION THIS RETIRES. Every increment in this paper is measured over an order-two
+The objection this retires. Every increment in this paper is measured over an order-two
 composition baseline, and Section on order three shows the magnitudes are a strong function of
 that stopping point. Reporting two orders invites "why not another one?", and answering it one
 order at a time invites it again. A profile over orders 1 to 4 is immune to the question: it
 reports the whole function instead of two of its values, and a reader who prefers a different
 baseline can read their own number off it.
 
-WHY IT STOPS AT FOUR, and this turned out to be the most informative part. The 4-mer model's
+Why it stops at four, and this turned out to be the most informative part. The 4-mer model's
 features ARE order-four counts, so at an order-four baseline the composition block spans the
 model's entire feature space and the true contribution is exactly zero by construction. That is
 a prediction with no free parameters, and it FAILS: the estimator reports a large positive
@@ -26,7 +26,7 @@ that quantity is larger than most of the contributions this literature reports. 
 three are the profile; order four is the noise floor, and the diagnostic that separates them is
 whether the baseline's own AUROC still rises.
 
-THE DOUBLE ANCHOR. Order two must reproduce deep_contrast_per_dataset.csv and order three must
+The double anchor. Order two must reproduce deep_contrast_per_dataset.csv and order three must
 reproduce baseline_order_models_per_dataset.csv, both per cell. Two independently produced tables
 pin two of the four points, so the profile cannot be a self-consistent re-implementation of
 something else. Same rows, same folds, same committed per-window model scores, nothing retrained.
@@ -108,7 +108,7 @@ def build(store, limit):
             rec[f"nrows_{arm}"] = int(len(dd))
         if not ok:
             continue
-        # THE DOUBLE ANCHOR, per dataset, before the row is kept. Two tables produced by two
+        # The double anchor, per dataset, before the row is kept. Two tables produced by two
         # other scripts pin orders 2 and 3; a profile that agrees with neither would still look
         # perfectly smooth.
         for arm in ARMS:
@@ -157,7 +157,7 @@ def main():
                     "ci_high": float(np.percentile(b, 97.5)), "n": len(t), "note": note})
         return float(v.mean())
 
-    # THE ANCHORS FIRST, and they are hard stops rather than reported diagnostics: every number
+    # The anchors first, and they are hard stops rather than reported diagnostics: every number
     # below is meaningless if the profile does not pass through the two published points.
     for order, tag in ((2, "anchor2"), (3, "anchor3")):
         w = max(float((t[f"{m}_gain{order}_{arm}"] - t[f"{m}_{tag}_{arm}"]).abs().max())
@@ -204,7 +204,7 @@ def main():
             f"order {o - 1}->{o} {int((t[f'comp{o}_{arm}'] < t[f'comp{o - 1}_{arm}']).sum())}"
             f"/{len(t)}" for o in ORDERS[1:]))
 
-    # THE ZERO OF THE SCALE, WHICH IS NOT AT ZERO. A bag of 4-mer counts has no information
+    # The zero of the scale, which is not at zero. A bag of 4-mer counts has no information
     # beyond an order-four composition block, so a correct estimator must report nothing there.
     # This one reports a large positive number, and that number is the instrument's error when
     # the truth is known. It is the most useful thing in this section: it is the scale on which
@@ -218,7 +218,7 @@ def main():
                     "n": len(t), "note": "the estimator's noise floor, not a contribution"})
         floor = add(f"kmer noise-floor gain at order 4, {arm} arm", v,
                     "true value is zero by construction")
-        # AND HOW IT COMPARES WITH WHAT THE PAPER REPORTS. A noise floor is only alarming
+        # And how it compares with what the paper reports. A noise floor is only alarming
         # relative to the signal, so state the ratio rather than leaving the reader to divide.
         ratio = floor / float(t[f"kmer_gain2_{arm}"].mean())
         out.append({"check": f"noise floor as a fraction of the order-2 gain, {arm} arm",
@@ -226,7 +226,7 @@ def main():
         log(f"    {arm:5s} {floor:+.4f}, positive in {n_pos}/{len(t)}, which is "
             f"{ratio:.2f}x the order-2 contribution")
 
-    # AND THE MECHANISM, TESTED RATHER THAN ASSERTED. If the floor is overfitting of a
+    # And the mechanism, tested rather than asserted. If the floor is overfitting of a
     # 337-column block, it must shrink as the sample grows. Spearman, because the relation
     # need not be linear and one dataset is 20x another.
     from scipy.stats import spearmanr
@@ -237,7 +237,7 @@ def main():
                     "value": float(r), "n": len(t), "note": f"p = {pv:.2e}"})
         log(f"    {arm:5s} rho {r:+.3f}  p = {pv:.2e}")
 
-    # THE PROFILE'S SHAPE, as one number per model per arm: what fraction of the order-one
+    # The profile's shape, as one number per model per arm: what fraction of the order-one
     # contribution survives each further order. This is the reporting object the section is
     # for, and it is a ratio of means for the reason spelled out in baseline_order_models.py.
     log("\n  fraction of the order-1 contribution surviving each order (ratio of means):")

@@ -3,7 +3,7 @@
     python scripts/redraw_composition.py --arm gc --seeds 10
     python scripts/redraw_composition.py --summarise          # from the per-draw tables
 
-THE GAP THIS CLOSES. Methods discloses six sources of uncertainty the protein-clustered bootstrap
+The gap this closes. Methods discloses six sources of uncertainty the protein-clustered bootstrap
 does not propagate, and names the negative draw as the largest. `negative_draws.py` measures it
 for the bias-aware arm alone, five draws, because that arm's negatives are other proteins'
 windows and are already in the store. The composition-matched arms need candidate windows
@@ -16,18 +16,18 @@ error is about 1/sqrt(2(k-1)): 35% at k=5, 24% at k=10. Ten is where the compone
 reported with an interval rather than as a point estimate, and it is twice what the bias-aware
 arm has, so the composition arms are not the weaker evidence.
 
-WHAT IS AND IS NOT REDRAWN. Positives are unchanged, read from the committed window tables. The
+What is and is not redrawn. Positives are unchanged, read from the committed window tables. The
 chromosome-to-fold map is unchanged. Only the negatives differ, and only through the seed passed
 to the same builder that produced the published arm. The 4-mer and the 19-column composition
 baseline are refit on each draw; the CNN and SpliceBERT are not, because new rows would need new
 GPU sweeps at roughly $57 per full pass. This is the 4-mer, which is where the headline lives.
 
-THE CHECK THAT MATTERS MORE THAN THE RESULT. The published seed must reproduce the published
+The check that matters more than the result. The published seed must reproduce the published
 per-dataset contribution. If it does not, the redraw is not redrawing the published construction
 and the spread it reports is a property of this script rather than of the protocol. That
 comparison runs first and `--verify-published` stops on it.
 
-EVERY DRAW IS WRITTEN AS IT COMPLETES. A run killed at any point keeps the draws already done,
+Every draw is written as it completes. A run killed at any point keeps the draws already done,
 and a restart skips a seed whose output exists. There is a budget on this and an interruption
 must cost the remaining draws, not all of them.
 """
@@ -101,7 +101,7 @@ def draw_one(arm, positives, peaks, fasta, index, cfg, seed, pools):
     return negs
 
 
-# PER-PROCESS STATE. pyfaidx's Fasta holds an open file handle and does not pickle, and the
+# Per-process state. pyfaidx's Fasta holds an open file handle and does not pickle, and the
 # region index is 13 MB that would otherwise be shipped to every task. Each worker loads both
 # once in its initialiser and reuses them for every dataset it is handed.
 _W = {}
@@ -134,7 +134,7 @@ def _one(task):
         return {"dataset": dataset, "protein": protein, "cell": cell, "seed": seed,
                 **s, "published": published}
     except (FileNotFoundError, RuntimeError, ValueError) as e:
-        # A DEAD WORKER LOSES THE WHOLE POOL, and one unreadable peak file is not a reason to
+        # A dead worker loses the whole pool, and one unreadable peak file is not a reason to
         # lose nine draws. Report and drop the dataset; the summary records how many landed.
         log(f"  {arm} {dataset} seed {seed}: {type(e).__name__}: {e}")
         return None
@@ -164,7 +164,7 @@ def run(arm, seeds, store, index_path, fasta_path, limit, datasets=None, workers
                   getattr(r, col)) for r in panel.itertuples()]
         t0 = time.time()
         if workers > 1:
-            # ONE DRAW AT A TIME ACROSS ALL WORKERS, not all draws at once. A seed's table is
+            # One draw at a time across all workers, not all draws at once. A seed's table is
             # written when that seed finishes, so an interrupted run keeps whole draws rather
             # than a scatter of partial ones, and a restart resumes at draw boundaries.
             with mp.get_context("spawn").Pool(
@@ -196,7 +196,7 @@ def summarise(arms):
         seeds = sorted(t.seed.unique())
         pub_seed = cfgmod.load().seed
 
-        # THE VALIDATION, FIRST. The published seed must reproduce the published value.
+        # The validation, first. The published seed must reproduce the published value.
         if pub_seed in seeds:
             p = t[t.seed == pub_seed]
             d = (p["gain"] - p["published"]).abs()
@@ -215,7 +215,7 @@ def summarise(arms):
                     "n": len(seeds),
                     "note": "bounds are the min and max draw, not an interval"})
 
-        # BETWEEN-DRAW AND BETWEEN-PROTEIN, the two components the paper needs separated.
+        # Between-draw and between-protein, the two components the paper needs separated.
         sd_draw = float(per_seed.std(ddof=1))
         se_draw = sd_draw / np.sqrt(len(seeds))
         wide = pd.pivot_table(t, index="dataset", columns="seed", values="gain")
@@ -274,7 +274,7 @@ def main():
     if a.summarise:
         return summarise(arms)
 
-    # THE PUBLISHED SEED IS ALWAYS FIRST, so the validation runs before any spend on the rest.
+    # The published seed is always first, so the validation runs before any spend on the rest.
     base = cfgmod.load().seed
     seeds = [base] + [base + 1000 * i for i in range(1, a.seeds)]
     ds = [x for x in a.datasets.split(",") if x] or None

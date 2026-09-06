@@ -7,13 +7,13 @@ R1l argued that protocol and baseline cannot be separated because the three prot
 distributions barely overlap. That argument was too comfortable. A hostile referee found two
 places where they DO overlap, asked the question there, and got an answer.
 
-THE NATURAL EXPERIMENT. The neg2 protocol usually raises the composition baseline relative to
+The natural experiment. The neg2 protocol usually raises the composition baseline relative to
 GC matching, but not always: in 27 of 94 datasets it LOWERS it. If the protocol label carried
 information, neg2's deficit would persist in those 27. It does not -- it reverses. Whichever
 protocol leaves the lower baseline gets the higher contribution, regardless of which protocol
 that is.
 
-THE MATCHED COMPARISON. Pair each dinucleotide-arm dataset with the GC-arm dataset whose
+The matched comparison. Pair each dinucleotide-arm dataset with the GC-arm dataset whose
 composition baseline is closest, keep pairs within 0.02 AUROC, and compare. The raw contrast is
 +0.0398; matched on baseline it is indistinguishable from zero.
 
@@ -22,13 +22,13 @@ datasets, so within a dataset the two arms are perfectly rank-confounded with th
 construction. The matching above borrows across datasets, which is why it is a weaker design
 than the neg2 discordance and why both are reported.
 
-WHAT THIS DOES TO THE PAPER. It converts the thesis from "the protocol determines the measured
+What this does to the paper. It converts the thesis from "the protocol determines the measured
 contribution" -- which invites "yes, via the baseline, so what?" -- into the sharper and more
 useful "the composition baseline is most of what determines the measurable contribution". That
 is a statement a benchmark builder can act on: report the baseline, because it carries most of
 the signal a protocol label carries and it is directly interpretable.
 
-BUT NOT ALL OF IT, AND THIS FILE USED TO SAY OTHERWISE. The header claimed the protocol label
+But not all of it, and this file used to say otherwise. The header claimed the protocol label
 "carries essentially no information beyond" the baseline and that the baseline is "the whole
 story", while section 2c of this same script prints "A protocol-specific residual DOES exist
 for neg2" and both of its estimates exclude zero: -0.0081 (CI -0.0130 to -0.0036) matched on
@@ -154,7 +154,7 @@ def main():
                  {"check": f"cells in pairwise common support, {a} vs {b}", "value": n_}]
         print(f"  {a:5s} vs {b:5s}  width {w:.3f} AUROC   {n_}/188 cells")
 
-    # AND THE INCREMENTAL R2 DECOMPOSED BY PAIR. The headline 1.00% averages the pair where
+    # And the incremental R2 decomposed by pair. The headline 1.00% averages the pair where
     # the question is unanswerable with the pair where it is answerable.
     for pair in (("gc", "dn"), ("gc", "neg2"), ("dn", "neg2")):
         L = long[long.arm.isin(pair)]
@@ -202,7 +202,7 @@ def main():
 
     print("\n=== 2d. the gradient is a property of composition-matched negatives ===")
     from scipy.stats import spearmanr as _sp
-    # AND WHETHER THE PARTITION IS ROBUST, because the statistic correlates a difference with
+    # And whether the partition is robust, because the statistic correlates a difference with
     # its own subtrahend and is not invariant to which term is on the x-axis. Reported for all
     # three choices: the dinucleotide arm flips sign and stops looking like the GC arm, so the
     # family split that survives every choice is GC against the other two.

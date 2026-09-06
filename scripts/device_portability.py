@@ -3,20 +3,20 @@
     python scripts/device_portability.py
     python scripts/device_portability.py --from-cache
 
-WHAT THIS EXERCISES. `cloud/submit_cpu_sweep.sh` submits the training container to GCP Batch on
+What this exercises. `cloud/submit_cpu_sweep.sh` submits the training container to GCP Batch on
 CPU. It had never been run against a dataset whose results were not already committed, so the
 path was infrastructure the repository described rather than infrastructure it had used. Running
 it on the region-matched arm, which exists in no GCS prefix, means nothing can be overwritten and
 the run has to produce its results from scratch.
 
-WHAT IT MEASURES, which is worth more than the demonstration. The same dataset, the same five
+What it measures, which is worth more than the demonstration. The same dataset, the same five
 chromosome-grouped folds and the same commit were trained twice: once on Modal on an A10G and
 once on GCP Batch on one vCPU of an e2-standard-4. Nothing differs but the device and the cloud.
 A paper about reproducibility should be able to say what that costs, and the honest answer is
 not zero: initialisation is unseeded, so the two runs are different draws as well as different
 devices, and this bounds the two together rather than separating them.
 
-WHY THE BOUND IS STILL USEFUL DESPITE THAT. A reader reproducing this work will run on different
+Why the bound is still useful despite that. A reader reproducing this work will run on different
 hardware AND get a different initialisation, because that is what the released code does. The
 quantity they care about is exactly the combined one measured here.
 """
@@ -78,7 +78,7 @@ def build(store, bucket):
         cm = gcs_metrics(bucket, cell, protein, model, arm, f)
 
         m = gpu.merge(cpu, on="id", suffixes=("_gpu", "_cpu"))
-        # THE ROW SETS MUST BE IDENTICAL, and this is asserted rather than assumed: the two
+        # The row sets must be identical, and this is asserted rather than assumed: the two
         # runs read the same dataset.tsv, so a differing row set would mean they were not
         # given the same inputs and no comparison below would mean anything.
         same_rows = len(m) == len(gpu) == len(cpu)
@@ -134,7 +134,7 @@ def main():
         f"{len(t)} folds ===\n")
     out.append({"check": "folds compared across devices", "value": len(t), "n": len(t)})
 
-    # THE INPUTS WERE THE SAME. Without this the agreement below could be agreement about two
+    # The inputs were the same. Without this the agreement below could be agreement about two
     # different row sets, which is not agreement at all.
     for col, label in (("same_rows", "identical row sets"),
                        ("same_labels", "identical labels"),
@@ -162,7 +162,7 @@ def main():
     log(f"  AUROC  A10G {t.auroc_gpu.mean():.4f}   CPU {t.auroc_cpu.mean():.4f}   "
         f"max per-fold difference {d.max():.4f}")
 
-    # THE COST OF THE DEVICE, which is the practical number. A CPU fold is slower by this
+    # The cost of the device, which is the practical number. A CPU fold is slower by this
     # factor, and that is what decides whether the CPU path is a fallback or a curiosity.
     if t.seconds_cpu.notna().any():
         ratio = float((t.seconds_cpu / t.seconds_gpu).mean())
@@ -170,7 +170,7 @@ def main():
                     "value": ratio, "n": len(t)})
         log(f"  a CPU fold takes {ratio:.1f}x the wall time of an A10G fold")
 
-        # WHAT THAT RATIO IMPLIES ABOUT THE GPU, and it is the practical finding here. A 7,089
+        # What that ratio implies about the GPU, and it is the practical finding here. A 7,089
         # parameter convolutional network is only this much slower on one vCPU than on an
         # A10G, because a model that small never fills the device: the sweep is paying for
         # accelerator time it cannot use. Extrapolated at the measured ratio, the whole CNN
@@ -187,7 +187,7 @@ def main():
             f"${gpu_h * ratio * cpu_vcpu_rate:.2f} of spot CPU: a model this small does not "
             f"fill the device")
 
-    # AND THE HONEST CAVEAT, committed as a number rather than left to the prose: the two runs
+    # And the honest caveat, committed as a number rather than left to the prose: the two runs
     # differ in INITIALISATION as well as device, because initialisation is unseeded. So this
     # bounds device and seed together, which is also exactly what a reader reproducing the work
     # would experience.

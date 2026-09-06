@@ -1,6 +1,6 @@
 """The cost guard's failure modes, mocked. There were no tests of this file at all.
 
-WHY THIS MATTERS MORE THAN ITS SIZE. `cloud/modal/guard.py` is the only thing between an
+Why this matters more than its size. `cloud/modal/guard.py` is the only thing between an
 unattended GPU sweep and an unbounded bill, and SECURITY.md advertises it as failing closed.
 Every defect found in it so far has been of one kind: a state where the guard COULD NOT SEE was
 converted, silently, into a state where it saw nothing to worry about.

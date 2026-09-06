@@ -3,7 +3,7 @@
     python scripts/estimands.py --store ../rbp-store
     python scripts/estimands.py --store ../rbp-store --only KHSRP:K562
 
-WHY THIS EXISTS. Two long reviews made the same point independently: the whole sweep never
+Why this exists. Two long reviews made the same point independently: the whole sweep never
 leaves the ROC, so "no protocol-free measure of contribution exists" is a claim about AUROC and
 not about measurement in general. The obvious reply is that an AUROC increment is bounded above
 by 1 - baseline, so part of any comparison between arms with unequal baselines is arithmetic --
@@ -100,7 +100,7 @@ def summarise(t):
                 v[arm] = float(sub.mean())
                 out.append({"check": f"{key}, {arm} arm, {model}", "value": v[arm],
                             "n": len(sub)})
-            # THE DEVIANCE IS QUOTED AS AN INTEGER, so the integer is emitted. The float
+            # The deviance is quoted as an integer, so the integer is emitted. The float
             # haystack in audit_manuscript.py indexes values at 3 to 6 decimals and the
             # integer haystack accepts only exact integers, so a table holding 966.7 sources
             # neither "967" nor "966.7". A paper that rounds has to say what it rounded to.
@@ -109,7 +109,7 @@ def summarise(t):
                     out.append({"check": f"{key} rounded, {arm} arm, {model}",
                                 "value": float(round(val)), "n": len(t)})
             if len(v) == 3 and key != "residual_auroc":
-                # THE ORDERING IS THE CLAIM. dn largest, neg2 smallest, on every estimand.
+                # The ordering is the claim. dn largest, neg2 smallest, on every estimand.
                 ordered = v["dn"] > v["gc"] > v["neg2"]
                 out.append({"check": f"protocol ordering holds, {key}, {model}",
                             "value": int(ordered), "n": 3,

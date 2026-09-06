@@ -11,7 +11,7 @@ work already done, which matters when a preemption takes out one task in fifty.
 
 The test split is scored exactly once, at the end, from the best validation checkpoint.
 
-WHAT THE LOCAL FILESYSTEM DOES NOT SURVIVE. A crash leaves the disk intact and the resume
+What the local filesystem does not survive. A crash leaves the disk intact and the resume
 above works. A *preemption* destroys the VM, so the next attempt starts on a machine where
 none of these files exist. `on_epoch` is the seam for that: the caller is handed the
 checkpoint after every atomic write and can mirror it somewhere durable. This file stays

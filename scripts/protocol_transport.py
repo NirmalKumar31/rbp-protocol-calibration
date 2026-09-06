@@ -13,19 +13,19 @@ a real and useful estimand, and it cannot separate those.
 An external review asked for a train-protocol by evaluation-protocol factorial. This is it, for
 the 4-mer, where it costs nothing: fit the model on one arm's windows and score another arm's.
 
-WHY THIS IS SOUND ACROSS ARMS. The chromosome-to-fold map is frozen once for all datasets and
+Why this is sound across arms. The chromosome-to-fold map is frozen once for all datasets and
 all arms, so fold $i$ of the dinucleotide arm and fold $i$ of the GC arm hold the same
 chromosomes. A model fitted on arm A's folds $\\neq i$ has therefore seen none of the
 chromosomes in arm B's fold $i$, and scoring across arms leaks nothing that scoring within an
 arm would not.
 
-THE VOCABULARY IS THE TRAP. A k-mer count matrix is only meaningful against the vectoriser that
+The vocabulary is the trap. A k-mer count matrix is only meaningful against the vectoriser that
 built it; refitting on the evaluation arm would produce a different feature space in which the
 training arm's coefficients refer to the wrong columns, silently, since the shapes still match.
 rbp.eval.baseline says this in as many words about variant scoring, and it applies identically
 here. The training arm's vectoriser transforms the evaluation arm's sequences.
 
-WHAT THE TABLE SEPARATES. With the diagonal being the published within-arm result:
+What the table separates. With the diagonal being the published within-arm result:
 
   row effect     holding the evaluation arm fixed and varying the training arm isolates what
                  the training negatives did to the fitted model.
@@ -159,7 +159,7 @@ def main():
             add(f"contribution, trained on {tr}, evaluated on {ev}", t[f"gain_{tr}_on_{ev}"],
                 "diagonal is the published within-arm value" if tr == ev else "")
 
-    # A TWO-WAY DECOMPOSITION, WITH AN INTERACTION TERM AND AN INTERVAL.
+    # A two-way decomposition, with an interaction term and an interval.
     #
     # The first version of this reported ratio-of-ranges: it took the range of the three
     # training-arm marginal means (0.0141), the range of the three evaluation-arm marginal means
@@ -192,12 +192,12 @@ def main():
     add("share of variance from their INTERACTION, per-dataset weighting",
         ss_in[good] / tot[good], W)
 
-    # THE SECOND ESTIMAND. The one above averages each dataset's own normalised shares. This
+    # The second estimand. The one above averages each dataset's own normalised shares. This
     # one decomposes the single 3x3 matrix of PANEL MEANS. They are different quantities, not
     # two weightings of one quantity, and they answer different questions; both are reported so
     # the dependence on the choice is visible rather than buried.
     #
-    # TWO THINGS AN AUDIT GOT RIGHT ABOUT THIS BLOCK.
+    # Two things an audit got right about this block.
     #
     # It was described, here and in the abstract, as "weighting datasets by effect size". That
     # is not what it does. Averaging the nine cells over datasets and then decomposing the
@@ -232,7 +232,7 @@ def main():
                     "value": float(pt[k]), "ci_low": float(lo[k]), "ci_high": float(hi[k]),
                     "n": len(t), "note": NOTE})
 
-    # LEAVE-ONE-PROTEIN-OUT INFLUENCE. An interval says how much the estimate moves under
+    # Leave-one-protein-out influence. An interval says how much the estimate moves under
     # resampling; it does not say whether one protein is carrying it. 79 proteins, so 79 refits
     # of both decompositions, and what is reported is the largest displacement any single
     # protein causes and which protein causes it. Cheap, and it is the diagnostic a referee

@@ -17,7 +17,7 @@ The ISM probe can: it asks whether a model's sensitivity is CONCENTRATED at a fe
 (local) or spread evenly (global). Run on the same windows, for both models, the difference
 in Gini answers the question directly.
 
-WHY THIS IS THE JUSTIFICATION FOR TRAINING NEURAL MODELS AT ALL. A bag of k-mers is local by
+Why this is the justification for training neural models at all. A bag of k-mers is local by
 construction and cannot be non-local, so it could never have answered this. See
 src/rbp/eval/locality_ism.py for the two faults that made the previous probe unusable.
 
@@ -79,7 +79,7 @@ def fold0_split(df, k):
 def kmer_probe(df, windows, fold=0):
     """The fold-`fold` k-mer model, built by the SAME function that produced the AUROC table.
 
-    THIS USED TO FIT ITS OWN MODEL AND THAT WAS WRONG. It called LogisticRegression with
+    This used to fit its own model and that was wrong. It called LogisticRegression with
     C=0.01 on the train split only, under a comment claiming that matched the composition
     arm. Two things were off: baseline.C_DEFAULT is 1.0, not 0.01, and fit_fold_models
     trains on every fold except the held-out one (four folds) while the train split excludes
@@ -125,7 +125,7 @@ def splicebert_probe(cell, protein, windows, cfg, device):
 def cloud_one(cfg, index, force):
     """One dataset, everything from GCS. Same probe, same seed, on a GPU.
 
-    WHY THIS IS WORTH MOVING. ISM is 3*L mutants per window: 101 positions, 20 windows,
+    Why this is worth moving. ISM is 3*L mutants per window: 101 positions, 20 windows,
     two models, 95 datasets is about 570,000 forward passes. On this laptop's CPU that is
     ~90 minutes; on a T4 it is a few minutes, and unlike the variant job it is genuinely
     compute-bound rather than waiting on a download.

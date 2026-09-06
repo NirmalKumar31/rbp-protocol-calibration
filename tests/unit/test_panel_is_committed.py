@@ -17,12 +17,12 @@ for neither bias-aware arm. Their membership came from listing directories in `.
 which is 2.9 GB, uncommitted, and on one laptop. The study's third and fourth arms were defined
 by something no reader could see.
 
-WHAT THIS CHECKS. That the panels exist for every arm, and that they agree with the per-window
+What this checks. That the panels exist for every arm, and that they agree with the per-window
 out-of-fold scores committed under `data/evidence/` -- which are what the published AUROCs are
 recomputed from, so a disagreement means one of the two is wrong. Checking a panel against the
 store would prove nothing to anyone without the store, which is the problem being fixed.
 
-NOTE THE TWO DIFFERENT PANELS, because conflating them is this project's oldest recurring bug.
+Note the two different panels, because conflating them is this project's oldest recurring bug.
 `config/panel_final_*_{gc,dinuc}.tsv` are the CANDIDATE panels: every dataset that cleared the
 pair floor in that arm, 187 of them. The STUDY panel is the systematic subsample of 95, of
 which 94 carry all three arms. The bias-aware arms were only ever built for the study panel, so

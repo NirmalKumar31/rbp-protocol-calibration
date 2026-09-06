@@ -1,6 +1,6 @@
 """Stage 5a. Define THE study panel once, write it to GCS, and never decide again.
 
-WHY THIS FILE EXISTS. In the original build the 95-dataset panel was an emergent property
+Why this file exists. In the original build the 95-dataset panel was an emergent property
 of a command-line flag (`--every 2`) typed during one sweep. Nothing recorded it, so the
 project ended up with four different counts in circulation -- 189, 187, 95, 94 -- each
 correct for a different question and none written down. That is the single largest source of
@@ -13,7 +13,7 @@ file rather than re-deriving it.
     python scripts/select_panel.py --every 2      # write manifest/study_panel.tsv
     python scripts/select_panel.py --show         # print what is already there
 
-WHY SYSTEMATIC SAMPLING AND NOT A THRESHOLD. AUROC correlates with dataset size at r = +0.53
+Why systematic sampling and not a threshold. AUROC correlates with dataset size at r = +0.53
 to +0.67 across every model class. So keeping "the biggest N" would confound the panel with
 the very quantity being measured: the subset would look better than the population for a
 reason that has nothing to do with the science. Sorting by pair count and keeping every Nth
@@ -26,7 +26,7 @@ rather than drawn, so nothing here rules out aliasing against structure that hap
 ordered by pair count. Range coverage is what the design needs and range coverage is what this
 delivers; every interval in the paper is conditional on the panel it produced.
 
-WHY THE DINUCLEOTIDE ARM DEFINES IT. The two arms do not contain the same datasets: matching
+Why the dinucleotide arm defines it. The two arms do not contain the same datasets: matching
 is a search, it succeeds to different degrees, and a dataset can clear the min_pairs floor
 in one arm and miss it in the other. The dinucleotide arm is the primary one (it is the
 harder control and the one the headline is reported against), so it defines membership, and
@@ -70,7 +70,7 @@ def read_arm_panels(bucket, arm):
 def select(bucket, every, primary="dinuc"):
     full = read_arm_panels(bucket, primary)
     full["dataset"] = full.protein + ":" + full.cell_line
-    # DETERMINISTIC SORT, AND THE TIEBREAKER IS NOT DECORATION.
+    # Deterministic sort, and the tiebreaker is not decoration.
     #
     # pandas sort_values defaults to quicksort, which is NOT stable, and three pairs of
     # datasets in this panel share a pair count exactly (539, 3640, 7988). Sorting on `pairs`
@@ -150,7 +150,7 @@ def main():
         log(d.head(10).to_string(index=False))
         return
 
-    # THE PANEL IS WRITTEN ONCE. Silently redefining it mid-study is how half the results
+    # The panel is written once. Silently redefining it mid-study is how half the results
     # end up describing a different set of datasets than the other half.
     if blob.exists() and not a.force:
         d = pd.read_csv(io.StringIO(blob.download_as_text()), sep="\t")

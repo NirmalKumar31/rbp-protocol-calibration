@@ -13,12 +13,12 @@ sweeps that trained on the frozen partition, so re-partitioning would compare th
 against new ones. The 4-mer is refit here on whatever partition is supplied, which makes it the
 only model that can answer the question at all.
 
-THE ALTERNATIVES MEET THE SAME CRITERIA, not merely different seeds of a shuffle: the same
+The alternatives meet the same criteria, not merely different seeds of a shuffle: the same
 balanced-mass objective over the same chromosomes, with the same minimum chromosomes per fold,
 optimised from different starts. A partition that failed the criteria would be a different
 design rather than a re-draw of this one.
 
-MASS IS POSITIVE-WINDOW COUNTS, taken from the committed window tables, rather than the peak
+Mass is positive-window counts, taken from the committed window tables, rather than the peak
 counts `optimize_folds.py` used. Those windows are what the folds actually have to balance, the
 peak BEDs are not in this repository, and the two differ only in that one peak yields one
 window.

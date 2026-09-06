@@ -4,18 +4,18 @@
     modal run cloud/modal/modal_sweep.py::sweep        # fan out
     modal run cloud/modal/modal_sweep.py::status       # how far along
 
-WHY THIS EXISTS. `GPUS_ALL_REGIONS` is 0 on this project and the increase request is
+Why this exists. `GPUS_ALL_REGIONS` is 0 on this project and the increase request is
 auto-denied with NOT_ENOUGH_USAGE_HISTORY, for 8, for 4, and for 1. AWS returns 0 on all
 four GPU families too (adjustable, but a request away). Azure forbids GPU quota on a free
 trial outright. Modal gates nothing.
 
-WHAT MAKES THIS CHEAP TO BUILD. A training task's only cloud dependency is
+What makes this cheap to build. A training task's only cloud dependency is
 google-cloud-storage: it reads the manifest and its dataset from GCS, writes scores,
 metrics and weights back, and takes its index from an environment variable with a default.
 No Batch API calls, no metadata-server assumptions. So `scripts/cloud_train.py` runs here
 UNCHANGED, and `cloud_train.py aggregate` cannot tell the difference afterwards.
 
-THE PART THAT ACTUALLY MATTERS, AND IT IS NOT THE FREE CREDIT. GCP caps this project at
+The part that actually matters, and it is not the free credit. GCP caps this project at
 CPUS_ALL_REGIONS = 12, which is why the sweep runs 12 tasks at a time and why SpliceBERT
 would take 155 hours there. Modal has no equivalent cap, so the same work fans out:
 
@@ -143,7 +143,7 @@ def _run_one(idx: int, model: str, gpu: bool = True, epochs: int = 0) -> int:
 # 200-token sequences.
 #
 # MAX_CONTAINERS IS A BUDGET CONTROL, NOT A PERFORMANCE KNOB, AND THIS IS THE ONE NUMBER
-# TO UNDERSTAND BEFORE RUNNING ANYTHING HERE.
+# To understand before running anything here.
 #
 # On GCP the spend rate was capped by quota whether we liked it or not: CPUS_ALL_REGIONS=12
 # meant three e2-standard-4 nodes and $0.24/hour, so even total abandonment took six days
@@ -255,7 +255,7 @@ def bench(model: str = "splicebert", index: int = 1, epochs: int = 2,
           gpus: str = "T4,A10G,A100"):
     """Time the SAME dataset on several GPUs, then price the sweep from measurement.
 
-    WHY THIS EXISTS AS ITS OWN ENTRYPOINT. Modal charges per-hour for CPU and memory
+    Why this exists as its own entrypoint. Modal charges per-hour for CPU and memory
     alongside the GPU, and every run pays a fixed cost to load a model and fetch a dataset.
     Both amortise over wall time, so a faster GPU can be CHEAPER overall even at a higher
     hourly rate -- on paper an A100 came out at $28 for the full SpliceBERT sweep against

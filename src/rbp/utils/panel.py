@@ -1,6 +1,6 @@
 """Which datasets are in the study, for a given negative arm.
 
-WHY THIS EXISTS AS A SHARED MODULE. Three analysis scripts each had their own copy of
+Why this exists as a shared module. Three analysis scripts each had their own copy of
 "read the panel file, filter on pairs, build a path to dataset.tsv". All three read
 `panel_final_<cell>.tsv` and all three then loaded from `data/processed/` -- the GC
 directory. That was wrong in two directions at once once the dinucleotide arm existed:

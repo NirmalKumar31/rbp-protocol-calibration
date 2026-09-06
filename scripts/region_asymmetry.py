@@ -30,7 +30,7 @@ the GC arm is region mix. The arm STILL carries the highest baseline and the low
 of the three, and the span widens from 5.42 to 7.20. So the ordering is not a region artefact,
 but the mechanism sentence was overstated and the magnitude is part annotation.
 
-NOTE WHAT THIS ARM IS NOT. Horlacher's negative-2 does not match region either, so a
+Note what this arm is not. Horlacher's negative-2 does not match region either, so a
 region-matched version is not the field's protocol and is not a fourth point on the same axis.
 It is a diagnostic that measures how much of one arm's baseline is transcript annotation.
 """

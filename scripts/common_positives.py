@@ -17,7 +17,7 @@ so intersecting discards the hardest windows preferentially, and the intersectio
 slightly different question than the panel does. That is an argument for reporting BOTH, not for
 reporting neither.
 
-WHAT THIS DOES. For each dataset, take the positives present in both composition-matched arms,
+What this does. For each dataset, take the positives present in both composition-matched arms,
 keyed by genomic coordinate, keep each arm's own matched negative for those positives, and
 recompute the nested contribution. Both arms then run on identical positive sets, so the
 negatives are exactly the only difference. The comparison of interest is whether the
@@ -45,7 +45,7 @@ from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": "gc", "dn": "dinuc"}
-# STRAND IS IN THE KEY. The same interval on opposite strands is a different RNA
+# Strand is in the key. The same interval on opposite strands is a different RNA
 # sequence. Measured before adding it: zero opposite-strand coordinate collisions
 # across all 914,732 positives in both arms, so this changes no published number --
 # but the previous key was safe by luck and _assert_no_strand_collision() below

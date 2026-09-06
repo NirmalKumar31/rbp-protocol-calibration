@@ -2,7 +2,7 @@
 
     python scripts/scale_sweep.py
 
-THE OBJECTION THIS EXISTS TO CLOSE, and it is the first one a competent referee raises against
+The objection this exists to close, and it is the first one a competent referee raises against
 the title. The paper claims the measured contribution of a model is protocol-dependent, and
 demonstrates it with a bounded statistic -- a difference of AUROCs -- across three protocols
 whose baselines differ by 0.20 AUROC. So: is the range just the bounded scale? Would some
@@ -19,12 +19,12 @@ and that is not a rescaling of the model's output at all. It is a rescaling by t
 own baseline, which is to say: the only way to shrink the protocol dependence is to divide it
 out by hand, using the very quantity the protocol sets.
 
-WHY THIS IS THE ANALYSIS YOU CANNOT LOSE. If some transform HAD collapsed the range, the paper
+Why this is the analysis you cannot lose. If some transform HAD collapsed the range, the paper
 would not have been refuted -- it would have become "here is the protocol-independent
 coordinate, use it", which is a better and more citable paper. It did not collapse, so the
 claim stands and now has a search behind it rather than an assertion.
 
-AND IT YIELDS THE DELIVERABLE. The least protocol-sensitive coordinate found is worth
+And it yields the deliverable. The least protocol-sensitive coordinate found is worth
 recommending, WITH its failure stated in the same breath: headroom-normalised contribution
 still moves twofold. It is a better coordinate, not an invariant.
 

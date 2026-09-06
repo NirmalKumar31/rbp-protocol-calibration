@@ -1,12 +1,12 @@
 """Stage 3 in the cloud: one (cell line, protein, negative arm) per Batch task.
 
-WHY THE WORK IS SPLIT THIS WAY. Preprocessing is embarrassingly parallel across proteins
+Why the work is split this way. Preprocessing is embarrassingly parallel across proteins
 and completely serial within one, so the natural unit is a single dataset. 244 datasets x 2
 negative arms = 488 tasks. The two arms are separate tasks rather than one task doing both
 because their costs differ by 27x -- pairing them would hide the fast one behind the slow
 one on every node.
 
-WHY THE OUTPUT IS COMPARED BYTE FOR BYTE. Nothing downstream is trustworthy if the
+Why the output is compared byte for byte. Nothing downstream is trustworthy if the
 container preprocesses differently from the laptop, and "differently" here would be a
 handful of windows out of millions, invisible in any summary statistic. md5 of dataset.tsv
 is the only check that actually catches it.

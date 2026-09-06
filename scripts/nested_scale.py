@@ -3,11 +3,11 @@
     python scripts/nested_scale.py --store ../rbp-store               # the whole panel
     python scripts/nested_scale.py --store ../rbp-store --only KHSRP:K562,AQR:HepG2
 
-WHY ONE SCRIPT FOR BOTH. They are two coordinates of the same design matrix and share every
+Why one script for both. They are two coordinates of the same design matrix and share every
 expensive step, so measuring them separately would fit the composition baseline four times per
 (dataset, arm) instead of twice. See rbp.eval.scale_sensitivity for what each one is.
 
-WHAT IS DONE WITH THE ANSWERS IS NOT SYMMETRIC. The covariate scale is an INCONSISTENCY
+What is done with the answers is not symmetric. The covariate scale is an INCONSISTENCY
 between arms of the model-class comparison -- a log odds in one, a probability in the other two
 -- so it is corrected in the primary numbers. The standardisation window is IMPROPER but
 symmetric and label-free, so it is reported as a bound rather than adopted; re-deriving every

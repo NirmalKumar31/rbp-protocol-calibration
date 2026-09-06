@@ -3,7 +3,7 @@
     python scripts/estimator_floor.py
     python scripts/estimator_floor.py --from-cache
 
-WHY THIS HAD TO BE RUN. The order-four profile measures what the estimator reports when the
+Why this had to be run. The order-four profile measures what the estimator reports when the
 truth is known to be zero, and it reports +0.09 to +0.14. That calibration is at a 337-column
 baseline, and every headline in this paper uses the NINETEEN-column order-two baseline, so it
 bounds an estimator the paper does not use. Worse, the three order-four values fall in the same
@@ -11,7 +11,7 @@ order as the headline (dinucleotide > GC > bias-aware, a 1.61-fold span) on data
 is zero in all three arms, which raises the possibility that part of the headline ORDERING is
 estimator bias rather than protocol effect. That objection cannot be answered at order four.
 
-THE EXACT NULL AT ORDER TWO. A 2-mer model scores a window by its sixteen dinucleotide counts.
+The exact null at order two. A 2-mer model scores a window by its sixteen dinucleotide counts.
 Windows here are a fixed 101 nt, so those counts are 100 times the dinucleotide frequencies, and
 the fifteen frequency columns in the baseline plus the intercept span all sixteen exactly. The
 2-mer's score is therefore a linear function of features the baseline already contains, and its
@@ -65,7 +65,7 @@ def build(store, limit):
                 ok = False
                 break
             d = pd.read_csv(f, sep="\t")
-            # THE WINDOW LENGTH IS THE WHOLE ARGUMENT. Counts equal length-1 times frequencies
+            # The window length is the whole argument. Counts equal length-1 times frequencies
             # only if every window has the same length; if any does not, the 2-mer's score is
             # no longer in the baseline's span and the null is not exactly zero.
             if d.seq_rna.str.len().nunique() != 1:
@@ -141,7 +141,7 @@ def main():
         log(f"  {arm:6s} {v:+9.5f} [{r['ci_low']:+.5f}, {r['ci_high']:+.5f}] "
             f"{PUBLISHED[arm]:+10.4f} {v / PUBLISHED[arm]:7.1%}")
 
-    # THE OBJECTION THIS SECTION ANSWERS. At order four the floor falls in the same order as
+    # The objection this section answers. At order four the floor falls in the same order as
     # the headline, so the ordering itself could be estimator bias. Here the arms can be ranked
     # by their floor and compared with the published ranking directly.
     order_pub = [k for k, _ in sorted(PUBLISHED.items(), key=lambda kv: -kv[1])]
@@ -156,7 +156,7 @@ def main():
     log(f"  published ranking  {' > '.join(order_pub)}")
     log(f"  same ordering: {same}   floor span {span:.2f}x")
 
-    # THE DEFENCE, AND IT IS THE WHOLE POINT OF MEASURING THE FLOOR PER ARM. A bias that is
+    # The defence, and it is the whole point of measuring the floor per arm. A bias that is
     # constant across arms cannot manufacture a difference between them. The floor spans 1.24x
     # while the reported contributions span 5.42x, so the SPAN survives even though the LEVEL
     # does not. Gated as the comparison rather than as two separate numbers, because either

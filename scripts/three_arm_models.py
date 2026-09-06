@@ -3,7 +3,7 @@
     python scripts/three_arm_models.py            # needs the window store
     python scripts/three_arm_models.py --from-cache
 
-THE GAP THIS CLOSES. Until the bias-aware arm was swept for the neural models, everything
+The gap this closes. Until the bias-aware arm was swept for the neural models, everything
 three-protocol was 4-mer only (the 5.4-fold span, the transform sweep, the baseline
 decomposition, the recommendation test) and everything multi-model was two-arm only. So the
 paper's headline was a single-model result and the robustness that defends it belonged to
@@ -50,7 +50,7 @@ def main():
     a = p.parse_args()
     warnings.filterwarnings("ignore")
 
-    # THIS TABLE HAD NO PRODUCER, and it is gated. `--store` was accepted and never read: the
+    # This table had no producer, and it is gated. `--store` was accepted and never read: the
     # branch was `if a.from_cache or per.exists()`, so whenever the committed table was
     # present -- always -- it was used, and the flag did nothing. That surfaced after the
     # dinucleotide retrain, when this script printed the pre-retrain contributions while
@@ -153,7 +153,7 @@ def main():
     log(f"\n  the bias-aware arm yields the least for {sum(x == 'neg2' for x in lowest)}"
         f"/{len(MODELS)} model classes, and has the highest composition baseline of the three")
 
-    # THE TWO EFFECTS IN THE SAME UNITS, because the Introduction compares them and a fold
+    # The two effects in the same units, because the Introduction compares them and a fold
     # change and an AUROC difference are not comparable. Ranges of panel means: protocol range
     # holding the model fixed, model-class range holding the protocol fixed. These are
     # DIFFERENCES of means, which no column aggregate reproduces, so they are emitted here

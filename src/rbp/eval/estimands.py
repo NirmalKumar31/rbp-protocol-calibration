@@ -21,7 +21,7 @@ out-of-fold linear predictors so nothing is refitted:
                       calibration-sensitive summary from the risk-prediction literature, which
                       is where the nested-model question was formalised first.
 
-AND ONE DIAGNOSTIC THAT IS NOT AN INCREMENT. `residual_auroc` regresses the model score on the
+And one diagnostic that is not an increment. `residual_auroc` regresses the model score on the
 composition block and takes the AUROC of the residual. It answers a different and sharper
 question: does the part of the score ORTHOGONAL to composition discriminate at all? An
 increment can be small because the baseline is high; a residual AUROC at 0.5 means there is

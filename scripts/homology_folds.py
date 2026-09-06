@@ -3,14 +3,14 @@
     python scripts/homology_folds.py --store ../rbp-store
     python scripts/homology_folds.py --from-cache
 
-WHAT WAS ALREADY KNOWN AND WHAT WAS NOT. Methods report exact 32-mer sharing between held-out
+What was already known and what was not. Methods report exact 32-mer sharing between held-out
 and training windows: a median of 2.0% of held-out windows share any 32-mer, maximum 24.3%.
 Two limits on that figure were named by reviewers and both are real. It was computed holding out
 FOLD 0 ONLY, so four fifths of the partition was never audited. And measuring leakage is not
 controlling it: chromosome grouping prevents two windows at the same locus landing on opposite
 sides of a split, and does nothing about a paralogue or a repeat on another chromosome.
 
-THREE THINGS ARE REPORTED, IN INCREASING STRENGTH.
+Three things are reported, in increasing strength.
 
 1. The audit over ALL FIVE held-out folds, so the quoted median and maximum describe the
    partition rather than one fifth of it.
@@ -24,7 +24,7 @@ THREE THINGS ARE REPORTED, IN INCREASING STRENGTH.
    untouched, so chromosome blocking survives by construction, and the code asserts afterwards
    that not one indexed 32-mer crosses a fold.
 
-TWO ATTEMPTS AT A FOLD-REGROUPING CONTROL FAILED AND THE SECOND FAILURE IS THE INTERESTING ONE.
+Two attempts at a fold-regrouping control failed and the second failure is the interesting one.
 
 The first assigned homology components to folds from scratch, which silently discarded
 chromosome grouping: two peaks 10 kb apart share no 32-mer and became free to split. The second
@@ -35,7 +35,7 @@ eight in both, catching roughly one homologous pair in eight; and moving a compo
 left the rest of their chromosomes behind, splitting 9 to 15 chromosomes per dataset that had
 been whole. Measured on three datasets it left 560 to 981 exact 32-mers still crossing folds.
 
-A CORRECT REGROUPING IS NOT MERELY UNIMPLEMENTED, IT IS IMPOSSIBLE HERE, and that is worth
+A correct regrouping is not merely unimplemented, it is impossible here, and that is worth
 reporting. Requiring a partition to respect chromosome blocking AND to place every
 32-mer-sharing pair in one fold means taking connected components of the graph whose nodes are
 chromosomes and whose edges are shared 32-mers. Repetitive sequence connects almost everything:
@@ -148,7 +148,7 @@ def audit_all_folds(d):
 def pair_key(d, arm):
     """One key per matched positive/negative pair, so a filter can remove both members.
 
-    WHY THIS IS NEEDED. Both filters below delete held-out WINDOWS. Negatives are matched 1:1 to
+    Why this is needed. Both filters below delete held-out WINDOWS. Negatives are matched 1:1 to
     positives, so deleting one member of a pair leaves the other unpartnered, and the deletions
     are not symmetric between classes -- measured on three datasets the GC arm dropped 268
     positives against 73 negatives, and on the full panel the imbalance runs the other way. The

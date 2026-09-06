@@ -1,6 +1,6 @@
 """Stage 0. Refuse to start until the environment can actually finish.
 
-WHY THIS EXISTS, AND WHY IT IS THE MOST VALUABLE FILE HERE. Every failure of the original
+Why this exists, and why it is the most valuable file here. Every failure of the original
 three-day build was one of these, and every one was discovered mid-run, after money had been
 spent:
 

@@ -1,6 +1,6 @@
 """A directory that answers to the google-cloud-storage Bucket interface.
 
-WHY THIS EXISTS. The GCP project's billing account was closed, so
+Why this exists. The GCP project's billing account was closed, so
 `gs://rbp-repro-2026-derived` returns 403 on every object and the sweep can no longer read
 its own inputs. Every input still needed is on local disk, so the missing piece is not the
 data but the API: `cloud_train.py` talks to GCS through a small, well-defined surface --
@@ -18,7 +18,7 @@ The read-through root is how a Modal task works: the datasets arrive on a Volume
 read-only, and the run's outputs go to container-local disk to be returned to the driver.
 Nothing writes to shared storage during a sweep, so there is no commit to conflict over.
 
-WRITES ARE ATOMIC, and that is load-bearing rather than tidiness. The sweep's resume rule is
+Writes are atomic, and that is load-bearing rather than tidiness. The sweep's resume rule is
 "a run whose metrics.json exists is done". GCS gives that for free because an object appears
 whole or not at all. On a filesystem a task killed mid-write leaves a truncated marker that
 reads as complete, so a lost run would be silently skipped and its dataset would carry four

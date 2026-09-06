@@ -1,6 +1,6 @@
 """The multi-donor wrong-protein control: does protein specificity survive donor matching?
 
-WHAT THE OLD ARM GOT WRONG. One donor per target, chosen as (index + 47) % 95 on an
+What the old arm got wrong. One donor per target, chosen as (index + 47) % 95 on an
 alphabetical manifest. That draw handed most targets a donor whose own model was WEAKER than
 theirs (binding AUROC 0.802 vs 0.850, Wilcoxon p=0.018), so the measured gap confounded
 "this head knows THIS protein" with "this head saw more training data than that one". The
@@ -9,12 +9,12 @@ tells, all on the 44 powered datasets: gap vs log10(donor pairs) rho=-0.533 (p=1
 published co-binding stratification BETTER (+0.1362 vs +0.1210, both 16/17); and where the
 donor's own model was at least as good as the target's the gap was -0.0025 (9/18, p=1.00).
 
-THE ESTIMAND HERE IS AN INTERCEPT, NOT A MEAN. With five donors per target spanning donor
+The estimand here is an intercept, not a mean. With five donors per target spanning donor
 quality, the gap can be regressed on donor-minus-target quality and read at zero advantage.
 That is the number the old design could not produce, because with one donor per target the
 donor advantage had no within-target variance to regress on.
 
-TWO THINGS THIS REPORTS THAT A SUBSET MEAN CANNOT.
+Two things this reports that a subset mean cannot.
 
   within-target   donor advantage varies WITHIN a target, so target identity can be swept out
                   entirely by centring. Everything a target contributes -- its variant count,
@@ -25,7 +25,7 @@ TWO THINGS THIS REPORTS THAT A SUBSET MEAN CANNOT.
                   read at whatever power the panel happens to carry. Power is therefore
                   mean-centred, so the intercept means "donor-neutral, average-power dataset".
 
-BOTH PANELS ARE REPORTED, ALWAYS. The old arm's adjusted intercept was +0.037 on the powered
+Both panels are reported, always. The old arm's adjusted intercept was +0.037 on the powered
 44 and -0.014 on all 82 usable -- it changed SIGN with the stratum, which is what "not
 identified" looks like. Reporting one panel and not the other is how that stayed hidden.
 """

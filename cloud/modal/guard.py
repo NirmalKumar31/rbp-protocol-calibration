@@ -4,7 +4,7 @@ has no budget API.
     python cloud/modal/guard.py                 # report once
     python cloud/modal/guard.py --watch         # loop, and STOP the app if over budget
 
-WHY THIS IS NEEDED HERE SPECIFICALLY. On GCP the spend rate was capped by quota whether we
+Why this is needed here specifically. On GCP the spend rate was capped by quota whether we
 liked it or not -- CPUS_ALL_REGIONS=12 meant three nodes and $0.24/hour, so even total
 abandonment took six days to reach the $40 killswitch. Modal's whole value is that it
 removes that cap, and it removes the accidental cost ceiling along with it. Ten A10G
@@ -17,7 +17,7 @@ Modal exposes no spend figure over the CLI and no budget limit, so the guard has
 built from what is observable: how long the app has been up, and how much work has landed
 in GCS.
 
-TWO ESTIMATES, AND THE CONSERVATIVE ONE IS THE ONE THAT ACTS.
+Two estimates, and the conservative one is the one that acts.
 
   upper bound   summed over every live sweep app: each app's elapsed time x its own
                 MAX_CONTAINERS x rate. Assumes every container busy every second, so it is
@@ -85,7 +85,7 @@ def _epoch(ts):
 
 
 
-# EVERY SWEEP APP, NOT ONE. This matched the literal description "rbp-sweep" while the apps
+# Every sweep app, not one. This matched the literal description "rbp-sweep" while the apps
 # that actually ran the GC, bias-aware and region-matched arms are named rbp-gc-sweep,
 # rbp-neg2-sweep and rbp-neg2-rm-sweep -- modal_gc_sweep.py derives the name from RBP_ARM. So
 # the guard reported "no running rbp-sweep app" and returned success for three of the four
@@ -140,7 +140,7 @@ def live_apps():
             if started is None:
                 blind.append(f"{app_id} (created_at={raw!r})")
             out.append((app_id, started))
-    # A LIVE APP WITH AN UNREADABLE START TIME USED TO BOUND AT ZERO, FOREVER. _epoch returns
+    # A live app with an unreadable start time used to bound at zero, forever. _epoch returns
     # None on anything it cannot parse, this function kept the app in the list with that None,
     # and report() summed `for _a, s in live if s` -- so the app was excluded from the figure
     # printed as an UPPER BOUND while it went on holding ten containers. A rename of the field,
@@ -177,7 +177,7 @@ ARMS = ("dinuc", "gc", "neg2", "neg2_rm")
 def work_done(model, arms=ARMS):
     """(runs, gpu_seconds, unobserved_arms) from GCS. The receipt, not the promise.
 
-    ZERO RECEIPTS AT A PREFIX IS NOT ZERO COST. cloud/modal/modal_gc_sweep.py opens with the
+    Zero receipts at a prefix is not zero cost. cloud/modal/modal_gc_sweep.py opens with the
     words "with no GCS anywhere": its arms keep inputs and outputs on a Modal Volume. So adding
     runs/gc/, runs/neg2/ and runs/neg2_rm/ to this listing did NOT make those sweeps
     observable -- it made them contribute a confident zero to the figure called the lower bound,
@@ -207,7 +207,7 @@ def work_done(model, arms=ARMS):
 def report(model, budget, started_epoch, live=None):
     """Print both bounds. The upper one sums over EVERY live app.
 
-    IT USED TO USE ONE APP'S ELAPSED TIME. Each sweep application carries its own
+    It used to use one app's elapsed time. Each sweep application carries its own
     max_containers=10, so two concurrent apps can hold twenty containers, and multiplying the
     oldest app's elapsed hours by ten then produced a figure BELOW reality while the code called
     it an upper bound and the docstring said "Always >= reality". An upper bound that can be
@@ -217,7 +217,7 @@ def report(model, budget, started_epoch, live=None):
     if live is None:
         live = [(None, started_epoch)] if started_epoch else []
     now = time.time()
-    # NO SILENT DROPS. This filtered `if s` and therefore omitted any app whose start time was
+    # No silent drops. This filtered `if s` and therefore omitted any app whose start time was
     # missing from a figure it labelled an upper bound. live_apps() now refuses to return such
     # an app at all, and this is the second line of defence: an entry that reaches here without
     # a start time is a programming error, not something to quietly skip.
@@ -314,7 +314,7 @@ def main():
             live = live_apps()
             last_seen = live or last_seen
         except Unobservable:
-            # THE LAST COMPLETE LIST, not the one app we started with. Falling back to
+            # The last complete list, not the one app we started with. Falling back to
             # [(app_id, started)] meant that if three apps were live and the CLI then failed,
             # the upper bound silently dropped to a third of the burn and the stop list to one
             # app -- while SECURITY.md advertised this guard as failing closed. Keep charging

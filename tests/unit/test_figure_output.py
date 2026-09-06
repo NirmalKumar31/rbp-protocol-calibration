@@ -5,7 +5,7 @@ silently reversible: one `imshow`, one rasterized=True, one matplotlib default r
 figure that was vector becomes a bitmap or its text becomes unselectable. None of that would
 fail any existing gate, and none of it is visible in a screenshot.
 
-TYPE 3 IS THE ONE THAT MATTERS MOST. It is matplotlib's default for PDF, and it embeds glyphs as
+Type 3 is the one that matters most. It is matplotlib's default for PDF, and it embeds glyphs as
 PostScript drawing programs rather than as a font: the text is not selectable, not searchable
 and not reliably extractable, which also breaks the pypdf reading this project uses to check the
 manuscript. `pdf.fonttype: 42` is set in scripts/figures.py for that reason and this asserts it
@@ -28,7 +28,7 @@ def _figures():
 
 
 def test_the_submission_package_carries_figures():
-    # SKIP ONLY WHERE THE MANUSCRIPT IS ABSENT ENTIRELY, and fail where it is present but
+    # Skip only where the manuscript is absent entirely, and fail where it is present but
     # unbuilt. The container image copies config, src, scripts and tests and deliberately not
     # manuscript/, so an unconditional assertion here failed the image build -- on a test about
     # figures, in a build that has no reason to carry any. Skipping whenever the directory is

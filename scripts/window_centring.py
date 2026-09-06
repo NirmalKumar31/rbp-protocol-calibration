@@ -9,7 +9,7 @@ crosslinking event that produced the read pileup is not at the centre of the cal
 B14 measured that the discriminative signal sits a median 23 nt off the window centre, so the
 centring is demonstrably not aligned with the signal.
 
-WHAT WE CANNOT DO, AND IT IS WORTH STATING RATHER THAN OMITTING. The obvious comparison is
+What we cannot do, and it is worth stating rather than omitting. The obvious comparison is
 summit-centred against midpoint-centred windows. narrowPeak reserves column 10 for the
 point-source summit, and in these ENCODE eCLIP files it is -1 in every row of every file: no
 summit is provided. `windows.read_peaks` never reads that column, and it is right not to. So a
@@ -25,7 +25,7 @@ Every centring rebuilds its own positives from the genome and its own matched ne
 composition-matched arms, because a negative is matched to a positive and cannot be carried
 across. Folds come from the chromosome, so the fold design is identical throughout.
 
-THE MIDPOINT ARM IS NOT A REPRODUCTION CONTROL, which is what it was written as. Both matchers
+The midpoint arm is not a reproduction control, which is what it was written as. Both matchers
 SAMPLE their candidate windows from an RNG, so rebuilding the published centring gives a fresh
 draw of the same construction rather than the same negatives. That turns it into a more useful
 measurement than the one intended: how much each arm's contribution moves between draws. The
@@ -252,7 +252,7 @@ def main():
     # THE CONTROL. The published centring rebuilt through this path must return the published
     # per-dataset gain, or the three centrings are being compared with each other and not with
     # the paper.
-    # REPORTED PER ARM, and the result is the reverse of what the code comments imply. BOTH
+    # Reported per arm, and the result is the reverse of what the code comments imply. BOTH
     # matchers sample their candidate windows from an RNG, so neither rebuild is bit-identical
     # to the published one; the dinucleotide matcher is deterministic only in the ASSIGNMENT
     # step, conditional on the pool it happened to draw. So this is not a reproduction check,
@@ -293,7 +293,7 @@ def main():
             log(f"  {mode:12s} {arm:4s} {s.n_positives.mean():10.0f} {s.pairs.mean():8.0f} "
                 f"{s.comp.mean():12.4f} {s.gain.mean():+13.4f}")
 
-    # THE CONTRAST UNDER EACH CENTRING, which is the paper's quantity. Datasets are matched
+    # The contrast under each centring, which is the paper's quantity. Datasets are matched
     # across arms within a centring, so the contrast is a paired difference as published.
     log("")
     contrasts = {}
@@ -315,7 +315,7 @@ def main():
         log(f"\n  over the {len(contrasts)} centrings the contrast ranges {rng_c:.4f}, "
             f"from {min(contrasts.values()):+.4f} to {max(contrasts.values()):+.4f}")
 
-    # HOW MANY POSITIVES EACH CENTRING KEEPS. Moving the centre moves the window off the end
+    # How many positives each centring keeps. Moving the centre moves the window off the end
     # of a contig or into an unannotated stretch for some peaks, so the arms are not on
     # identical row sets and the size of that difference has to be reported rather than
     # assumed negligible.

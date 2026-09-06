@@ -32,7 +32,7 @@ FIGS = ROOT / "results" / "figures"
 
 # One hue per model, fixed, so a model is the same colour in every figure. Assigned by
 # identity and never by rank, or a figure that drops a model would repaint the survivors.
-# COLOUR IS CHECKED, NOT CHOSEN. tests/unit/test_palette_cvd.py measures OKLab separation for
+# Colour is checked, not chosen. tests/unit/test_palette_cvd.py measures OKLab separation for
 # every pair that shares a panel, under normal vision and under simulated protanopia and
 # deuteranopia, and fails below the thresholds. Three pairs failed the first time it ran, all
 # of them at NORMAL vision, meaning full-colour readers could not tell them apart either:
@@ -84,7 +84,7 @@ def need(*names):
 def clustered_mean_err(frame, col, n_boot=4000, seed=7):
     """Mean of `col` with an asymmetric error bar clustered on protein.
 
-    WHY THIS EXISTS. Two panels drew `.sem()` over the 94 datasets, which treats them as 94
+    Why this exists. Two panels drew `.sem()` over the 94 datasets, which treats them as 94
     independent observations. They are 79 proteins, fifteen of which contribute two datasets
     each at a within-protein correlation of 0.92 for the primary contrast, and EVERY headline
     interval in the paper resamples proteins. An error bar narrower than the inference it
@@ -223,7 +223,7 @@ def f1():
     ax[0].set_xlim(-0.4, 1.4)
     ax[0].set_title(f"Every dataset falls ({len(d)}/{len(d)})", loc="left", fontsize=9)
 
-    # PANEL B IS THE FINDING, AND IT USED TO BE A SECOND VIEW OF PANEL A.
+    # Panel b is the finding, and it used to be a second view of panel a.
     #
     # This was a histogram of the same AUROC drop the left panel already shows. That drop is
     # very nearly tautological -- harder negatives lower AUROC by construction -- so the
@@ -664,7 +664,7 @@ def f10():
     arms = [("dn", "dinucleotide\nmatched"), ("gc", "GC\nmatched"),
             ("neg2", "bias-aware\n(other RBPs' sites)")]
     col = {"dn": COLOR["dinuc"], "gc": COLOR["gc"], "neg2": COLOR["neg2"]}
-    # TWO PANELS, NOT THREE. The old panel b -- contribution against the composition baseline
+    # Two panels, not three. The old panel b -- contribution against the composition baseline
     # over all 282 cells -- is the same plot as Figure 3a, which belongs to the subsection that
     # argues from the gradient. Duplicating it here spent a third of this figure restating a
     # later one. Kept in Figure 3; the pointer below sends the reader there.
@@ -976,7 +976,7 @@ def f15():
                     fontsize=9)
 
     # (b) OUT of sample, on their benchmark: both pre-specified criteria fire the wrong way.
-    # PRE-SPECIFIED, NOT PRE-REGISTERED. The criteria were fixed in a committed script
+    # Pre-specified, not pre-registered. The criteria were fixed in a committed script
     # before the external data were scored, which orders the two events. There is no
     # registry, no locked protocol and no independent timestamp, and "pre-registered"
     # claims all three.
@@ -1015,7 +1015,7 @@ def f15():
 def f16():
     """B3: the contribution as a function of where the baseline stops, and where it breaks.
 
-    THE ORDER-4 COLUMN IS DRAWN, NOT DROPPED. At order four the baseline spans the 4-mer's
+    The order-4 column is drawn, not dropped. At order four the baseline spans the 4-mer's
     own feature space, so its true contribution is zero and the +0.09 to +0.14 the estimator
     reports is the instrument's error. Hiding that column would turn the figure into three
     tidy declining curves and lose the section's main result; drawing it without marking it
@@ -1055,7 +1055,7 @@ def f16():
         a0.axhline(0, color="#404040", linewidth=0.8, zorder=1)
         a0.set_title(f"{'abc'[col]}  {title}", loc="left", fontsize=9)
         a0.grid(axis="x", visible=False)
-        # THE BAND'S LABEL CARRIES ITS OWN REASON. Annotating the count beside the curve in
+        # The band's label carries its own reason. Annotating the count beside the curve in
         # the panel below collided with the curve in two of three arms, and separating cause
         # from effect made the reader join them up. One label, both facts.
         fell = int(q.loc[f"baseline AUROC fell from order 3 to 4, {arm} arm", "value"])
@@ -1066,7 +1066,7 @@ def f16():
             a0.set_ylabel("nested contribution")
             a0.legend(frameon=False, fontsize=7.5, loc="upper left")
 
-        # THE DIAGNOSTIC, directly under the curves it explains: the baseline's own
+        # The diagnostic, directly under the curves it explains: the baseline's own
         # out-of-fold AUROC. Where it stops rising, the panel above stops being a baseline.
         cs = [float(q.loc[f"composition AUROC at order {o}, {arm} arm", "value"])
               for o in orders]

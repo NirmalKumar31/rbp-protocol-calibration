@@ -13,7 +13,7 @@ does not depend on the placebo experiment at all.
 
 Coordinates only, no sequences and no model fitting, so this runs in seconds.
 
-SCOPE, STATED BECAUSE IT LIMITS THE CLAIM. Only datasets whose LOCAL window tables reproduce
+Scope, stated because it limits the claim. Only datasets whose LOCAL window tables reproduce
 their committed row are used, and for the dinucleotide arm that is the 40 whose canonical
 tables were fetched. The GC arm reproduces locally. Comparing a canonical GC arm against a
 locally-redrawn dinucleotide arm would compare two different negative draws, so the paired

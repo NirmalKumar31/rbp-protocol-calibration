@@ -12,7 +12,7 @@ so the block bootstrap was not reproducible from the release either. A published
 on a constant the harness could not check -- the same class of defect as the fold-partition
 one, and found the same way, by looking rather than by a gate.
 
-WHAT IS MEASURED, per dataset, on the GC arm:
+What is measured, per dataset, on the GC arm:
 
   clustering  SD of the nested gain when whole genomic blocks are resampled, over the DeLong
               SE. Swept over block length, because the right cluster is arguable: windows

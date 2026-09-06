@@ -3,7 +3,7 @@
     python scripts/history_scan.py            # write results/tables/history_scan.csv
     python scripts/history_scan.py --check    # rescan and fail if the finding changed
 
-WHY IT IS A SCRIPT AND NOT A PARAGRAPH. SECURITY.md described a scan run by hand on a date, over
+Why it is a script and not a paragraph. SECURITY.md described a scan run by hand on a date, over
 "206 commits at the time of writing". By the time an external audit read it the repository was
 at 210 refs-wide, the audit itself counted 208, and the file still said 206. Three numbers, three
 sources, no way to tell which described the release. A count that has to be retyped is a count
@@ -14,13 +14,13 @@ So the scan is code, the counts come out of git, and SECURITY.md points here ins
 `--check` rescans and fails if the set of findings has changed, which is the property that
 matters: not that the number is stable, but that nothing new has appeared.
 
-WHAT IT LOOKS FOR. Private-key blocks, service-account key material, AWS access keys, GitHub and
+What it looks for. Private-key blocks, service-account key material, AWS access keys, GitHub and
 Slack tokens, Google API keys, OAuth tokens, and GCP billing account IDs. It reports counts by
 kind and the distinct commits each kind appears in. It does NOT print the matched strings: the
 one live finding is documented in SECURITY.md and reprinting a billing account ID into a
 committed table would be the same disclosure this exists to measure.
 
-WHAT IT CANNOT DO. Forks and existing clones keep whatever they were made from, so a clean scan
+What it cannot do. Forks and existing clones keep whatever they were made from, so a clean scan
 of this repository is a statement about this repository. SECURITY.md says so.
 """
 
@@ -53,7 +53,7 @@ PATTERNS = {
 def _git(*args):
     """Run git, and treat a non-zero exit as a failure rather than as an empty result.
 
-    THE BUG CLASS THIS REPOSITORY KEEPS HITTING. cost.sh reported an auth failure as zero spend;
+    The bug class this repository keeps hitting. cost.sh reported an auth failure as zero spend;
     the Modal guard read an expired token as no app running; test_no_hardcoded_project.py caught
     only FileNotFoundError from git and so stopped checking JSON inside an unpacked archive. An
     unchecked return code turns "could not look" into "found nothing", and in a secret scan that
@@ -96,7 +96,7 @@ def scan():
     for kind in PATTERNS:
         rows.append({"check": f"commits containing a {kind}", "value": len(hits[kind]),
                      "note": "the matched strings are deliberately not printed here"})
-        # THREE DIFFERENT NUMBERS, ALL TRUE, AND SECURITY.md QUOTED ONE WITHOUT SAYING
+        # Three different numbers, all true, AND SECURITY.md QUOTED ONE WITHOUT SAYING
         # WHICH. It said the billing ID "appears in 11 places in the history". That is the
         # DIFF LINE count, and it includes the removal side of the scrub commit; the ID was
         # introduced in 4 distinct commits and touches 9 commit-and-file pairs. All three are
@@ -120,7 +120,7 @@ def main():
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
 
-    # AN UNPACKED ARCHIVE HAS NO HISTORY TO SCAN, and this crashed with a traceback there.
+    # An unpacked archive has no history to scan, and this crashed with a traceback there.
     # A git export, a Zenodo deposit, a tarball: the files are present and .git is not, so
     # `git rev-list` exits 128 and _git raises. run.sh gates on this script, so the documented
     # pipeline died in exactly the archival case the release is meant to be checked in --
@@ -164,7 +164,7 @@ def main():
             sys.exit(1)
         with OUT.open(newline="") as fh:
             have = {r["check"]: r["value"] for r in csv.DictReader(fh)}
-        # THE COUNTS OF COMMITS ARE EXPECTED TO MOVE. What must not move is any finding.
+        # The counts of commits are expected to move. What must not move is any finding.
         moved = [r["check"] for r in rows
                  if "commits containing" in r["check"]
                  and have.get(r["check"]) != str(r["value"])]

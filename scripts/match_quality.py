@@ -15,12 +15,12 @@ doubled to 0.10 after 25 misses, then a best-seen fallback accepted up to 3x tol
 Reporting "matched within 5 percentage points" is therefore an overstatement of what happened,
 and nothing counted how often the relaxation fired.
 
-WHY IT MATTERS BEYOND HONESTY. R1f is described in the paper's own notes as "confounded with
+Why it matters beyond honesty. R1f is described in the paper's own notes as "confounded with
 achieved match quality" -- a confound named in a write-up with no number anywhere to quantify
 it. And the 1-of-15 versus 15-of-15 argument is the reason the sign of the headline contrast is
 design-implied, which is the paper's largest concession. Both need this table.
 
-WHAT IS MEASURED, per arm, over every pair in the panel: |dGC| between the positive and its
+What is measured, per arm, over every pair in the panel: |dGC| between the positive and its
 negative, and the L1 distance over the 16 dinucleotide FREQUENCIES (the same units the matcher
 reports, 0 to 2). Medians, p90, p99, max, and the fraction inside each rung of the relaxation
 ladder.
@@ -125,7 +125,7 @@ def main():
         }
         for k, v in stats.items():
             out.append({"check": f"{k}, {arm} arm", "value": v, "n": t.dataset.nunique()})
-        # THE RELAXATION LADDER, which is the number the paper does not currently report.
+        # The relaxation ladder, which is the number the paper does not currently report.
         for rung in LADDER:
             frac = float((g <= rung).mean())
             out.append({"check": f"fraction of pairs within |dGC| {rung:.2f}, {arm} arm",

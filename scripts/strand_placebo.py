@@ -1,6 +1,6 @@
 """Q1, properly: is R1's contrast a strand artifact? Restriction plus a matched placebo.
 
-WHY THE OBVIOUS VERSION OF THIS TEST IS WRONG, AND WHY THE PLACEBO IS THE WHOLE EXPERIMENT.
+Why the obvious version of this test is wrong, and why the placebo is the whole experiment.
 
 `negatives.py:328` gives each negative the POSITIVE's strand, because `annotation.py:126`
 deliberately drops region strand ("A window's strand comes from its peak, so the region's own
@@ -26,7 +26,7 @@ for the weak version, retained because the contrast between the two designs is t
 PRE-REGISTERED before this was run: sign retained, CI excluding zero, and at least
 60% of the point estimate surviving.
 
-REPRODUCTION IS CHECKED PER DATASET. Local window tables are used only where recomputing the
+Reproduction is checked per dataset. Local window tables are used only where recomputing the
 published composition and with-score AUROCs from them lands on the committed rehearsal row.
 The GC arm reproduces 40/40 locally; the dinucleotide arm reproduces 13/40, because the local
 copy is a different draw, so its canonical tables are read from the study bucket instead.
@@ -96,7 +96,7 @@ def sense_pairs(d, idx):
 def strata_of(d, idx):
     """Negative's region class x within-dataset GC quintile, keyed by pair.
 
-    THE PLACEBO WAS NOT EXCHANGEABLE, AND THIS IS THE FIX. Dropping pairs uniformly at random
+    The placebo was not exchangeable, and this is the fix. Dropping pairs uniformly at random
     is the wrong counterfactual for a restriction that is not itself random: which pairs
     survive is tied to gene density and locus type, measured as
     rho(retention, frac_ambiguous) = -0.525, p = 5.1e-4 across the 40 datasets. So the
@@ -119,7 +119,7 @@ def strata_of(d, idx):
     neg = d[d.label == 0]
     dens = np.array([n_genes(idx, c, int(a), int(b))
                      for c, a, b in zip(neg.chrom, neg.start, neg.end)])
-    # REGION ALONE WAS NOT ENOUGH, AND THE GAP WAS MEASURED. Against a region-matched placebo
+    # Region alone was not enough, and the gap was measured. Against a region-matched placebo
     # the retained set still differed on gene density at a standardised mean difference of
     # -0.303, which is unsurprising once stated: retention REQUIRES exactly one overlapping
     # strand, so it selects against multi-gene loci by construction. GC, CpG and low-complexity
@@ -193,7 +193,7 @@ def main():
     rows, done = [], set()
     if a.resume and cache.exists():
         prev = pd.read_csv(cache)
-        # RESUME ONLY WITHIN THE SAME DESIGN, keyed explicitly. A first version checked for a
+        # Resume only within the same design, keyed explicitly. A first version checked for a
         # column that two different stratification designs both happened to have, so it
         # silently reused 38 region-only rows alongside 2 region-by-density rows and reported
         # the mixture. A resume guard that cannot tell two designs apart is worse than none.
@@ -218,7 +218,7 @@ def main():
             d = pd.read_csv(f, sep="\t")
             r = pub[arm].loc[ds]
             full, comp, with_s = nested_gain(d)
-            # REPRODUCTION GATE. A local table that does not rebuild the published row is a
+            # Reproduction gate. A local table that does not rebuild the published row is a
             # different draw, and differencing against it measures the draw, not the strand.
             if (abs(comp - r.composition_auroc) > REPRO_TOL
                     or abs(with_s - r.with_score_auroc) > REPRO_TOL):
@@ -284,7 +284,7 @@ def summarise(m):
         m["excess"] = m.c_sense - m.c_placebo
         m["excess_strat"] = m.c_sense - m.c_placebo_strat
         m["locus_mix"] = m.c_placebo_strat - m.c_placebo
-    # THE STRAND-CORRECTED CONTRAST. Only the strand-specific part is removed; the shrinkage
+    # The strand-corrected contrast. Only the strand-specific part is removed; the shrinkage
     # the placebo also shows is an artifact of discarding pairs, not of strand, so subtracting
     # it would be double-counting and would understate the effect the paper claims.
     # PRIMARY is the stratified excess, pre-committed before the run.
@@ -336,7 +336,7 @@ def summarise(m):
         note="stratified placebo minus unstratified")
     add("strand-CORRECTED contrast", m.corrected.mean(), "corrected",
         note="full contrast with only the strand-specific part removed")
-    # ON THIS PANEL'S OWN CONTRAST, not the n=94 published one. Inserting +0.0397 into an
+    # On this panel's own contrast, not the n=94 published one. Inserting +0.0397 into an
     # n=40 computation mixes panels and reported 0.8506 where the honest figure is 0.8429.
     add("fraction of the contrast surviving",
         m.corrected.mean() / m.c_full.mean(),

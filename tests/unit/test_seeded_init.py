@@ -1,6 +1,6 @@
 """Weight initialisation must be seeded, and the training entry points must seed before build.
 
-WHY THIS TEST EXISTS. `trainer.train()` calls `set_seed`, but it does so after its caller has
+Why this test exists. `trainer.train()` calls `set_seed`, but it does so after its caller has
 already constructed the network. So for the entire study `torch.manual_seed(7)` governed only
 dropout and batch order, and every one of 945 deep-model fold-runs drew its weights from an
 unseeded RNG. Nothing failed, because every assertion in this project checks a VALUE and none

@@ -17,7 +17,7 @@ Only the 4-mer is run here. It is the model the headline is about, it costs noth
 deep models were never trained on the third arm. Reporting a k-mer-only third arm is honest;
 quietly comparing a k-mer on one arm against SpliceBERT on another would not be.
 
-WHAT TO EXPECT, AND WHY THE PREDICTION IS RISKY. Under neg2 both classes are real crosslink
+What to expect, and why the prediction is risky. Under neg2 both classes are real crosslink
 sites, so composition should separate them far less well than it does against untranscribed
 genomic background -- the composition baseline should fall toward 0.5. If the nested
 contribution then RISES the way it does under dinucleotide matching, the paper's claim holds
@@ -101,7 +101,7 @@ def summarise(d, n_boot=2000, seed=0):
         rows.append({"check": f"datasets with a positive contrast, {a} minus {b}",
                      "value": pos, "ci_low": np.nan, "ci_high": np.nan, "n": len(d),
                      "note": ""})
-    # THE TRANSPLANT MATRIX. Is the whole three-arm pattern just compression? Carry each
+    # The transplant matrix. Is the whole three-arm pattern just compression? Carry each
     # arm's d' increment onto each other arm's baseline; the residual is the protocol effect
     # for that pair. Compression alone would make every residual zero.
     R2 = np.sqrt(2.0)

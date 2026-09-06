@@ -2,7 +2,7 @@
 
     python scripts/cobinding_noise.py --store ../rbp-store
 
-THE ALTERNATIVE EXPLANATION THIS TESTS, and it is the most serious one left for the bias-aware
+The alternative explanation this tests, and it is the most serious one left for the bias-aware
 arm. Its negatives are other RBPs' binding sites. Many RBPs co-bind the same transcripts, so
 some of those "negatives" may be sites the TARGET also binds -- which is not a hard negative, it
 is a mislabelled positive. Label noise of that kind depresses any model's measured contribution,

@@ -15,13 +15,13 @@ grounds that its donors are sampled within fold, and that was the same kind of a
 construction that the dinucleotide arm's docstring made and got wrong. It is the denominator of
 every reported span, so it is the arm least safe to leave unmeasured.
 
-WHY IT MATTERED AND WAS INVISIBLE. `deep_model_contrast.py` asserted in its own docstring that
+Why it mattered and was invisible. `deep_model_contrast.py` asserted in its own docstring that
 "both arms use the same chromosome folds, the same seed ... the only difference is how the
 negative windows were chosen". That was false for those 20, and none of the 549 verifier
 assertions checked it -- the harness gated the VALUES the scores produced and never what
 produced them, which is this project's oldest and most expensive lesson.
 
-WHAT IS MEASURED HERE, per (dataset, arm, model):
+What is measured here, per (dataset, arm, model):
   * agreement between the score file's own `fold` column and `dataset.tsv`'s;
   * the maximum number of distinct chromosomes inside any one fold, which is the structural
     tell -- under the study's design it is 4 or 5 and can never exceed it;
@@ -29,7 +29,7 @@ WHAT IS MEASURED HERE, per (dataset, arm, model):
     neighbour within 1 kb that was assigned to a different fold. Under chromosome grouping
     this is exactly 0 by construction.
 
-AND THE SENSITIVITY, because the question a reader asks is not "is there a defect" but "does
+And the sensitivity, because the question a reader asks is not "is there a defect" but "does
 any conclusion move". The k-mer is refit in-script on the study folds for every dataset, so it
 is a clean internal control, and the R1g contrasts are recomputed with the 20 dropped.
 """
@@ -186,7 +186,7 @@ def main():
                 f"cross-fold 1kb neighbours {100 * r.nbr:.1f}%")
         log(f"    ... and {max(len(w) - 8, 0)} more")
 
-    # THE SENSITIVITY. Does any conclusion move? The k-mer is refit on the study folds for
+    # The sensitivity. Does any conclusion move? The k-mer is refit on the study folds for
     # every dataset, so it is a clean internal control against which the deep arms are read.
     d = pd.read_csv(TABLES / "deep_contrast_per_dataset.csv")
     d["clean"] = ~d.dataset.isin(leaky)
@@ -206,7 +206,7 @@ def main():
     # And the difference-in-differences, which isolates the leakage from dataset selection:
     # the deep-minus-kmer gap in the dn arm relative to the same datasets' gc arm.
     #
-    # ONLY MEANINGFUL WHILE THERE IS SOMETHING LEAKY TO COMPARE AGAINST. After the 20 stale
+    # Only meaningful while there is something leaky to compare against. After the 20 stale
     # datasets were retrained the leaky set is empty, and a mean over an empty selection is
     # NaN: the block printed "leaky +nan ... DiD +nan" and a median of nan pairs, which reads
     # as a broken pipeline rather than as a repaired one. Say what happened instead.

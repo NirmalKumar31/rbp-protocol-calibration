@@ -1,7 +1,7 @@
 """Is a protein's enriched sequence a REPEAT? Because that decides whether our
 composition correction is clean or over-corrects.
 
-THE PROBLEM THIS EXISTS TO MEASURE. Rebuilding negatives with dinucleotide matching drops
+The problem this exists to measure. Rebuilding negatives with dinucleotide matching drops
 the median model AUROC by 0.10, and we read that as removing a composition artefact. But
 the positive control -- where we plant a known motif disruption ourselves -- gets WEAKER on
 the matched arm: median Cohen's d 1.567 -> 0.807, with 2 of 9 proteins flipping from passing
@@ -22,12 +22,12 @@ the motif. So the correction removes the signal along with the confound. This is
 flaw that killed the dinucleotide-SHUFFLE control (docs 21 Part 2): matching inherits the
 shuffle's repeat-motif problem while fixing its detectable-artefact problem.
 
-WHY A PROXY IS NEEDED. The positive control requires a literature-derived motif, which
+Why a proxy is needed. The positive control requires a literature-derived motif, which
 exists for 9 of our 131 proteins. Inventing motifs for the rest would make the control
 circular. So we need to measure repeat-ness from the DATA, with no motif and no model, and
 then check the measure against the 9 proteins where ground truth exists.
 
-WHAT THIS MEASURES. For each dataset, find the k-mers most enriched in bound windows versus
+What this measures. For each dataset, find the k-mers most enriched in bound windows versus
 their matched negatives -- a model-free log-ratio, so no coefficients and no fitting -- and
 ask how periodic those k-mers are. A k-mer is periodic if it repeats a shorter unit: UGUGU
 is (UG) repeated, UUUUU is (U) repeated, GCAUG repeats nothing.

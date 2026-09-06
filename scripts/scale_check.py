@@ -10,12 +10,12 @@ compression factor between these two baselines is 1.5x. That predicts the observ
 with no protocol effect whatsoever, which is why the objection has to be answered with a
 number rather than a paragraph.
 
-WHY SOMERS' D IS NOT THE ANSWER. D = 2*AUROC - 1, so a nested contribution on the D scale is
+Why somers' d is not the answer. D = 2*AUROC - 1, so a nested contribution on the D scale is
 exactly twice the same thing on the AUROC scale and the contrast merely doubles. It is a
 linear rescaling and cannot diagnose a nonlinearity. Stated here because it is the first fix
 that comes to mind and it is worthless.
 
-WHAT ANSWERS IT. Put both arms on a scale that is linear in signal rather than bounded. Under
+What answers it. Put both arms on a scale that is linear in signal rather than bounded. Under
 a binormal model d' = sqrt(2) * Phi^-1(AUROC), and an increment in d' is an increment in
 signal regardless of where the baseline sits. Two quantities follow:
 
@@ -28,7 +28,7 @@ signal regardless of where the baseline sits. Two quantities follow:
                   dinucleotide arm actually shows is the protocol effect with compression
                   removed, and it is the honest headline.
 
-THE THIRD SCALE, AND WHY IT DISAGREES. The committed tables also carry `coef`, the Firth
+The third scale, and why it disagrees. The committed tables also carry `coef`, the Firth
 coefficient of the standardised score in the nested fit. On that scale the contrast REVERSES:
 +1.063 in the GC arm against +0.686 in the dinucleotide arm. Reported here rather than buried,
 because a result whose sign depends on the scale is not a result -- unless the reversal itself
@@ -91,14 +91,14 @@ def load():
     # what the dinucleotide arm would show if the GC arm's own added signal were moved onto
     # its baseline: protocol changes the starting point, nothing else
     m["pred_dn"] = auroc(m.dcomp_dn + m.dd_gc) - auroc(m.dcomp_dn)
-    # THE TRANSPLANT RUNS BOTH WAYS, AND THE PAPER MUST REPORT BOTH. The same binormal logic
+    # The transplant runs both ways, and the paper must report both. The same binormal logic
     # licenses moving the dinucleotide arm's increment onto the GC baseline instead. That is
     # "what the standard protocol would show if only the baseline moved", and it attributes
     # MORE of the contrast to compression. Reporting only the favourable direction would be
     # question-begging: the direction moves the estimate several times further than its own
     # interval is wide.
     m["pred_gc"] = auroc(m.dcomp_gc + m.dd_dn) - auroc(m.dcomp_gc)
-    # THE LINK IS ALSO A CHOICE. Probit (binormal d') is conventional for ROC work, but a logit
+    # The link is also a choice. Probit (binormal d') is conventional for ROC work, but a logit
     # link is equally defensible and gives a different split. Both directions under both links
     # bound the family the estimate lives in.
     for a in ("gc", "dn"):
@@ -122,7 +122,7 @@ def quantities(m):
         "contrast_scale_only_reverse": (m.delta_auroc_dn - m.pred_gc).mean(),
         "contrast_protocol_logit": (m.delta_auroc_dn - m.lpred_dn).mean(),
         "contrast_protocol_logit_reverse": (m.lpred_gc - m.delta_auroc_gc).mean(),
-        # THE EXPONENT SENSITIVITY THAT RETIRED THE SCALE-NULL ARGUMENT. The null coef ~ d' is
+        # The exponent sensitivity that retired the scale-null argument. The null coef ~ d' is
         # a choice; under other powers the residual changes sign, which is why nothing is
         # claimed from it. Emitted so the retraction has a source.
         "logodds_residual_p05": ((m.coef_dn - m.coef_gc)
@@ -130,7 +130,7 @@ def quantities(m):
         "logodds_residual_p15": ((m.coef_dn - m.coef_gc)
                                  - m.coef_dn * (1.0 - (m.dfull_gc / m.dfull_dn) ** 1.5)).mean(),
         "contrast_logodds_normalised": (m.coef_dn / m.dfull_dn - m.coef_gc / m.dfull_gc).mean(),
-        # THE PURE-SCALE NULL FOR THE REVERSAL. If the coefficient gap were nothing but the
+        # The pure-scale null for the reversal. If the coefficient gap were nothing but the
         # latent-scale difference, coef_gc would equal coef_dn times the total-signal ratio,
         # and the gap would be coef_dn * (1 - ratio). Anything less negative than that is
         # incremental value showing through the rescaling, and it points R1's way.
@@ -164,7 +164,7 @@ def main():
         rows.append({"check": check, "value": float(value), "ci_low": lo, "ci_high": hi,
                      "n": npt, "note": note})
 
-    # WHICH MODEL PRODUCED THESE NUMBERS. The manuscript called it a "5-mer" four times,
+    # Which model produced these numbers. The manuscript called it a "5-mer" four times,
     # including in the one-sentence claim. Both rehearsal tables record k = 4 on all 189 rows,
     # and `cloud_rehearsal.py:257` defaults --k to KMER_K or 4. The 5 came from
     # `config/params.yaml` `cv: k: 5`, which is the FOLD COUNT of the cross-validation. 150
@@ -174,7 +174,7 @@ def main():
     add("k-mer size, both arms", float(ks[0]) if len(ks) == 1 else -1.0,
         note=f"observed {ks}; -1 means the arms disagree")
 
-    # THE R1 TABLE'S OWN CELLS. Printed in the manuscript, computed on the fly, and stored
+    # The r1 table's own cells. Printed in the manuscript, computed on the fly, and stored
     # nowhere until now -- the same state the +0.0397 contrast was in. scripts/audit_manuscript.py
     # found six of them still orphaned after that one was fixed.
     for lab, col in (("composition alone", "composition_auroc"),

@@ -1,6 +1,6 @@
 """Two specification choices in the nested fit, measured rather than argued.
 
-BOTH ARE REAL OBJECTIONS AND THEY ARE DIFFERENT IN KIND.
+Both are real objections and they are different in kind.
 
 1. THE COVARIATE SCALE (an inconsistency, so it gets fixed). The nested model is a logistic
    regression on nineteen composition features plus one model score. Logistic regression is

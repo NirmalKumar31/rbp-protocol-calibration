@@ -15,7 +15,7 @@ does not manufacture INCREMENTAL value for the model. So the question becomes "h
 model's variant signal survives controlling for conservation and position", and the answer is
 essentially all of it.
 
-TWO THINGS THIS SCRIPT ADDS THAT THE COEFFICIENT TABLE ALONE CANNOT.
+Two things this script adds that the coefficient table alone cannot.
 
   attenuation   As a FRACTION, not a difference. Both coefficients drifting together would
                 satisfy an absolute gate and would not satisfy this one.
@@ -73,7 +73,7 @@ def main():
     # --- is the positional rule conservation in disguise? --------------------------------
     cv = pd.read_csv(TABLES / "variant_conservation.csv")[["vid", "conservation"]]
     va = pd.read_csv(TABLES / "variant_assignments.csv")
-    # DEDUPLICATE BEFORE THE BLOCK STATISTIC, NOT AFTER. variant_assignments.csv carries 2.40
+    # Deduplicate before the block statistic, not after. variant_assignments.csv carries 2.40
     # rows per variant (one per dataset the variant was scored in), and the leave-one-out
     # subtraction removes exactly ONE of them. Computing prevalence on the duplicated table
     # therefore left ~1.4 copies of a variant's own label inside its own 1-Mb block, which is

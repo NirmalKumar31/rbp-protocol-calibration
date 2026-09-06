@@ -1,7 +1,7 @@
 """Stage 13. Aggregate every arm into the paper's tables and render the figures, in a
 container.
 
-WHAT THIS REPLACES. The final assembly -- merging the two negative arms, building the
+What this replaces. The final assembly -- merging the two negative arms, building the
 four-model table, computing the cluster-corrected variant ladder, drawing the figures -- was
 a sequence of ad-hoc local commands. That is the part of a study most likely to be
 irreproducible, because it is the part nobody writes down: it is done once, interactively,
@@ -10,7 +10,7 @@ at the end, and the numbers in the paper come from whatever was in memory that a
 Everything here reads committed artefacts out of GCS and writes committed artefacts back.
 No interactive state, no laptop.
 
-WHY THE VARIANT LADDER IS COMPUTED HERE AND NOT IN THE SCORING STAGE. The three rungs come
+Why the variant ladder is computed here and not in the scoring stage. The three rungs come
 from three separate Modal sweeps (k-mer, mismatched head, matched head). Only once all three
 exist can they be put on one axis, and the comparison must be on the SAME variants with the
 SAME clustering, or the ladder measures panel differences instead of model differences.
@@ -67,7 +67,7 @@ def fetch_prefix(bucket, prefix):
 def panel_description(bucket):
     """Table 1: what the 95 datasets are, and the candidate pool they were drawn from.
 
-    THIS WAS MISSING ENTIRELY. Every result table described model behaviour and none described
+    This was missing entirely. Every result table described model behaviour and none described
     the data, so the panel existed only as a manifest and a sentence. A reader's first question
     about a 95-dataset panel drawn from a larger pool is which 95 and whether they are the easy
     ones -- and that question is sharper here than usual, because dataset size correlates with
@@ -96,7 +96,7 @@ def panel_description(bucket):
     d = d.sort_values("dataset", kind="mergesort").reset_index(drop=True)
     d.to_csv(TABLES / "panel_summary.csv", index=False)
 
-    # THE CANDIDATE POOL, from the panel files select_panel.py itself drew from.
+    # The candidate pool, from the panel files select_panel.py itself drew from.
     #
     # First attempt used sweep_dinuc.csv, which is one row per dataset per MODEL and covers
     # only the 95 already selected -- so the "pool" came out as n=95 and the figure compared
@@ -130,7 +130,7 @@ def panel_description(bucket):
 def locality(bucket):
     """Aggregate the 95 per-dataset ISM runs into R3's table.
 
-    THIS STEP WAS SIMPLY ABSENT. Stage 10 wrote one JSON per dataset to runs/locality/, and
+    This step was simply absent. Stage 10 wrote one JSON per dataset to runs/locality/, and
     main() then *fetched* results/tables/locality_ism.csv from GCS -- an object nothing ever
     created. So the analysis quietly produced no R3 table, do_figures() skipped the R3 figure
     without complaint, and stage 14 was the first thing to notice, reporting the table as
@@ -249,7 +249,7 @@ def _prev_block(q):
 def variant_specificity(bucket):
     """R4's PRIMARY statistic: paired per-dataset comparison, not one pooled AUROC.
 
-    WHY THE POOLED LADDER IS NOT THE RESULT. variant_ladder() below concatenates ~19k
+    Why the pooled ladder is not the result. variant_ladder() below concatenates ~19k
     variants across 95 datasets and computes a single AUROC per arm. That number is inflated,
     and measurably so: a dataset's mean |delta| correlates with its pathogenic rate at
     Spearman +0.73 for the matched arm, and mean |delta| spans 10.4x across datasets. So a
@@ -302,7 +302,7 @@ def variant_specificity(bucket):
         if s.label.nunique() < 2 or g.label.nunique() < 2:
             continue                      # a one-class dataset has no AUROC, not a zero one
         donor = g.weights_from.iloc[0] if "weights_from" in g else ""
-        # THE TRIVIAL POSITIONAL BASELINE, computed per dataset because that is where the
+        # The trivial positional baseline, computed per dataset because that is where the
         # claim lives. "What fraction of the OTHER variants in this 1-Mb window are
         # pathogenic" uses no sequence, no model and no biology, and it beats the model.
         # Leave-one-out, so a variant never contributes to its own window's rate.
@@ -315,7 +315,7 @@ def variant_specificity(bucket):
         auroc_prev = (roc_auc_score(s.label[ok], prev[ok])
                       if ok.sum() > 20 and s.label[ok].nunique() == 2 else np.nan)
 
-        # THE BASELINE AND THE MODEL MUST BE SCORED ON THE SAME VARIANTS.
+        # The baseline and the model must be scored on the same variants.
         #
         # A variant alone in its 1-Mb block has no leave-one-out prevalence, so `ok` drops it
         # -- a mean of 20.2% of variants per dataset, up to 38.9%. The model's AUROC above is
@@ -509,7 +509,7 @@ def do_figures():
 def donor_overlap(bucket):
     """Does the wrong-protein control actually use a WRONG protein? Measured, not assumed.
 
-    THE ATTACK THIS ANSWERS, and it was right. RBPs co-bind: they occupy overlapping regions
+    The attack this answers, and it was right. RBPs co-bind: they occupy overlapping regions
     and share motif families. So "score protein A's variants with protein B's head" may not be
     a wrong-protein control at all -- if B binds the same sites, B is a partially-right
     protein and the floor it produces is contaminated.
@@ -598,7 +598,7 @@ def donor_overlap(bucket):
 def specificity_attacks(bucket):
     """Four attacks on the wrong-protein control, from a council review, all answered here.
 
-    THE CONTROL IS THE ONLY NOVEL THING IN THIS STUDY, so it gets attacked in the pipeline
+    The control is the only novel thing in this study, so it gets attacked in the pipeline
     rather than defended in prose. Each of these was raised as a reason the result is not
     real. Each is recomputed on every run, so a future change that breaks one fails the build.
 
@@ -616,7 +616,7 @@ def specificity_attacks(bucket):
     3. THE CONTROL HAS NO KNOWN FALSE-POSITIVE RATE. Permute labels within dataset and
        recompute the gap. A structurally biased comparison would show one under the null.
 
-       WHAT THIS DOES NOT DO, stated because it matters: a label permutation destroys all
+       What this does not do, stated because it matters: a label permutation destroys all
        signal, so it tests whether the COMPARISON is biased, not whether the control can be
        fooled by a model that learned something non-specific. The stronger calibration --
        retrain on shuffled binding labels, then run the control -- needs GPU time and has not
@@ -862,7 +862,7 @@ def robustness(bucket):
         pt = share(fm, "kmer_auroc", "composition_auroc") - share(fm, "splicebert",
                                                                   "composition_auroc")
         lo, hi = np.nanpercentile(draws["k-mer"] - draws["SpliceBERT"], [2.5, 97.5])
-        # NOT A FINDING, AND THE INTERVAL IS DECORATION. share_m = C/gain_m with a numerator C
+        # Not a finding, and the interval is decoration. share_m = C/gain_m with a numerator C
         # that is IDENTICAL across models, so share_kmer/share_SB == gain_SB/gain_kmer exactly
         # (verified to 6 dp). This contrast is a monotone rescaling of the AUROC ladder, and
         # SpliceBERT beats the k-mer model on 95/95 datasets, so it excludes zero with

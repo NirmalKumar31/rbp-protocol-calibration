@@ -1,6 +1,6 @@
 """Download every pretrained backbone into the image at BUILD time, then prove it worked.
 
-WHY THIS FILE EXISTS. The sweep workers run with no external IP address, no Cloud NAT, and
+Why this file exists. The sweep workers run with no external IP address, no Cloud NAT, and
 Private Google Access. PGA routes to Google APIs only. `huggingface.co` is not a Google
 API, so `from_pretrained("multimolecule/splicebert")` on a worker cannot resolve and the
 run dies -- or worse, hangs on a retry loop until maxRunDuration. Four of the five models
@@ -17,7 +17,7 @@ Three ways out were available:
 The third is the only one where "which weights produced this result?" has the same answer
 as "which image produced this result?". Weights are pinned by the same digest as the code.
 
-THE LIST COMES FROM CONFIG, NOT FROM HERE. Adding a sixth model to params.yaml must not
+The list comes from config, not from here. Adding a sixth model to params.yaml must not
 require remembering to edit a Dockerfile. Anything with kind: lm is fetched.
 
 Run in two modes:
@@ -45,7 +45,7 @@ def fetch(cfg):
 
     for name, s in lm_specs(cfg):
         repo = s["repo"]
-        # REVISION, WHEN THE CONFIG GIVES ONE. Without it from_pretrained resolves whatever the
+        # Revision, when the config gives one. Without it from_pretrained resolves whatever the
         # hub's `main` points at on the day of the build, so two builds of the same Dockerfile
         # can bake different weights and the image digest -- which is what the release calls
         # the pin -- only records that they differed after the fact. The published images were

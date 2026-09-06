@@ -15,12 +15,12 @@ script brings it in, verifies it against the bucket's live metadata, and adds th
 manifest did not carry: what each object is, which accession and cell it belongs to, the source
 URL, the assembly and annotation version, and the terms the source publishes under.
 
-WHAT THIS ESTABLISHES, EXACTLY. All 251 objects are present and their sizes and MD5s match the
+What this establishes, exactly. All 251 objects are present and their sizes and MD5s match the
 bucket today, 251 of 251, zero mismatches. The 244 peak files cover all 95 candidate accessions
 and all 94 study-panel accessions in supplementary_table_s1.csv. scripts/cloud_prep.py reads
 peaks from this bucket, so the link between these bytes and the pipeline is in code.
 
-WHAT IT DOES NOT ESTABLISH, AND MUST NOT BE READ AS. There is no fetch-time record. The
+What it does not establish, and must not be read as. There is no fetch-time record. The
 timestamps are when each object was written to the bucket, all within a 7.5-minute window on
 2026-08-25, which is the staging run and not the download from ENCODE or EBI. No checksum
 published by ENCODE or GENCODE was recorded at fetch time, so these MD5s pin the bytes THIS

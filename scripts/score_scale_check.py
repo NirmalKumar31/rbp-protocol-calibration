@@ -14,12 +14,12 @@ That is an asymmetry in R1g, whose entire point is that the three rungs are meas
 rows, the same folds and the same estimator. AUROC itself is invariant to monotone transforms,
 so the standalone AUROCs are untouched; it is only the nested fit that can move.
 
-WHAT THIS SCRIPT DOES. Recomputes every deep gain on BOTH scales -- as published (probability)
+What this script does. Recomputes every deep gain on BOTH scales -- as published (probability)
 and on logit(p) -- and the k-mer on both, so the direction of the effect is measured rather
 than argued. If the deltas are negligible the ladder stands and the paper says so with a
 number. If they are not, the deep arms have to be reported on the logit scale.
 
-WHY NOT JUST REFIT EVERYTHING ON THE LOGIT. Because the published numbers are gated in
+Why not just refit everything on the logit. Because the published numbers are gated in
 golden.yaml and quoted throughout the manuscript, and silently changing the estimand would
 substitute one quantity for another under the same name. Measure the difference first.
 """

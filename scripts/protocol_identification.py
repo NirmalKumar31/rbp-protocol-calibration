@@ -2,7 +2,7 @@
 
     python scripts/protocol_identification.py
 
-WHAT THIS ANSWERS. R1b splits the contrast into AUROC compression and a residual it calls the
+What this answers. R1b splits the contrast into AUROC compression and a residual it calls the
 protocol effect, by transplanting one arm's d' increment onto the other arm's baseline. A
 statistical referee attacked that on two fronts and both attacks are reproduced here rather
 than rebutted in prose.
@@ -64,7 +64,7 @@ LINKS = {
     "loga": (lambda a: np.log(_c(a)), lambda z: np.exp(np.clip(z, -50, 0))),
 }
 
-# THE ONE LINK THAT REVERSES THE SIGN, NAMED RATHER THAN OMITTED.
+# The one link that reverses the sign, named rather than omitted.
 #
 # The odds scale a/(1-a) is lambda = +1 in the same one-parameter family
 # g_lambda(a) = ((1-a)^-lambda - 1)/lambda that contains `logerr` at lambda -> 0. Every link

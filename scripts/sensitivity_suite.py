@@ -2,18 +2,18 @@
 
     python scripts/sensitivity_suite.py
 
-WHAT THIS IS FOR. The paper's headline is a ratio of panel MEANS: the 4-mer's nested
+What this is for. The paper's headline is a ratio of panel MEANS: the 4-mer's nested
 contribution under dinucleotide matching over its contribution under the bias-aware protocol,
 5.42-fold. Every part of that sentence is a choice. The mean rather than the median. All 94
 datasets rather than a subset. Both cell lines pooled. Datasets weighted equally rather than by
 size. None of those choices was preregistered and none was argued for in the text, which means a
 referee is entitled to ask what happens under the others. This runs them.
 
-WHAT IT DELIBERATELY DOES NOT DO. It does not pick a winner. Every row is the same estimand
+What it deliberately does not do. It does not pick a winner. Every row is the same estimand
 computed under a different aggregation or a different subset, and the point is the spread, not
 the best member. Anyone reading this table to find the largest span has misread it.
 
-PLANNED OR POST-HOC, STATED PER ROW. Four of these analyses existed before this script and are
+Planned or post-hoc, stated per row. Four of these analyses existed before this script and are
 referenced rather than rerun: the unbounded estimand (estimands.csv, delta_deviance), the
 baseline-order sensitivity (baseline_order.csv), the dataset-size relation (robustness.csv), and
 the cross-cell-line replication on the 15 proteins measured in both (r1_robustness.csv). Those
@@ -22,7 +22,7 @@ known`, because it was, and a sensitivity analysis chosen after seeing the resul
 evidence than one chosen before. Saying so is the difference between a robustness check and a
 specification search.
 
-WHAT IS NOT HERE AND WHY. Class-ratio sensitivity and the k-mer capacity ladder need the
+What is not here and why. Class-ratio sensitivity and the k-mer capacity ladder need the
 composition features refit on resampled rows, which needs the window sequences. Only the
 bias-aware arm's windows are on this machine; the composition-matched arms' are in cloud storage.
 Both are in the costed plan in docs/REDRAW_PLAN.md rather than half-done here, because a
@@ -151,7 +151,7 @@ def main():
             "which is a defensible choice but should be visible")
 
         # ---- match quality: drop the arms' worst-matched datasets ---------------------------
-        # THE MATCHING IS THE PROTOCOL. A dataset whose GC matching left a large residual gap is
+        # The matching is the protocol. A dataset whose GC matching left a large residual gap is
         # a dataset where "GC-matched" describes the intent rather than the achieved design, and
         # its contribution partly reflects the failure to match rather than the protocol.
         worst = mq[mq.arm == "gc"].set_index("dataset")["gc_gap_p90"]

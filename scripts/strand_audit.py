@@ -1,6 +1,6 @@
 """Are the negatives real RNA? And does the answer break the model-dependence claim?
 
-THE BUG THIS AUDITS, which is in this pipeline and in the published benchmarks it copies.
+The bug this audits, which is in this pipeline and in the published benchmarks it copies.
 `negatives.py:328` gives each sampled negative the POSITIVE's strand, and `to_rna` reverse
 complements on that basis. A negative's genomic location is chosen to match composition, not
 strand, so whether it lands on a gene transcribed in the assigned direction is a coin flip.
@@ -8,7 +8,7 @@ Measured here: only ~55% of negatives carry the strand their own gene is on. The
 are antisense sequence that no transcript in the cell ever produces, while 100% of positives
 are true sense RNA.
 
-WHY IT THREATENS THE HEADLINE. Sense/antisense is a NON-COMPOSITIONAL cue. Dinucleotide
+Why it threatens the headline. Sense/antisense is a NON-COMPOSITIONAL cue. Dinucleotide
 matching is done on forward DNA and revcomp is applied to both members of a pair, so the
 composition match survives into RNA space -- but the directional cue does not. A model
 pretrained on pre-mRNA can read directionality (splice motifs, polypyrimidine tracts, polyA
@@ -16,7 +16,7 @@ signals all have a direction); a mononucleotide+dinucleotide model largely canno
 composition share is lower for SpliceBERT" has an alternative reading: SpliceBERT is not
 finding more motif, it is noticing which negatives are backwards.
 
-WHY THAT READING LOSES, and this is the whole point of the script. The claim is a CONTRAST
+Why that reading loses, and this is the whole point of the script. The claim is a CONTRAST
 between two shares, not a level. The artifact has to act DIFFERENTIALLY on the two models to
 create a contrast. It does not:
 
@@ -33,7 +33,7 @@ The artifact moves both shares hard and in the same direction. The contrast bare
 what movement there is goes the WRONG way for the objection. So the bug is real, it inflates
 every absolute number in R1, and it does not manufacture the model-dependence.
 
-WHAT THIS SCRIPT DOES NOT SETTLE. The sense fraction has a narrow spread (sd 0.038, range
+What this script does not settle. The sense fraction has a narrow spread (sd 0.038, range
 0.43-0.62), so a correlation across datasets has limited power to detect a differential
 effect. The stratified contrast is the more trustworthy half of the evidence because it is a
 direct comparison rather than a regression on a barely-varying regressor. Fixing the sampler

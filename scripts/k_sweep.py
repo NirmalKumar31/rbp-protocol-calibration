@@ -1,6 +1,6 @@
 """Does R1's contrast depend on the k-mer size? And re-derive it from raw sequence.
 
-TWO JOBS, AND THE SECOND MATTERS MORE THAN THE FIRST.
+Two jobs, and the second matters more than the first.
 
   ROBUSTNESS   The model is a 4-mer. Nothing in the paper's argument requires that, and a
                referee will ask whether the contrast is an artifact of one arbitrary choice.
@@ -85,7 +85,7 @@ def main():
             d = pd.read_csv(f, sep="\t")
             _, comp, with_s = gain(d, PUBLISHED_K)
             r = pub[arm].loc[ds]
-            # REPRODUCTION GATE, at the published k, before any other k is trusted.
+            # Reproduction gate, at the published k, before any other k is trusted.
             if (abs(comp - r.composition_auroc) > REPRO_TOL
                     or abs(with_s - r.with_score_auroc) > REPRO_TOL):
                 ok = False
@@ -128,7 +128,7 @@ def summarise(m, cm):
             note=f"gains {m[f'gain_gc_k{k}'].mean():.4f} -> {m[f'gain_dn_k{k}'].mean():.4f}; "
                  f"dinuc larger in {int((c > 0).sum())}/{n}")
 
-    # THE VERIFICATION. k=4 rebuilt from sequence against the committed contrast, ON THE SAME
+    # The verification. k=4 rebuilt from sequence against the committed contrast, ON THE SAME
     # DATASETS. Comparing a rebuild of n datasets against the published mean over 94 would mix
     # panels and report a difference that is mostly panel composition -- the same error that
     # once made a surviving fraction read 0.8506 instead of 0.8429.
@@ -142,7 +142,7 @@ def summarise(m, cm):
     add("absolute difference", abs(rebuilt - committed),
         note="THE PROOF: R1 is not merely re-read, it is rebuilt")
 
-    # THE ROBUSTNESS. Does the choice of k change the conclusion?
+    # The robustness. Does the choice of k change the conclusion?
     add("smallest contrast across k=3..6", float(min(m[f"contrast_k{k}"].mean() for k in KS)),
         note="positive at every k or the result is a k artifact")
     both = np.ones(n, dtype=bool)

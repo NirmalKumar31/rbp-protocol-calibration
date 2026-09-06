@@ -2,25 +2,25 @@
 
     python scripts/baseline_confounding.py
 
-THE OBJECTION THIS ANSWERS, which is the strongest one left. R1k concedes that the nested
+The objection this answers, which is the strongest one left. R1k concedes that the nested
 contribution tracks the composition baseline at Spearman -0.60. A referee will say: then "the
 protocol changes the measured contribution" is just "the protocol changes the baseline, and the
 baseline changes the contribution", which is trivially true and not worth a paper.
 
-THE TEST, RUN NAIVELY, APPEARS TO AGREE WITH THE REFEREE. Regress gain on a flexible function
+The test, run naively, appears to agree with the referee. Regress gain on a flexible function
 of the composition baseline, pooled over all 282 protocol-dataset cells, then add protocol
 dummies: R2 rises 0.3955 -> 0.4065, F(2,276) = 2.6, p = 0.08. With dataset fixed effects,
 0.8243 -> 0.8301, p = 0.045. Knowing which protocol produced a baseline adds almost nothing to
 knowing the baseline.
 
-WHY THAT TEST IS UNINFORMATIVE, AND THIS IS THE POINT. The three protocols do not overlap in
+Why that test is uninformative, and this is the point. The three protocols do not overlap in
 baseline. Their 10th-90th percentile ranges intersect in a window 0.005 AUROC wide containing
 one cell per arm. There is essentially no region of the covariate space where two protocols can
 be compared at the same baseline, so the regression cannot separate them ON THIS DATA and
 neither can anything else. Protocol and baseline are not two variables that happen to be
 correlated; the protocol IS the operation that sets the baseline.
 
-WHAT SURVIVES, AND IT IS NOT NOTHING. If the whole pattern were compression, transplanting a
+What survives, and it is not nothing. If the whole pattern were compression, transplanting a
 model's own d' increment across baselines would reproduce the other arm's gain exactly. It does
 not: the transplant explains 21% of the gc->dn difference, 40% of gc->neg2 and 52% of dn->neg2.
 And a single constant d' increment applied to each cell's own baseline predicts the 282 gains at
@@ -29,7 +29,7 @@ gc -0.0038, neg2 -0.0143). So the arms differ by more than the arithmetic of the
 how much more cannot be estimated, because the estimate would require overlap that does not
 exist.
 
-THE CONCLUSION THE PAPER SHOULD DRAW. "Is it the protocol or the baseline?" is a malformed
+The conclusion the paper should draw. "Is it the protocol or the baseline?" is a malformed
 question, and the practical consequence is exactly the paper's recommendation: report the
 composition baseline measured under the same protocol, because it is the only summary of what
 the protocol did that a reader can act on, and never compare contributions across protocols
@@ -146,7 +146,7 @@ def main():
                      "value": resid})
         print(f"    {a:5s} residual {resid:+.4f}")
 
-    # THE SPEARMAN IS PARTLY BETWEEN-ARM, and a statistician will decompose it, so do it here.
+    # The Spearman is partly between-arm, and a statistician will decompose it, so do it here.
     rho_all, _ = spearmanr(long.comp, long.gain)
     cen = long.copy()
     cen["comp"] = cen.comp - cen.groupby("arm").comp.transform("mean")

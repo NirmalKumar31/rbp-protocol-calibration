@@ -3,14 +3,14 @@
     python scripts/negative_draws.py --store ../rbp-store
     python scripts/negative_draws.py --from-cache
 
-THE GAP THIS CLOSES, PARTLY. Every published protocol used ONE stochastic draw of its negatives,
+The gap this closes, partly. Every published protocol used ONE stochastic draw of its negatives,
 and the protein-clustered bootstrap resamples proteins with that draw held fixed. So the stated
 intervals do not contain negative-construction uncertainty, and three audits have said so. The
 Limitations quantify a single redraw of the dinucleotide arm -- median absolute per-dataset
 deviation 0.0031, maximum 0.0079 -- but a quantity that is measured and not propagated is still
 missing from the interval a reader acts on.
 
-WHY THE BIAS-AWARE ARM AND NOT ALL THREE. Redrawing a composition-matched arm means generating
+Why the bias-aware arm and not all three. Redrawing a composition-matched arm means generating
 new candidate windows from the genome, and the genome FASTA is a 3 GB download that is not part
 of the released evidence. The bias-aware arm needs no such thing: its negatives ARE other
 proteins' binding sites, every one of which is already in the window store. So this arm can be
@@ -22,7 +22,7 @@ The arm chosen is also the informative one for this question. It has the smalles
 of the three, so a draw effect of a given absolute size matters most there, and the Results
 already say that arm's absolute level is not distinguishable from the estimator's floor.
 
-WHAT IS REPORTED. Five independent draws including the published one. For each: the panel-mean
+What is reported. Five independent draws including the published one. For each: the panel-mean
 contribution, its protein-clustered interval, and then the two variance components separated --
 between-protein, which the published bootstrap already carries, and between-draw, which it does
 not. The combined interval adds them.
@@ -143,7 +143,7 @@ def main():
         add(f"panel-mean contribution, seed {s}", m,
             note="the published draw" if s == PUBLISHED_SEED else "")
 
-    # THE TWO COMPONENTS. Between-protein is what the published bootstrap resamples; the
+    # The two components. Between-protein is what the published bootstrap resamples; the
     # published interval is its half-width. Between-draw is what it holds fixed.
     boot = np.array([M[i, 0].mean() for i in draws])
     se_protein = float(boot.std(ddof=1))

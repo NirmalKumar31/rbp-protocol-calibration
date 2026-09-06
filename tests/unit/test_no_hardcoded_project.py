@@ -17,7 +17,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-# A PATTERN, NOT A NAME. This was the literal string `rbp-composition-2026` -- the project the
+# A pattern, not a name. This was the literal string `rbp-composition-2026` -- the project the
 # study started in -- and it stayed that way after the move to `rbp-repro-2026`. So the test
 # whose docstring says it "is the only thing that stops the habit coming back" spent the whole
 # second half of the project guarding a name nothing used any more, while the habit came back
@@ -31,7 +31,7 @@ ROOT = Path(__file__).resolve().parents[2]
 # every hyphenated word in a docstring, and a test that cries wolf gets an exemption added
 # rather than a bug fixed.
 FORBIDDEN = re.compile(r"\brbp-[a-z0-9]+-20\d\d(-derived|-raw)?\b")
-# A BILLING ACCOUNT ID IS THE THING THAT ACTUALLY MATTERS, and this test did not look for it.
+# A billing account ID is the thing that actually matters, and this test did not look for it.
 # The real one sat as a shell default in cloud/cost.sh and in a gcloud command in
 # cloud/killswitch/main.py, in a repo whose README claims "no hardcoded project id... a test
 # fails the build if a literal reappears". It was true of the project id and false of the
@@ -54,7 +54,7 @@ def _tracked():
     build artifacts carrying the old project id, and they are gitignored precisely so they
     never become public. What matters is what `git ls-files` would ship.
 
-    THE FALLBACK EXISTS BECAUSE THE CONTAINER HAS NO GIT. This ran `git ls-files` at
+    The fallback exists because the container has no git. This ran `git ls-files` at
     COLLECTION time and raised FileNotFoundError inside the image, which aborted collection and
     failed every Cloud Build of the GPU image -- so the published image had been stale since
     this test was added, and a Batch job died on an arm the image had never heard of. Where git
@@ -73,7 +73,7 @@ def _tracked():
                              text=True)
     except FileNotFoundError:
         pass
-    # A NON-ZERO EXIT IS ALSO A FAILURE, and only FileNotFoundError was caught. An unpacked
+    # A non-zero exit is also a failure, and only FileNotFoundError was caught. An unpacked
     # archive -- a git export, a Zenodo deposit, anything without .git -- still HAS the git
     # binary, so this ran, printed "fatal: not a git repository", exited 128, and returned an
     # empty stdout. The loop below then yielded nothing, _TRACKED came out empty, and every
@@ -129,7 +129,7 @@ def _files():
 def _executable_lines(path):
     """Line numbers whose content is code rather than narration.
 
-    THE RULE IS ABOUT WHAT RUNS, NOT ABOUT WHAT IS WRITTEN. Widening the pattern from one
+    The rule is about what runs, not about what is written. Widening the pattern from one
     historical project name to the id's shape turned up three more hits, and all three were
     docstrings explaining why the old bucket returns 403 -- `src/rbp/utils/localstore.py`
     exists BECAUSE that bucket died, and a docstring that cannot say which bucket is a

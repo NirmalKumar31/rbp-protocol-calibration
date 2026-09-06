@@ -139,7 +139,7 @@ def main():
     for n, f, s in over[:a.top]:
         print(f"    {n:3d}w  {f:24s} {s[:130]}")
 
-    # SEQUENCE-LEVEL DUPLICATION, as a second opinion on (2). Token overlap misses word order,
+    # Sequence-level duplication, as a second opinion on (2). Token overlap misses word order,
     # so a sentence and its own reordering score identically; difflib does not. Reported only
     # as a count, because the pair list above is the actionable form.
     n_seq = 0

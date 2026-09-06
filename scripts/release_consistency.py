@@ -2,21 +2,21 @@
 
     python scripts/release_consistency.py
 
-WHY THIS EXISTS. An external review read the repository and found eight stale figures in the
+Why this exists. An external review read the repository and found eight stale figures in the
 submission package: 28 pages against a 48-page PDF, 20 references against 26, six main figures
 against seven, Tables 1 to 7 against fourteen, 768 numeric assertions against 937, 696 in the
 Zenodo template, and a recomputation error of 2.2e-16 against the manuscript's 3.3e-16. Every
 one had been correct when it was typed. Every one was copied by hand into a file that no gate
 read.
 
-WHY THE EXISTING GATES DID NOT CATCH THEM. scripts/audit_manuscript.py scans prose for numbers
+Why the existing gates did not catch them. scripts/audit_manuscript.py scans prose for numbers
 with no source, and it now scans these documents too, but it cannot catch these: 28, 20 and 7
 are small integers that collide with something in a 855-value haystack, and 2.2e-16 is written
 in an exponent form its regex does not match. Orphan-hunting asks "is this number real
 somewhere". The question here is the different and stricter one: "is this number still true of
 THIS artefact". That needs the artefact, not a haystack.
 
-SO THE FACTS ARE DERIVED AND THE PROSE IS MATCHED AGAINST THEM. Each fact below is computed
+So the facts are derived and the prose is matched against them. Each fact below is computed
 from the built PDF, the LaTeX source, or a committed table. Each pattern says where a document
 is allowed to state that fact. A mismatch is an error and a fact that no document states is
 reported too, because a fact nobody quotes is a pattern that has silently stopped matching --
@@ -40,7 +40,7 @@ TEX = [MANUSCRIPT / "paper.tex"] + SECTIONS
 # The documents that make claims about the release. The run chronicle under docs/ is excluded
 # for the reason given in audit_manuscript.py: it is pasted terminal output, and every integer
 # in it is an HTTP status or a task index.
-# EVERY PUBLIC, CITABLE OR OPERATIONAL FILE, not only the prose ones. This listed the five
+# Every public, citable or operational file, not only the prose ones. This listed the five
 # markdown documents and the TeX, and a review then found stale "937" counts in three places in
 # .github/workflows/ci.yml, one in docs/COST.md and one in a pyproject comment, plus a stale
 # span in CITATION.cff -- every one of them outside the scan. The lesson is the same one that
@@ -133,7 +133,7 @@ def abstract_words():
 def collected_tests():
     """Tests pytest actually collects here, not a number typed into the README.
 
-    THIS COUNT MOVES WHEN A SCRIPT IS ADDED, not only when a test is. Two suites parametrise
+    This count moves when a script is added, not only when a test is. Two suites parametrise
     over files -- test_no_hardcoded_project.py over every tracked .py, .sh, .yaml and .json,
     test_figure_output.py over every figure PDF -- so adding scripts/common_positives.py adds a
     test case without anyone writing one. That is surprising the first time and is why the
@@ -149,7 +149,7 @@ def collected_tests():
                        cwd=ROOT, capture_output=True, text=True,
                        env={**__import__("os").environ, "PYTHONPATH": str(ROOT / "src"),
                             "GOOGLE_CLOUD_PROJECT": "release-consistency-no-such-project"})
-    # SUMMED FROM THE PER-FILE LINES, not read off a summary line. pyproject sets addopts="-q"
+    # Summed from the per-file lines, not read off a summary line. pyproject sets addopts="-q"
     # already, so the -q here makes it -qq and pytest drops the "N tests collected" line
     # entirely, printing only `path: count`. Matching the summary silently returned None on
     # every run -- a skip that looks like a missing artefact rather than a broken parse, which
@@ -162,7 +162,7 @@ def collected_tests():
 
 
 FACTS = {
-    # PATTERNS THAT MISSED KNOWN-STALE CLAIMS. An audit found "706 tests pass" in the workflow
+    # Patterns that missed known-stale claims. An audit found "706 tests pass" in the workflow
     # header and "716 tests" in the changelog, both invisible to the two narrow forms this
     # started with. A regex set that only matches the phrasings already in the repository
     # certifies the phrasings, not the facts.
@@ -210,7 +210,7 @@ TOLERANCE = {"abstract words": 4}
 
 # Facts whose absence means the run proved less than it claims.
 #
-# THIS SET TURNED CI RED AND THAT WAS THE RIGHT BUG TO HAVE, HANDLED THE WRONG WAY. A previous
+# This set turned CI red and that was the right bug to have, handled the wrong way. A previous
 # audit said an unavailable required fact must fail rather than pass silently, which is correct.
 # Making it fail unconditionally was not: the CPU workflow installs docker/requirements-cpu.txt,
 # which has no torch by design, so the full suite cannot be COLLECTED there and the job went red
@@ -304,12 +304,12 @@ def main(argv=None):
         if not seen:
             unstated.append(name)
 
-    # THE FACTS ARE COMMITTED, which is what makes them quotable. scripts/audit_manuscript.py
+    # The facts are committed, which is what makes them quotable. scripts/audit_manuscript.py
     # flags any number in a released document that no table can source, and a page count or a
     # test census lives in no result table -- so widening that audit to README and SUBMISSION
     # correctly reported them as unsourced. Writing them here gives them the one thing they
     # were missing: a committed artefact that says what they are.
-    # A PARTIAL RUN MUST NOT REWRITE THE COMMITTED FACTS. This file is environment-dependent:
+    # A partial run must not rewrite the committed facts. This file is environment-dependent:
     # the no-torch CI job cannot derive the test census, so it dropped that row, and the
     # git-diff gate then failed on a table that was correct for the environment that wrote it.
     # The gate was right and the writer was wrong. Only a run that derived everything may write.
@@ -323,7 +323,7 @@ def main(argv=None):
             f"{k},{v},,derived from the built release by scripts/release_consistency.py\n"
             for k, v in facts))
 
-    # A REQUIRED FACT THAT COULD NOT BE DERIVED IS A FAILURE, NOT A PASS. `tests collected`
+    # A required fact that could not be derived is a failure, not a pass. `tests collected`
     # returns None wherever torch is absent, which is exactly the CPU environment CI runs in, so
     # the script printed SKIP and exited zero on the one machine whose job is to catch this.
     # Named explicitly rather than "everything must derive", because a manuscript that has not

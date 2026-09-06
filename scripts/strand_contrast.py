@@ -1,6 +1,6 @@
 """Q1: does the strand artifact drive R1's surviving contrast?
 
-WHY THIS IS BACK, HAVING ONCE BEEN SETTLED. `negatives.py:328` gives each negative the
+Why this is back, having once been settled. `negatives.py:328` gives each negative the
 POSITIVE's strand, so a negative window carries its own gene's strand only about half the time
 (measured: 55.2% among unambiguous windows, 47.4% once the 14.0% ambiguous are counted). A
 $25 regeneration was scoped to fix it and then CANCELLED, on the evidence that the contrast
@@ -12,13 +12,13 @@ The claim that survived is a different quantity, the nested gain contrast +0.039
 never been strand-tested. The manuscript says so in its own limitations. This closes that gap
 without the regeneration, using only committed tables.
 
-WHAT IS AND IS NOT BEING ASKED. The artifact inflates ABSOLUTE AUROCs in both arms, and that is
+What is and is not being asked. The artifact inflates ABSOLUTE AUROCs in both arms, and that is
 conceded regardless of what happens here. The question is narrower: does it drive the
 DIFFERENCE between the arms? Both arms share their positives and their strand convention, so
 the paired design already predicts it should not. That prediction is now tested rather than
 asserted.
 
-THE HONEST PART, AND THE REASON THE OLD VERSION OF THIS ARGUMENT WAS WEAK. The strand audit
+The honest part, and the reason the old version of this argument was weak. The strand audit
 covers 40 datasets, not 94. A non-significant correlation at that n is feeble evidence of
 absence: this script therefore reports a BOOTSTRAP INTERVAL for the correlation and states
 which effect sizes the data actually exclude, rather than resting on p > 0.05. The previous
@@ -146,7 +146,7 @@ def main():
     add("EXTRAPOLATED contrast at frac_sense = 1.0", slope + icpt, plo, phi,
         note="EXTRAPOLATION beyond the observed 0.433-0.615; decision input, not an estimate")
 
-    # WHAT THE SAMPLE CAN ACTUALLY EXCLUDE. With n this small, "p > 0.05" is not evidence of
+    # What the sample can actually exclude. With n this small, "p > 0.05" is not evidence of
     # absence, and saying so is the difference between a control and a formality.
     add("frac_sense leverage available", float(d.frac_sense.max() - d.frac_sense.min()),
         note="the artifact barely varies across datasets, so this test is weak BY DESIGN")

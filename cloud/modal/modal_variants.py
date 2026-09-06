@@ -4,13 +4,13 @@
     modal run cloud/modal/modal_variants.py::sweep     # all 94
     modal run cloud/modal/modal_variants.py::status    # how far along
 
-WHY MODAL AND NOT CLOUD BATCH. Same wall as the sweep: `GPUS_ALL_REGIONS` is 0 and
+Why Modal and not Cloud Batch. Same wall as the sweep: `GPUS_ALL_REGIONS` is 0 and
 `CPUS_ALL_REGIONS` is 12, so GCP gives three e2-standard-4 nodes, and transformer inference
 on those CPUs measured 4.9x slower than the laptop. Three nodes at 1/4.9 speed is slower
 than one Mac, so "run it in the cloud" on GCP would have been slower than not bothering.
 Modal caps neither, and the work is done before the GCP image would have finished building.
 
-WHY THIS NEEDED NO FASTA. Scoring wants two things: the genome, to cut each variant's
+Why this needed no FASTA. Scoring wants two things: the genome, to cut each variant's
 ref/alt windows, and the checkpoints, which are already in GCS. Uploading a 3.1 GB genome
 to save a step that costs 27 seconds locally would be absurd, so
 `variant_splicebert.py --what tables` cuts the windows on the laptop and uploads 164,835 of
@@ -47,7 +47,7 @@ image = _base.add_local_file(f"{HERE}/modal_sweep.py", "/root/modal_sweep.py")
 
 APP = "rbp-variants"
 
-# TASK COUNTS COME FROM THE MANIFEST, NEVER FROM A TYPED NUMBER.
+# Task counts come from the manifest, never from a typed number.
 #
 # N_TASKS was hardcoded to 94, the earlier study's variant panel. This pipeline's manifest has
 # 95 rows, so range(N_TASKS) dispatched indices 0..93 and silently skipped index 94, K562

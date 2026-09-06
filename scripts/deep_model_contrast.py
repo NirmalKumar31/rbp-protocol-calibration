@@ -3,18 +3,18 @@
     python scripts/deep_model_contrast.py --store ../rbp-store
     python scripts/deep_model_contrast.py --from-cache        # summary from the per-dataset table
 
-THE CLAIM UNDER TEST. R1 measures the NESTED contribution of a 4-mer logistic over a
+The claim under test. R1 measures the NESTED contribution of a 4-mer logistic over a
 19-feature composition baseline, and finds it more than twice as large under dinucleotide
 matching as under GC matching. The paper's sharpest limitation is that every number in it
 comes from one model class. This script runs the identical decomposition on a 3-layer CNN
 and on a 19.7M-parameter fine-tuned SpliceBERT.
 
-WHAT IS COMPARED, AND WHY IT IS FAIR. Both arms use the same seed, the same hyperparameters,
+What is compared, and why it is fair. Both arms use the same seed, the same hyperparameters,
 the same code path and full datasets, and the only intended difference is how the negative
 windows were chosen. Nothing here is capped, subsampled or early-stopped differently between
 arms, because any of those would confound protocol with training.
 
-FOLD PROVENANCE IS NOW UNIFORM ACROSS ARMS, and this paragraph used to say the opposite for
+Fold provenance is now uniform across arms, and this paragraph used to say the opposite for
 three release candidates after it stopped being true. Every committed score set in all three
 arms is chromosome-grouped and aligned to config/folds.tsv: 94 of 94 per arm, at most 5
 chromosomes in any score fold, and a cross-fold 1 kb same-strand neighbour fraction of exactly
@@ -31,13 +31,13 @@ sensitivity that was reported while the defect stood -- dropping the 20 moved th
 at most 0.0038 -- is now a shift of exactly 0.0 for all three model classes, because there is
 nothing left to drop.
 
-THE COMPRESSION CORRECTION IS NOT OPTIONAL. A nested AUROC gain is bounded above by
+The compression correction is not optional. A nested AUROC gain is bounded above by
 1 - baseline, and the GC arm's composition baseline is much the higher of the two (0.783
 against 0.627), so part of any contrast is arithmetic rather than protocol. The transplant
 family from scale_check.py is reproduced here verbatim -- both directions, both links --
 because reporting the favourable member alone is question-begging.
 
-THE COMPOSITION BASELINE IS SHARED. Within one arm the reduced model does not depend on
+The composition baseline is shared. Within one arm the reduced model does not depend on
 which model score is being added, so it is fitted once per (dataset, arm) and reused. That
 is also a check: computing it per model gave bitwise identical values, and this script
 asserts it rather than trusting it.
@@ -62,7 +62,7 @@ from rbp.eval.nested import gain_over_composition  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
-# BOTH ARMS' PER-WINDOW SCORES ARE COMMITTED, and that is what makes this table checkable.
+# Both arms' per-window scores are committed, and that is what makes this table checkable.
 # Until they were, deep_contrast_per_dataset.csv was a terminal artifact: hand-committed, not
 # regenerable from anything in the repo, and tied by no assertion to the panel, the hardware
 # or the 940 score files. A referee forged it end to end and passed 314/314. 16 MB closes it.
@@ -140,7 +140,7 @@ def arm_roots(store):
 def per_dataset(store, datasets):
     """One row per dataset: every model's nested contribution in both arms, same rows.
 
-    THE COMMON ROW SET IS TAKEN FIRST, BEFORE ANYTHING IS FITTED. Within one arm the three
+    The common row set is taken first, before anything is fitted. Within one arm the three
     models do not all cover the same windows: the k-mer is refitted here so it covers every
     row, while the CNN and SpliceBERT scores were written against the window set as it stood
     when their sweep ran, and 18 of the 94 datasets have since drifted by a handful of rows.
@@ -288,7 +288,7 @@ def summarise(d, n_boot=2000, seed=0):
                      "ci_low": np.nan, "ci_high": np.nan, "n": len(d)})
         rows.append({"model": model, "quantity": "protocol_effect_max", "value": max(fam),
                      "ci_low": np.nan, "ci_high": np.nan, "n": len(d)})
-    # THE LADDER, AS PAIRED DIFFERENCES. The marginal intervals for the k-mer and the CNN
+    # The ladder, as paired differences. The marginal intervals for the k-mer and the CNN
     # overlap slightly, so "0.0398 < 0.0530" on point estimates is not on its own a claim.
     # The datasets are the same 94 in every rung, so the paired difference is the right
     # statistic and it is what the paper reports.
@@ -307,7 +307,7 @@ def summarise(d, n_boot=2000, seed=0):
                      "value": int((diff > 0).sum()), "ci_low": np.nan, "ci_high": np.nan,
                      "n": len(d)})
 
-    # THE RATIO SCALE, WHERE THE LADDER REVERSES. This is not optional and it is not a
+    # The ratio scale, where the ladder reverses. This is not optional and it is not a
     # sensitivity check: R1b's own rule is that a result whose sign depends on the scale is
     # not a result unless the reversal has a diagnosis. That rule was applied to the log-odds
     # reversal and then not applied to this paper's own newest headline until a referee

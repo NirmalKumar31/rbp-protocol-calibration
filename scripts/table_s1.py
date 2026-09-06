@@ -11,7 +11,7 @@ accessions, the replicate count, the window counts each protocol produced and th
 baseline each one left. The last two columns are the point: they let a reader see, per dataset,
 how much room the protocol left before any model is involved.
 
-FAILS LOUDLY ON AN INCOMPLETE JOIN. A supplementary table with silent gaps is worse than none,
+Fails loudly on an incomplete join. A supplementary table with silent gaps is worse than none,
 because it looks complete.
 """
 

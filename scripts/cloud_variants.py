@@ -1,6 +1,6 @@
 """Stage 11. The ClinVar arm's inputs, built in a container instead of on a laptop.
 
-WHAT WAS LAPTOP-ONLY AND WHY IT MATTERED. rehearsal_variants.py reads the ClinVar VCF, the
+What was laptop-only and why it mattered. rehearsal_variants.py reads the ClinVar VCF, the
 3.1 GB genome and every processed dataset straight off local disk, and writes to
 results/tables/. That is fine for exploration and fatal for reproducibility: two of the
 paper's four results depended on files that existed only on one machine.
@@ -13,7 +13,7 @@ copy of subtle code -- strand handling, window offsets, ref-allele checks -- div
 silently from the copy that produced the published numbers. Copying bytes is cheap; copying
 logic is how two versions of a result appear.
 
-WHY THIS STAGE NEEDS AN EXTERNAL IP. phyloP conservation is fetched from UCSC by HTTP range
+Why this stage needs an external ip. phyloP conservation is fetched from UCSC by HTTP range
 request over a bigwig. Workers get Private Google Access only, which routes to Google APIs
 and nothing else, so a normal worker cannot reach UCSC at all. This stage runs on a single
 short-lived VM with a public IP -- the same posture as ingest -- rather than adding a Cloud
@@ -73,7 +73,7 @@ MARKER = "results/variants-complete.json"
 # costs real time: assign ~10 min over 189 datasets, score ~12 min over 66,010 variants,
 # phylop an unknown number of HTTP round trips against UCSC.
 #
-# WHY THIS MAPPING EXISTS AT ALL. It did not, and every phyloP failure threw away the
+# Why this mapping exists at all. It did not, and every phyloP failure threw away the
 # twenty-two minutes of correct assign and score work that preceded it, because run_existing()
 # raises on a nonzero return code and that exception skipped stage_out() entirely. Four
 # consecutive runs recomputed identical assignments and identical scores to reach the same
@@ -96,7 +96,7 @@ EXTRA_OUTPUTS = ["variant_availability_panel.csv"]
 # panel the window cutter restricts to. Staged read-only; never uploaded back.
 INPUT_TABLES = ["matched_four_models.csv", "matched95_four_models.csv"]
 
-# THE WINDOW-CUTTING SUB-STAGE, and it lives here rather than on the driver VM for one
+# The window-cutting sub-stage, and it lives here rather than on the driver VM for one
 # reason: this file already stages the 3.1 GB genome.
 #
 # variant_splicebert.py --what tables cuts a ref and an alt sequence window around every
@@ -155,7 +155,7 @@ def stage_in(bucket, raw_bucket):
             bucket.blob("manifest/study_panel.tsv").download_as_text()), sep="\t")
     log(f"study panel: {len(panel)} datasets")
 
-    # THE ENCODE PEAK FILES, which this stage needs and I forgot.
+    # The ENCODE peak files, which this stage needs and I forgot.
     #
     # rehearsal_variants.py --what assign reads peaks to find where each protein binds before
     # it can decide which ClinVar variants sit near a site. RAW_OBJECTS listed the genome, its

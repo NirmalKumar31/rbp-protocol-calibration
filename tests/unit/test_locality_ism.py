@@ -1,6 +1,6 @@
 """Constructed controls for the ISM locality probe.
 
-THE POINT OF THIS FILE. The previous probe (locality.py) validated at r = +0.96 against a
+The point of this file. The previous probe (locality.py) validated at r = +0.96 against a
 literature positive control on nine proteins and was still invalid: a constructed
 pure-global-composition signal, with no local feature anywhere, scored Cohen's d about 1.8
 where a valid probe must score ~0. Agreement with ground truth on a small sample proved

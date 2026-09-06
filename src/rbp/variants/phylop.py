@@ -18,7 +18,7 @@ DEFAULT_URL = ("https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/"
                "hg38.phyloP100way.bw")
 SPAN = 4096
 
-# UCSC IS A SHARED PUBLIC SERVER AND IT FLAKES. This is the only external dependency in the
+# Ucsc is a shared public server and it flakes. This is the only external dependency in the
 # whole pipeline, and a single refused connection used to kill the stage two seconds in --
 # taking twenty-two minutes of completed assign and score work with it, because the failure
 # propagated before anything was saved.

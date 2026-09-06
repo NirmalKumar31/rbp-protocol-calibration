@@ -4,13 +4,13 @@ The objection to every composition result in this project is: "your negatives ar
 on GC only, so of course composition discriminates. Match on dinucleotides and it goes
 away." This script answers it by building both arms and comparing them directly.
 
-THE PREDICTION I REGISTERED HERE BEFORE RUNNING IT, AND IT FAILED. I predicted that
+The prediction i registered here before running it, and it failed. I predicted that
 datasets with extremity <= 0 would barely change, because I believed GC matching had already
 reached the best achievable dinucleotide match for them. It had not: the "floor" I was
 comparing against was the distance between two RANDOM windows (0.540), and a targeted
 nearest-neighbour search reaches 0.220.
 
-WHAT ACTUALLY HAPPENS. Dinucleotide matching drops composition-only AUROC from 0.793 to
+What actually happens. Dinucleotide matching drops composition-only AUROC from 0.793 to
 0.609 and the model's AUROC from 0.819 to 0.702, so roughly 0.099 of a reported AUROC is
 nucleotide composition. The model's real contribution RISES from +0.019 to +0.048, because
 GC matching was crediting the model with work composition was doing.

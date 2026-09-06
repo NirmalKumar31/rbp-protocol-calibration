@@ -3,16 +3,16 @@
     python scripts/positive_set_overlap.py --store ../rbp-store
     python scripts/positive_set_overlap.py --from-cache
 
-WHY IT MATTERS. The design claim is that only the negatives change: the model, the peak set, the
+Why it matters. The design claim is that only the negatives change: the model, the peak set, the
 folds and the estimator are held fixed. That is very nearly true and not exactly true. A
 positive is retained only when its matcher finds an acceptable negative, and the GC and
 dinucleotide matchers fail on different windows, so the two arms end up with positive sets that
 overlap heavily rather than coincide. This measures the gap, and the Limitations quote it.
 
-WHY THIS FILE EXISTS AT ALL, WHICH IS THE UNCOMFORTABLE PART. `positive_set_overlap.csv` was
+Why this file exists at all, which is the uncomfortable part. `positive_set_overlap.csv` was
 committed, is cited as Supplementary Table S8, and the Discussion quotes three numbers out of it
 -- median Jaccard 0.9972, minimum 0.9237, identical in 10 of 94 datasets -- and NO SCRIPT IN THE
-REPOSITORY PRODUCED IT. It was computed once, by hand, and the working was lost.
+Repository produced it. It was computed once, by hand, and the working was lost.
 
 That is the same failure as the +0.0397 that motivated scripts/audit_manuscript.py: a number in
 the paper that could not be reproduced and could not fail. The audit did not catch this one
@@ -50,7 +50,7 @@ def positives(path):
     the bug the original implementation had -- it keyed on `id`, a per-arm row index -- and the
     resulting column was a count ratio rather than a set overlap.
 
-    STRAND IS PART OF THE POSITION. Adding it changes nothing here, and that is measured rather
+    Strand is part of the position. Adding it changes nothing here, and that is measured rather
     than assumed: across all 914,732 positives in both arms there are zero pairs of positives
     sharing a coordinate on opposite strands. The assertion below keeps it that way.
     """
@@ -105,7 +105,7 @@ def main():
     t = pd.read_csv(out) if a.from_cache else build(a.store, a.n)
     if not a.from_cache:
         if a.n:
-            # A PARTIAL RUN MUST NOT OVERWRITE THE COMMITTED TABLE. `--n 5` is a smoke test,
+            # A partial run must not overwrite the committed table. `--n 5` is a smoke test,
             # and letting it write truncated the released 94-row table to 5 rows in place. The
             # same shape of bug -- a sampling flag that silently replaces a full artefact --
             # has now bitten this repository twice.

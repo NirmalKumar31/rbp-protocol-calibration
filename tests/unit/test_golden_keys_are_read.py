@@ -1,6 +1,6 @@
 """Every key in golden.yaml must actually be read by something. Three strikes.
 
-WHY THIS TEST EXISTS, and it is the most embarrassing entry in the project.
+Why this test exists, and it is the most embarrassing entry in the project.
 
 `config/golden.yaml` is the file that makes this pipeline's claims checkable. A key sitting in
 it unread is worse than no key at all: it reads as a guarantee, it survives review because
@@ -18,14 +18,14 @@ Three occurrences of one bug, each found by a human squinting at a grep. So the 
 mechanical: this test parses golden.yaml, walks every leaf key, and fails if the name appears
 nowhere in the code that consumes it. Inspection does not scale; a failing build does.
 
-WHAT COUNTS AS "READ". The key's name appearing as a string in `scripts/verify.py` or in a
+What counts as "read". The key's name appearing as a string in `scripts/verify.py` or in a
 test. That is a weak check -- it cannot tell a real `spec["x"]` from the word x in a comment --
 but it is strong enough for the failure mode that actually occurred, which was a key existing
 in no file but the config. Anything stronger (AST-resolving `spec[...]` subscripts) breaks on
 the loop-driven checks where the key name is built from a tuple, and a test that forces the
 production code to be written in a less readable way to satisfy the test is the wrong trade.
 
-DOCUMENTED EXEMPTIONS ONLY. `meta.*` keys are provenance for a human reader and are asserted
+Documented exemptions only. `meta.*` keys are provenance for a human reader and are asserted
 nowhere by design. Every other exemption needs a reason written next to it, which is the point:
 adding a key to this set is a visible act in a diff, and forgetting to read one is not.
 """

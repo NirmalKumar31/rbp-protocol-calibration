@@ -2,7 +2,7 @@
 
     python scripts/models_by_protocol.py
 
-WHAT THIS FINISHES. Three of the paper's analyses were 4-mer only, and stated as such: the
+What this finishes. Three of the paper's analyses were 4-mer only, and stated as such: the
 eight-transform sweep and its exponent family (R1m/R1u), the protocol-versus-baseline
 decomposition (R1n), and the test of the recommendation (R1q). They were 4-mer only for one
 reason: the neural models had never been run on the bias-aware arm, so there was no
@@ -10,13 +10,13 @@ three-protocol row for them. The neg2 sweep supplied that, and these three analy
 nothing further -- no GPU, no new training, just the committed per-dataset composition and
 gain that the sweep already produced.
 
-WHY IT MATTERS. Every one of the three is a claim about the QUANTITY rather than about the
+Why it matters. Every one of the three is a claim about the QUANTITY rather than about the
 4-mer, and a claim about a quantity that has only been checked with one estimator is a claim
 about that estimator. If the 2.00x floor were a property of bag-of-4-mers measurement it would
 move for a fine-tuned transformer; if the baseline explained 11% against the protocol's 1% only
 for a k-mer, the mechanism would be a k-mer mechanism.
 
-THE TRANSFORMS AND THE ESTIMATORS ARE IMPORTED, NOT REIMPLEMENTED. scale_sweep.TRANSFORMS and
+The transforms and the estimators are imported, not reimplemented. scale_sweep.TRANSFORMS and
 its fold_range are used directly. Reimplementing an estimator "the same way" is what made R1o
 measure a different quantity under the paper's name for a month, and the fix there was an
 equality assertion; the fix here is not to have a second copy.

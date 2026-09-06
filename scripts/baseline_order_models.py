@@ -16,7 +16,7 @@ the
 per-window scores already committed under data/evidence. No GPU, nothing refitted on the deep
 side -- the CNN and SpliceBERT scores are exactly the ones R1g used.
 
-THE ROW SET AND THE ANCHOR. Rows are intersected across all three models before anything is
+The row set and the anchor. Rows are intersected across all three models before anything is
 fitted, by importing deep_model_contrast's own loader rather than reimplementing it, so this
 table's order-2 column IS that table's published column. That is asserted per cell: if the
 order-2 gain here does not reproduce deep_contrast_per_dataset.csv to 5e-3, the composition
@@ -140,7 +140,7 @@ def main():
                      f"the composition block has drifted. Refusing to write.")
         t.to_csv(per, index=False)
 
-    # THE THIRD ARM WAS COMPUTED AND NEVER REPORTED. Every loop below used to read
+    # The third arm was computed and never reported. Every loop below used to read
     # ("gc", "dn") while the per-dataset table carried neg2 columns for all three models, so
     # the bias-aware arm's order-3 numbers existed on disk and appeared in nothing. Read the
     # arm set off the table instead, and require the two the paper's headline needs.
@@ -186,7 +186,7 @@ def main():
         for model in MODELS:
             g2 = add(f"{model} gain over order-2 baseline, {arm} arm", t[f"{model}_gain2_{arm}"])
             g3 = add(f"{model} gain over order-3 baseline, {arm} arm", t[f"{model}_gain3_{arm}"])
-            # RATIO OF MEANS, bootstrapped as a ratio of means. Per-dataset ratios are not
+            # Ratio of means, bootstrapped as a ratio of means. Per-dataset ratios are not
             # usable here: a handful of datasets have an order-2 gain near zero, and the mean
             # of ratios then diverges -- the first version of this printed a lower bound of
             # -0.64 for a quantity whose point estimate is +0.22, and a NaN for the CNN.
@@ -200,7 +200,7 @@ def main():
             log(f"  {model:12s} {g2:+13.4f} {g3:+13.4f} {100 * g3 / g2:9.0f}%")
         log("")
 
-    # THE SHARE IS A RATIO, AND A RATIO HAS A DENOMINATOR. Reporting only "the k-mer keeps 22%
+    # The share is a ratio, and a ratio has a denominator. Reporting only "the k-mer keeps 22%
     # and SpliceBERT keeps 75%" invites the reading that the k-mer is uniquely FRAGILE. It is
     # not: the order-3 baseline absorbs almost exactly the same ABSOLUTE amount from every
     # model, and the shares differ because the totals differ. That has to be measured and
@@ -215,7 +215,7 @@ def main():
              - (t[f"kmer_gain2_{arm}"] - t[f"kmer_gain3_{arm}"]))
         add(f"splicebert minus kmer, absolute absorbed, {arm} arm", d)
 
-    # THE COMPRESSION CORRECTION, WHICH THIS SCRIPT OMITTED. deep_model_contrast.py calls it
+    # The compression correction, which this script omitted. deep_model_contrast.py calls it
     # "not optional" because a nested gain is bounded above by 1 - baseline, and the order-3
     # baseline RAISES composition (+0.0196 gc, +0.0517 dn), cutting the headroom every model is
     # working in. So part of the "absorbed" amount is arithmetic, not absorption -- and it is a
@@ -243,7 +243,7 @@ def main():
             res[model] = r
             log(f"    {arm} {model:11s} predicted {pred3.mean():+.4f}  observed "
                 f"{t[f'{model}_gain3_{arm}'].mean():+.4f}  residual {v:+.4f}")
-        # THE COMPARISON THAT REVERSES THE RAW FINDING. Corrected for the moving ceiling, the
+        # The comparison that reverses the raw finding. Corrected for the moving ceiling, the
         # k-mer loses MORE than SpliceBERT -- so "absorption is a constant" is itself partly an
         # artefact of omitting the correction, just as the shares were an artefact of their
         # denominators. The truth is between the two framings.
@@ -255,7 +255,7 @@ def main():
         log(f"    {arm} -> k-mer loses {ratio:.2f}x what SpliceBERT does once the moving "
             f"ceiling is removed")
 
-    # AND THE ABSORBED SPREAD ON THE DINUCLEOTIDE ARM, which the first gate left ungated.
+    # And the absorbed spread on the dinucleotide arm, which the first gate left ungated.
     for arm in ARMS_HERE:
         vals = [float((t[f"{m}_gain2_{arm}"] - t[f"{m}_gain3_{arm}"]).mean()) for m in MODELS]
         out.append({"check": f"absorbed spread across model classes, {arm} arm",
@@ -265,7 +265,7 @@ def main():
              - (t[f"kmer_gain2_{arm}"] - t[f"kmer_gain3_{arm}"]))
         add(f"cnn minus kmer, absolute absorbed, {arm} arm", d)
 
-    # AND THE PER-DATASET SIGN, which is what the share cannot show. A mean of +0.0058 is
+    # And the per-dataset sign, which is what the share cannot show. A mean of +0.0058 is
     # consistent with "small everywhere" and with "positive in two thirds, negative in a
     # third". For the k-mer over a trinucleotide baseline it is the second.
     for arm in ARMS_HERE:
@@ -303,7 +303,7 @@ def main():
             f"{m} {t[f'{m}_gain{order}_dn'].mean() / t[f'{m}_gain{order}_gc'].mean():.2f}x"
             for m in MODELS))
 
-    # THE THREE-ARM SPAN AT EACH ORDER, on the full panel. The Discussion's 7.16 came from
+    # The three-arm span at each order, on the full panel. The Discussion's 7.16 came from
     # baseline_order.py: 4-mer only, 30 size-stratified datasets, and TWO arms plus a
     # bias-aware column read off a different row set. Now that all three arms are here for all
     # three models, the span is the paper's own headline quantity recomputed one order up.

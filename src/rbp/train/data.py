@@ -32,7 +32,7 @@ def collate(batch):
 def split_frame(df, split, fold=None, k=5):
     """Rows belonging to one role, from either protocol.
 
-    TWO PROTOCOLS LIVE IN THIS FILE AND ONLY ONE IS PRIMARY.
+    Two protocols live in this file and only one is primary.
 
     `fold=None` uses the `split` column: a single fixed train/val/test partition. That is
     the older protocol, kept for the shuffle-arm sensitivity analysis.

@@ -8,7 +8,7 @@ cannot tell whether an edit helped. These are the patterns that actually give LL
 each counted with its instances printed so a specific sentence can be rewritten and the number
 watched to fall.
 
-WHAT IS AND IS NOT A TELL HERE. Long sentences are not a tell in a methods paper; UNIFORM
+What is and is not a tell here. Long sentences are not a tell in a methods paper; UNIFORM
 sentence length is. Explanation is not a tell; explaining the obvious immediately after asserting
 it is. A colon is not a tell; a colon in every third sentence is. So the measures are mostly
 about VARIANCE and RATE, not about the presence of any construction.

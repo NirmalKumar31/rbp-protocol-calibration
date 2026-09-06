@@ -1,12 +1,12 @@
 """Structural and configured constants the manuscript quotes, computed from their sources.
 
-WHY THIS EXISTS. `audit_manuscript.py` now checks bare integers, and the first run left 18
+Why this exists. `audit_manuscript.py` now checks bare integers, and the first run left 18
 orphans that were every one of them correct: the 101 nt window, the 256 4-mer columns, the
 7089 CNN parameters, the 4000 bootstrap draws. None is an aggregate of a result column, so no
 result table could ever source one, and they were the numbers "checked by hand" that the
 Discussion used to confess to.
 
-WHAT THIS DELIBERATELY IS NOT. It is not a transcription of the manuscript's integers into a
+What this deliberately is not. It is not a transcription of the manuscript's integers into a
 CSV so the audit passes. That would be a forgery of exactly the kind this repository has
 already caught once: a table written from the paper cannot falsify the paper. Every row below
 is DERIVED -- imported from the config, counted off the model object, or measured over the
@@ -96,7 +96,7 @@ def main():
     # The retrained datasets' size, which is why a count-stratified subset picks a different
     # 20. Read from the FROZEN list and not from fold_integrity.py, which by design reports
     # no flagged datasets once the retrain has landed.
-    # THE STORE PATH IS A PARAMETER, and it was an absolute path under one author's home
+    # The store PATH is a parameter, and it was an absolute path under one author's home
     # directory. Guarded by exists(), so on any other machine it did not fail: it silently
     # skipped, and four manuscript constants disappeared from the table with no error and no
     # message. A missing input that says nothing is worse than one that stops.

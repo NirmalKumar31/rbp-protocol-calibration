@@ -1,6 +1,6 @@
 """Every GCS object a stage writes must sit under a prefix that stage's identity may write.
 
-WHY THIS FILE EXISTS, and it is the third time this bug shipped. Buckets in this project are
+Why this file exists, and it is the third time this bug shipped. Buckets in this project are
 not writable wholesale: each service account carries an IAM condition restricting
 storage.objects.create to a few object prefixes. That is deliberate and it works. What keeps
 going wrong is the other side of the contract -- code that writes somewhere outside its own
@@ -21,7 +21,7 @@ Three of those four were found by reading code against Terraform rather than by 
 job. This test makes that audit automatic, because the lesson from every previous round is
 that a check which only fires at runtime fires too late.
 
-WHAT THIS DOES NOT COVER. Only literal prefixes recoverable statically. A path assembled at
+What this does not cover. Only literal prefixes recoverable statically. A path assembled at
 runtime from data cannot be checked here, so the convention is to keep the prefix literal in
 the f-string -- `f"variants/{sub}/{name}.csv"` is checkable, `f"{dest}/{name}.csv"` is not.
 """

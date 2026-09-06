@@ -6,7 +6,7 @@
 Array-friendly: with --all the grid is enumerated in a fixed order and SLURM_ARRAY_TASK_ID
 or --index picks one, so the same command works locally, on Slurm, and as a cloud job.
 
-WHAT DEFINES A RUN. Four things, and every one of them must appear in the output path or
+What defines a run. Four things, and every one of them must appear in the output path or
 runs overwrite each other: the negative arm, the cell line, the protein, the model, and
 the fold. The panel, the arm and the pair threshold all come from config through
 rbp.utils.panel.study -- this script used to read a stale 17-protein config/panel_final.tsv

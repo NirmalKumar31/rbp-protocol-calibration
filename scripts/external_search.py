@@ -2,7 +2,7 @@
 
     python scripts/external_search.py
 
-WHY A SCRIPT FOR SOMETHING NOBODY COMPUTED. docs/EXTERNAL_BENCHMARK_PROTOCOL.md promises that
+Why a script for something nobody computed. docs/EXTERNAL_BENCHMARK_PROTOCOL.md promises that
 every candidate considered is recorded with the criterion it failed on, and a promise like that
 is worth what the artefact behind it is worth. These findings came from reading papers and data
 releases, not from a computation, so this file IS the record: versioned, diffable, and something

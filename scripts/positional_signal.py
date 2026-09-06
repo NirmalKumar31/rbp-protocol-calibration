@@ -2,13 +2,13 @@
 
     python scripts/positional_signal.py --store ../rbp-store
 
-THE ASSERTION THIS TESTS. Methods justifies the CNN's global max-pool with "exploratory
+The assertion this tests. Methods justifies the CNN's global max-pool with "exploratory
 analysis placed the discriminative signal approximately 15 nt off centre, varying by protein".
 That claim carried no table, no figure and no script -- it is exactly the shape of the unsourced
 number this project's manuscript audit exists to catch, and the audit could not catch it because
 "15" is a bare integer inside a prose clause about design rationale.
 
-THE MEASUREMENT. For each dataset and each of the 101 positions, the mutual information between
+The measurement. For each dataset and each of the 101 positions, the mutual information between
 the base at that position and the label, in bits, over all windows. Mutual information rather
 than a per-position AUROC because the base is a four-level categorical and a single position has
 no natural ordering; and it needs no model, so nothing here depends on a fit.

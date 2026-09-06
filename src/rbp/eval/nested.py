@@ -7,7 +7,7 @@ run GU at +1.94 log2 over negatives, PTBP1 runs AA at -1.51. A model can score w
 detecting "G-rich, C-poor" without learning anything sequence-specific, and the headline
 AUROC cannot tell the two apart.
 
-WHAT WE TRIED FIRST, AND WHY IT FAILED. The obvious control is to rebuild the negatives
+What we tried first, and why it failed. The obvious control is to rebuild the negatives
 with a dinucleotide-preserving shuffle, so composition is held fixed by construction and
 any remaining signal must be positional. Two independent things broke it:
 
@@ -21,7 +21,7 @@ any remaining signal must be positional. Two independent things broke it:
     that floor from an AUROC is not valid arithmetic: AUROCs do not decompose additively
     and the floor was measured on a different discrimination.
 
-WHAT WE DO INSTEAD. Ask the same question with regression, where "beyond" has an exact
+What we do instead. Ask the same question with regression, where "beyond" has an exact
 meaning. Fit two nested models on the real data:
 
     reduced   bound ~ composition
@@ -40,7 +40,7 @@ fit with and without the nuisance variable, report the adjusted coefficient -- a
 to a different confounder. They share the estimator code in rbp.stats, which is the
 point: one tested implementation, two uses.
 
-WHAT THIS CONTROL DOES AND DOES NOT SAY. It measures information beyond mononucleotide
+What this control does and does not say. It measures information beyond mononucleotide
 and dinucleotide composition. That is NOT the same as "is there a real motif", and
 conflating the two would be a serious misreading. Measured on our own data: the single
 UG dinucleotide frequency alone separates TARDBP's bound from unbound windows at AUROC
@@ -311,7 +311,7 @@ def gain_over_composition(seqs, score, label, folds, method="l2",
     overlapping training data on identical test rows, are strongly correlated, and treating them
     as independent overstates the variance of their difference by about fourfold here.
 
-    THAT IS NOT THE SAME AS DELONG BEING VALID FOR THIS COMPARISON, and this docstring used to
+    That is not the same as DeLong being valid for this comparison, and this docstring used to
     say only the first thing while the Methods said only the second, so the code and the paper
     read as contradicting each other. Demler et al. (2012) show DeLong's test is not valid for
     strictly nested models, because under the null the added predictor's contribution
@@ -323,7 +323,7 @@ def gain_over_composition(seqs, score, label, folds, method="l2",
 
     So: use the pairing, do not read the per-dataset p-value as a test of nested significance.
 
-    TWO SPECIFICATION CHOICES, BOTH DEFAULTING TO WHAT THE PUBLISHED NUMBERS USED.
+    Two specification choices, both defaulting to what the published numbers used.
 
     `score_scale="logit"` transforms the score before it enters the design. This matters
     because logistic regression is NOT invariant to a nonlinear transform of a covariate,

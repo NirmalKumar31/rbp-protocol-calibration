@@ -7,13 +7,13 @@ protocol alongside every headline AUROC. That recommendation is worth making onl
 does not already do it, and worth aiming at the right target only if we know what the field
 actually does. Both were assumed here until this survey; one of the assumptions was wrong.
 
-THE ENTRIES ARE HAND-CURATED FROM PRIMARY SOURCES, and each carries the sentence it was read
+The entries are hand-curated from primary sources, and each carries the sentence it was read
 from so a reader can check it rather than trust it. A literature survey has no committed table
 upstream of it, so the quote IS the evidence and it is stored beside the classification. Where a
 paper offers several constructions, the one used for its own reported benchmarks is recorded and
 the alternative is noted.
 
-WHAT IT CORRECTED. This paper's own shuffled-arm section claimed that dinucleotide-preserving
+What it corrected. This paper's own shuffled-arm section claimed that dinucleotide-preserving
 shuffling is "what most published predictors use" and named GraphProt, iDeepS and RBPsuite. That
 is wrong twice over. GraphProt shuffles genomic COORDINATES within bound genes, not sequence;
 the RBP-24 dataset behind iDeepS does the same with BedTools; RBPsuite 2.0 uses pybedtools
@@ -91,14 +91,14 @@ def main():
         out.append({"check": f"methods whose negatives are {kind}",
                     "value": int((t.kind == kind).sum()), "n": n})
 
-    # THE NUMBER THE RECOMMENDATION RESTS ON. If the field already reported a composition-only
+    # The number the recommendation rests on. If the field already reported a composition-only
     # AUROC beside its headline, this paper would be recommending current practice.
     n_base = int(t.composition_baseline.sum())
     out.append({"check": "surveyed sources reporting a composition-only baseline",
                 "value": n_base, "n": n})
     log(f"\n  {n_base} of {n} report a composition-only AUROC beside their headline.")
 
-    # AND THE CORRECTION THIS SURVEY FORCED. Sequence-level dinucleotide shuffling is NOT the
+    # And the correction this survey forced. Sequence-level dinucleotide shuffling is NOT the
     # dominant construction; interval shuffling is, and it leaves composition entirely free.
     n_seq = int((t.kind == "sequence_shuffle").sum())
     n_coord = int((t.kind == "coordinate").sum())

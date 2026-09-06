@@ -3,19 +3,19 @@
     python scripts/shuffled_arm.py --n 6      # smoke
     python scripts/shuffled_arm.py           # the panel
 
-WHY THIS ARM EXISTS. Dinucleotide-preserving shuffling is what GraphProt, iDeepS and RBPsuite
+Why this arm exists. Dinucleotide-preserving shuffling is what GraphProt, iDeepS and RBPsuite
 actually do, and it is the protocol \\citet{tourne2026} indicts. It is not a matching procedure
 at all: each negative is a permutation of its own positive with the dinucleotide counts held
 exactly, so mononucleotide frequencies, dinucleotide frequencies, GC and sequence entropy are
 IDENTICAL between a positive and its negative, row by row. The nineteen-feature composition
 baseline therefore takes the same value on both members of every pair.
 
-THE PREDICTION, and it has no free parameters. The composition baseline must sit at exactly
+The prediction, and it has no free parameters. The composition baseline must sit at exactly
 0.5, not approximately: every pair is a tie, so no threshold separates them. Whatever a model
 scores is then credited entirely as contribution, because the baseline it is measured against
 is uninformative by construction.
 
-WHY IT MATTERS TO THIS PAPER RATHER THAN TO THAT LITERATURE. Every arm in the main analysis
+Why it matters to this paper rather than to that literature. Every arm in the main analysis
 shows difficulty and contribution moving in OPPOSITE directions: the protocol that makes
 discrimination harder yields a smaller increment over composition. The shuffled arm is the one
 place in our own data where they move together, and it is not a counterexample but the
@@ -77,7 +77,7 @@ def build(store, limit):
         neg["label"] = 0
         dd = pd.concat([p, neg], ignore_index=True)
 
-        # THE CONSTRUCTION CHECK, per dataset, before anything is fitted. verify() compares
+        # The construction check, per dataset, before anything is fitted. verify() compares
         # dinucleotide counts; if a single pair fails, the arm is not the arm it claims to be
         # and its baseline of 0.5 would be an accident rather than a consequence.
         bad = sum(0 if sh.verify(a, b, k=2) else 1
@@ -90,7 +90,7 @@ def build(store, limit):
         good = np.isfinite(s_comp) & np.isfinite(s_full)
         r = delong_test(s_full[good], s_comp[good], y[good])
         r_alone = delong_test(standardise(sc)[good], s_comp[good], y[good])
-        # HOW MANY COMPOSITION ROWS ARE LITERALLY TIED. This is the claim in its most direct
+        # How many composition rows are literally tied. This is the claim in its most direct
         # form and it does not go through an AUROC at all.
         Xr = np.round(X, 9)
         tied = int(sum(np.array_equal(Xr[j], Xr[j + len(p)]) for j in range(len(p))))
@@ -144,7 +144,7 @@ def main():
 
     log(f"\n=== B5: the dinucleotide-shuffled arm, n = {len(t)}, {len(uniq)} proteins ===\n")
 
-    # THE CONSTRUCTION, FIRST AND AS A HARD STOP. Everything below is a consequence of the
+    # The construction, first and as a hard stop. Everything below is a consequence of the
     # negatives being exact dinucleotide permutations of the positives. If they are not, the
     # 0.5 baseline is a coincidence and the section says nothing.
     v = int(t.dinuc_violations.sum())
@@ -174,7 +174,7 @@ def main():
     log(f"  contribution - (standalone - 0.5) = {resid:+.5f}: with an uninformative baseline "
         f"the increment IS the model's own AUROC")
 
-    # AND THE COMPARISON WITH THE THREE MATCHED ARMS, which is why this is in the paper.
+    # And the comparison with the three matched arms, which is why this is in the paper.
     pub = pd.read_csv(TABLES / "three_arm_per_dataset.csv")
     key = "dataset" if "dataset" in pub.columns else pub.columns[0]
     j = t.merge(pub, on=key, how="inner", suffixes=("", "_pub"))
@@ -192,7 +192,7 @@ def main():
     log(f"    {'dinucleotide-SHUFFLED':22s} baseline {j.comp_auroc.mean():.4f}   contribution "
         f"{j.kmer_gain.mean():+.4f}")
 
-    # THE DIRECTION, WHICH IS THE PAPER'S CLAIM AND ITS BOUNDARY. Across the three matched
+    # The direction, which is the paper's claim and its boundary. Across the three matched
     # arms a lower baseline goes with a LARGER contribution, which is the inversion the title
     # is about. The shuffled arm has the lowest baseline of all AND the largest contribution,
     # so it lies on the SAME side of the relation, not the opposite one. State it that way:
@@ -208,7 +208,7 @@ def main():
             f"the lowest matched one and its contribution {j.kmer_gain.mean() - biggest:+.4f} "
             f"above the largest")
 
-        # THE FOUR-PROTOCOL SPAN. The paper's headline is a 5.42-fold span across three
+        # The four-protocol span. The paper's headline is a 5.42-fold span across three
         # matching protocols. Shuffling is in wider use than any of them, and adding it as a
         # fourth point widens the span again. This is what the recommendation rests on: not
         # that one protocol is wrong, but that the quantity is not comparable across the four
@@ -231,7 +231,7 @@ def main():
         log(f"\n  span across the three MATCHED protocols {three:.2f}x; adding the shuffled "
             f"arm makes it {span:.2f}x ({hi_arm} over {lo_arm})")
 
-    # WHAT SHUFFLING COSTS IN DATA, which is a practical objection to the protocol and is
+    # What shuffling costs in data, which is a practical objection to the protocol and is
     # rarely reported: a dinucleotide shuffle of a low-complexity window can come back a near
     # copy of its source, and those pairs have to be discarded.
     d1, d2 = int(t.dropped_failed.sum()), int(t.dropped_similar.sum())

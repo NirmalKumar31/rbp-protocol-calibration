@@ -2,7 +2,7 @@
 
     python scripts/auroc_aggregation.py --store ../rbp-store
 
-TWO CHOICES, BOTH MADE ONCE AND NEVER REVISITED.
+Two choices, both made once and never revisited.
 
 1. POOLED VERSUS FOLD-AVERAGED. Every AUROC here pools all five folds' out-of-fold scores into
    one ranking and computes a single AUROC. The alternative computes an AUROC per fold and
@@ -143,7 +143,7 @@ def main():
                      "note": f"max |delta| {(g.rank_pooled - g.pooled).abs().max():.4f}"}]
             log(f"  {arm:6} {model:11} {p_:9.4f} {a_:9.4f} {r_:12.4f}")
 
-    # THE ORDERING IS THE CLAIM. It must survive both alternatives, or the paper's headline is a
+    # The ordering is the claim. It must survive both alternatives, or the paper's headline is a
     # property of one way of aggregating folds.
     held = 0
     for name in ("pooled", "fold_averaged", "rank_pooled"):

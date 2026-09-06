@@ -1,6 +1,6 @@
 """Recompute published AUROCs from committed per-example scores. No cloud, no credentials.
 
-WHY THIS EXISTS, and it is the sharpest lesson in the project.
+Why this exists, and it is the sharpest lesson in the project.
 
 `scripts/verify.py` asserts 86 named numbers and passes. Then someone tested it properly:
 subtract 0.05 from `rehearsal_binding_gc.composition_auroc`, or zero every variant delta and
@@ -21,12 +21,12 @@ arm every objection targets and leave the comparison itself unevidenced. Both de
 committed scores, so both are checked; the two logistic arms are cheap to refit but their
 per-example scores are the rehearsal files, checked separately.
 
-WHAT A PASS MEANS. The number in the paper is the number the model produced on held-out data.
+What a pass means. The number in the paper is the number the model produced on held-out data.
 It does NOT mean the split was correct, the negatives were sensible, or the claim is
 interesting -- those are arguments elsewhere. It means the arithmetic is not invented, which
 `verify.py` alone cannot establish.
 
-WHAT A FAIL MEANS. Either the tables drifted from the evidence, or the evidence was corrupted.
+What a fail means. Either the tables drifted from the evidence, or the evidence was corrupted.
 Both are worth stopping for. Zeroing the score column produces max|diff| ~0.45, so the check
 has real power rather than passing on anything.
 """
@@ -50,7 +50,7 @@ EVIDENCE = ROOT / "data" / "evidence" / "scores"
 ARMS = (("splicebert", "splicebert"), ("cnn", "cnn"))
 N_FOLDS = 5
 
-# THE REHEARSAL ARM, WHICH IS THE ONE THE PRIMARY RESULT RESTS ON.
+# The rehearsal arm, which is the one the primary result rests on.
 #
 # This was missing until a referee pointed a gun at it. `recompute.py` covered the two deep
 # arms only, so R1 -- the paper's headline, built entirely on the composition and k-mer

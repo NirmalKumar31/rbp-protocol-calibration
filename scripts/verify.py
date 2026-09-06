@@ -1,6 +1,6 @@
 """Stage 13. Assert the reproduction actually reproduced, and fail loudly if not.
 
-WHY THIS IS THE LAST STAGE AND NOT AN AFTERTHOUGHT. A pipeline that runs to completion and
+Why this is the last stage and not an afterthought. A pipeline that runs to completion and
 quietly produces different science is worse than one that crashes, because nobody diffs a
 plausible table. Reproducibility you do not check is not reproducibility; it is a hope with
 a Dockerfile.
@@ -93,7 +93,7 @@ def verify_r1(T, g):
     near("mean AUROC, dinuc arm", d.auroc_dn.mean(), spec["auroc_dinuc"])
     near("cost of proper matching", d.cost.mean(), spec["cost"])
 
-    # THE NESTED GAIN, NOT THE DIFFERENCE OF TWO STANDALONE AUROCs.
+    # The nested gain, NOT THE DIFFERENCE OF TWO STANDALONE AUROCs.
     #
     # This computed (auroc - composition_auroc): how much better the sequence model is than a
     # composition model fitted separately. That is not the claim. The claim is that the
@@ -237,7 +237,7 @@ def verify_r4_paired(T, g):
         at_least("inference is clustered", float(w.loc["matched", "n_clusters"]),
                  spec["min_clusters"])
 
-    # THE TRIVIAL POSITIONAL BASELINE. Asserted with the sign that embarrasses us, because a
+    # The trivial positional baseline. Asserted with the sign that embarrasses us, because a
     # gate that only checks flattering numbers is not a gate.
     if "block_prevalence" in hl and pd.notna(r.get("block_prevalence")):
         near("TRIVIAL positional baseline AUROC", float(r.block_prevalence),
@@ -261,7 +261,7 @@ def verify_r4_paired(T, g):
                 at_most(f"size effect bounded: {k[:34]}",
                         abs(float(rr.loc[k, "value"])), spec["size_rho_max"])
 
-        # THE SHARE IS MODEL-DEPENDENT, and this is now the paper's headline. These keys sat
+        # The share is model-dependent, and this is now the paper's headline. These keys sat
         # in golden.yaml unread for a day after being added -- Bug 29 (dead golden config)
         # committed alongside the fix it documents.
         for k, gk in (("composition share vs k-mer", "composition_share_vs_kmer"),
@@ -286,7 +286,7 @@ def verify_r4_paired(T, g):
                         abs((c / gk) / (c / gs) - gs / gk),
                         spec["share_ratio_equals_inverse_gain_ratio_max_diff"])
 
-        # THE CROSS-CHECK. "composition share vs k-mer" and "composition share, dinuc-matched"
+        # The cross-check. "composition share vs k-mer" and "composition share, dinuc-matched"
         # are the SAME quantity computed from two different tables (matched_four_models.csv and
         # cost_of_matching.csv). If they ever disagree, one of the tables is wrong and the
         # headline is built on it.
@@ -296,7 +296,7 @@ def verify_r4_paired(T, g):
                     abs(float(rr.loc[a_k, "value"]) - float(rr.loc[b_k, "value"])),
                     spec["kmer_share_cross_check_max_diff"])
 
-    # THE FOUR ATTACKS. Each was a reason the specificity result might not be real.
+    # The four attacks. Each was a reason the specificity result might not be real.
     at_ = T.get("variant_specificity_attacks.csv")
     if at_ is not None:
         a = at_.set_index("attack")
@@ -392,7 +392,7 @@ def verify_multidonor(T, g):
         return record(False, "multidonor_specificity.csv present", "MISSING", "the table")
     spec = g["r4_multidonor"]
 
-    # THE ATTACK THIS BLOCKS, and it defeated every other gate in this function.
+    # The attack this blocks, and it defeated every other gate in this function.
     #
     # A reviewer permuted the `donor` column WITHIN each target in multidonor_pairs.csv --
     # every gap, floor and target unchanged, only the donor-to-gap correspondence destroyed --
@@ -410,7 +410,7 @@ def verify_multidonor(T, g):
                "every (target, donor) pair is one the draw actually assigned",
                f"{len(got - want)} unassigned", "0")
 
-    # AND THE PAIR-SET CHECK ABOVE IS NOT ENOUGH, which is the point worth remembering.
+    # And the pair-set check above is not enough, which is the point worth remembering.
     # Permuting donors WITHIN a target preserves the pair set exactly, so the subset test
     # passes on scrambled labels -- I wrote it, ran the attack, and it passed 103/103. The only
     # thing that distinguishes "this donor produced this floor" from "these floors were dealt
@@ -452,7 +452,7 @@ def verify_multidonor(T, g):
         near("targets, powered", cell(POW, "mean gap (unadjusted)", "n_targets"),
              spec["n_targets_powered"])
 
-    # THE GATE THAT WOULD HAVE CAUGHT THE ORIGINAL ERROR. In the single-donor arm this was
+    # The gate that would have caught the original error. In the single-donor arm this was
     # -0.533: the gap tracked how much weaker the donor's model was. It must stay near zero,
     # or the control is measuring model capacity again.
     rho = cell(POW, "gap vs donor advantage (spearman)")
@@ -494,7 +494,7 @@ def verify_multidonor(T, g):
     if v is not None:
         at_least("matched arm is STEEP in power", v, spec["matched_vs_power_rho_min"])
 
-    # THE FULL PANEL, WHICH SHOWS NOTHING, asserted with its unflattering value
+    # The full panel, which shows nothing, asserted with its unflattering value
     v = cell(ALL, "mean gap (unadjusted)")
     if v is not None:
         near("all-panel gap (the null)", v, spec["all_panel_gap"])
@@ -519,7 +519,7 @@ def verify_multidonor(T, g):
 def verify_scale_check(T, g):
     """R1: the protocol effect must survive removal of AUROC-scale compression.
 
-    THIS IS THE GATE ON THE PAPER'S PRIMARY CLAIM, and until now that claim had no gate at
+    This is the gate on the paper's primary claim, and until now that claim had no gate at
     all. +0.0397 was printed in the manuscript, appeared in no committed table, and was
     produced by no script that could be found. It could not be reproduced and it could not
     fail. Every other headline in this project that reached that state turned out to be wrong.
@@ -720,7 +720,7 @@ def verify_strand_contrast(T, g):
         at_most("association is not the size effect relabelled", abs(raw - par),
                 spec["max_raw_partial_gap"])
 
-    # THE ONE REASSURING RESULT. Halves agree, and the gap is small against the +0.0397.
+    # The one reassuring result. Halves agree, and the gap is small against the +0.0397.
     hd = must("difference between halves")
     lo = must("difference between halves", "ci_low")
     hi = must("difference between halves", "ci_high")
@@ -773,7 +773,7 @@ def verify_region(T, g):
         record(ci > cc, "MECHANISM: intronic sites are more compositional",
                f"{ci:.4f} vs {cc:.4f}", "intron higher")
 
-    # THE LIMITATION. It must NOT survive adjustment, and that is asserted.
+    # The limitation. It must NOT survive adjustment, and that is asserted.
     pr = must("...partialling out total nested gain")
     if pr is not None:
         at_most("region acts THROUGH effect size, not independently", abs(pr),
@@ -867,7 +867,7 @@ def verify_deep_contrast(T, g):
         at_least("dinuc arm: window coverage after post-sweep drift", cd,
                  spec["min_row_coverage_dn"])
 
-    # THE LADDER STEPS, PAIRED. Marginal intervals overlap between the k-mer and the CNN, so
+    # The ladder steps, paired. Marginal intervals overlap between the k-mer and the CNN, so
     # the ordering is only a claim as a paired difference on the same 94 datasets.
     for a, b, gk in (("cnn", "kmer", "step_cnn_minus_kmer"),
                      ("splicebert", "cnn", "step_splicebert_minus_cnn"),
@@ -885,7 +885,7 @@ def verify_deep_contrast(T, g):
         near("CNN beats the k-mer contrast on this many datasets", float(weak),
              spec["step_datasets_cnn_minus_kmer"])
 
-    # THE RATIO SCALE, WHERE THE LADDER REVERSES. R1b's rule applied to R1g's own headline:
+    # The ratio scale, where the ladder reverses. R1b's rule applied to R1g's own headline:
     # the additive ladder is real, the multiplier ladder is not, and both must be reported.
     rspec = spec["ratio"]
     nboth = must("ratio", "datasets_positive_both_arms_all_models")
@@ -912,7 +912,7 @@ def verify_deep_contrast(T, g):
             record(hi < 0, f"ratio ladder REVERSES for splicebert against {b} "
                            f"(interval clear of zero, wrong side)", f"{hi:+.4f}", "< 0")
 
-    # THE SUMMARY MUST BE ARITHMETIC ON THE PER-DATASET TABLE, not an independent assertion.
+    # The summary must be arithmetic on the per-dataset table, not an independent assertion.
     # Everything above reads deep_contrast.csv alone, so editing that one file would pass
     # every check. Recompute the means from the evidence.
     per = T.get("deep_contrast_per_dataset.csv")
@@ -1158,7 +1158,7 @@ def verify_expression_control(T, g):
         if val is not None:
             near(k, val, spec[gk])
 
-    # THE BALANCE ARGUMENT, asserted both ways.
+    # The balance argument, asserted both ways.
     lo = must("arm difference, untranscribed fraction", "ci_low")
     hi = must("arm difference, untranscribed fraction", "ci_high")
     if lo is not None and hi is not None and spec["arm_difference_must_straddle_zero"]:
@@ -1289,7 +1289,7 @@ def verify_three_arm(T, g):
         if v is not None:
             near(f"protocol multiplier, {a} over {b}", v, spec[gk])
 
-    # THE FALSIFIED PREDICTION, asserted in the direction the data actually went.
+    # The falsified prediction, asserted in the direction the data actually went.
     if None not in comp.values() and spec["neg2_must_have_highest_composition"]:
         record(comp["neg2"] == max(comp.values()),
                "neg2 has the HIGHEST composition baseline (the pre-specified prediction "
@@ -1391,7 +1391,7 @@ def verify_baseline_confounding(T, g):
                "differ by more than the arithmetic", f"dn {rd:+.4f}, neg2 {rn:+.4f}",
                "dn > 0 > neg2")
 
-    # THE CLUSTERED SPEARMAN. Point estimates, and then the pattern of the intervals, which is
+    # The clustered Spearman. Point estimates, and then the pattern of the intervals, which is
     # what the paper actually claims: the relation is present in both composition-matched arms
     # and not detectable in the bias-aware one. Gating the endpoints alone would pass a run in
     # which every interval had widened to include zero.
@@ -1520,7 +1520,7 @@ def verify_protocol_or_baseline(T, g):
         record(lo <= 0 <= hi,
                "the published contrast does NOT survive matching on the baseline",
                f"[{lo:+.4f}, {hi:+.4f}]", "contains 0")
-    # THE CORRECTION. R1l's "no common support" was the three-way intersection; pairwise the
+    # The correction. R1l's "no common support" was the three-way intersection; pairwise the
     # gc-vs-neg2 comparison is easy, and there a residual DOES exist.
     for label, key in (
             ("pairwise common support width, gc vs dn", spec["pairwise_support_gc_dn"]),
@@ -1574,7 +1574,7 @@ def verify_baseline_order(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets in the subsample", int(n),
                spec["n_datasets"])
-    # THE ANCHOR, FIRST. Order 2 IS the paper's composition baseline, so it must reproduce the
+    # The anchor, first. Order 2 IS the paper's composition baseline, so it must reproduce the
     # paper's gain cell by cell. The first version of this script re-implemented the baseline,
     # overstated neg2's gain 2.31x, and agreed with the published R1 CONTRAST to 1e-4 by two
     # offsetting errors. An aggregate agreeing is not the baseline being the same baseline.
@@ -1582,7 +1582,7 @@ def verify_baseline_order(T, g):
     if rep is not None:
         at_most("order 2 reproduces the published per-dataset gain",
                 rep, spec["max_order2_reproduction"])
-    # KEYS ARE SPELLED OUT LITERALLY. test_golden_keys_are_read.py reads this file as TEXT, so
+    # Keys are spelled out literally. test_golden_keys_are_read.py reads this file as TEXT, so
     # spec[f"gain_order{order}_{arm}"] is invisible to it and the key reads as unread. That is
     # tests/unit/test_golden_keys_are_read.py reads this file as text, so a key built with an
     # f-string reads as unread. Spell keys out literally.
@@ -1650,7 +1650,7 @@ def verify_baseline_order(T, g):
             record(False, "the change in the fold range is reported with an interval",
                    "MISSING", "the row")
 
-    # THE PER-DATASET SIGN. A ratio of means cannot show that the typical neg2 dataset retains
+    # The per-dataset sign. A ratio of means cannot show that the typical neg2 dataset retains
     # nothing; the median per-dataset ratio there is NEGATIVE.
     for label, key in (
             ("order-3 gain positive in, gc arm", spec["order3_positive_gc"]),
@@ -1745,7 +1745,7 @@ def verify_baseline_order_models(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE PROTOCOL CONTRAST MUST SURVIVE AT ORDER 3 FOR EVERY MODEL, two-sided. A one-sided
+    # The protocol contrast must survive at order 3 for every model, two-sided. A one-sided
     # floor: ">= x" would pass a rewritten value that is far too large.
     for model in ("kmer", "cnn", "splicebert"):
         lo = q.loc[f"{model} R1 contrast (dn-gc), order-3 baseline", "ci_low"] \
@@ -1755,7 +1755,7 @@ def verify_baseline_order_models(T, g):
                    f"protocol dependence survives an order-3 baseline for the {model}",
                    f"CI low {float(lo):+.4f}", "> 0")
 
-    # THE ABSOLUTE COLUMN, which is what makes the shares readable. R1r's first version led
+    # The absolute column, which is what makes the shares readable. R1r's first version led
     # with the shares and drew a fragility conclusion the absolute numbers refute.
     absorbed = {}
     for label, key in (
@@ -1780,7 +1780,7 @@ def verify_baseline_order_models(T, g):
         at_most("and the same holds on the dinucleotide arm", dnv,
                 spec["max_absorbed_spread_dn"])
 
-    # THE COMPRESSION CORRECTION. The order-3 baseline raises composition, so part of the
+    # The compression correction. The order-3 baseline raises composition, so part of the
     # "absorbed" amount is the moving ceiling -- and it takes MORE from a model with a bigger
     # gain, which is what made the raw absorption look constant. Corrected, the k-mer really
     # does lose more, by about 1.3-1.4x rather than the 3.4x the shares imply. BOTH of this
@@ -1805,7 +1805,7 @@ def verify_baseline_order_models(T, g):
                "the compression-corrected comparison is reported, so neither the shares nor "
                "the raw absorption can be quoted as the whole story",
                "corrected residual ratio", "present")
-        # AND THE CNN MUST STILL ABSORB THE LEAST, on the corrected scale too. Any capacity
+        # And the CNN must still absorb the least, on the corrected scale too. Any capacity
         # story predicts otherwise, which is why this is the gate that kills capacity readings.
         rk = must("kmer compression-corrected order-3 residual, gc arm")
         rc = must("cnn compression-corrected order-3 residual, gc arm")
@@ -1816,7 +1816,7 @@ def verify_baseline_order_models(T, g):
                    "capacity story predicts",
                    f"cnn {rc:+.4f} vs kmer {rk:+.4f}, splicebert {rs:+.4f}", "cnn smallest")
 
-    # THE PER-DATASET SIGN. A mean of +0.0058 is consistent with "small everywhere" and with
+    # The per-dataset sign. A mean of +0.0058 is consistent with "small everywhere" and with
     # "negative in a third of the panel". For the 4-mer over a trinucleotide baseline it is
     # the second, and that is the result the shares could not show.
     pos = {}
@@ -1880,7 +1880,7 @@ def verify_baseline_order_models(T, g):
                    f"CI low {float(q.loc[k, 'ci_low']):.2f}x",
                    f"> {spec['min_span_order3_ci_low']}")
 
-    # AND THE SPAN'S DIRECTION IS NOT UNIFORM, which the Discussion asserted unqualified as
+    # And the span's direction is not uniform, which the Discussion asserted unqualified as
     # "does not shrink but grows". It grows for the 4-mer and the CNN and FALLS for SpliceBERT.
     # Gate the pattern, not the sentence, so the sentence cannot drift back.
     grow = {}
@@ -1921,7 +1921,7 @@ def verify_baseline_order_models(T, g):
                    "protocol-free", f"gc {rg:.2f}, dn {rd:.2f}, neg2 {rn:.2f}",
                    "> 1, > 1, < 1")
 
-    # CONCENTRATION IS NOT PANEL SIZE. The raw top-3 share falls from 51% on 30 datasets to
+    # Concentration is not panel size. The raw top-3 share falls from 51% on 30 datasets to
     # 21% on 94, which would read as "less concentrated" and is mostly the panel being three
     # times larger. Divided by the share three datasets would hold under an even spread, the
     # full panel is MORE concentrated, and that comparison is what the text has to make.
@@ -1958,7 +1958,7 @@ def verify_region_annotation(T, g):
             return None
         return float(q.loc[k, "value"])
 
-    # THE ANCHOR IS ON POSITIVES, an exact zero. That is where the committed column is a
+    # The anchor is on positives, an exact zero. That is where the committed column is a
     # classification of the window it labels, so one disagreement means the recomputation is
     # not the paper's rule and every comparison below is against the wrong annotation.
     v = get("positives where the recomputed published rule differs from the committed "
@@ -1972,7 +1972,7 @@ def verify_region_annotation(T, g):
         record(int(n) >= spec["min_positives_checked"], "positives checked", int(n),
                f">= {spec['min_positives_checked']}")
 
-    # THE COLUMN MEANS TWO DIFFERENT THINGS BY CLASS, and this is the finding rather than a
+    # The column means two different things by class, and this is the finding rather than a
     # defect: for a matched negative it records the region POOL drawn from, and merged region
     # intervals overlap. The bias-aware arm is the control, at exactly zero, because its
     # negatives are other proteins' positives and carry genuine classifications.
@@ -1988,7 +1988,7 @@ def verify_region_annotation(T, g):
                "the bias-aware arm's negatives carry genuine classifications, which is why "
                "its region figure is the one unaffected by re-annotation", v, 0.0)
 
-    # THE PAPER'S OWN NUMBER, both readings. Exactly a half on the enforced label, and near
+    # The paper's own number, both readings. Exactly a half on the enforced label, and near
     # 0.545 under a common re-annotation. Gating only the first would let the manuscript keep
     # saying "region carries nothing" without its qualifier.
     for arm in ("gc", "dn"):
@@ -2007,7 +2007,7 @@ def verify_region_annotation(T, g):
     if v is not None:
         near("median region-only AUROC, bias-aware arm", v, spec["neg2_auroc"])
 
-    # THE ASYMMETRY IS THE CLAIM. Every rule must keep it, and the gate is on the SMALLEST of
+    # The asymmetry is the claim. Every rule must keep it, and the gate is on the SMALLEST of
     # them, because a mean over rules would let one rule collapse it unnoticed.
     n_ok = get("annotation rules under which the asymmetry holds")
     if n_ok is not None:
@@ -2124,7 +2124,7 @@ def verify_negative_draws(T, g):
         near("between-protein standard error", sp, spec["se_protein"])
     if sd is not None:
         near("between-draw standard error", sd, spec["se_draw"])
-    # THE POINT OF THE EXERCISE. If this were large the published intervals would be wrong;
+    # The point of the exercise. If this were large the published intervals would be wrong;
     # it is small, and asserting a ceiling is what stops that quietly changing.
     w = get("ratio of combined to published interval width")
     if w is not None:
@@ -2167,7 +2167,7 @@ def verify_protocol_transport(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
 
-    # THE DIAGONAL MUST BE THE PUBLISHED RESULT. Training and evaluating on the same arm is the
+    # The diagonal must be the published result. Training and evaluating on the same arm is the
     # published estimator, so if these drift the transport is measuring something else.
     for arm, key in (("gc", "diag_gc"), ("dn", "diag_dn"), ("neg2", "diag_neg2")):
         v = get(f"contribution, trained on {arm}, evaluated on {arm}")
@@ -2179,12 +2179,12 @@ def verify_protocol_transport(T, g):
     st = get("share of variance from the TRAINING protocol, per-dataset weighting")
     se = get("share of variance from the EVALUATION protocol, per-dataset weighting")
     si = get("share of variance from their INTERACTION, per-dataset weighting")
-    # THE SECOND ESTIMAND, asserted in full. Reporting one share without the other invites the
+    # The second estimand, asserted in full. Reporting one share without the other invites the
     # reader to think the decomposition has a single answer; it does not. Decomposing the matrix
     # of panel means moves evaluation from 63% to 81% and the interaction from 22% to 10%. That
     # is a different quantity, not a reweighting of the first, and it is not "weighting datasets
     # by effect size", which is what the abstract used to call it.
-    # KEYS SPELLED LITERALLY, not built with an f-string. tests/unit/test_golden_keys_are_read.py
+    # Keys spelled literally, not built with an f-string. tests/unit/test_golden_keys_are_read.py
     # scans this file for the key names, so a key reached only as f"{key}_ci" reads to it as
     # declared-but-never-used and fails the build. That test exists because keys HAVE been
     # declared and never read.
@@ -2199,7 +2199,7 @@ def verify_protocol_transport(T, g):
         if v is None:
             continue
         near(f"variance share, {label}, matrix of panel means", v, spec[key])
-        # AND THE INTERVAL, which this quantity did not have. Gating the bounds is what stops
+        # And the interval, which this quantity did not have. Gating the bounds is what stops
         # the "no interval, because it is a function of means" note coming back.
         lo, hi = q.loc[row, "ci_low"], q.loc[row, "ci_high"]
         try:
@@ -2250,7 +2250,7 @@ def verify_protocol_transport(T, g):
 def verify_external_replication(T, g):
     """Claim A on 135 datasets this study never touched, under another group's negative sets.
 
-    THE ONE ANALYSIS HERE WHOSE CRITERIA WERE FIXED BEFORE THE DATA WERE SEEN, and the only one
+    The one analysis here whose criteria were fixed before the data were seen, and the only one
     that can be described that way. docs/EXTERNAL_BENCHMARK_PROTOCOL.md was committed at e76a80c
     with no result in it; the thresholds asserted below are quoted from it. That is an ordering
     of two repository commits and not a registration, which Methods says in those words.
@@ -2282,7 +2282,7 @@ def verify_external_replication(T, g):
     if pr is not None:
         record(int(pr) == spec["n_proteins"], "proteins, the resampled unit", int(pr),
                spec["n_proteins"])
-    # CRITERION 1 IS THE WHOLE POINT. horlacher_arm.py's 45 datasets are all inside our panel,
+    # Criterion 1 is the whole point. horlacher_arm.py's 45 datasets are all inside our panel,
     # which is why that table is an independent construction and not an independent sample.
     ov = get("overlap with our study panel")
     if ov is not None:
@@ -2307,7 +2307,7 @@ def verify_external_replication(T, g):
     elo, ehi = spec["span_ci"]
     record(abs(lo - elo) < 0.05 and abs(hi - ehi) < 0.05, "the external span's 95% interval",
            f"[{lo:.3f}, {hi:.3f}]", f"[{elo:.3f}, {ehi:.3f}]")
-    # THE PRE-FIXED DECISION, re-derived here rather than read out of the table, so that the
+    # The pre-fixed decision, re-derived here rather than read out of the table, so that the
     # verdict the paper quotes is recomputed from the thresholds on every run.
     record(s > spec["support_span_floor"] and lo > spec["support_ci_low_floor"],
            "Claim A meets the criteria fixed before the search",
@@ -2350,7 +2350,7 @@ def verify_sensitivity_suite(T, g):
         if v is not None:
             near(f"the suite's reference row is the published span, {m}", v, spec[key])
 
-    # THE ORDERING, EVERYWHERE. One row per aggregator and per cell line, each 1 or 0.
+    # The ordering, everywhere. One row per aggregator and per cell line, each 1 or 0.
     orderings = [k for k in q.index if k.startswith("ordering dn > gc > neg2 holds")]
     held = sum(1 for k in orderings if float(q.loc[k, "value"]) == 1.0)
     record(len(orderings) == spec["orderings_that_must_all_hold"],
@@ -2360,7 +2360,7 @@ def verify_sensitivity_suite(T, g):
            "the arms keep their order under every aggregator and in each cell line",
            f"{held}/{len(orderings)}", "all of them")
 
-    # NO SINGLE PROTEIN CARRIES A SPAN.
+    # No single protein carries a span.
     disp = [float(q.loc[k, "value"]) for k in q.index
             if k.endswith("largest leave-one-protein-out displacement")]
     if disp:
@@ -2370,7 +2370,7 @@ def verify_sensitivity_suite(T, g):
     else:
         record(False, "leave-one-protein-out rows present", "MISSING", "three rows")
 
-    # BOTH CELL LINES SEPARATELY. "It holds in both" is not a statement unless both are shown.
+    # Both cell lines separately. "It holds in both" is not a statement unless both are shown.
     for cell in ("K562", "HepG2"):
         vals = [float(q.loc[k, "value"]) for k in q.index
                 if k.startswith("span, ") and k.endswith(f", {cell} only")]
@@ -2380,7 +2380,7 @@ def verify_sensitivity_suite(T, g):
                    f"{cell} alone", f"min {min(vals):.3f}",
                    f"> {spec['min_span_within_a_cell_line']}")
 
-    # AND THE SUITE MUST SAY, PER ROW, WHETHER IT WAS PLANNED. A robustness check chosen after
+    # And the suite must say, per row, whether it was planned. A robustness check chosen after
     # the result is weaker evidence than one chosen before, and a table that does not say which
     # invites the reader to assume the stronger one.
     if "planning" in d.columns:
@@ -2465,7 +2465,7 @@ def verify_positive_set_overlap(T, g):
     record(int((j == 1).sum()) == spec["n_identical"],
            "datasets whose positive sets are identical", int((j == 1).sum()),
            spec["n_identical"])
-    # THE MEASURE ITSELF. The committed column was once min(n)/max(n), which is a count ratio
+    # The measure itself. The committed column was once min(n)/max(n), which is a count ratio
     # and agrees with a real set overlap whenever the arms happen to retain the same windows.
     # Asserting they DISAGREE somewhere is what stops the count ratio coming back unnoticed.
     ratio = d[["n_pos_gc", "n_pos_dn"]].min(axis=1) / d[["n_pos_gc", "n_pos_dn"]].max(axis=1)
@@ -2477,7 +2477,7 @@ def verify_positive_set_overlap(T, g):
 def verify_cross_fitting(T, g):
     """The outer-fold information route, measured by closing it.
 
-    THIS GATE EXISTS BECAUSE TWO PUBLISHED CLAIMS DIED HERE. The Methods said the bias was
+    This gate exists because two published claims died here. The Methods said the bias was
     one-directional and could only help the score column; for the 4-mer, closing the route
     RAISES the contribution in all three arms. The Results attributed the estimator's floor to
     conditioning; closing the route removes 96 to 99% of it. Both are asserted below as the
@@ -2501,13 +2501,13 @@ def verify_cross_fitting(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
 
-    # KEYS WRITTEN OUT, NOT BUILT WITH AN f-STRING. tests/unit/test_golden_keys_are_read.py
+    # Keys written out, NOT BUILT WITH AN f-STRING. tests/unit/test_golden_keys_are_read.py
     # greps the reader for each leaf name, so `spec[f"cf2_{arm}"]` reads as six unread keys --
     # which is to say, as six guarantees nobody checks. Spelling them makes them greppable,
     # which is the property that test exists to enforce.
     for arm, k2, k4 in (("gc", "cf2_gc", "cf4_gc"), ("dn", "cf2_dn", "cf4_dn"),
                         ("neg2", "cf2_neg2", "cf4_neg2")):
-        # THE 2-MER RECOVERS ITS KNOWN ZERO. This is the check that the cross-fitting is
+        # The 2-mer recovers its known zero. This is the check that the cross-fitting is
         # correct rather than merely different: the truth is zero by construction, so a
         # procedure that lands on it is doing what it claims, and one that does not is not.
         v = get(f"2-mer contribution fully cross-fitted, {arm} arm")
@@ -2527,7 +2527,7 @@ def verify_cross_fitting(T, g):
             at_most(f"the 4-mer channel is not positive in the {arm} arm, so the withdrawn "
                     f"one-directional claim stays withdrawn", ch, spec["max_channel_4mer"])
 
-        # THE OTHER ROUTE, THE LABEL-FREE ONE. Closing the label-carrying route and leaving
+        # The other route, the label-free one. Closing the label-carrying route and leaving
         # whole-dataset scaling open is not "fully" cross-fitted, so both are computed and the
         # difference is asserted to be nothing.
         for kk in ("4-mer", "2-mer"):
@@ -2561,7 +2561,7 @@ def verify_cross_fitting(T, g):
     if None not in (sp, sc):
         record(sc > 3.0, "the protocol span survives closing the route", f"{sc:.2f}x", "> 3x")
 
-    # THE PRIMARY ESTIMAND MUST CARRY AN INTERVAL. Methods names the cross-fitted span primary
+    # The primary estimand must carry an interval. Methods names the cross-fitted span primary
     # and the two-stage span the comparability analysis; the cross-fitted one had no interval
     # at all while the one it supersedes did, which reads as the reverse of that hierarchy.
     for row, key, label in (
@@ -2616,7 +2616,7 @@ def verify_estimator_floor(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
 
-    # THE FLOOR IS POSITIVE IN EVERY ARM, and that is the finding. Gated as a band rather than
+    # The floor is positive in every arm, and that is the finding. Gated as a band rather than
     # a maximum: a floor that measured zero would mean the null is not what we think it is, and
     # a floor far larger would mean something other than the estimator is at work.
     for arm, key in (("gc", "floor_gc"), ("dn", "floor_dn"), ("neg2", "floor_neg2")):
@@ -2632,7 +2632,7 @@ def verify_estimator_floor(T, g):
                    f"and not scatter about zero", int(pos),
                    f">= {spec['min_datasets_positive']}")
 
-    # THE DEFENCE OF THE SPAN, which is the reason the floor is measured PER ARM. A bias common
+    # The defence of the span, which is the reason the floor is measured PER ARM. A bias common
     # to all three arms cannot create a difference between them. Gated as the ratio, because
     # either number alone invites the wrong conclusion.
     fs = get("span of the floor across arms")
@@ -2652,7 +2652,7 @@ def verify_estimator_floor(T, g):
                "that arm's absolute increment must be reported as an upper bound",
                f"{w:.1%}", f">= {spec['min_worst_ratio']:.0%}")
 
-    # THE ORDERING COINCIDENCE, RECORDED RATHER THAN HIDDEN. The floor happens to rank the arms
+    # The ordering coincidence, recorded rather than hidden. The floor happens to rank the arms
     # in the published order. That is only harmless because its span is 1.24x against 5.43x,
     # and a reader who notices the coincidence deserves to find it already stated.
     v = get("floor ordering reproduces the published ordering")
@@ -2683,7 +2683,7 @@ def verify_negative_set_survey(T, g):
     if n is not None:
         record(int(n) == spec["n_sources"], "sources surveyed", int(n), spec["n_sources"])
 
-    # THE NUMBER THE RECOMMENDATION RESTS ON. If any surveyed source already reported a
+    # The number the recommendation rests on. If any surveyed source already reported a
     # composition-only AUROC beside its headline, the recommendation would be describing
     # current practice rather than proposing a change, and the paper would have to say so.
     v = get("surveyed sources reporting a composition-only baseline")
@@ -2693,7 +2693,7 @@ def verify_negative_set_survey(T, g):
                "is what makes the recommendation a change rather than a description",
                int(v), spec["n_with_baseline"])
 
-    # THE CORRECTION THIS SURVEY FORCED, gated so it cannot regress. The paper claimed
+    # The correction this survey forced, gated so it cannot regress. The paper claimed
     # sequence-level dinucleotide shuffling was "what most published predictors use" and named
     # three methods. None of the seven uses it as its primary construction; five relocate
     # genomic INTERVALS, which leaves composition unconstrained.
@@ -2709,7 +2709,7 @@ def verify_negative_set_survey(T, g):
                "unconstrained, which is why the baseline is free to vary across protocols",
                int(coord), f">= {spec['min_coordinate']}")
 
-    # EVERY ENTRY MUST CARRY ITS SOURCE. A survey with no quotable provenance is an assertion
+    # Every entry must carry its source. A survey with no quotable provenance is an assertion
     # about the literature, and this one already corrected a claim made without checking.
     per = T.get("negative_set_survey_per_method.csv")
     if per is not None:
@@ -2743,7 +2743,7 @@ def verify_region_matched_neural(T, g):
     if v is not None:
         record(int(v) == 3, "all three model classes measured", int(v), 3)
 
-    # THE CROSS-TABLE CONTROL. region_asymmetry.py computed this arm's 4-mer contribution
+    # The cross-table control. region_asymmetry.py computed this arm's 4-mer contribution
     # independently, from a different script on the same windows. If the 4-mer column here did
     # not land on that number, the neural columns beside it would be measuring a different arm.
     for label, key in (("4-mer contribution minus region_asymmetry.py's, region-matched arm",
@@ -2773,7 +2773,7 @@ def verify_region_matched_neural(T, g):
                "contribution of the three for every model class, so its position is not a "
                "region artefact", f"{int(v)}/3", "3/3")
 
-    # AND THE CORRECTION WIDENS THE SPAN RATHER THAN NARROWING IT, for every model class. That
+    # And the correction widens the span rather than narrowing it, for every model class. That
     # is the opposite of what a confound-driven result would do, so it is gated as a direction
     # and not merely as three values.
     pub = {"kmer": spec["published_span_kmer"], "cnn": spec["published_span_cnn"],
@@ -2789,7 +2789,7 @@ def verify_region_matched_neural(T, g):
            "which is the opposite of what a confound-driven result would do", f"{n_wider}/3",
            "3/3")
 
-    # THE 4-MER AND THE CNN SWAP PLACES AGAIN, and that confirms an earlier reading rather than
+    # The 4-mer and the CNN swap places again, and that confirms an earlier reading rather than
     # contradicting it. In the published bias-aware arm the 4-mer leads the CNN by +0.0010 with
     # an interval spanning zero, which the paper reports as the protocol DESTROYING the ranking
     # rather than reversing it. Matching region flips the sign of that difference. A ranking
@@ -2826,7 +2826,7 @@ def verify_matching_robustness(T, g):
         if v is not None:
             record(int(v) == spec[key], label, int(v), spec[key])
 
-    # REBUILDING THE PUBLISHED SETTING IS A FRESH DRAW, NOT A REPRODUCTION: candidate_pool
+    # Rebuilding the published setting is a fresh draw, NOT A REPRODUCTION: candidate_pool
     # samples its windows, so the matcher is deterministic only in the assignment given the
     # pool it drew. The way to tell sampling noise from real drift is whether the deviation
     # shrinks with sample size, so THAT is the gate, not the raw magnitude alone.
@@ -2841,7 +2841,7 @@ def verify_matching_robustness(T, g):
                "the draw rather than drift in the construction", f"rho {r:+.3f}",
                f"<= {spec['max_redraw_size_rho']}")
 
-    # DOES THE EXACT ASSIGNMENT MATCH BETTER, AND DOES IT MATTER? negatives.py defends greedy
+    # Does the exact assignment match better, AND DOES IT MATTER? negatives.py defends greedy
     # on the grounds that an exact assignment "buys very little here", which was an assertion.
     # Both halves are gated: the improvement is real but small, and the measurement barely
     # moves. Gating only the second would let a large L1 gain hide behind a stable contribution.
@@ -2868,7 +2868,7 @@ def verify_matching_robustness(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE POOL FLOOR MAKES THE MULTIPLE INERT AT THE PUBLISHED SETTING, which is why the floor
+    # The pool floor makes the multiple inert at the published setting, which is why the floor
     # had to be scaled with it. Without this the three pool sizes would return the same
     # negatives and the section would report a robustness it had never tested.
     v = get("fraction of buckets where the pool floor binds, greedy at 8x")
@@ -2888,7 +2888,7 @@ def verify_matching_robustness(T, g):
                "smaller contribution, so the free parameters move the measurement THROUGH "
                "the baseline", f"r = {r:+.3f}", f"<= {spec['max_baseline_contribution_r']}")
 
-    # AND THE MEMORY GUARD IS DISCLOSED, so "optimal" is never read as unconditional.
+    # And the memory guard is disclosed, so "optimal" is never read as unconditional.
     v = get("buckets whose candidate set was subsampled for memory")
     if v is not None:
         at_most("few buckets needed their candidate set subsampled, so the exact assignment "
@@ -2916,7 +2916,7 @@ def verify_device_portability(T, g):
     if n is not None:
         record(int(n) == spec["n_folds"], "folds compared", int(n), spec["n_folds"])
 
-    # THE INPUTS WERE IDENTICAL. Agreement between two runs given different rows is not
+    # The inputs were identical. Agreement between two runs given different rows is not
     # agreement, so all three of these are required before any correlation below is read.
     for label in ("identical row sets", "identical labels", "identical fold assignment"):
         v = get(f"folds with {label} across devices")
@@ -2942,7 +2942,7 @@ def verify_device_portability(T, g):
         at_most("the AUROC agrees between an A10G and one vCPU on every fold", v,
                 spec["max_auroc_difference"])
 
-    # THE CAVEAT IS PART OF THE CLAIM. Initialisation is unseeded, so the two runs differ in
+    # The caveat is part of the claim. Initialisation is unseeded, so the two runs differ in
     # seed as well as device and this bounds the two jointly. Gated so the number can never be
     # quoted as a pure device effect.
     v = get("initialisation seeded across the two runs")
@@ -2982,7 +2982,7 @@ def verify_window_centring(T, g):
         record(int(v) >= spec["min_datasets"], "datasets rebuilt", int(v),
                f">= {spec['min_datasets']}")
 
-    # THE FACT THAT SHAPES THE SECTION. The comparison a reviewer asks for -- summit-centred
+    # The fact that shapes the section. The comparison a reviewer asks for -- summit-centred
     # against midpoint-centred -- cannot be run, because narrowPeak column 10 is -1 in every
     # row of every ENCODE eCLIP file here. Gated as an exact zero so the substitution of three
     # other centres is never mistaken for the comparison that was requested.
@@ -2995,7 +2995,7 @@ def verify_window_centring(T, g):
                f"{int(n_sum)} summits in {int(n_files)} files",
                f"0 in >= {spec['min_files_checked']}")
 
-    # RUN-TO-RUN VARIABILITY OF THE MATCHERS, which is what rebuilding the published centring
+    # Run-to-run variability of the matchers, which is what rebuilding the published centring
     # actually measures: both matchers SAMPLE their candidate windows, so a rebuild is a fresh
     # draw and not a reproduction. Gated per arm because the two differ by two orders of
     # magnitude, and the more constrained matcher is the more variable one.
@@ -3030,7 +3030,7 @@ def verify_window_centring(T, g):
                 rng_c, spec["max_contrast_range"])
         record(lo > 0, "and the contrast keeps its sign under every centring tried",
                f"{lo:+.4f}", "> 0")
-        # AND IT MATTERS MORE THAN THE FOLD DESIGN, which is the comparison a reader needs to
+        # And it matters more than the fold design, which is the comparison a reader needs to
         # rank these robustness checks rather than read them as a list of reassurances.
         gc = T.get("gene_clustered_cv.csv")
         if gc is not None:
@@ -3043,7 +3043,7 @@ def verify_window_centring(T, g):
                        f"centring {rng_c:.4f} vs folds "
                        f"{abs(float(gq.loc[k, 'value'])):.4f}", "centring larger")
 
-    # THE PUBLISHED CHOICE SITS AT THE TOP OF THE RANGE, as it did for the chromosome
+    # The published choice sits at the top of the range, as it did for the chromosome
     # partition. Saying so is the difference between reporting a range and rounding it away.
     mids = get("two-arm contrast, midpoint centring")
     others = [get(f"two-arm contrast, {c} centring") for c in ("five_prime", "shift25")]
@@ -3082,7 +3082,7 @@ def verify_gene_clustered_cv(T, g):
         at_most("the frozen refit reproduces the published per-dataset gain", v,
                 spec["max_frozen_reproduction"])
 
-    # THE STRUCTURAL FACT AND ITS ONE EXCEPTION. A locus cannot span a chromosome-grouped
+    # The structural fact and its one exception. A locus cannot span a chromosome-grouped
     # fold, so the leakage the objection describes is impossible by construction. What DOES
     # span is a gene NAME shared across chromosomes, and that is the one channel chromosome
     # grouping cannot close. Gated as a small non-zero rather than as zero, because asserting
@@ -3108,7 +3108,7 @@ def verify_gene_clustered_cv(T, g):
         if v is not None:
             record(int(v) == spec[key], label, int(v), spec[key])
 
-    # HOW MUCH FINER THE GENE DESIGN IS. Without this the agreement below could mean the two
+    # How much finer the gene design is. Without this the agreement below could mean the two
     # designs are nearly the same design, which would make the comparison uninformative.
     v = get("chromosomes split across folds by the gene-clustered design, dinucleotide arm")
     if v is not None:
@@ -3128,7 +3128,7 @@ def verify_gene_clustered_cv(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE HEADLINE, TWO-SIDEDLY. A small change AND a preserved sign; a tight bound on the
+    # The headline, two-sidedly. A small change AND a preserved sign; a tight bound on the
     # change alone would pass a design that moved the contrast to zero if the tolerance were
     # ever loosened.
     ch = get("contrast change from gene-clustered folds")
@@ -3166,7 +3166,7 @@ def verify_order_profile(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
 
-    # THE DOUBLE ANCHOR. Orders 2 and 3 are pinned by two tables produced by two other
+    # The double anchor. Orders 2 and 3 are pinned by two tables produced by two other
     # scripts, so the profile cannot be a smooth curve through the wrong points. Both come
     # back at machine precision, which is stronger than a tolerance and is why the floor is
     # set there.
@@ -3183,7 +3183,7 @@ def verify_order_profile(T, g):
             record(int(v) == spec["columns"][order], f"baseline width at order {order}",
                    int(v), spec["columns"][order])
 
-    # THE PROFILE ITSELF, one anchor point per order per arm for the 4-mer, and the two
+    # The profile itself, one anchor point per order per arm for the 4-mer, and the two
     # neural models at the ends. Enough to pin the shape without transcribing 36 cells.
     for label, key in (
             ("kmer gain at order 1, gc arm", spec["kmer_order1_gc"]),
@@ -3199,7 +3199,7 @@ def verify_order_profile(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE CONTRAST SURVIVES AT EVERY ORDER, for every model class, two-sidedly. This is the
+    # The contrast survives at every order, for every model class, two-sidedly. This is the
     # claim the profile exists to test, stated over the whole function rather than at the two
     # points the paper happened to compute.
     ok = 0
@@ -3214,7 +3214,7 @@ def verify_order_profile(T, g):
            "where the baseline stops", f"{ok}/{spec['n_order_model_cells']}",
            f"{spec['n_order_model_cells']}/{spec['n_order_model_cells']}")
 
-    # THE NOISE FLOOR, WHICH IS THE SECTION'S REAL RESULT. At order four the baseline spans
+    # The noise floor, which is the section's real result. At order four the baseline spans
     # the 4-mer's entire feature space, so the true contribution is zero BY CONSTRUCTION and
     # anything measured is the estimator's error. It measures 2 to 7 times the contribution
     # the paper reports at order two, which is the scale on which every number in this
@@ -3235,7 +3235,7 @@ def verify_order_profile(T, g):
                    f"and it exceeds the order-2 contribution the paper reports, {arm} arm",
                    f"{rat:.2f}x", f">= {spec['min_floor_multiple']}x")
 
-    # THE MECHANISM, AND WHY THE PAPER'S OWN BASELINE IS NOT AFFECTED. The floor is a
+    # The mechanism, and why the paper's own baseline is not affected. The floor is a
     # 337-column baseline overfitting at these sample sizes, and the diagnostic is that the
     # baseline's OWN out-of-fold AUROC falls. It falls often at order 4 and almost never at
     # order 2, which is what confines the problem to the orders the paper does not use.
@@ -3278,7 +3278,7 @@ def verify_shuffled_arm(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
 
-    # THE CONSTRUCTION IS THE CLAIM. Everything else in this section is a consequence of the
+    # The construction is the claim. Everything else in this section is a consequence of the
     # negatives being exact dinucleotide permutations of the positives, so if a single pair
     # violated that, the baseline of 0.5 would be a coincidence and the section would say
     # nothing. Gated as an exact zero, not a tolerance.
@@ -3294,7 +3294,7 @@ def verify_shuffled_arm(T, g):
                "the composition feature vector is identical within the pair", f"{tied:.4f}",
                f">= {spec['min_fraction_tied']}")
 
-    # AND THE BASELINE IS EXACTLY A HALF, not approximately. A tolerance here would hide the
+    # And the baseline is exactly a half, not approximately. A tolerance here would hide the
     # thing worth reporting: there is no dataset on which composition does anything at all.
     mx = get("max |composition AUROC - 0.5|, shuffled arm")
     if mx is not None:
@@ -3311,7 +3311,7 @@ def verify_shuffled_arm(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE POINT OF THE ARM. With an uninformative baseline the "increment over composition" is
+    # The point of the arm. With an uninformative baseline the "increment over composition" is
     # arithmetically the model's own AUROC less a half. Gating the residual rather than the two
     # numbers separately is what makes that an identity instead of a coincidence.
     r = get("contribution minus (standalone AUROC - 0.5), shuffled arm")
@@ -3320,7 +3320,7 @@ def verify_shuffled_arm(T, g):
                 "is uninformative, so shuffling relabels apparent performance as contribution",
                 abs(r), spec["max_identity_residual"])
 
-    # THE SPAN MUST WIDEN, and two-sidedly: the four-protocol span above the three-protocol
+    # The span must widen, and two-sidedly: the four-protocol span above the three-protocol
     # one, with the interval clear of the three-protocol value.
     a, b = (get("four-protocol span of the 4-mer contribution"),
             get("three-protocol span, same datasets, for comparison"))
@@ -3334,7 +3334,7 @@ def verify_shuffled_arm(T, g):
                f"CI low {float(q.loc[k, 'ci_low']):.2f}x",
                f"> {spec['min_four_protocol_span_ci_low']}")
 
-    # THE BOUNDARY ON THE INVERSION. The shuffled arm has the LOWEST baseline and the LARGEST
+    # The boundary on the inversion. The shuffled arm has the LOWEST baseline and the LARGEST
     # contribution, so it lies on the same side of the title relation. It must not be presented
     # as a fourth point on the matching axis: it is a different operation.
     lo = get("shuffled baseline below the lowest matched baseline")
@@ -3485,7 +3485,7 @@ def verify_three_arm_models(T, g):
             record(int(v) == 3, "the bias-aware arm yields the LEAST for every model class, "
                                 "which is the reversal the title states", f"{int(v)}/3", "3/3")
 
-    # AND IT DOES NOT GROW WITH CAPACITY. The CNN spans widest, not SpliceBERT. If that ever
+    # And it does not grow with capacity. The CNN spans widest, not SpliceBERT. If that ever
     # inverts, "the contrast grows with capacity" would need re-examining rather than the
     # withdrawal being quietly retained.
     if spec["span_must_not_grow_with_capacity"]:
@@ -3512,7 +3512,7 @@ def verify_three_arm_models(T, g):
     prot = [v for k_, v in folds.items() if k_.startswith("protocol")]
     mcls = [v for k_, v in folds.items() if k_.startswith("model-class")]
     if len(prot) == 3 and len(mcls) == 3 and spec["fold_ranges_must_overlap"]:
-        # THE FIRST VERSION OF THIS GATE ASSERTED THAT THE PROTOCOL SPAN DOMINATES, AND FAILED.
+        # The first version of this gate asserted that the protocol span dominates, and failed.
         # It should have: protocol folds run 3.76 to 7.63 and model-class folds 2.65 to 4.14,
         # so SpliceBERT's protocol span sits BELOW the bias-aware arm's model-class span and
         # the two ranges overlap. What is true is that the protocol range reaches higher while
@@ -3771,7 +3771,7 @@ def verify_auroc_aggregation(T, g):
                "aggregation for every model class, so it is not a property of pooling",
                f"{int(n)}/3", f"{spec['n_aggregations_ordered']}/3")
 
-    # THE COST OF POOLING FALLS ON THE NEURAL MODELS ONLY, which is the diagnostic: it is
+    # The cost of pooling falls on the neural models only, which is the diagnostic: it is
     # per-fold scale drift between independently trained models, not a property of the estimand.
     for label, key in (
             ("fold-averaged minus pooled, dn arm, cnn", spec["fold_avg_minus_pooled_cnn_dn"]),
@@ -3781,7 +3781,7 @@ def verify_auroc_aggregation(T, g):
         if v is not None:
             near(label, v, key)
 
-    # AND THE TWO REPAIRS MUST AGREE. Averaging within fold and rank-normalising within fold
+    # And the two repairs must agree. Averaging within fold and rank-normalising within fold
     # address the same cause; if they disagreed, the diagnosis would be wrong.
     worst = 0.0
     for k in q.index:
@@ -3823,7 +3823,7 @@ def verify_partition_sensitivity(T, g):
     if rng is not None:
         at_most("the headline contrast barely moves across chromosome partitions, so the one "
                 "we froze is not carrying the result", rng, spec["max_contrast_range"])
-    # A SMALL RANGE AROUND A SIGN FLIP WOULD BE WORTHLESS, so the sign is gated separately.
+    # A small range around a sign flip would be worthless, so the sign is gated separately.
     pos = get("contrast is positive under every partition")
     if pos is not None and spec["contrast_must_be_positive_under_every_partition"]:
         record(int(pos) == 1,
@@ -3936,7 +3936,7 @@ def verify_estimands(T, g):
                "the direction of the protocol effect is not an artefact of measuring in AUROC",
                f"{int(n)}/5", f"{spec['n_estimands_ordered']}/5")
 
-    # AND THE MAGNITUDE, which is scale-dependent and must not be quoted as if it were not.
+    # And the magnitude, which is scale-dependent and must not be quoted as if it were not.
     spans = {}
     for model, key in (("kmer", spec["deviance_span_kmer"]),
                        ("cnn", spec["deviance_span_cnn"]),
@@ -3951,7 +3951,7 @@ def verify_estimands(T, g):
                  "scale' is a smaller effect than the AUROC figure and not an absent one",
                  min(spans.values()), spec["min_deviance_span"])
 
-    # THE RESIDUAL DIAGNOSTIC. A small increment is not an absent signal.
+    # The residual diagnostic. A small increment is not an absent signal.
     res = [float(q.loc[k, "value"]) for k in q.index
            if str(k).startswith("residual_auroc,")]
     if res:
@@ -3989,7 +3989,7 @@ def verify_nested_scale(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE DIRECTION IS THE CLAIM. "The published figures are conservative" is only true while
+    # The direction is the claim. "The published figures are conservative" is only true while
     # the logit scale raises every neural contribution in every arm.
     if spec["logit_must_raise_neural"]:
         rows = [k for k in q.index if str(k).startswith("logit minus probability")]
@@ -3999,7 +3999,7 @@ def verify_nested_scale(T, g):
                "so the published probability-scale figures are the conservative ones",
                f"{sum(v > 0 for v in vals)}/{len(vals)} positive", "6/6")
 
-    # THE CONTRAST IS WHAT THE PAPER IS ABOUT, so it gets its own ceiling. A scale change that
+    # The contrast is what the paper is about, so it gets its own ceiling. A scale change that
     # shifts both arms equally shifts no contrast, which is why the per-arm gains above are an
     # upper bound on this rather than a substitute for it.
     cs = [abs(float(q.loc[k, "value"])) for k in q.index
@@ -4009,7 +4009,7 @@ def verify_nested_scale(T, g):
                 "inside the protein-clustered half-width, so the choice is not load-bearing",
                 max(cs), spec["max_contrast_shift_from_scale"])
 
-    # AND THE STANDARDISATION WINDOW MUST STAY BELOW THE QUOTED PRECISION.
+    # And the standardisation window must stay below the quoted precision.
     wf = [abs(float(q.loc[k, "value"])) for k in q.index
           if str(k).startswith("within-fold minus whole-dataset")]
     if wf:
@@ -4139,7 +4139,7 @@ def verify_standalone_auroc(T, g):
                "own AUROC, so 'the easiest protocol' needs the qualification the text gives it",
                f"{int(ne)}/3", f"{spec['models_neg2_easiest']}/3")
 
-    # THE PROGRESSION IS THE CLAIM, and it is the sharpest form of the paper's point: the
+    # The progression is the claim, and it is the sharpest form of the paper's point: the
     # easier a protocol looks, the more often nineteen composition features beat the model.
     if spec["comp_beats_model_must_increase_with_easiness"]:
         a = must("datasets where composition beats the model, dn arm")
@@ -4188,7 +4188,7 @@ def verify_region_asymmetry(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE TWO GATES THAT CARRY THE DEFENCE. The composition-matched arms must be EXACTLY
+    # The two gates that carry the defence. The composition-matched arms must be EXACTLY
     # uninformative on region -- 0.5 by construction, so anything else means a matcher
     # silently stopped matching region. And the ordering must survive removing region:
     # if it ever stops surviving, the bias-aware result is a region artefact and the
@@ -4239,7 +4239,7 @@ def verify_peak_thresholds(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE CLAIM THE LIMITATIONS NOW MAKES. Not "few peaks are weak" but "none is", so this
+    # The claim the limitations now makes. Not "few peaks are weak" but "none is", so this
     # is a floor at the published threshold and a hard zero on violations.
     fc = must("minimum log2 fold-enrichment over the panel")
     if fc is not None:
@@ -4288,14 +4288,14 @@ def verify_match_quality(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE FALLBACK CAP. The GC matcher accepts a best-seen candidate up to 3x its nominal
+    # The fallback cap. The GC matcher accepts a best-seen candidate up to 3x its nominal
     # tolerance. If a pair ever exceeds that, the matcher is not the one described in Methods.
     mx = must("gc_gap_max, gc arm")
     if mx is not None:
         at_most("every GC pair is inside the matcher's real acceptance bound, which is the 3x "
                 "fallback cap and NOT the nominal 0.05", mx, spec["gc_fallback_cap"])
 
-    # THE RELAXATION LADDER MUST BE PRESENT, not merely correct. Reporting the nominal
+    # The relaxation ladder must be present, not merely correct. Reporting the nominal
     # tolerance alone overstates the match for 5.2% of pairs.
     if spec["ladder_must_be_reported"]:
         for rung in ("0.05", "0.10", "0.15"):
@@ -4303,7 +4303,7 @@ def verify_match_quality(T, g):
                    f"the GC relaxation ladder is reported at {rung}, so the nominal tolerance "
                    f"cannot be quoted alone", f"rung {rung}", "present")
 
-    # AND THE DESIGN ARGUMENT MUST HOLD ON THE DATA. "1 of 15 vs 15 of 15 degrees of freedom"
+    # And the design argument must hold on the data. "1 of 15 vs 15 of 15 degrees of freedom"
     # is the reason the headline contrast's SIGN is design-implied; if the dinucleotide arm
     # were not materially better matched in fact, that argument would rest on nothing.
     imp = must("dinucleotide L1 improvement factor, dn vs gc arm")
@@ -4350,7 +4350,7 @@ def verify_score_scale(T, g):
             near(label, v, key)
             deltas[label] = v
 
-    # THE BIAS IS REAL AND ONE-DIRECTIONAL, so the published deep gains are CONSERVATIVE.
+    # The bias is real and one-directional, so the published deep gains are CONSERVATIVE.
     # Worth asserting rather than describing: if it ever changed sign, the published numbers
     # would be overstating the deep models and the section would have to be rewritten.
     if spec["scale_bias_must_be_one_directional"] and len(deltas) == 4:
@@ -4361,7 +4361,7 @@ def verify_score_scale(T, g):
         at_most("and the bias is small enough that the ladder's absolute values are not "
                 "misstated", max(deltas.values()), spec["max_scale_bias"])
 
-    # AND THE CLAIM IS INVARIANT. This is what makes it a disclosed sensitivity rather than a
+    # And the claim is invariant. This is what makes it a disclosed sensitivity rather than a
     # correction: the contrast is the paper's quantity and it does not move.
     for label, key, pubkey in (
             ("cnn R1 contrast, logit scale", spec["contrast_cnn_logit"], "cnn"),
@@ -4408,7 +4408,7 @@ def verify_multiplier_variance(T, g):
         if v is not None:
             near(label, v, key)
 
-    # THE NULL MUST BE PRESENT, not merely correct. A decomposition reported without it is the
+    # The null must be present, not merely correct. A decomposition reported without it is the
     # claim that was retracted here: 79 levels beat 3 levels on degrees of freedom alone.
     if spec["null_must_be_reported"]:
         for k in ("protein", "model", "cell"):
@@ -4416,7 +4416,7 @@ def verify_multiplier_variance(T, g):
                    f"the permutation null is reported for {k}, so its share cannot be read "
                    f"as a finding on its own", f"permutation null share, {k}", "present")
 
-    # THE BLOCK-PRESERVING NULL AND THE DIRECT TEST. The wholesale null overstated the excess
+    # The block-preserving null and the direct test. The wholesale null overstated the excess
     # five-fold; both corrections are gated so the generous number cannot be quoted alone.
     for label, key in (
             ("share of log-multiplier variance, dataset", spec["share_dataset"]),
@@ -4439,7 +4439,7 @@ def verify_multiplier_variance(T, g):
                "wholesale excess cannot be quoted on its own",
                "excess over the block-preserving null", "present")
 
-    # B13. THE DIRECT TEST'S INTERVAL. The collapsed correlation is quoted as the paper's
+    # B13. the direct test's interval. The collapsed correlation is quoted as the paper's
     # cross-cell-line evidence, and at n = 15 a point estimate with a p and no interval invites
     # the reader to treat 0.598 as the finding. Both intervals are gated, and so is the fact
     # that the bootstrap one CONTAINS ZERO -- that is what licenses the text saying the result
@@ -4698,7 +4698,7 @@ def verify_r1_robustness(T, g):
         record(olo <= 0 <= ohi, "replication ordering is NOT established (interval straddles 0)",
                f"[{olo:+.3f}, {ohi:+.3f}]", "includes 0")
 
-    # THE LIMITATION, ASSERTED. The partial correlation must NOT be establishable, or R1d is
+    # The limitation, asserted. The partial correlation must NOT be establishable, or R1d is
     # claiming more than the data support and the text has to change deliberately.
     plo = must("replication, PARTIALLING OUT total nested gain", "ci_low")
     phi = must("replication, PARTIALLING OUT total nested gain", "ci_high")
@@ -4811,7 +4811,7 @@ def verify_strand_placebo(T, g):
         at_most("locus mix is small once the placebo has enough seeds", abs(lm),
                 spec["max_abs_locus_mix"])
 
-    # THE ARTIFACT IS REAL. Withdrawn once on a 5-seed interval that touched zero; restored at
+    # The artifact is real. Withdrawn once on a 5-seed interval that touched zero; restored at
     # 20 seeds. Asserted so it cannot be withdrawn again without the numbers moving.
     elo = must("STRAND-SPECIFIC EXCESS (stratified)", "ci_low")
     ehi = must("STRAND-SPECIFIC EXCESS (stratified)", "ci_high")
@@ -4819,7 +4819,7 @@ def verify_strand_placebo(T, g):
         record(not (elo <= 0 <= ehi), "strand artifact is REAL (interval excludes zero)",
                f"[{elo:+.4f}, {ehi:+.4f}]", "excludes 0")
 
-    # THE PRE-REGISTERED CRITERIA.
+    # The pre-registered criteria.
     clo = must("strand-CORRECTED contrast", "ci_low")
     cv = must("strand-CORRECTED contrast")
     if cv is not None and clo is not None and spec["corrected_ci_must_exclude_zero"]:
@@ -4900,7 +4900,7 @@ def verify_unconditional_refit(T, g):
 def verify_strand_audit(T, g):
     """The negatives are ~45% antisense, and that must not be what the contrast measures.
 
-    THIS FUNCTION EXISTS BECAUSE ITS ABSENCE WAS A FALSE STATEMENT. `golden.yaml` grew a
+    This function exists because its absence was a false statement. `golden.yaml` grew a
     `strand_audit` block with 9 keys that nothing read, while the write-up claimed it was gated. It
     was not: `grep strand scripts/verify.py` returned nothing. That is the 27th unread golden
     key in this project, created by the commit that wired up the first 26 -- the same bug
@@ -4920,7 +4920,7 @@ def verify_strand_audit(T, g):
     at_most("negatives outside any annotated gene", float(r.frac_no_gene.mean()),
             spec["frac_no_gene_max"])
 
-    # SIX CHECKS WERE DELETED HERE, DELIBERATELY. They asserted that the strand artifact does
+    # Six checks were deleted here, deliberately. They asserted that the strand artifact does
     # not predict the composition-SHARE contrast across antisense-rich and antisense-poor
     # halves. That contrast is retracted -- it is an algebraic identity -- so those six checks
     # were defending a claim the paper no longer makes while still counting toward the passing
@@ -4980,7 +4980,7 @@ def verify_recompute(T, g):
 def verify_cache_evidence(T, g):
     """The per-dataset tables the --from-cache paths read are EVIDENCE, and were ungated.
 
-    THIS EXISTS BECAUSE AN ATTACK GOT THROUGH, AGAIN. run.sh regenerates five summaries with
+    This exists because an attack got through, again. run.sh regenerates five summaries with
     --from-cache, which reads a committed *_per_dataset.csv rather than redoing the refits.
     `grep per_dataset scripts/verify.py` returned nothing, so those tables were load-bearing and
     unasserted. Zeroing every per-arm gain column in k_sweep_per_dataset.csv and every AUROC
@@ -5048,7 +5048,7 @@ def verify_cache_evidence(T, g):
 def verify_cross_tables(T, g):
     """The two tables holding the SAME numbers must agree.
 
-    THIS EXISTS BECAUSE AN ATTACK GOT THROUGH. verify.py gates R1 on cost_of_matching.csv and
+    This exists because an attack got through. verify.py gates R1 on cost_of_matching.csv and
     never opened rehearsal_binding_gc.csv or rehearsal_binding_dinuc.csv, which are where those
     numbers come from and what the manuscript's component means and scale_check.py both read.
     Nothing asserted the two agreed. Permuting rehearsal_binding_dinuc.csv against its dataset
@@ -5084,7 +5084,7 @@ def verify_integrity(T, g):
     print("\nintegrity")
     spec = g["integrity"]
 
-    # EVERY NUMBER IN THE MANUSCRIPT MUST HAVE A SOURCE. scripts/audit_manuscript.py lists the
+    # Every number in the manuscript must have a source. scripts/audit_manuscript.py lists the
     # ones that appear in no committed table and in no golden key. The paper's primary contrast
     # was in exactly that state through six rounds of adversarial review, because a reviewer
     # reads a number rather than goes looking for it. Ratcheted to zero, over both decimal
@@ -5170,7 +5170,7 @@ def main():
     print(f"golden: {m['reference_run']} established {m['established']}")
     print("=" * 78)
 
-    # THE GATES, SPLIT BY WHICH STUDY THEY BELONG TO. "982 published assertions" was one
+    # The gates, split by which study they belong to. "982 published assertions" was one
     # number covering two papers: this one, and the earlier ClinVar/locality/variant study whose
     # code and evidence are still here and still pass. An audit pointed out that quoting the
     # combined count as this paper's evidential strength conflates them, and it does. The split
@@ -5215,7 +5215,7 @@ def main():
     # belongs to neither study. Counting it as legacy by subtraction put the split out by two.
     n_domain_end = len(checks)
 
-    # HOW MANY CHECKS RAN IS ITSELF A CHECK, and it is the only one that closes the whole
+    # How many checks ran is itself a check, and it is the only one that closes the whole
     # class of silent skips at once. Most gates in this file are still written
     # `if value is not None:`, so a table that exists but has had rows removed makes them
     # vanish rather than fail -- which is exactly how deleting five rows once produced
@@ -5231,7 +5231,7 @@ def main():
 
     bad = [c for c in checks if not c[0]]
 
-    # AND CHECK THE MANUSCRIPT'S CLAIM AGAINST WHAT RAN. Writing the count to a table made it
+    # And check the manuscript's claim against what ran. Writing the count to a table made it
     # sourceable; it did not make it TRUE. The paper said "768 numeric assertions" in four
     # places while 859 ran, and the manuscript audit could not catch that because it matches
     # values against tables and 768 is a value some table still holds. A claim about coverage
@@ -5244,7 +5244,7 @@ def main():
         for m in re.finditer(r"(\d{3,4})\s+(?:numeric\s+)?assertions", f.read_text()):
             stated.add(int(m.group(1)))
     if stated:
-        # THE TOTAL THIS CHECK COMPARES AGAINST INCLUDES ITSELF, because the number the paper
+        # The total this check compares against includes itself, because the number the paper
         # quotes is the number the run reports, and that total is printed after this check has
         # been appended. Comparing against the pre-append count made the target unreachable:
         # writing the displayed number into the manuscript would have failed on the next run.
@@ -5257,11 +5257,11 @@ def main():
         if wrong:
             bad = [c for c in checks if not c[0]]
 
-    # RECORD WHAT RAN, so the manuscript's claim about coverage is auditable. The paper says
+    # Record what ran, so the manuscript's claim about coverage is auditable. The paper says
     # "885 numeric assertions"; that integer lives in prose and in no other table, so
     # audit_manuscript.py could not source it and it was checked by hand.
     #
-    # WRITTEN AFTER THE COVERAGE CHECK IS APPENDED, and that ordering is the whole point. It
+    # Written after the coverage check is appended, and that ordering is the whole point. It
     # used to be written before, so the table recorded one fewer than the summary line printed,
     # and the manuscript's correct number then showed up as an ORPHAN: the audit could not
     # source a value the table was under-reporting by exactly one. Written on every run, pass
@@ -5284,7 +5284,7 @@ def main():
 
     print("\n" + "=" * 78)
     print(f"{len(checks) - len(bad)}/{len(checks)} checks passed")
-    # THE COMPOSITION, printed here and not earlier. It used to print before the coverage check
+    # The composition, printed here and not earlier. It used to print before the coverage check
     # was appended, so it announced one harness assertion while verify_summary.csv recorded two
     # and the three parts did not sum to the total on the line above them.
     print(f"  {n_paper} belong to this paper, {n_domain_end - n_paper} to the earlier "

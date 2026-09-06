@@ -2,7 +2,7 @@
 
     python scripts/recommendation_works.py
 
-THE GAP THIS FILLS. The paper's deliverable is "report the composition-only AUROC under the
+The gap this fills. The paper's deliverable is "report the composition-only AUROC under the
 same protocol alongside every headline AUROC". Every result up to here shows that NOT doing so
 is a problem -- a 5.4-fold range, a floor of 2.00x under any rescaling, a protocol label that
 adds 1% once the baseline is known. None of them shows that DOING it helps. A benchmarking
@@ -25,7 +25,7 @@ Two measures, because they answer different halves of the question:
   difference is not comparable between them; dividing each by its own panel mean is what makes
   the comparison fair, and doing it any other way would rig the result.
 
-WHAT WOULD FALSIFY THE RECOMMENDATION. Rank agreement falling, or disagreement rising, under
+What would falsify the recommendation. Rank agreement falling, or disagreement rising, under
 normalisation. Then the honest paper says "we can show the problem and we cannot offer a fix",
 which is still publishable and considerably weaker. It does not fall.
 
@@ -81,7 +81,7 @@ def main():
                           - spearmanr(raw[a][i], raw[b][i])[0] for i in draws])
         fin = drank[np.isfinite(drank)]
         lo, hi = np.percentile(fin, [2.5, 97.5])
-        # AND THE SAME INTERVAL ADJUSTED FOR THE THREE PAIRS. Only one of the three excludes
+        # And the same interval adjusted for the three pairs. Only one of the three excludes
         # zero marginally, so whether it survives the family matters and is reported.
         blo, bhi = np.percentile(fin, [100 * 0.05 / 6, 100 * (1 - 0.05 / 6)])
         better_rank += int(r2 > r1)

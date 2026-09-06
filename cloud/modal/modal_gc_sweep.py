@@ -11,13 +11,13 @@
     RBP_ARM=dinuc modal run cloud/modal/modal_gc_sweep.py::sweep \
         --model cnn --only cloud/modal/retrain_dinuc_20.txt --limit 2 --yes
 
-WHY A SECOND SWEEP FILE. `modal_sweep.py` ran the dinucleotide arm and hardcodes
+Why a second sweep file. `modal_sweep.py` ran the dinucleotide arm and hardcodes
 `"ARM": "dinuc"`, but that is not the reason it cannot be reused. It reads its datasets from
 `gs://rbp-repro-2026-derived` and writes every score back there, and that project's billing
 account has been closed: every object returns 403. The inputs all still exist on local disk,
 so this file keeps the training path byte-for-byte and replaces only the storage.
 
-WHAT CHANGED, AND WHAT DELIBERATELY DID NOT.
+What changed, and what deliberately did not.
 
   * Inputs live on a Modal Volume, mounted READ-ONLY. Nothing writes to shared storage
     during a sweep, so there is no commit to conflict over and no way for one task to
@@ -33,7 +33,7 @@ WHAT CHANGED, AND WHAT DELIBERATELY DID NOT.
     note in modal_sweep.py: A10G is 1.98x a T4 for 1.42x the price, and an A100 measured
     only 2.89x because a 20M-parameter model does not saturate one.
 
-THE COST GUARD. `--yes` is required before anything is dispatched, and the estimate printed
+The cost guard. `--yes` is required before anything is dispatched, and the estimate printed
 first is built from the dinucleotide arm's actual bill rather than from published prices --
 an estimate assembled by summing three list prices once came out 44% high, and reached $6
 out of pocket before anyone compared it to the invoice.
@@ -57,7 +57,7 @@ if (REPO / "src").is_dir():
     sys.path.insert(0, str(REPO / "src"))
 import modal  # noqa: E402
 
-# THE ARM IS A PARAMETER, not a copy of this file. Set RBP_ARM=neg2 to sweep the bias-aware
+# The arm is a parameter, not a copy of this file. Set RBP_ARM=neg2 to sweep the bias-aware
 # arm; everything downstream (app name, volume, manifest, output prefix) derives from it, so
 # the two arms cannot drift apart in the way two near-identical scripts would. Defaults to gc
 # so every existing invocation and the committed gc evidence path are unchanged.
@@ -131,7 +131,7 @@ def manifest_key(model):
 
 
 def manifest_rows(model):
-    # ARM-TAGGED FIRST. The gc sweep's manifests are named sweep_tasks_{model}.tsv with no
+    # Arm-tagged first. The gc sweep's manifests are named sweep_tasks_{model}.tsv with no
     # arm in the name, so a second arm generated under the same tag would silently overwrite
     # them and the two sweeps would train on each other's windows. New arms therefore carry
     # the arm in the tag, and gc keeps its original untagged name so nothing already on disk

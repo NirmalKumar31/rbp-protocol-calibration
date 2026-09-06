@@ -1,11 +1,11 @@
 """Pin this pipeline's panel sizes and their nesting, so 94/95/189 can never drift again.
 
-WHY THIS FILE EXISTS. Legitimately different panels, each with one cause, got referred to by
+Why this file exists. Legitimately different panels, each with one cause, got referred to by
 their sizes rather than their roles, and the result read like an inconsistency every time it
 came up. docs/PANELS.md is the prose; this is the executable version. If a number here
 changes, either the data changed or something is wrong, and either way somebody has to look.
 
-THESE ARE THIS PIPELINE'S NUMBERS, NOT THE EARLIER STUDY'S. The file previously asserted a
+These are this pipeline's numbers, not the earlier study's. The file previously asserted a
 189-dataset panel losing two datasets to GC matching, which described a different and now
 discarded build. Here the study panel is 95 datasets selected from the candidate pool, and
 189 is a COUNT OF TASKS rather than of datasets: 95 in the dinucleotide arm plus 94 in the GC

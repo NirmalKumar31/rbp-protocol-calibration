@@ -2,7 +2,7 @@
 
     python scripts/build_neg2.py --store ../rbp-store
 
-WHY A THIRD ARM. Both existing arms draw negatives from unbound genomic windows matched on
+Why a third arm. Both existing arms draw negatives from unbound genomic windows matched on
 composition, and that shared design carries every objection a referee raised: 40% of the
 negatives sit in loci no transcript is produced from (R1j), roughly half are antisense to any
 transcript (R1c), and how well the matcher does its job is set by undocumented sampler
@@ -28,7 +28,7 @@ third point on the same axis -- it is a different axis. It answers "what happens
 model value under the protocol the field's own benchmark recommends", which is the question
 Horlacher's -0.065 to -0.085 AUROC drop calibrates against our -0.1095.
 
-TWO DESIGN CHOICES WORTH ARGUING WITH.
+Two design choices worth arguing with.
 
   1. FOLD IS MATCHED, region and composition are NOT. Our CV assigns folds by chromosome and
      every existing positive/negative pair lands in the same fold; the leakage audit checks
@@ -112,7 +112,7 @@ def draw(cand, grp, rng, match_region):
 def build(store, seed=7, match_region=False, arm=None):
     """Build the bias-aware arm. `arm` overrides the output directory name.
 
-    THE OVERRIDE EXISTS SO A REDRAW CANNOT CLOBBER THE PUBLISHED ARM. This wrote
+    The override exists so a redraw cannot clobber the published arm. This wrote
     unconditionally to processed/neg2, so running it with a different seed to measure
     draw-to-draw variability would have destroyed the negatives every published bias-aware
     number was computed from, in place, with no copy. scripts/negative_draws.py passes

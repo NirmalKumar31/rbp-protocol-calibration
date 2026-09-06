@@ -3,7 +3,7 @@
     python scripts/region_matched_neural.py
     python scripts/region_matched_neural.py --from-cache
 
-WHAT WAS MISSING. The bias-aware arm matches fold only, so region alone separates its classes at
+What was missing. The bias-aware arm matches fold only, so region alone separates its classes at
 a median AUROC of 0.7484, and the region-matched rebuild removes that: the arm's composition
 baseline falls from 0.8248 to 0.8052 and the 4-mer's contribution from +0.0122 to +0.0092. Until
 now that repair existed for the 4-mer ONLY, because nothing could dispatch a neural sweep for the
@@ -157,11 +157,11 @@ def main():
     out.append({"check": "datasets with complete region-matched neural scores",
                 "value": len(t), "n": len(t)})
 
-    # THE 4-MER IS THE CONTROL, and it is a real one: its published region-matched contribution
+    # The 4-mer is the control, and it is a real one: its published region-matched contribution
     # was computed by region_asymmetry.py from a different code path on the same windows. If
     # this script's 4-mer column does not land on that number, the neural columns beside it are
     # measuring something else.
-    # THE MODEL SET COMES OFF THE TABLE, so a partial run reports what it has instead of
+    # The model set comes off the table, so a partial run reports what it has instead of
     # raising, and a full run is not silently reported as partial.
     models = [m for m in MODELS if f"gain_{m}" in t.columns]
     out.append({"check": "model classes measured on the region-matched arm",
@@ -177,7 +177,7 @@ def main():
                 - t[f"published_neg2_{model}"])
         log(f"  {model:12s} {c:10.4f} {g:+13.4f} {p_:+15.4f} {d:+9.4f}")
 
-    # THE 4-MER IS A CROSS-TABLE CONTROL, and a real one. region_asymmetry.py computed this
+    # The 4-mer is a cross-table control, and a real one. region_asymmetry.py computed this
     # arm's 4-mer contribution independently, from a different script on the same windows, as
     # +0.0092 with a composition baseline of 0.8052. If this script's 4-mer column does not
     # land there, the neural columns beside it are measuring a different arm and nothing below
@@ -195,7 +195,7 @@ def main():
                                      f"region-matched arm", "value": d, "n": len(t)})
                 log(f"  4-mer {label} agrees with region_asymmetry.py to {abs(d):.2e}")
 
-    # THE ORDERING IS THE CLAIM. The region-matched arm must still give the SMALLEST
+    # The ordering is the claim. The region-matched arm must still give the SMALLEST
     # contribution of the three for every model class, or the span is partly a region artefact.
     log("\n  is the region-matched arm still the smallest of the three, per model?")
     n_ok = 0
@@ -219,7 +219,7 @@ def main():
     out.append({"check": "model classes for which the region-matched arm stays smallest",
                 "value": n_ok, "n": len(models)})
 
-    # AND THE CONTRAST AGAINST THE DINUCLEOTIDE ARM, which is the paper's headline pair, with
+    # And the contrast against the dinucleotide arm, which is the paper's headline pair, with
     # the bias-aware arm replaced by its region-matched rebuild.
     for model in models:
         add(f"dinucleotide minus region-matched contrast, {model}",

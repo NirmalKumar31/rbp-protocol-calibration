@@ -3,12 +3,12 @@
     python scripts/external_replication.py            # the disjoint datasets
     python scripts/external_replication.py --from-cache
 
-THE PROTOCOL FOR THIS ANALYSIS WAS FIXED FIRST, in docs/EXTERNAL_BENCHMARK_PROTOCOL.md,
+The protocol for this analysis was fixed first, in docs/EXTERNAL_BENCHMARK_PROTOCOL.md,
 committed at e76a80c before any candidate benchmark was searched for or opened. The eligibility
 criteria, the estimand, the uncertainty procedure and the falsification thresholds below are
 quoted from it and were not chosen after seeing this output.
 
-WHAT THE SEARCH FOUND, INCLUDING THAT THE PROTOCOL'S OWN PREMISE WAS WRONG. The protocol
+What the search found, including that the protocol's own premise was wrong. The protocol
 asserted that the Horlacher et al. 2023 benchmark could not test Claim A "because testing Claim
 A needs a dataset released under more than one negative-set construction for the same positives
 and Horlacher releases one". It releases two, per fold, for the same positives: `negative-1`,
@@ -25,7 +25,7 @@ peak calls and folds over largely the same experiments. This script takes the co
 Horlacher ENCODE datasets that our panel does not contain, which is the sample criterion 1
 asks for.
 
-WHAT THIS STILL DOES NOT ESTABLISH. The complement is still ENCODE eCLIP in K562 and HepG2. It
+What this still does not establish. The complement is still ENCODE eCLIP in K562 and HepG2. It
 is an independent sample of PROTEINS analysed by an independent pipeline, and it is not an
 independent assay, organism or cell type. Claim A's scope after this remains eCLIP-derived
 panels. Nothing here bears on Claim B, the directional relation, which does not replicate on
@@ -156,7 +156,7 @@ def main():
                     "ci_high": float(np.percentile(b, 97.5)), "n": len(t), "note": note})
         return float(v.mean())
 
-    # THE DEPOSIT'S OWN SIZE, so the manuscript's count of it traces to a table rather than to
+    # The deposit's own size, so the manuscript's count of it traces to a table rather than to
     # nothing. Read from the unpacked deposit when it is present; omitted rather than guessed
     # when it is not, because a hardcoded 223 here is the hand-maintained count this repository
     # keeps getting wrong.
@@ -189,7 +189,7 @@ def main():
                 "note": "the protocol's primary estimand, transported unchanged: ratio of the "
                         "two arms' panel means, protein-clustered percentile interval"})
 
-    # THE PRE-FIXED DECISION, applied mechanically. The thresholds are quoted from the protocol
+    # The pre-fixed decision, applied mechanically. The thresholds are quoted from the protocol
     # and are not adjustable here; writing the comparison as code rather than as prose is the
     # point, because prose can be softened after the fact and an assertion cannot.
     supported = (pt > SUPPORT_SPAN and isinstance(lo, float) and lo > SUPPORT_CI_LOW)

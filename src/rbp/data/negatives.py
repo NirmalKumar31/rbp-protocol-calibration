@@ -158,7 +158,7 @@ _DI_INDEX = {d: i for i, d in enumerate(DINUCS)}
 def dinuc_vector(seq, normalise=True):
     """16-vector of dinucleotide frequencies, or raw counts with normalise=False.
 
-    THE COUNTS MODE EXISTS FOR REPRODUCIBILITY, NOT SPEED. A frequency is k/100 for a 101-nt
+    The counts mode exists for reproducibility, not speed. A frequency is k/100 for a 101-nt
     window, and almost none of those are exactly representable in float64. The last-bit
     error that leaves behind is not the same on every CPU, and the nearest-neighbour search
     below compares distances that are frequently exactly tied -- so the tie is resolved by
@@ -273,7 +273,7 @@ def build_negatives_dinuc(positives, peaks, fasta, region_index, size,
             continue
 
         target = dinuc_matrix([positives[i]["seq_dna"] for i in idxs], normalise=False)
-        # A 17TH COLUMN THAT MAKES TIES IMPOSSIBLE.
+        # A 17th column that makes ties impossible.
         #
         # Integer counts removed the floating-point noise, but not the ties themselves --
         # hundreds of candidate windows can sit at exactly the same L1 distance. cKDTree

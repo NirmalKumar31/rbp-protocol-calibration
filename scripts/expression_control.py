@@ -16,20 +16,20 @@ baseline in both arms and beats the whole 4-mer model in 86/94 datasets in the d
 arm. It is the strongest trivial baseline in this study and it is not the one the paper is
 built around.
 
-WHAT THIS SCRIPT ANSWERS, WHICH IS NARROWER. Not "is the absolute AUROC inflated" - it
+What this script answers, which is narrower. Not "is the absolute AUROC inflated" - it
 plainly is, and no absolute number here should be compared against a benchmark that samples
 negatives differently. The question is whether the CONTRAST, which is what the paper claims,
 is manufactured by that confound. Restrict to pairs whose NEGATIVE is plausibly real RNA
 present in the cell, refit both arms, and see what survives.
 
-WHY THE OBVIOUS VERSION OF THIS TEST LIES, AND WHY THE PLACEBO IS THE WHOLE EXPERIMENT.
+Why the obvious version of this test lies, and why the placebo is the whole experiment.
 Restricting on expression discards roughly two thirds of pairs. A 256-feature k-mer model
 loses more from that than a 19-feature composition baseline does, in both arms, so the
 contrast shrinks whether or not expression matters. Exactly the trap `strand_placebo.py`
 documents. The fix is the same: drop the SAME NUMBER of pairs at random, many times, and
 report the difference. Everything that is merely the cost of having less data cancels.
 
-RESTRICTION IS NOT A RANDOM DROP, AND WHAT IT CORRELATES WITH IS MEASURED HERE RATHER THAN
+Restriction is not a random drop, AND WHAT IT CORRELATES WITH IS MEASURED HERE RATHER THAN
 ASSUMED. Retention is a property of the negative's locus, so it is tied to locus type. The
 script measures the retained-versus-dropped standardised mean difference on region mix, GC
 and gene density and writes all three to the per-dataset table, then matches the placebo on
@@ -38,14 +38,14 @@ difference bounds the locus-mix component, which is the same reporting the stran
 uses. Twenty seeds, because five left roughly a sixth of the between-dataset variance as
 Monte Carlo noise there and caused a true finding to be withdrawn.
 
-BALANCE ACROSS ARMS IS WHAT MAKES THIS CONVINCING, AND IT IS PRINTED. A confound can only
+Balance across arms is what makes this convincing, and it is printed. A confound can only
 manufacture the contrast if it differs between the arms. The unexpressed-negative fraction
 is 40.5% in the GC arm against 40.3% in the dinucleotide arm (paired Wilcoxon p = 0.87), and
 expression-alone AUROC differs by +0.0006. The two arms carry this confound equally, so it
 cancels in the difference by construction and the restriction below is a check on that
 argument rather than the argument itself.
 
-READ THE SUMMARY AS WITHIN-STORE DIFFERENCES ONLY. The GC arm's local window tables rebuild
+Read the summary as within-store differences only. The GC arm's local window tables rebuild
 the committed rehearsal rows exactly (12/12 spot-checked, max |diff| 1e-4). The dinucleotide
 arm's do not: negative matching is a stochastic search that was re-run, and the local copy is
 a different draw, reproducing 5 of 12 at the 2e-3 tolerance `k_sweep.py` uses. That is why
@@ -189,7 +189,7 @@ def expression_tracks(g, cell):
 def window_tpm(tracks, chrom, start, end, strand=None):
     """Max TPM overlapping the window: on `strand` if given, else on either strand.
 
-    BOTH ARE NEEDED AND THEY MEASURE DIFFERENT THINGS. The labelled-strand figure is the
+    Both are needed and they measure different things. The labelled-strand figure is the
     honest restriction - it asks whether the window is the RNA the model is being shown -
     but it inherits the strand artifact of limitation 1, because a negative carries its
     POSITIVE's strand. The either-strand figure asks only "is this locus transcribed at
@@ -436,7 +436,7 @@ def summarise(m):
                     "n": n, "note": note})
 
     kept = m.n_expressed_gc.sum() / m.n_pairs_gc.sum()
-    # THE BALANCE ARGUMENT IS MADE ON THE EITHER-STRAND FIGURE, and the two must not be
+    # The balance argument is made on the either-strand figure, and the two must not be
     # confused. Either-strand is expression per se and is what has to be balanced for the
     # confound to cancel in a paired difference. The labelled-strand figure is larger and is
     # NOT balanced, because it inherits the strand artifact of limitation 1: negatives carry

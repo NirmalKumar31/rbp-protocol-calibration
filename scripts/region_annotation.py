@@ -3,13 +3,13 @@
     python scripts/region_annotation.py
     python scripts/region_annotation.py --from-cache
 
-WHAT THE RULE IS. `annotation.classify` takes the window MIDPOINT and returns the first region
+What the rule is. `annotation.classify` takes the window MIDPOINT and returns the first region
 in a fixed priority order, (utr5, utr3, cds, exon_nc, intron), whose merged intervals contain
 it. Both choices are defensible and neither is forced. A position can be a 5' UTR in one isoform
 and an intron in another, so the priority breaks a genuine tie; and a 101-nt window straddling
 a splice site has a midpoint on one side of it.
 
-WHY IT MATTERS HERE AND NOT ELSEWHERE. Region is not a covariate in this study, it is part of
+Why it matters here and not elsewhere. Region is not a covariate in this study, it is part of
 the construction: the GC matcher requires the same region class, the dinucleotide matcher buckets
 on (region, chromosome), and the bias-aware arm's undisclosed failure to match region is the
 subject of its own section. That section's number, region alone separating the bias-aware
@@ -20,7 +20,7 @@ FOUR RULES, one published and three alternatives that a careful analyst could ha
 instead: the priority reversed, coding-first, and majority overlap, which ignores the midpoint
 and asks which region covers the most of the window.
 
-WHAT THE ANCHOR FOUND, AND IT IS THE SECTION'S RESULT. Recomputing the published rule reproduces
+What the anchor found, and it is the section's result. Recomputing the published rule reproduces
 the committed `region` column for every POSITIVE in all three arms, 0 of 270,650 differing, and
 for 11.7% and 11.3% of the GC and dinucleotide arms' NEGATIVES it does not. The reason is that
 the column means two different things by class. For a positive it is a classification of that
@@ -127,7 +127,7 @@ def build(store, index_path):
                     got[rule][idx] = classify_many(index, chrom, mids, pri)
                 cov = overlap_bases(index, chrom, g.start.to_numpy(np.int64),
                                     g.end.to_numpy(np.int64), regions)
-                # MAJORITY OVERLAP, with the published priority as the TIE-BREAK rather than
+                # Majority overlap, with the published priority as the TIE-BREAK rather than
                 # argmax's first-index-wins. Ties are common: a window fully inside a CDS that
                 # is also an exon_nc of another isoform covers both completely, and letting
                 # column order decide would smuggle a fourth arbitrary rule in unannounced.
@@ -143,7 +143,7 @@ def build(store, index_path):
             pos, negm = y == 1, y == 0
             rec = {"arm": arm, "dataset": f.parent.parent.name + ":" + f.parent.name,
                    "rows": len(d), "n_pos": int(pos.sum()), "n_neg": int(negm.sum())}
-            # THE ANCHOR IS ON POSITIVES, because that is where the committed column is a
+            # The anchor is on positives, because that is where the committed column is a
             # classification. Asserting it over all rows conflates a reproduction failure
             # with the pool-versus-classification distinction, which is the finding.
             rec["pos_mismatch"] = int((got["published"][pos] != stored[pos]).sum())
@@ -202,7 +202,7 @@ def main():
     out = []
     log(f"\n=== B17: region-annotation sensitivity, {len(t)} arm-datasets ===\n")
 
-    # THE ANCHOR, AND A HARD STOP, ON POSITIVES. That is where the committed column is a
+    # The anchor, and a hard stop, on positives. That is where the committed column is a
     # classification of the window it labels, so a single disagreement means the recomputation
     # is not the paper's rule and nothing below is measuring the paper's annotation.
     mism = int(t.pos_mismatch.sum())
@@ -215,7 +215,7 @@ def main():
                  f"recomputation is not the paper's rule")
     log(f"  the published rule reproduces all {int(t.n_pos.sum())} committed POSITIVE labels")
 
-    # AND THE SAME COMPARISON ON NEGATIVES, WHICH IS NOT AN ANCHOR BUT A FINDING. For a matched
+    # And the same comparison on negatives, which is not an anchor but a finding. For a matched
     # negative the column records the pool the matcher drew from, not a classification of the
     # window drawn, and the two differ wherever merged region intervals overlap.
     for arm in ARMS:
@@ -231,14 +231,14 @@ def main():
         frac = float(t[f"agree_{rule}"].sum() / t.rows.sum())
         out.append({"check": f"fraction of windows unchanged under the {rule} rule",
                     "value": frac, "n": len(t)})
-        # BOTH DIRECTIONS EMITTED. The text quotes how many labels CHANGE, and a manuscript
+        # Both directions emitted. The text quotes how many labels CHANGE, and a manuscript
         # number derived by subtracting a table value from one is not traceable to the table:
         # the audit matches values, so it would pass an arbitrary complement unnoticed.
         out.append({"check": f"fraction of windows changed under the {rule} rule",
                     "value": 1.0 - frac, "n": len(t)})
         log(f"  {rule:13s} agrees with the published label on {100 * frac:6.2f}% of windows")
 
-    # THE QUANTITY THE PAPER'S CLAIM RESTS ON, under every rule. Region alone separating the
+    # The quantity the paper's claim rests on, under every rule. Region alone separating the
     # bias-aware classes is what made the region asymmetry a finding rather than a footnote,
     # so it is the number that has to be shown to be rule-independent.
     log("")
@@ -258,7 +258,7 @@ def main():
             f"{k} {v:.4f}" for k, v in vals.items())
             + f"   range {max(vals.values()) - min(vals.values()):.4f}")
 
-    # THE ASYMMETRY, WHICH IS THE CLAIM, UNDER EVERY RULE. The published statement is that
+    # The asymmetry, which is the claim, under every rule. The published statement is that
     # region alone separates the bias-aware classes and does nothing in the two
     # composition-matched arms. Two things have to be reported and only one of them was.
     #
@@ -280,7 +280,7 @@ def main():
                     "value": bias - matched, "n": len(t)})
         log(f"  {rule:13s} matched arms {matched:.4f}   bias-aware {bias:.4f}   "
             f"gap {bias - matched:+.4f}")
-    # THE GAP IS THE CLAIM, AND IT SURVIVES EVERY RULE. Gate the minimum rather than any one
+    # The gap is the claim, and it survives every rule. Gate the minimum rather than any one
     # value: the bias-aware arm's own figure moves too under the reversed and majority rules,
     # so "its value does not move" would be false. What holds is that no rule brings the two
     # together, and the least favourable of the five still leaves a gap of +0.1055.
@@ -295,7 +295,7 @@ def main():
         f"NOT rule-invariant either: only its committed labels and the\n  published rule "
         f"coincide, because its negatives are other proteins' positives.")
 
-    # HOW OFTEN THE RULE HAS ANYTHING TO DECIDE. A rule can only matter where a window is
+    # How often the rule has anything to decide. A rule can only matter where a window is
     # genuinely ambiguous, and reporting the disagreement rate without the ambiguity rate
     # leaves the reader unable to tell a robust annotation from a lucky one.
     amb = float(1 - t.agree_majority.sum() / t.rows.sum())

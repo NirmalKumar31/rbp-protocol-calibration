@@ -15,7 +15,7 @@ central validity issue, and it was right about one thing in particular: a disclo
 measurement. The floor experiment bounds the channel only for a 2-mer, which is the least
 overfitting model we could have chosen, so it says nothing about the transformer.
 
-WHAT THIS SCRIPT DOES. Runs the estimator again with the channel closed, and reports the
+What this script does. Runs the estimator again with the channel closed, and reports the
 difference. For outer test fold $i$:
 
   * the covariate on each outer-TRAINING row $j$ comes from a base model trained on the folds
@@ -37,7 +37,7 @@ measured exactly, and whether the published claim -- that the channel is one-dir
 survives contact with an exact computation. It bounds nothing for a fine-tuned transformer, by
 the same argument the Methods already make in the other direction.
 
-TWO MODELS, BECAUSE THEY ASK DIFFERENT QUESTIONS. The 4-mer is the published headline model, so
+Two models, because they ask different questions. The 4-mer is the published headline model, so
 its cross-fitted contribution is directly comparable to a number in the paper. The 2-mer is the
 floor model, whose true contribution is zero by construction, so its cross-fitted value
 separates the two explanations the Results give for a positive floor: the conditioning effect,
@@ -254,7 +254,7 @@ def main():
             add(f"{k}-mer outer-fold channel, {arm} arm", pub - cf,
                 "published minus cross-fitted; positive means the channel inflated the "
                 "published value")
-            # THE FRACTION OF THE FLOOR REMOVED, emitted so the manuscript's "96 to 99%" has a
+            # The fraction of the floor removed, emitted so the manuscript's "96 to 99%" has a
             # committed source. It did not, and the manuscript audit reported it as an orphan
             # in three places -- correctly, since a percentage of two numbers in a table is not
             # itself in the table.
@@ -284,7 +284,7 @@ def main():
             lo, hi = min(m.values()), max(m.values())
             return float(hi / lo) if lo > 0 else float("nan")
 
-        # THE SPANS NEED INTERVALS, AND THE CROSS-FITTED ONE NEEDS ONE MOST. It is the primary
+        # The spans need intervals, and the cross-fitted one needs one most. It is the primary
         # estimand: the published 5.42 is reported beside it for comparability with a
         # literature that computes the two-stage form, and a primary quantity given without
         # uncertainty while its comparability analysis has an interval reads as the reverse of
@@ -292,7 +292,7 @@ def main():
         # the span recomputed inside each draw rather than the arms' intervals being combined,
         # because a ratio of two intervals is not the interval of the ratio.
         def span_ci(col, point, k=k):
-            # NO INTERVAL WHERE THERE IS NO POINT ESTIMATE. The 2-mer cross-fitted span is NaN
+            # No interval where there is no point estimate. The 2-mer cross-fitted span is NaN
             # because an arm's mean is not positive, which is the correct answer; the draws
             # that happen to land positive then give ratios up to 174, and printing those
             # beside a NaN reads as an interval for a quantity that does not exist.

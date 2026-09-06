@@ -1,6 +1,6 @@
 """Rebuild matched_four_models.csv from committed tables, with no bucket.
 
-WHY THIS EXISTS. `recompute.py` -- the end-to-end check that rebuilds published AUROCs from
+Why this exists. `recompute.py` -- the end-to-end check that rebuilds published AUROCs from
 per-example scores -- compares against `matched_four_models.csv`, and the only thing that wrote
 that table was `cloud_analysis.py::four_models`, which reads two objects out of GCS. That
 project's billing account is closed, so the one table the strongest reproducibility check in the
@@ -15,7 +15,7 @@ NOT CIRCULAR. This writes the pooled AUROC that `cloud_train.py aggregate` compu
 DeLong's estimator; `recompute.py` then rebuilds the same quantity from the per-window scores
 with scikit-learn. Two implementations, two code paths, one number.
 
-A ROW-SET DRIFT THE RETRAIN EXPOSED, recorded here because this is where it is visible. The
+A row-set drift the retrain exposed, recorded here because this is where it is visible. The
 committed k-mer rehearsal scores cover marginally FEWER rows than the store's current window
 tables: 46,380 against 46,384 for KHSRP:K562, 22,202 against 22,216 for AQR:HepG2. They were
 computed before `dataset.tsv` was last regenerated, and the pre-retrain neural scores matched

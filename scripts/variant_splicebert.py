@@ -1,6 +1,6 @@
 """The ClinVar arm, rerun with SpliceBERT instead of the k-mer rehearsal model.
 
-WHY THIS EXISTS. scripts/rehearsal_variants.py says it in its own docstring: "Every number
+Why this exists. scripts/rehearsal_variants.py says it in its own docstring: "Every number
 here is a rehearsal, because the scores come from a k-mer model rather than a trained
 network." That rehearsal reported delta AUROC 0.558 against conservation's 0.910, and the
 obvious reading -- a binding model adds nothing over conservation -- is not supported by it,
@@ -18,7 +18,7 @@ variant-dataset pairs, 8,716 pathogenic. Smaller than the rehearsal's 187 datase
 SpliceBERT was swept on 95, and that difference is a caveat to state, not to hide -- the
 k-mer numbers are recomputed on the same 94 by `test` so the comparison is like for like.
 
-WEIGHTS ARE STREAMED. 94 datasets x 5 folds x 75 MB is 35 GB and the disk has 26 GB free.
+Weights are streamed. 94 datasets x 5 folds x 75 MB is 35 GB and the disk has 26 GB free.
 Each dataset's folds are fetched, used and deleted, so peak usage is ~400 MB. Per-dataset
 results are cached under data/interim/vsb/ and skipped on rerun, because a 90 minute job
 that has to restart from zero is a job that never finishes.
@@ -264,7 +264,7 @@ def stage_cloud(cfg, index, force, mismatch=0, donor_task=-1):
     bucket = storage.Client(project=PROJECT).bucket(BUCKET)
     man = pd.read_csv(io.StringIO(bucket.blob(MANIFEST).download_as_text()), sep="\t")
 
-    # THE MULTI-DONOR CONTROL. donor_task indexes variants/donor_tasks.tsv, which names the
+    # The multi-donor control. donor_task indexes variants/donor_tasks.tsv, which names the
     # target and donor explicitly instead of deriving the donor from an offset. Five donors
     # per target, drawn to SPAN donor quality -- see scripts/donor_draw.py for why spanning
     # rather than matching, and why the single-offset version was confounded.
@@ -288,7 +288,7 @@ def stage_cloud(cfg, index, force, mismatch=0, donor_task=-1):
     r = man.iloc[index]
     cell, prot = r.cell, r.protein
 
-    # THE MISMATCHED-HEAD CONTROL. Score THIS dataset's variants with a DIFFERENT protein's
+    # The mismatched-head control. Score THIS dataset's variants with a DIFFERENT protein's
     # fine-tuned weights. If a mismatched head scores nearly as well as the matched one, the
     # signal is not binding-specific -- it is SpliceBERT noticing that a substitution makes
     # the sequence less plausible, which every protein's head would inherit from the shared

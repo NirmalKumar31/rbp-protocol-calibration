@@ -1,19 +1,19 @@
 """Is a model's score driven by LOCAL sequence, or by global composition?
 
-WHY THIS EXISTS. Rebuilding negatives with dinucleotide matching drops the median model
+Why this exists. Rebuilding negatives with dinucleotide matching drops the median model
 AUROC by 0.10. We want to read that as removing a composition artefact, but the
 literature-motif positive control gets weaker on the matched arm (median Cohen's d 1.567 ->
 0.807), so some real signal is destroyed too. To report the correction honestly we need to
 know, PER DATASET, whether it was clean -- and the literature control covers 9 of 131
 proteins.
 
-WHAT FAILED FIRST. I tried a proxy: measure how repetitive a protein's enriched k-mers are,
+What failed first. I tried a proxy: measure how repetitive a protein's enriched k-mers are,
 on the theory that dinucleotide matching necessarily puts a repeat motif into the negatives.
 It did not validate -- correlation with positive-control retention came out +0.298, the wrong
 sign. And with 8 ground-truth proteins the standard error of a correlation is about 0.45, so
 that exercise could not have validated anything either way.
 
-THE MEASURE HERE. Skip the motif. Ask the question the composition story actually turns on:
+The measure here. Skip the motif. Ask the question the composition story actually turns on:
 
     does the score depend on WHERE you change a base, or only on the fact that you changed one?
 
@@ -22,7 +22,7 @@ A model reading a local feature collapses when you hit that feature and shrugs w
 not. So: take the k-mer most enriched in bound windows, mutate its centre, and compare
 against the SAME substitution placed far from any occurrence. The difference is locality.
 
-WHY THIS IS NOT CIRCULAR. The k-mer is chosen from the training folds only, and the windows
+Why this is not circular. The k-mer is chosen from the training folds only, and the windows
 are scored by the fold model that never saw them. More importantly, the comparison is
 disruptive-versus-neutral WITHIN one model, so "the model recognises its own training signal"
 cancels: both mutants are the same substitution under the same model, and only the position

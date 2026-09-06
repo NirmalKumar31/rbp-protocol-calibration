@@ -86,13 +86,13 @@ def main():
                  "value": beats, "n": len(m)}]
         print(f"  {arm:6s} {comp.mean():12.4f} {k.mean():12.4f} {full.mean():11.4f}"
               f" {gain.mean():+13.4f} {beats:14d}/{len(m)}")
-    # HOW HARD A PROTOCOL LOOKS AND HOW HARD IT IS FOR COMPOSITION ARE NEARLY THE SAME THING,
+    # How hard a protocol looks and how hard it is for composition are nearly the same thing,
     # and this is the number that says so. Section 3.4 argues that a protocol acts on measured
     # contribution through the composition baseline it leaves; the premise is that the model's
     # own AUROC and the composition-only AUROC move together, and it was never quantified.
     # Protein-clustered because 94 datasets are 79 proteins.
     #
-    # CORRELATE THE MODEL ALONE, NOT comp+model. The nested column is a superset of the
+    # Correlate the model alone, NOT comp+model. The nested column is a superset of the
     # composition column by construction and correlating them gives +0.94 for free, which is
     # the same wrong-quantity trap this script exists to fix.
     long = pd.concat([pd.DataFrame({"arm": a, "alone": m[f"auroc_{a}"],
@@ -146,7 +146,7 @@ def main():
             print(f"  {label:12} " + "".join(f"{v[a]:9.4f}" for a in ("dn", "gc", "neg2"))
                   + f"     {max(v, key=v.get)}")
 
-        # THE ORDERING IS THE CLAIM AND IT IS NOT UNIFORM. Dinucleotide matching is the
+        # The ordering is the claim and it is not uniform. Dinucleotide matching is the
         # hardest discrimination for every model. The bias-aware arm is the EASIEST for the
         # 4-mer and the CNN but not for SpliceBERT, where GC matching is higher. Emitted as
         # counts so the paper cannot say "easiest of the three" without qualification.
@@ -171,7 +171,7 @@ def main():
     # panel-mean ordering. Computed here for both of our protocol steps so the external
     # comparison is like for like.
     #
-    # THE SIGN AND THE MAGNITUDE SAY DIFFERENT THINGS, and both are emitted. The step from GC
+    # The sign and the magnitude say different things, and both are emitted. The step from GC
     # to dinucleotide matching moves the two oppositely in 88 of 94 datasets, but the
     # correlation between HOW MUCH difficulty rose and HOW MUCH contribution rose is POSITIVE.
     # The inversion is a statement about direction, not about covarying magnitudes, and a

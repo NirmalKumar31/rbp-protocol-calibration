@@ -4,7 +4,7 @@ golden.yaml carries `integrity.min_tests_passing`, which read 480 while the suit
 to 576, and nothing anywhere read the key. A floor that no one enforces and no one updates is
 worse than no floor: it sits in the config looking like a guarantee.
 
-WHY THIS SKIPS WITHOUT TORCH, which is not a way of dodging the check. The CPU image
+Why this skips without torch, which is not a way of dodging the check. The CPU image
 deliberately ships no torch -- that is the whole reason there are two images -- so the
 torch-dependent tests cannot be COLLECTED there and the container legitimately sees 514 tests
 against 576 locally. Asserting a single floor across both environments fails the image build

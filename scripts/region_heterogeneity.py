@@ -1,20 +1,20 @@
 """R1f: the protocol effect is twice as large for coding-region binders as for intronic ones.
 
-THE ONLY BIOLOGICAL STATEMENT THIS STUDY CAN HONESTLY MAKE, and it is a modest one. A referee
+The only biological statement this study can honestly make, and it is a modest one. A referee
 has already objected that "a 4-mer adds +0.0265 over composition" says nothing about RNA-protein
 recognition. This is the answer, and its limitation is printed next to it rather than below it.
 
-THE OBSERVATION. Grouping the 94 datasets by the region their POSITIVE windows mostly fall in,
+The observation. Grouping the 94 datasets by the region their POSITIVE windows mostly fall in,
 the contrast is roughly twice as large for CDS-dominant proteins as for intron-dominant ones.
 
-THE MECHANISM, AND IT IS TESTABLE. Intronic binding sites are compositionally distinctive:
+The mechanism, and it is testable. Intronic binding sites are compositionally distinctive:
 polypyrimidine tracts, U-rich stretches, the low-complexity sequence around splice signals.
 Composition alone therefore already discriminates them well, so GC matching leaves less room
 for the protocol to change what is attributed to the model. CDS sites are compositionally
 ordinary, so the same protocol change moves much more. That predicts composition-alone AUROC
 should be HIGHER for intron-dominant datasets, which is checked below.
 
-THE LIMITATION, WHICH MUST BE PRINTED. Region does not act independently of effect size: once
+The limitation, which must be printed. Region does not act independently of effect size: once
 the total nested gain is partialled out, the region association disappears. So the honest claim
 is that region indexes HOW MUCH non-compositional signal there is to expose, not that region is
 a separate mechanism. Stated that way it is a real finding; stated as an independent effect it
@@ -120,7 +120,7 @@ def summarise(m):
     add("Kruskal-Wallis across region groups", float(k.statistic), n=len(m),
         note=f"p={k.pvalue:.3g}, {len(groups)} groups")
 
-    # THE LIMITATION. Region indexes how much signal there is, not a separate mechanism.
+    # The limitation. Region indexes how much signal there is, not a separate mechanism.
     rho = spearmanr(m.frac_intron if "frac_intron" in m else m.dominant_frac, m.contrast)
     add("spearman(intronic fraction, contrast)", rho.statistic, n=len(m),
         note=f"p={rho.pvalue:.3g}")

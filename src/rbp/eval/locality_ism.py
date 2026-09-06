@@ -3,7 +3,7 @@
 This replaces the probe in locality.py, which does not work. Reading why is the fastest way
 to understand why this one is shaped the way it is.
 
-WHAT THE OLD PROBE DID. Pick the k-mer most enriched in bound windows. Mutate its centre
+What the old probe did. Pick the k-mer most enriched in bound windows. Mutate its centre
 (disruptive) and compare against the same substitution placed far from any occurrence
 (neutral). Report Cohen's d between the two score changes. A local model should collapse on
 the disruptive mutation and shrug at the neutral one.
@@ -22,7 +22,7 @@ is not: choosing the site by enrichment biases the contrast for any model. tests
 test_locality.py pins the consequence -- a pure global-composition signal, with no local
 feature anywhere, scores Cohen's d about 1.8 where a valid probe must score ~0.
 
-THE MEASURE HERE. Do not choose a site at all. Mutate EVERY position to EVERY alternative
+The measure here. Do not choose a site at all. Mutate EVERY position to EVERY alternative
 base, take the mean |change in score| per position, and ask how CONCENTRATED that profile is.
 
     global / compositional signal -> changing any base changes composition by about as much
@@ -35,12 +35,12 @@ at a single position. No k-mer is chosen, no site is picked, and the statistic i
 of the whole profile rather than of two hand-picked points. That removes fault 2 by
 construction rather than by argument.
 
-WHY THE MEAN OVER ALTERNATIVE BASES MATTERS. Substituting to a fixed base would confound
+Why the mean over alternative bases matters. Substituting to a fixed base would confound
 position with base identity: under a GC-driven model, a G position loses GC when mutated to A
 while an A position does not, so the profile would look spiky for a purely global signal.
 Averaging over all three alternatives makes every position's perturbation comparable.
 
-WHAT IT DOES NOT MEASURE. Correctness. A model can depend sharply on a local feature that is
+What it does not measure. Correctness. A model can depend sharply on a local feature that is
 not the real motif; this says the dependence is local, not that it is right. That is a
 limitation to state, not to hide.
 

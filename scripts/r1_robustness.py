@@ -97,7 +97,7 @@ def main():
         add(f"replication of the {lab} alone", rr.statistic, n=len(p),
             note=f"p={rr.pvalue:.3g}; compare with the contrast above")
 
-    # THE ORDERING, TESTED RATHER THAN ASSERTED. An earlier version claimed the contrast
+    # The ordering, tested rather than asserted. An earlier version claimed the contrast
     # replicates BETTER than either arm and gated it. A paired protein bootstrap says the
     # ordering is a point estimate, not a finding, so the text now says "at least as well as".
     pg = cm.pivot_table(index="protein", columns="cell", values="delta_auroc_gc").dropna()

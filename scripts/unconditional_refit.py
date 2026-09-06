@@ -1,6 +1,6 @@
 """The genuinely unconditional refit, and why "attenuation" needs a calibrated null.
 
-WHAT WENT WRONG THAT THIS FIXES. `cloud_analysis.py:388` builds every row of
+What went wrong that this fixes. `cloud_analysis.py:388` builds every row of
 `variant_specificity_refit.csv` by calling `fit_delta_coef(..., u.conservation, ...)`. The
 `conservation` argument is what adds the phyloP column, so the row the paper labels
 "controls = none" was ALREADY adjusted for conservation. Its published companion, "0.21%
@@ -9,7 +9,7 @@ conservation-adjusted fits on slightly different row counts (18,998 against 18,8
 measures dropping 168 rows. `fit_delta_coef` has always accepted `conservation=None`; nothing
 ever passed it.
 
-WHAT THIS SCRIPT IS. The same estimator, done correctly, on the k-mer arm --
+What this script is. The same estimator, done correctly, on the k-mer arm --
 `variant_scores.csv`, the one variant table committed to the repo. It is a METHODS
 DEMONSTRATION, not R4: R4's claim is about SpliceBERT, whose per-variant scores live only in
 GCS. What transfers is the procedure and the interpretation, both of which were wrong.
@@ -35,7 +35,7 @@ Two things are enforced here that were not there:
   correlation gives the value that would reproduce the observed attenuation, which can then be
   compared against the correlation actually measured.
 
-  A FIRST ATTEMPT AT THIS NULL WAS WRONG AND IS RECORDED HERE SO IT IS NOT REPEATED. It drew
+  A first attempt at this null was wrong and is recorded here so it is not repeated. It drew
   the covariate FROM the label, C = mu*y + noise, on the grounds that this makes C independent
   of the score. It does not make it a valid null: C is then a descendant of the outcome, so
   conditioning on it is conditioning on a collider and the amplification largely vanishes. It
@@ -45,7 +45,7 @@ Two things are enforced here that were not there:
   signal is essentially independent of it" -- the same false conclusion the retracted version
   reached, arrived at a different way.
 
-  A SECOND CORRECTION, ALSO RECORDED. The null was first simulated with a NORMAL covariate,
+  A second correction, also recorded. The null was first simulated with a NORMAL covariate,
   and the closed form 1 - sqrt(1 + 0.346*c^2) was gated as a cross-check that "must agree"
   with it. Both were wrong. Non-collapsibility depends on the omitted covariate's whole
   distribution, not just its variance, and phyloP is skewed (+1.04); the covariate is now drawn
@@ -148,7 +148,7 @@ def calibrate(observed_att, b, c, prev, n, marginal):
     """The null, an order-of-magnitude reference, and the rho reproducing what we observed."""
     curve = np.array([simulate_attenuation(r, b, c, prev, n, marginal) for r in CAL_RHO])
     null = float(curve[0])
-    # NOT A CROSS-CHECK. 1 - sqrt(1 + 0.346 c^2) is a small-sigma probit approximation to the
+    # Not a cross-check. 1 - sqrt(1 + 0.346 c^2) is a small-sigma probit approximation to the
     # logistic-normal attenuation factor. At c = 2.12 it is far outside the range where it
     # holds and it is ANTI-CONSERVATIVE: it understates the amplification, which biases the
     # excess-over-null upward, i.e. in the direction that flatters the result. An earlier

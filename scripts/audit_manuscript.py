@@ -7,7 +7,7 @@ adversarial review in that state, because a reviewer reads a number rather than 
 for it. Three more were found the same way and only by hand. Hand-checking does not scale and
 does not repeat; this does.
 
-THE HAYSTACK IS CURATED, AND THE FIRST VERSION OF THIS SCRIPT WAS NEARLY WORTHLESS BECAUSE IT
+The haystack is curated, AND THE FIRST VERSION OF THIS SCRIPT WAS NEARLY WORTHLESS BECAUSE IT
 WAS NOT. That version pooled every numeric cell of every table, including
 `variant_scores.csv` and `variant_assignments.csv` at 66,010 rows each. With that much data
 the four-decimal grid over [0.5, 1.0] came out **73.9% saturated**: essentially any AUROC-like
@@ -31,7 +31,7 @@ and prints its own occupancy on every run, because that figure IS the false-nega
 a checker that will not state its own is asking to be over-trusted. Read the run, not this
 paragraph.
 
-TWO LIMITATIONS, BOTH REAL, BOTH STATED RATHER THAN ROUNDED AWAY.
+Two limitations, both real, both stated rather than rounded away.
 
   three decimals   The 3-dp grid over [0.5, 1.0] holds only 501 slots and is now ~88%
                    occupied, so a fabricated number written to three decimals passes almost
@@ -43,7 +43,7 @@ TWO LIMITATIONS, BOTH REAL, BOTH STATED RATHER THAN ROUNDED AWAY.
                    standalone k-mer AUROC passes here, because 0.7981 is a real value in a
                    real table and was merely on the wrong line.
 
-BARE INTEGERS ARE NOW CHECKED TOO, against a different haystack. The counts a paper quotes --
+Bare integers are now checked too, against a different haystack. The counts a paper quotes --
 94 datasets, 79 proteins, 456,734 pairs, 37 of 40 -- carry no decimal point, so NUM never saw
 them and they were checked by hand; three were wrong in an earlier draft. Counts are not
 aggregates of a column, they are properties of a table's shape, so INT_HAYSTACK is built from
@@ -56,7 +56,7 @@ group of every low-cardinality column, plus config/params.yaml, where a paramete
                    reports nothing. Years and version-like tokens are skipped for the same
                    reason: 2026 is a date, not a count.
 
-THE REMAINING ORPHANS ARE NOT ALL ERRORS. Most are aggregates over a SUBSET -- "mean
+The remaining orphans are not all errors. Most are aggregates over a SUBSET -- "mean
 conservation AUROC over the 44 powered datasets", say -- which no whole-column aggregate can
 reproduce. Triaging them one by one, and emitting the legitimate ones into tables so the count
 can be ratcheted toward zero, is outstanding work. What the gate buys today is that a NEW
@@ -87,7 +87,7 @@ MANUSCRIPT_DIR = ROOT / "manuscript"
 # traced. That is where the false "94 of 94" lived. A file list assembled by two globs is a
 # file list nobody re-reads; this one is now explicit about the root document.
 #
-# THE RELEASE DOCUMENTS ARE AUDITED TOO, for the same reason and one commit later. An external
+# The release documents are audited too, for the same reason and one commit later. An external
 # review found eight stale figures -- 28 pages against 48, 768 assertions against 937, 20
 # references against 26 -- every one of them in a .md file, because the scan had only ever
 # looked at manuscript/. The numbers were not less public for being in README.md; they were
@@ -132,7 +132,7 @@ MIN_INT = 10
 # A four-digit token in this range is a year -- a citation, a date, an ENCODE release -- and
 # not a count of anything. LaTeX cross-reference and float machinery likewise.
 YEAR = re.compile(r"^(19|20)\d\d$")
-# A BIBLIOGRAPHY ASSERTS NOTHING ABOUT THE SCIENCE. Volume, issue and page numbers are
+# A bibliography asserts nothing about the science. Volume, issue and page numbers are
 # bibliographic coordinates, and scanning them produced 30 orphans that were all correct and
 # none of which any result table could ever source. Excluded from the integer scan only; a
 # fabricated 4-decimal value in a reference would still be caught by NUM.
@@ -140,7 +140,7 @@ NO_INT_SCAN = {"bibliography.tex"}
 MACRO = re.compile(r"\\(ref|label|cite\w*|citep|citet|includegraphics|vspace|hspace|"
                    r"textwidth|linewidth|columnwidth|arraystretch|scalebox|resizebox|"
                    r"multicolumn|multirow|cmidrule|addtocounter|setcounter|figure|table)")
-# IDENTIFIERS ARE NOT CLAIMS. A DOI, accession or version string contains a decimal point and
+# Identifiers are not claims. a doi, accession or version string contains a decimal point and
 # is matched by NUM, but it asserts nothing about the science and has no table to live in.
 # Flagging one is a false positive that costs the reader's trust in the real orphans, and
 # "10.5281" from a Zenodo DOI is exactly the case that surfaced. Matched on the surrounding
@@ -176,7 +176,7 @@ def haystack(allow_golden=False):
         else:
             add(o)
 
-    # GOLDEN.YAML IS A SECOND OPINION, NOT A SOURCE, and treating it as one hid seven stale
+    # Golden.yaml is a second opinion, not a source, and treating it as one hid seven stale
     # numbers. Its expectation values carry tolerances wide enough to admit a changed result, so
     # after the Phase 1 retrain a manuscript number that still matched the PRE-retrain golden
     # value was reported as traced while the table beneath it had moved. The audit was
@@ -246,14 +246,14 @@ def int_haystack(allow_golden=False):
     if cfgp.exists():
         walk(yaml.safe_load(cfgp.read_text()))
 
-    # THE PANEL FILES ARE THE PANEL. docs/PANELS.md exists to explain why the study's dataset
+    # The panel files are the panel. docs/PANELS.md exists to explain why the study's dataset
     # counts differ between analyses, and it does that by quoting the boundary cases -- NCBP2
     # matches 384 pairs under GC and 406 under dinucleotide, so it clears the 400 floor in one
     # arm only. Those numbers are committed, in config/panel_{final,excluded}_*.tsv, and were
     # orphans purely because the haystack stopped at results/tables/. A document explaining an
     # artefact must be allowed to quote it.
     #
-    # THE EXCLUDED FILES ONLY, and only their pairs column. Adding the FINAL panels too was
+    # The excluded files only, and only their pairs column. Adding the FINAL panels too was
     # tried and reverted in the same sitting: it put 312 integers into an 855-value haystack
     # and drove the integer false-negative rate from 29.4% to 37.3%, so 422 checked counts each
     # became measurably easier to fabricate in order to source one number in one document. That

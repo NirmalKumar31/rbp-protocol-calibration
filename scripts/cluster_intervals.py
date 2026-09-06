@@ -8,11 +8,11 @@ DATASETS, which treats those two rows as independent evidence. They are not -- t
 within-protein correlation of the contrast is +0.92 for the k-mer -- so every interval the
 manuscript prints is narrower than the data support.
 
-WHAT THIS DOES. Recomputes each headline quantity under a bootstrap that resamples PROTEINS
+What this does. Recomputes each headline quantity under a bootstrap that resamples PROTEINS
 and takes all of a sampled protein's datasets, which is the correct unit. Both intervals are
 emitted so the widening is visible rather than swapped in silently.
 
-WHAT IT DOES NOT DO. It does not change any conclusion, and that is the point of running it:
+What it does not do. It does not change any conclusion, and that is the point of running it:
 the paper's claims are robust to the correction, so making the correction costs nothing and
 removes an objection a referee would otherwise land. If a future run makes any headline cross
 zero under clustering, `no_conclusion_may_change` fails and the claim must be restated.

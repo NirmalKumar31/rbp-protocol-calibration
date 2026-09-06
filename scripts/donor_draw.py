@@ -1,6 +1,6 @@
 """Build the multi-donor control manifest.
 
-WHY THIS EXISTS. The original wrong-protein control used ONE donor per target, picked as
+Why this exists. The original wrong-protein control used ONE donor per target, picked as
 (index + 47) % 95 on an alphabetical manifest. That is a single deterministic draw, so the
 confidence interval carries no uncertainty about donor choice -- and it turned out the draw
 handed most targets a donor whose own model was WEAKER than theirs (binding AUROC 0.802 vs
@@ -9,7 +9,7 @@ with "my head was trained on more data than the donor's": gap vs log10(donor pai
 rho=-0.533 (p=1.9e-04), and where the donor is the stronger model the gap is -0.0025 (9/18,
 p=1.00).
 
-WHAT THIS FIXES. Five donors per target, drawn to SPAN the donor-quality range rather than
+What this fixes. Five donors per target, drawn to SPAN the donor-quality range rather than
 matched to it. Matching was the obvious fix and it is the wrong one twice over: it destroys
 the variance needed to estimate the quality slope, and the pool is thin exactly where it
 matters -- only 36/44 powered targets have five donors within |dlog10 pairs|<=0.15 AND

@@ -2,7 +2,7 @@
 
     python scripts/baseline_order.py --n 30
 
-THE OBJECTION, AND IT IS THE SHARPEST ONE ANYONE MADE ABOUT WHAT THE QUANTITY IS. A bag of
+The objection, and it is the sharpest one anyone made about what the quantity is. A bag of
 4-mer counts carries NO positional information. The composition baseline stops at order 2. So
 the headline "nested contribution of a sequence model over composition" is, definitionally,
 order-3-and-4 composition beyond order-1-and-2 composition -- and where the baseline stops is
@@ -13,12 +13,12 @@ a reason to believe the choice does not matter.
 Nobody had measured it. This does: refit the baseline at order 3 (mono + di + tri, 84
 features) and recompute the same nested contribution.
 
-WHAT IT COSTS THE PAPER. Roughly half of every arm's contribution and most of the R1 contrast.
+What it costs the paper. Roughly half of every arm's contribution and most of the R1 contrast.
 The word "sequence model" has to be qualified: what is measured is short-range compositional
 signal one order above wherever the matcher stopped, not motif recognition and not anything
 positional.
 
-WHAT IT DOES NOT COST. The FOLD RANGE, which is the paper's actual claim. Everything shrinks
+What it does not cost. The FOLD RANGE, which is the paper's actual claim. Everything shrinks
 roughly proportionally, so the protocol dependence is not an artefact of where the baseline
 stops. That is the result worth having: the magnitude is a function of an analyst's choice,
 the protocol dependence is not.
@@ -27,7 +27,7 @@ Subsampled by default because the order-3 fit is 82 features x 5 folds x 3 arms 
 The subsample is size-stratified and its own R1 contrast is reported next to the published one
 so the reader can see whether the subsample is representative.
 
-THE BASELINE HAS TO BE THE PAPER'S BASELINE. An earlier version of this script built its own
+The baseline has to be the paper's baseline. An earlier version of this script built its own
 composition block -- all 4 mono + all 16 dinucleotide frequencies, unstandardised, fed to
 sklearn's default LogisticRegression. That is three departures from `nested.composition_features`
 at once: a singular design matrix, no entropy column, and an L2 penalty applied to features on a
@@ -109,7 +109,7 @@ def main():
         if t.empty:
             sys.exit(f"{per} is empty; regenerate it with --store")
     else:
-        # FAIL LOUDLY RATHER THAN SILENTLY. The window store is ~3 GB and is not published, and
+        # Fail loudly rather than silently. The window store is ~3 GB and is not published, and
         # missing files used to be skipped one by one -- so on a clean clone this wrote an EMPTY
         # table over the committed evidence and then crashed on a zero-length bootstrap.
         if not (store / "processed" / "gc").exists():
@@ -207,7 +207,7 @@ def main():
 
     # THE POINT: the range is what the paper claims, and it must survive.
     #
-    # WITH INTERVALS, because the first version wrote NaN here and the prose then printed
+    # With intervals, because the first version wrote NaN here and the prose then printed
     # "5.34x -> 7.16x, the range WIDENS" as though it were point-identified. It is not: the
     # order-3 range's denominator is the neg2 order-3 mean of 0.0015, whose own interval spans
     # a factor of six, so the ratio is barely identified and a few bootstrap draws put the
@@ -244,7 +244,7 @@ def main():
     log(f"  change in fold range: [{lo:+.2f}, {hi:+.2f}]  P(<=0) = {(fin <= 0).mean():.2f}"
         f"  -> the DIRECTION is not resolved at n = {len(t)}")
 
-    # AND THE PER-DATASET SIGN, which a ratio of means cannot show. On neg2 the typical
+    # And the per-dataset sign, which a ratio of means cannot show. On neg2 the typical
     # dataset retains NOTHING over a trinucleotide baseline, and the positive panel mean is
     # carried by a handful of datasets.
     log("")
@@ -257,7 +257,7 @@ def main():
         out += [{"check": f"order-3 gain positive in, {arm} arm", "value": n_pos, "n": len(t)},
                 {"check": f"median per-dataset order-3/order-2 ratio, {arm} arm",
                  "value": med_ratio, "n": len(t)},
-                # THE SHARE IS NOT COMPARABLE ACROSS PANEL SIZES. Three of thirty datasets is
+                # The share is not comparable across panel sizes. Three of thirty datasets is
                 # a tenth of this panel; three of ninety-four is a thirty-second. Dividing by
                 # the share three datasets would hold under an even spread makes the number
                 # mean "times over-represented" and comparable with the full-panel version in
@@ -271,7 +271,7 @@ def main():
             f"median per-dataset ratio {med_ratio:+.3f}   top-3 carry {100 * top3:.0f}% of the "
             f"positive mass")
 
-    # AND THE SUBSAMPLE'S BLIND SPOT. Representativeness was argued from order-2 quantities
+    # And the subsample's blind spot. Representativeness was argued from order-2 quantities
     # only. The order-3 RETAINED FRACTION is size-dependent, and `head(30)` after `iloc[::3]`
     # deterministically discards the two largest datasets, so the removal is biased upward.
     from scipy.stats import spearmanr as _sp2

@@ -46,9 +46,9 @@ from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
 
 WORK = Path(os.environ.get("WORK_DIR", "/tmp/rbp"))
-# ONE MANIFEST PER JOB, keyed by a tag.
+# One manifest per job, keyed by a tag.
 #
-# WHY, AND IT COST A WRONG DESIGN TO LEARN. Cloud Batch does NOT hand out task indices in
+# Why, and it cost a wrong design to learn. Cloud Batch does NOT hand out task indices in
 # global order. Measured on a live 1,890-task job: completed indices were spread from 2 to
 # 1,582 with no sequential pattern -- Batch partitions the index space across nodes. So
 # ORDERING a manifest cannot control what finishes first, and an earlier "breadth ordering"
@@ -163,7 +163,7 @@ def do_manifest(a):
                 continue
             picked.append((cell, r["protein"], pairs))
 
-    # THE STUDY PANEL DECIDES MEMBERSHIP, if one exists. This used to be the --every flag
+    # The study panel decides membership, if one exists. This used to be the --every flag
     # below, and that was the root cause of the project carrying four different dataset
     # counts: the panel was an emergent property of a flag typed during one sweep, recorded
     # nowhere. scripts/select_panel.py now writes it once as an artefact and every stage
@@ -178,7 +178,7 @@ def do_manifest(a):
             log("ignoring --every: the study panel already defines membership")
             a.every = None
 
-    # SYSTEMATIC SAMPLE BY PAIR RANK, when a budget will not cover the whole panel.
+    # Systematic sample by pair rank, when a budget will not cover the whole panel.
     #
     # Cost scales with pairs, so a fixed budget buys a fraction of the panel. WHICH fraction
     # is a scientific decision, not a convenience. Taking the cheapest datasets would be the
@@ -316,7 +316,7 @@ def do_run(a):
 
     tcfg = cfg["train"]
     device = registry.device_of(a.device)
-    # REFUSE TO RUN ON CPU ON A GPU NODE. registry.device_of falls back to CPU when cuda is
+    # Refuse to run on CPU on a GPU node. registry.device_of falls back to CPU when cuda is
     # unavailable, which is right on a laptop and disastrous here: the node bills at V100
     # rates either way, the run is perhaps a hundred times slower, and nothing in the logs
     # says so. If the driver install failed or the container cannot see the device, that is
@@ -325,7 +325,7 @@ def do_run(a):
         sys.exit(f"no CUDA device visible (torch sees {device}); refusing to run a GPU "
                  f"task on CPU. Pass --device cpu if that is genuinely what you want.")
     log(f"  device {device}  {torch.cuda.get_device_name(0) if device.type == 'cuda' else ''}")
-    # SEED BEFORE BUILD, and this was wrong for the entire study.
+    # Seed before build, and this was wrong for the entire study.
     #
     # trainer.train() calls set_seed, but it does so AFTER this function has already
     # constructed the network -- so every weight was drawn from an unseeded RNG and
@@ -367,7 +367,7 @@ def do_run(a):
                     "accelerator": (torch.cuda.get_device_name(0)
                                     if device.type == "cuda" else device.type)})
 
-    # BENCH MODE UPLOADS NOTHING, and this exists because it already went wrong once.
+    # Bench mode uploads nothing, and this exists because it already went wrong once.
     #
     # A GPU timing probe was run with --epochs 2 --force to compare three accelerators on
     # one dataset. Each overwrote the last, and the survivor landed in the results table as
@@ -389,7 +389,7 @@ def do_run(a):
         gzip.compress(sc.to_csv(sep="\t", index=False).encode()),
         content_type="application/gzip")
 
-    # PERSIST THE TRAINED WEIGHTS. Not optional, and it was missing.
+    # Persist the trained weights. Not optional, and it was missing.
     #
     # trainer.train writes best.pt to the VM's disk and cloud_train deletes the mirrored
     # copy under ckpt/ once the run finishes, so the first 945 CNN runs produced scores and

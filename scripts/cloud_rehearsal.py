@@ -1,6 +1,6 @@
 """Stage 5 in the cloud: the composition control, one dataset per Batch task.
 
-WHAT THIS MEASURES, AND WHY IT IS THE POINT OF THE STUDY. A published RBP binding model
+What this measures, and why it is the point of the study. A published RBP binding model
 reports an AUROC. Some of that number is the protein's actual sequence preference and some
 of it is nothing but nucleotide composition -- binding sites are, on average, compositionally
 unlike the rest of the transcriptome, and a model can score well by noticing only that. This
@@ -13,7 +13,7 @@ step fits both arms out-of-fold on identical folds and reports the difference:
 The median delta across the panel is the headline. It needs no GPU, which is why it runs
 here rather than waiting on the sweep.
 
-WHY ONE DATASET PER TASK. Every dataset is independent, and the per-dataset cost is
+Why one dataset per task. Every dataset is independent, and the per-dataset cost is
 dominated by a cluster bootstrap that is itself serial. Same shape as cloud_prep.py, and it
 reuses the same manifest, staging, and completion-marker machinery -- which has now survived
 488 tasks and one mid-flight job deletion.
@@ -71,14 +71,14 @@ def do_manifest(a):
     not whatever happens to be on the laptop.
     """
     derived = buckets(a)
-    # THE STUDY PANEL, if one has been defined, decides membership. Without this filter the
+    # The study panel, if one has been defined, decides membership. Without this filter the
     # rehearsal would silently run on every dataset the arm produced while the expensive
     # arms ran on the sampled subset, and the four-model comparison would then be built
     # from two different populations. See docs/PANELS.md and scripts/select_panel.py.
     study = cloudcfg.study_panel(derived)
     if study is not None:
         log(f"filtering to the study panel: {len(study)} datasets")
-    # EVERY ARM IN ONE MANIFEST, with the arm carried on the row.
+    # Every arm in one manifest, with the arm carried on the row.
     #
     # This used to be one manifest per arm, which forced one Batch job per arm and therefore
     # a LOCAL process to wait for the first and submit the second. That makes the laptop part
@@ -177,7 +177,7 @@ def do_run(a):
     # Out-of-fold scores are written alongside the summary. Without them the DeLong
     # comparisons and any re-analysis would need the whole run repeating.
     sc = pd.DataFrame({"id": df.id, "label": y, "fold": folds, "score": res["scores"]})
-    # ACTUALLY COMPRESS IT. This said content_type="application/gzip" and uploaded plain
+    # Actually compress it. This said content_type="application/gzip" and uploaded plain
     # bytes, so 189 objects are named .gz, declare themselves gzip, and are not. Nothing
     # read them for a day, then cloud_train.py aggregate died on
     # `BadGzipFile: Not a gzipped file (b'id')`. A filename is not a format; if you claim
@@ -233,7 +233,7 @@ def do_aggregate(a):
     # Per cell line, as MEANS, because that is how doc 24 tabulates them and the point of
     # rerunning is to be able to compare directly.
     #
-    # NOTE ON A NUMBER THIS DOES NOT COMPUTE. The published "cost of proper matching",
+    # Note on a number this does not compute. The published "cost of proper matching",
     # -0.0975 in K562 and -0.0998 in HepG2, is the model's AUROC on the GC-matched arm
     # minus its AUROC on the dinucleotide-matched arm. It needs BOTH arms and therefore
     # cannot come out of a single-arm run. An earlier version of this function printed

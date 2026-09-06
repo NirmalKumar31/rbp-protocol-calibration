@@ -3,7 +3,7 @@
     python scripts/gene_clustered_cv.py
     python scripts/gene_clustered_cv.py --from-cache
 
-THE OBJECTION, AND WHY ITS FIRST HALF IS ANSWERED BY CONSTRUCTION. Windows from one gene are
+The objection, and why its first half is answered by construction. Windows from one gene are
 correlated, so a fold assignment that puts a gene's windows on both sides of the split leaks.
 Every number in this paper uses chromosome-grouped folds from a frozen assignment, and a gene
 lies on one chromosome, so chromosome grouping is strictly COARSER than gene grouping: no gene
@@ -17,7 +17,7 @@ and it is what a reviewer asking for gene-clustered CV would get. So the gene-cl
 here is the LESS conservative design, and its agreement with the published number bounds what
 the coarser choice costs rather than validating it.
 
-THE CONTROL THAT MAKES IT A COMPARISON. The frozen assignment is refit through this same code
+The control that makes it a comparison. The frozen assignment is refit through this same code
 path and must return the published contrast. Without it, two agreeing numbers would show only
 that this script agrees with itself, which is the error B6 was written to avoid.
 
@@ -233,7 +233,7 @@ def main():
 
     log(f"\n=== B10: gene-clustered folds, n = {len(t)}, {len(uniq)} proteins ===\n")
 
-    # THE STRUCTURAL FACT, VERIFIED. A gene lies on one chromosome, so chromosome-grouped
+    # The structural fact, verified. A gene lies on one chromosome, so chromosome-grouped
     # folds cannot split one. Asserted as an exact zero over every window in both arms.
     span = int(sum(t[f"genes_spanning_folds_{arm}"].sum() for arm in ARM_DIR))
     wins = int(sum(t[f"windows_in_spanning_groups_{arm}"].sum() for arm in ARM_DIR))
@@ -252,7 +252,7 @@ def main():
     log("  families. Those are the one leakage channel chromosome grouping does NOT close,")
     log("  because near-identical sequence really does sit on both sides of the split.")
 
-    # THE CENSUS BEHIND THAT, straight from the gene index, so the explanation is a
+    # The census behind that, straight from the gene index, so the explanation is a
     # measurement and not a plausible story. Two distinct causes and they are worth
     # separating: the pseudo-autosomal region puts one name on chrX and chrY, and multi-copy
     # small-RNA families put one name on up to two dozen chromosomes.
@@ -275,7 +275,7 @@ def main():
             f"pseudo-autosomal pairs and the widest spans "
             f"{max((len(c) for c in multi.values()), default=0)} chromosomes")
 
-    # HOW MUCH FINER THE GENE GROUPING IS. Without this the agreement below could mean the
+    # How much finer the gene grouping is. Without this the agreement below could mean the
     # two designs are nearly the same design, which would make it uninformative.
     add("chromosomes split across folds by the gene-clustered design, dinucleotide arm",
         t.chroms_split_dn)

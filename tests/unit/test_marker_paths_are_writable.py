@@ -1,6 +1,6 @@
 """Every completion marker must land where its job's identity is allowed to write.
 
-WHY THIS TEST EXISTS. Stage 11 ran assign, score and phyloP to completion, uploaded all
+Why this test exists. Stage 11 ran assign, score and phyloP to completion, uploaded all
 three result tables, and then failed with
 
     403 rbp-analysis@... does not have storage.objects.create access to
