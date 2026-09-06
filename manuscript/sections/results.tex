@@ -1111,6 +1111,43 @@ bias-aware   & $+0.0130$ & $+0.0339$ & $+0.0122$ \\
 \end{tabular}
 \end{table}
 
+\subsection{The protocol effect replicates on 135 datasets this study never analysed}
+\label{sec:external}
+
+Everything above is measured on windows we built, with negatives our own matcher drew. The
+obvious reply is that the effect is a property of our construction. \citet{horlacher2023}
+release two negative-set constructions over the same positives for 223 ENCODE eCLIP datasets:
+\texttt{negative-1}, uniform positions from transcripts carrying a site of the target, and
+\texttt{negative-2}, the crosslink sites of other RBPs. Their windows, their peak calls, their
+negatives and their five-fold partition; our estimator, our 19-column composition baseline and
+our 4-mer, transported unchanged.
+
+135 of their datasets, covering 108 proteins, are not in our panel. On those, the nested
+contribution is $+0.0359$ (95\% CI $+0.0307$ to $+0.0420$) under \texttt{negative-1} and
+$+0.0213$ ($+0.0167$ to $+0.0272$) under \texttt{negative-2}, a span of $\mathbf{1.69}$-fold
+(95\% CI $1.41$ to $2.03$), with the composition baseline moving $0.8095$ to $0.7586$ in the
+same direction as ours. The criteria for calling that a replication were fixed in
+\texttt{docs/EXTERNAL\_BENCHMARK\_PROTOCOL.md} and committed before the benchmark was searched
+for: a span above $1.5$ with a lower interval bound above $1.2$. Both hold.
+
+Three things this does and does not establish, because the distinctions are load-bearing.
+
+It is an independent \emph{sample of proteins} analysed by an independent pipeline, which the
+45-dataset comparison we report elsewhere is not: that one is restricted to the intersection
+with our panel by design, so it is an independent \emph{construction} on the same proteins.
+Both are useful and they answer different questions.
+
+The magnitude is much smaller than ours, $1.69$ against $5.42$, and should be. Their two
+constructions are closer together than our three: both are transcript-resident, neither is
+composition-matched, and there are two rather than three. What transports is that the choice
+moves the measurement by a factor whose interval clears one, not the size of the factor.
+
+It remains ENCODE eCLIP in K562 and HepG2. It is not an independent assay, organism or cell
+type, so the scope of the claim is unchanged: it is calibrated for eCLIP-derived panels. And
+it bears on protocol dependence only. The directional relation of Section~\ref{sec:families},
+that harder apparent discrimination yields larger measured contribution, still does not
+replicate on this benchmark and is still reported as not replicating.
+
 \subsection{The ordering survives every aggregation and subset choice we made without arguing
 for it}
 \label{sec:sensitivity}

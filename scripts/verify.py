@@ -2247,6 +2247,80 @@ def verify_protocol_transport(T, g):
 
 
 
+def verify_external_replication(T, g):
+    """Claim A on 135 datasets this study never touched, under another group's negative sets.
+
+    THE ONE ANALYSIS HERE WHOSE CRITERIA WERE FIXED BEFORE THE DATA WERE SEEN, and the only one
+    that can be described that way. docs/EXTERNAL_BENCHMARK_PROTOCOL.md was committed at e76a80c
+    with no result in it; the thresholds asserted below are quoted from it. That is an ordering
+    of two repository commits and not a registration, which Methods says in those words.
+
+    What it tests is Claim A, that measured contribution is protocol-indexed. It does NOT test
+    Claim B, the directional relation, which fails on this benchmark and stays labelled failing.
+    """
+    print("\nexternal replication  (Claim A on datasets outside our panel)")
+    d = T.get("external_replication.csv")
+    if d is None:
+        return record(False, "external_replication.csv present", "MISSING",
+                      "run scripts/external_replication.py")
+    spec = g["external_replication"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("datasets")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets outside our panel", int(n),
+               spec["n_datasets"])
+        record(int(n) >= spec["min_datasets"], "the sample is large enough for a panel mean",
+               int(n), f">= {spec['min_datasets']}")
+    pr = get("proteins")
+    if pr is not None:
+        record(int(pr) == spec["n_proteins"], "proteins, the resampled unit", int(pr),
+               spec["n_proteins"])
+    # CRITERION 1 IS THE WHOLE POINT. horlacher_arm.py's 45 datasets are all inside our panel,
+    # which is why that table is an independent construction and not an independent sample.
+    ov = get("overlap with our study panel")
+    if ov is not None:
+        record(int(ov) == spec["overlap_with_our_panel"],
+               "zero overlap with our study panel, which criterion 1 requires",
+               int(ov), spec["overlap_with_our_panel"])
+    for row, key in (("nested contribution, negative-1 (bias-agnostic)", "gain_n1"),
+                     ("nested contribution, negative-2 (bias-aware)", "gain_n2")):
+        v = get(row)
+        if v is not None:
+            near(row.split(",")[1].strip(), v, spec[key])
+
+    s = get("SPAN across their two negative-set constructions")
+    if s is None:
+        return
+    near("span across their two constructions", s, spec["span"])
+    lo, hi = q.loc["SPAN across their two negative-set constructions", ["ci_low", "ci_high"]]
+    try:
+        lo, hi = float(lo), float(hi)
+    except (TypeError, ValueError):
+        return record(False, "the external span has an interval", "empty", "an interval")
+    elo, ehi = spec["span_ci"]
+    record(abs(lo - elo) < 0.05 and abs(hi - ehi) < 0.05, "the external span's 95% interval",
+           f"[{lo:.3f}, {hi:.3f}]", f"[{elo:.3f}, {ehi:.3f}]")
+    # THE PRE-FIXED DECISION, re-derived here rather than read out of the table, so that the
+    # verdict the paper quotes is recomputed from the thresholds on every run.
+    record(s > spec["support_span_floor"] and lo > spec["support_ci_low_floor"],
+           "Claim A meets the criteria fixed before the search",
+           f"span {s:.3f}, CI low {lo:.3f}",
+           f"span > {spec['support_span_floor']}, CI low > {spec['support_ci_low_floor']}")
+    record(not (lo < 1.0 < hi), "the external interval excludes 1.0",
+           f"[{lo:.3f}, {hi:.3f}]", "excludes 1")
+    v = get("protocol verdict for Claim A on an independent sample")
+    if v is not None:
+        record(v == 1.0, "the table's recorded verdict agrees with the recomputed one",
+               v, 1.0)
+
+
 def verify_sensitivity_suite(T, g):
     """The headline under every aggregation and subset choice nobody argued for.
 
@@ -5124,7 +5198,7 @@ def main():
              verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
              verify_cross_fitting, verify_positive_set_overlap, verify_common_positives,
              verify_protocol_transport, verify_negative_draws, verify_homology_folds,
-             verify_sensitivity_suite,
+             verify_sensitivity_suite, verify_external_replication,
              verify_cache_evidence, verify_cross_tables, verify_integrity)
     n_paper = None
     for fn in (PAPER + LEGACY):

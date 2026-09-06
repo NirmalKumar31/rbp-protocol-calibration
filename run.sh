@@ -334,6 +334,10 @@ s13b_local_analysis() {
   # Every aggregation and subset choice behind the headline that was made once and never
   # argued for. Reads only committed per-dataset tables, so it runs anywhere.
   "$PY" scripts/sensitivity_suite.py || die "sensitivity suite"
+  # The external-benchmark search record, and the replication on the datasets our panel does
+  # not contain. --from-cache because rebuilding needs the genome and the Horlacher deposit.
+  "$PY" scripts/external_search.py || die "external search record"
+  "$PY" scripts/external_replication.py --from-cache || die "external replication"
   "$PY" scripts/column_dictionary.py || die "column dictionary"
   # OFFLINE audit of the raw-input manifest: structure, coverage against the study panel, and
   # no credential-shaped string. Rebuilding it needs bucket access (--from-gcs); checking what

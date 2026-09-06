@@ -77,9 +77,8 @@ def disjoint_datasets():
 
 
 def build(limit=0):
-    from pyfaidx import Fasta
-
     from horlacher_arm import build as build_arm
+    from pyfaidx import Fasta
     if not GENOME.exists():
         sys.exit(f"no genome at {GENOME}")
     fa = Fasta(str(GENOME), as_raw=True, sequence_always_upper=True)

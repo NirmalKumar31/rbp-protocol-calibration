@@ -2602,6 +2602,33 @@ protocol_transport:
   max_lopo_shift_panel:       0.040
   max_lopo_shift_per_dataset: 0.015
 
+# THE EXTERNAL REPLICATION OF CLAIM A, on datasets our panel does not contain.
+#
+# WHAT MAKES THIS DIFFERENT FROM horlacher_arm.csv. That table measures the same quantity on the
+# 45 datasets our panel and theirs share, which is an independent CONSTRUCTION on the same
+# proteins. This is the complement: the 135 Horlacher ENCODE datasets our study panel does not
+# contain, 108 proteins, zero overlap. The protocol in docs/EXTERNAL_BENCHMARK_PROTOCOL.md,
+# committed at e76a80c before the search, fixes the thresholds gated below.
+#
+# THE MAGNITUDE IS MUCH SMALLER THAN OURS AND THAT IS EXPECTED, NOT A WEAKNESS TO BE HIDDEN.
+# 1.69-fold against our 5.42. Their two constructions are closer together than our three: both
+# are transcript-resident, neither is composition-matched, and there are two of them rather than
+# three. The protocol's criterion is presence with a lower bound clear of 1.2, not agreement in
+# magnitude, and the magnitude is asserted here only loosely for that reason.
+external_replication:
+  n_datasets: 135
+  n_proteins: 108
+  overlap_with_our_panel: 0            # MUST be zero, or criterion 1 is not met
+  gain_n1: {value: 0.0359, tol: 0.0015}
+  gain_n2: {value: 0.0213, tol: 0.0015}
+  span: {value: 1.691, tol: 0.06}
+  span_ci: [1.411, 2.032]
+  # The pre-fixed decision rule. Gated as the thresholds, not as the outcome, so that a future
+  # rerun that fails them fails the build instead of quietly reporting a different verdict.
+  support_span_floor: 1.5
+  support_ci_low_floor: 1.2
+  min_datasets: 20
+
 # THE SENSITIVITY SUITE. Every aggregation and subset choice behind the headline that was made
 # once and never argued for: the mean rather than the median, both cell lines pooled, all 94
 # datasets, equal weight per dataset. None was preregistered, so a referee is entitled to ask.

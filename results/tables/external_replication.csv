@@ -1,0 +1,11 @@
+check,value,ci_low,ci_high,n,note
+datasets,135.0,,,135,Horlacher ENCODE datasets outside our 94-dataset study panel
+proteins,108.0,,,135,the resampled unit
+overlap with our study panel,0.0,,,135,zero by construction; this is what criterion 1 of the protocol asks for and what horlacher_arm.py's 45-dataset intersection does not have
+"nested contribution, negative-1 (bias-agnostic)",0.03594893812470928,0.030707892522477652,0.041965439226109666,135,
+"nested contribution, negative-2 (bias-aware)",0.021256620068192084,0.01667856349916528,0.027155805623039188,135,
+"composition baseline, negative-1",0.8094555140214018,0.7949698283648691,0.8234474530397529,135,
+"composition baseline, negative-2",0.7585666442797683,0.7426968119635049,0.7749731341537173,135,
+"CONTRAST, negative-1 minus negative-2",0.014692318056517195,0.010255418349714239,0.01905649798579638,135,
+SPAN across their two negative-set constructions,1.691187875089438,1.4111001059134676,2.031879450855265,135,"the protocol's primary estimand, transported unchanged: ratio of the two arms' panel means, protein-clustered percentile interval"
+protocol verdict for Claim A on an independent sample,1.0,,,135,"supported; criteria fixed in docs/EXTERNAL_BENCHMARK_PROTOCOL.md at commit e76a80c: supported if span > 1.5 and CI low > 1.2, fails if the interval contains 1.0, indeterminate otherwise or if fewer than 20 datasets qualify"
