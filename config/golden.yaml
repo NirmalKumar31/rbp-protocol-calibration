@@ -2583,7 +2583,24 @@ protocol_transport:
   share_train: {value: 0.152, tol: 0.020}
   share_eval:  {value: 0.627, tol: 0.030}
   share_inter: {value: 0.222, tol: 0.025}
-  share_eval_panel: {value: 0.807, tol: 0.030}   # the other weighting, reported beside it
+  # THE PANEL-MEAN DECOMPOSITION IS A SECOND ESTIMAND, not a reweighting of the first, and it
+  # was described in the abstract as "weighting datasets by effect size". Decomposing the matrix
+  # of panel means is not equivalent to any specified weighted average of the dataset-level
+  # shares. It also carried no interval, on the stated ground that it "is a function of means"
+  # -- which is true of nearly every quantity here. The protein-clustered bootstrap resamples
+  # proteins, recomputes the panel means and decomposes those; the bounds below are gated so the
+  # interval cannot quietly disappear again.
+  share_train_panel: {value: 0.092, tol: 0.015}
+  share_eval_panel:  {value: 0.807, tol: 0.030}
+  share_inter_panel: {value: 0.101, tol: 0.015}
+  share_eval_panel_ci:  [0.730, 0.869]
+  share_train_panel_ci: [0.062, 0.129]
+  share_inter_panel_ci: [0.068, 0.144]
+  # LEAVE-ONE-PROTEIN-OUT. No single protein carries the 81%: the largest displacement any one
+  # of the 79 causes is 3.0 percentage points, and 0.8 under the per-dataset weighting. Gated as
+  # a ceiling, so a future panel in which one protein DOES carry it fails rather than passes.
+  max_lopo_shift_panel:       0.040
+  max_lopo_shift_per_dataset: 0.015
 
 # THE COMMON-POSITIVE SENSITIVITY. The review's P1.1: the protocols do not vary ONLY the
 # negatives, because the matchers reject different positives, and a qualitative reason for

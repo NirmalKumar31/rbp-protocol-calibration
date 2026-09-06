@@ -133,9 +133,12 @@ because the corrected estimator below is affordable only for the k-mer classes. 
 apparent AUROC moves the opposite way: replacing GC-matched with dinucleotide-matched negatives
 lowers the 4-mer's own AUROC from 0.798 to 0.688 in all 94 datasets while raising its measured
 contribution from 0.027 to 0.066 in 88. Fitting on one protocol and scoring another attributes
-most of the movement to the evaluation protocol rather than the fitted model: 63\% of a
-per-dataset variance decomposition, or 81\% weighting datasets by effect size, against 15\% and
-9\% for the training protocol.
+most of the movement to the evaluation protocol rather than the fitted model, under two
+decompositions that are different estimands rather than two weightings of one: averaging each
+dataset's own normalised shares gives $62.7\%$ (95\% CI 56.6 to 68.4) against $15.2\%$ for the
+training protocol, and decomposing the matrix of panel means gives $80.7\%$ (73.0 to 86.9)
+against $9.2\%$. No single protein moves either evaluation share by more than 3.0 percentage
+points.
 
 The estimator also has a floor. Applied to a 2-mer, whose true contribution is zero because the
 baseline spans its features, it returns $+0.011$ to $+0.014$: 90.4\% of the smallest protocol's

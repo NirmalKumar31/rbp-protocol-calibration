@@ -192,24 +192,70 @@ def main():
     add("share of variance from their INTERACTION, per-dataset weighting",
         ss_in[good] / tot[good], W)
 
-    # THE OTHER WEIGHTING, because the choice is not neutral and naming one without the other
-    # invites the reader to assume there is only one answer. This decomposes the 3x3 matrix of
-    # PANEL MEANS, which weights datasets by how large their effect is. It gives a larger
-    # evaluation share and a smaller interaction; both are legitimate and they answer different
-    # questions. Reported so the dependence on weighting is visible rather than buried.
-    P = M.mean(axis=2)                                    # 3 x 3 panel means
-    mp = P.mean()
-    rp, cp = P.mean(axis=1) - mp, P.mean(axis=0) - mp
-    ip = P - P.mean(axis=1)[:, None] - P.mean(axis=0)[None, :] + mp
-    sp_tr, sp_ev, sp_in = 3 * (rp ** 2).sum(), 3 * (cp ** 2).sum(), (ip ** 2).sum()
-    tp = sp_tr + sp_ev + sp_in
-    for nm, v in (("TRAINING", sp_tr), ("EVALUATION", sp_ev), ("INTERACTION", sp_in)):
+    # THE SECOND ESTIMAND. The one above averages each dataset's own normalised shares. This
+    # one decomposes the single 3x3 matrix of PANEL MEANS. They are different quantities, not
+    # two weightings of one quantity, and they answer different questions; both are reported so
+    # the dependence on the choice is visible rather than buried.
+    #
+    # TWO THINGS AN AUDIT GOT RIGHT ABOUT THIS BLOCK.
+    #
+    # It was described, here and in the abstract, as "weighting datasets by effect size". That
+    # is not what it does. Averaging the nine cells over datasets and then decomposing the
+    # resulting matrix is not equivalent to any specified weighted average of the dataset-level
+    # shares, and averaging can cancel heterogeneous effects rather than weight them. Named for
+    # what it is: the decomposition of the matrix of panel means.
+    #
+    # And it carried no interval, on the stated ground that it "is a function of means rather
+    # than a per-dataset value". That is not a statistical reason. Almost every quantity in
+    # this release is a function of sample quantities; the protein-clustered bootstrap already
+    # running above resamples proteins, recomputes the panel means from the resampled datasets,
+    # and decomposes those. Which is all this needed.
+    def panel_decomp(idx):
+        P = M[:, :, idx].mean(axis=2)
+        mp = P.mean()
+        rp, cp = P.mean(axis=1) - mp, P.mean(axis=0) - mp
+        ip = P - P.mean(axis=1)[:, None] - P.mean(axis=0)[None, :] + mp
+        s = np.array([3 * (rp ** 2).sum(), 3 * (cp ** 2).sum(), (ip ** 2).sum()])
+        return s / s.sum()
+
+    pt = panel_decomp(np.arange(M.shape[2]))
+    B = np.array([panel_decomp(i) for i in draws])
+    lo, hi = np.percentile(B, [2.5, 97.5], axis=0)
+    NOTE = ("decomposition of the 3x3 matrix of panel means, which is a DIFFERENT ESTIMAND from "
+            "the per-dataset one above and not a reweighting of it; 95% protein-clustered "
+            "percentile interval, 4000 draws, resampling proteins and recomputing the panel "
+            "means within each draw")
+    for k, nm in enumerate(("TRAINING", "EVALUATION", "INTERACTION")):
         out.append({"check": f"share of variance from the {nm} protocol, panel-mean weighting"
                              if nm != "INTERACTION" else
                              "share of variance from their INTERACTION, panel-mean weighting",
-                    "value": float(v / tp), "ci_low": "", "ci_high": "", "n": len(t),
-                    "note": "decomposition of the 3x3 matrix of panel means; no interval, "
-                            "because it is a function of means rather than a per-dataset value"})
+                    "value": float(pt[k]), "ci_low": float(lo[k]), "ci_high": float(hi[k]),
+                    "n": len(t), "note": NOTE})
+
+    # LEAVE-ONE-PROTEIN-OUT INFLUENCE. An interval says how much the estimate moves under
+    # resampling; it does not say whether one protein is carrying it. 79 proteins, so 79 refits
+    # of both decompositions, and what is reported is the largest displacement any single
+    # protein causes and which protein causes it. Cheap, and it is the diagnostic a referee
+    # asks for when a share is as large as 81%.
+    for label, fn in (("panel-mean", panel_decomp),
+                      ("per-dataset", lambda idx: np.array([
+                          (ss_tr[idx][tot[idx] > 0] / tot[idx][tot[idx] > 0]).mean(),
+                          (ss_ev[idx][tot[idx] > 0] / tot[idx][tot[idx] > 0]).mean(),
+                          (ss_in[idx][tot[idx] > 0] / tot[idx][tot[idx] > 0]).mean()]))):
+        base = fn(np.arange(M.shape[2]))
+        worst = {"TRAINING": (0.0, ""), "EVALUATION": (0.0, ""), "INTERACTION": (0.0, "")}
+        for q, mem in zip(uniq, members):
+            keep = np.setdiff1d(np.arange(M.shape[2]), mem)
+            d = fn(keep) - base
+            for k, nm in enumerate(("TRAINING", "EVALUATION", "INTERACTION")):
+                if abs(d[k]) > abs(worst[nm][0]):
+                    worst[nm] = (float(d[k]), str(q))
+        for nm, (d, q) in worst.items():
+            out.append({"check": f"largest leave-one-protein-out shift in the {nm} share, "
+                                 f"{label}",
+                        "value": d, "ci_low": "", "ci_high": "", "n": len(uniq),
+                        "note": f"dropping {q} and all its datasets; signed, so the sign is the "
+                                "direction the share moves when that protein is removed"})
 
     # The marginal ranges are kept as the descriptive quantities they are, unnormalised, so a
     # reader can see the raw movement without a ratio being read as a partition.

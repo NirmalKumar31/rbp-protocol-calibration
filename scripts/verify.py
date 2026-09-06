@@ -2179,12 +2179,56 @@ def verify_protocol_transport(T, g):
     st = get("share of variance from the TRAINING protocol, per-dataset weighting")
     se = get("share of variance from the EVALUATION protocol, per-dataset weighting")
     si = get("share of variance from their INTERACTION, per-dataset weighting")
-    # THE OTHER WEIGHTING, asserted too, because reporting one share without the other invites
-    # the reader to think the decomposition has a single answer. It does not: weighting datasets
-    # by effect size moves evaluation from 63% to 81% and the interaction from 22% to 10%.
-    pe = get("share of variance from the EVALUATION protocol, panel-mean weighting")
-    if pe is not None:
-        near("variance share, evaluation, panel-mean weighting", pe, spec["share_eval_panel"])
+    # THE SECOND ESTIMAND, asserted in full. Reporting one share without the other invites the
+    # reader to think the decomposition has a single answer; it does not. Decomposing the matrix
+    # of panel means moves evaluation from 63% to 81% and the interaction from 22% to 10%. That
+    # is a different quantity, not a reweighting of the first, and it is not "weighting datasets
+    # by effect size", which is what the abstract used to call it.
+    # KEYS SPELLED LITERALLY, not built with an f-string. tests/unit/test_golden_keys_are_read.py
+    # scans this file for the key names, so a key reached only as f"{key}_ci" reads to it as
+    # declared-but-never-used and fails the build. That test exists because keys HAVE been
+    # declared and never read.
+    for nm, key, ci_key, label in (
+            ("TRAINING", "share_train_panel", "share_train_panel_ci", "training"),
+            ("EVALUATION", "share_eval_panel", "share_eval_panel_ci", "evaluation"),
+            ("INTERACTION", "share_inter_panel", "share_inter_panel_ci", "interaction")):
+        row = (f"share of variance from the {nm} protocol, panel-mean weighting"
+               if nm != "INTERACTION" else
+               "share of variance from their INTERACTION, panel-mean weighting")
+        v = get(row)
+        if v is None:
+            continue
+        near(f"variance share, {label}, matrix of panel means", v, spec[key])
+        # AND THE INTERVAL, which this quantity did not have. Gating the bounds is what stops
+        # the "no interval, because it is a function of means" note coming back.
+        lo, hi = q.loc[row, "ci_low"], q.loc[row, "ci_high"]
+        try:
+            lo, hi = float(lo), float(hi)
+        except (TypeError, ValueError):
+            record(False, f"panel-mean {label} share has an interval", "empty",
+                   "a protein-clustered percentile interval")
+            continue
+        exp_lo, exp_hi = spec[ci_key]
+        record(abs(lo - exp_lo) < 0.02 and abs(hi - exp_hi) < 0.02,
+               f"panel-mean {label} share, 95% interval", f"[{lo:.3f}, {hi:.3f}]",
+               f"[{exp_lo:.3f}, {exp_hi:.3f}]")
+        record(lo < v < hi, f"panel-mean {label} share lies inside its interval",
+               f"{v:.3f} in [{lo:.3f}, {hi:.3f}]", "inside")
+
+    # LEAVE-ONE-PROTEIN-OUT, as a CEILING rather than a value: what matters is that no single
+    # protein carries a share, and a tolerance around a point estimate would not say that.
+    for label, cap in (("panel-mean", spec["max_lopo_shift_panel"]),
+                       ("per-dataset", spec["max_lopo_shift_per_dataset"])):
+        shifts = [abs(float(q.loc[k, "value"])) for k in q.index
+                  if k.startswith("largest leave-one-protein-out shift")
+                  and k.endswith(label)]
+        if not shifts:
+            record(False, f"leave-one-protein-out diagnostics present, {label}", "MISSING",
+                   "three rows")
+            continue
+        record(max(shifts) < cap,
+               f"no single protein moves a {label} share by more than {cap:.1%}",
+               f"{max(shifts):.4f}", f"< {cap:.3f}")
     if st is not None:
         near("variance share, training protocol", st, spec["share_train"])
     if se is not None:

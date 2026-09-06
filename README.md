@@ -25,9 +25,12 @@ The primary claim is that a model's **measured** contribution over a composition
 depends strongly on how the negative windows were built: 5.42-fold across three protocols for a
 4-mer, while its apparent AUROC moves the opposite way. A two-way decomposition of the nine
 train-by-evaluate combinations attributes most of the movement to the **evaluation** protocol
-rather than the fitted model — 63% weighting datasets equally, 81% weighting them by effect
-size, against 15% and 9% for training — so most of what the protocol moves is the measurement
-(`sec:transport`). It is descriptive, not causal.
+rather than the fitted model. Two decompositions, which are different estimands and not two
+weightings of one: averaging each dataset's own normalised shares gives 63% (CI 57 to 68)
+against 15% for training, and decomposing the matrix of panel means gives 81% (73 to 87)
+against 9%. Leave-one-protein-out moves the larger share by at most 3.0 points, so no one
+protein carries it. Most of what the protocol moves is the measurement (`sec:transport`).
+It is descriptive, not causal.
 
 - **Verifiable offline, in one command, in under a minute:** every published number, against
   committed tables. That is regression checking, not independent reproduction.

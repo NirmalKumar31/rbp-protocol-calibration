@@ -1043,14 +1043,23 @@ within-arm contributions exactly, which is what makes the off-diagonal cells com
 them. Holding the evaluation arm fixed and varying the training arm moves the contribution by
 0.0141; holding the training arm fixed and varying the evaluation arm moves it by 0.0438.
 
-A balanced two-way decomposition puts a number on that, and the number depends on how datasets
-are weighted, so we give both. Decomposing each dataset's own $3\times3$ matrix and averaging
-the resulting shares over datasets, which weights every dataset equally, attributes $62.7\%$ of
-the variance to the evaluation protocol (95\% CI 56.6 to 68.4), $15.2\%$ to the training
-protocol (12.7 to 17.8) and $22.2\%$ to their interaction (18.2 to 26.4). Decomposing the
-$3\times3$ matrix of panel means instead, which weights a dataset by the size of its effect,
-gives $80.7\%$, $9.2\%$ and $10.1\%$; that form has no interval, being a function of means
-rather than a per-dataset quantity. The evaluation protocol dominates under either, and the
+A balanced two-way decomposition puts a number on that, and there are two of them. They are
+different estimands rather than two weightings of one quantity, so we give both and name each.
+
+The first decomposes each dataset's own $3\times3$ matrix and averages the resulting shares over
+datasets, which weights every dataset equally: $62.7\%$ of the variance to the evaluation
+protocol (95\% CI 56.6 to 68.4), $15.2\%$ to the training protocol (12.7 to 17.8) and $22.2\%$
+to their interaction (18.2 to 26.4). The second decomposes the single $3\times3$ matrix of panel
+means: $80.7\%$ (73.0 to 86.9), $9.2\%$ (6.2 to 12.9) and $10.1\%$ (6.8 to 14.4). Both intervals
+are protein-clustered percentile bootstraps over 4000 draws, resampling proteins and, for the
+second, recomputing the panel means inside each draw. We previously described the second as
+weighting datasets by effect size, and it does not: averaging the nine cells and then
+decomposing the result is not equivalent to any specified weighted average of the dataset-level
+shares, and averaging can cancel heterogeneous effects rather than weight them.
+
+Leave-one-protein-out across all 79 proteins moves the evaluation share by at most $3.0$
+percentage points under the panel-mean decomposition and $0.8$ under the per-dataset one, so
+neither is carried by a single protein. The evaluation protocol dominates under both, and the
 interaction is between a tenth and a fifth of the variance rather than negligible.
 
 The two effects are not merely unequal, they are different in kind. Training on GC-matched or
