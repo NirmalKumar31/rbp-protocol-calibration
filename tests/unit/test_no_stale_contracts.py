@@ -302,3 +302,21 @@ def test_the_history_scan_counts_are_generated_not_typed():
         assert k in rows, f"{k} is missing from the scan"
         assert f"**{rows[k]} " in sec or f"**{rows[k]}**" in sec, (
             f"SECURITY.md does not state the scanned value for {k} ({rows[k]})")
+
+
+def test_the_history_scan_degrades_honestly_without_git():
+    """The archival case. It crashed with a traceback there, and run.sh gates on it.
+
+    A git export, a Zenodo deposit or a tarball has the files and no .git, so `git rev-list`
+    exits 128. The scan must neither crash nor silently pass: there is no history present to be
+    clean or dirty, so it reports the committed finding and says it could not rescan. The third
+    time this repository has been bitten at the boundary between "cannot look" and "found
+    nothing", and the first time in code written to warn about that boundary.
+    """
+    src = _read("scripts/history_scan.py")
+    assert 'if not (ROOT / ".git").exists():' in src, (
+        "history_scan.py does not handle a tree without .git, so it raises inside any "
+        "unpacked archive and takes run.sh with it")
+    assert "no .git and no committed history_scan.csv" in src, (
+        "with neither git nor the committed table, nothing establishes what the history "
+        "contains, and that must fail rather than pass quietly")

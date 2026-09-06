@@ -119,6 +119,34 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
+
+    # AN UNPACKED ARCHIVE HAS NO HISTORY TO SCAN, and this crashed with a traceback there.
+    # A git export, a Zenodo deposit, a tarball: the files are present and .git is not, so
+    # `git rev-list` exits 128 and _git raises. run.sh gates on this script, so the documented
+    # pipeline died in exactly the archival case the release is meant to be checked in --
+    # which is the third time this repository has been bitten by the boundary between "cannot
+    # look" and "found nothing", and the first time in code written to warn about it.
+    #
+    # The right answer is neither a crash nor a pass. There is no history here to be clean or
+    # dirty, so say so, and fall back to reporting the committed finding, which IS in the
+    # archive. If neither git nor the table is present, that is a real failure: nothing
+    # establishes what the history contains.
+    if not (ROOT / ".git").exists():
+        if not OUT.exists():
+            log("  no .git and no committed history_scan.csv: nothing establishes what this "
+                "repository's history contains. Run this in a clone.")
+            sys.exit(1)
+        with OUT.open(newline="") as fh:
+            have = {r["check"]: r["value"] for r in csv.DictReader(fh)}
+        cred = have.get("commits containing credential material of any kind")
+        log("  no .git in this tree, so the history cannot be rescanned here. Reporting the "
+            f"committed scan: {have.get('commits on all refs', '?')} commits, "
+            f"{cred} carrying credential material.")
+        if cred not in ("0", 0):
+            log("  THE COMMITTED SCAN RECORDS CREDENTIAL MATERIAL. Stop and rotate.")
+            sys.exit(1)
+        return
+
     rows = scan()
     for r in rows:
         log(f"  {r['check']:52s} {r['value']}")
