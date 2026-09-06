@@ -131,3 +131,43 @@ def test_exit_zero_is_not_described_as_raw_reproduction():
     assert "Exit 0 means the science reproduced." not in t, (
         "run.sh regression-verifies most tables against committed evidence rather than "
         "rebuilding them from raw inputs; PROVENANCE.csv says which is which")
+
+
+def test_the_image_gate_resolves_an_absolute_interpreter():
+    """P0.4. `env PATH=/nonexistent python3` can never find python3.
+
+    run.sh gates the paid image build on this script, so a gate that cannot start is a rebuild
+    path that is documented and does not run. It failed for everyone, every time, with
+    `env: python3: No such file or directory`, and nothing noticed because nothing ran it.
+    """
+    t = _read("scripts/check_image_tree.sh")
+    assert 'PY="${PY:-python3}"' not in t, (
+        "PY must be resolved to an absolute path with command -v BEFORE PATH is emptied")
+    assert "command -v" in t, "the interpreter is not being resolved at all"
+
+
+def test_the_image_gate_runs_both_build_selections():
+    """P0.4. One simulation cannot stand in for two different images."""
+    t = _read("scripts/check_image_tree.sh")
+    assert "cloudbuild.cpu.yaml" in t, (
+        "the CPU build's --ignore list must be read from the build file, not copied here, "
+        "or the simulation drifts from the thing it simulates")
+    cpu = _read("docker/cloudbuild.cpu.yaml")
+    ignores = re.findall(r"--ignore=tests/[A-Za-z0-9_/.]+", cpu)
+    assert ignores, (
+        "the parser in check_image_tree.sh finds the CPU ignore list with this pattern; if "
+        "cloudbuild.cpu.yaml stops matching it, the gate fails closed but for the wrong reason")
+
+
+def test_the_neural_stack_is_an_extra_not_a_base_dependency():
+    """P0.4. `pip install -e . -c constraints.txt` used to install torch regardless."""
+    tomllib = pytest.importorskip("tomllib")
+    d = tomllib.loads(_read("pyproject.toml"))
+    base = " ".join(d["project"]["dependencies"])
+    for pkg in ("torch", "transformers", "multimolecule", "peft"):
+        assert pkg not in base, (
+            f"{pkg} is a base dependency, so the offline verification install is not minimal. "
+            "constraints.txt has always claimed it is")
+    assert "neural" in d["project"]["optional-dependencies"]
+    rp = d["project"]["requires-python"]
+    assert "<" in rp, f"requires-python {rp!r} has no upper bound"

@@ -144,12 +144,19 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: "3.13"
+      # PINNED TO THE REPRODUCTION ENVIRONMENT. These two were unpinned, so this job validated
+      # against whatever torch and transformers happened to be current on the day it ran, which
+      # is the opposite of what a release gate is for: a silent upstream change would surface as
+      # a red build on an unrelated commit, or worse, a green build on a stack nobody shipped.
+      # torch 2.13.0 is the version in pytorch/pytorch:2.13.0-cuda12.6-cudnn9-runtime, the GPU
+      # image's base, and transformers 5.15.1 is docker/requirements-gpu.txt's pin. The CPU
+      # wheel of the same torch version is enough here; nothing in the suite needs a device.
       - name: install with torch
         run: |
           python -m pip install --upgrade pip
           pip install -r docker/requirements-cpu.txt
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install transformers
+          pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install transformers==5.15.1
       - name: full unit suite
         env:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project

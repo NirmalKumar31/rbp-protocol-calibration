@@ -106,6 +106,21 @@ def test_no_table_is_left_unattributed_by_accident():
 
 
 def test_check_mode_agrees_with_the_committed_manifest():
+    """THE CONTAINER HAS NO run.sh AND NO results/, so this cannot run there.
+
+    provenance.py reads run.sh to learn which stage writes which table. The Dockerfiles copy
+    config/, src/, scripts/, tests/, docker/bake_weights.py and pyproject.toml, and nothing
+    else. So inside the image this raised FileNotFoundError, exited non-zero, and failed the
+    build's test step -- which is to say the GPU image had been unbuildable and was therefore
+    silently stale, for the second time, by the same mechanism.
+
+    It was invisible because scripts/check_image_tree.sh, the gate that exists to catch exactly
+    this, could not run: it invoked a bare `python3` under an emptied PATH. Fixing the gate
+    surfaced this within a minute. Skip where the inputs are absent rather than assume them.
+    """
+    for need in ("run.sh", "results/tables/PROVENANCE.csv"):
+        if not (ROOT / need).exists():
+            pytest.skip(f"{need} is not in this file set, so provenance cannot be checked")
     r = subprocess.run([sys.executable, str(ROOT / "scripts" / "provenance.py"), "--check"],
                        cwd=ROOT, capture_output=True, text=True,
                        env={"PATH": "/usr/bin:/bin", "PYTHONPATH": str(ROOT / "src")})

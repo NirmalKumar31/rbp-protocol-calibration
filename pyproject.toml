@@ -25,7 +25,22 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
-requires-python = ">=3.11"
+# UPPER BOUND ON PURPOSE. This was ">=3.11" with no cap while the classifiers stopped at 3.13,
+# so the package advertised support for every Python yet to be released, including versions
+# that did not exist. The range now equals the classifier list exactly.
+#
+# WHAT IS ACTUALLY EXERCISED: 3.13, in all four CI jobs and both container images. 3.11 and
+# 3.12 are supported by declaration and by the absence of any newer syntax in src/, not by
+# test. Stated rather than papered over; adding a matrix job is cheap and is the right fix if
+# anyone needs the floor to be load-bearing.
+requires-python = ">=3.11,<3.14"
+# THE NEURAL STACK IS AN EXTRA, NOT A BASE DEPENDENCY, and it used to be a base dependency
+# while constraints.txt said in its own header that it "deliberately does NOT pin torch,
+# transformers, multimolecule or peft" so as not to "force a large install on a reader who
+# only wants to verify". The README's `pip install -e . -c constraints.txt` installed all four
+# anyway, unpinned, because a constraints file only constrains what is already being installed.
+# Verifying the published numbers needs none of them: docker/requirements-cpu.txt has shipped
+# without torch from the beginning and the CPU image runs the suite minus two modules.
 dependencies = [
     "numpy>=1.26",
     "pandas>=2.1",
@@ -35,13 +50,10 @@ dependencies = [
     "requests>=2.31",
     "pyfaidx>=0.8",
     "pyBigWig>=0.3.22",
-    "torch>=2.2",
-    "transformers>=4.40",
-    "multimolecule>=0.0.5",
-    "peft>=0.10",
     "matplotlib>=3.8",
     "tqdm>=4.66",
 ]
+
 
 [project.urls]
 Repository = "https://github.com/NirmalKumar31/rbp-protocol-calibration"
@@ -49,6 +61,9 @@ Issues = "https://github.com/NirmalKumar31/rbp-protocol-calibration/issues"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.4", "pypdf>=4.0"]
+# Reproducing the GPU sweeps, and running tests/unit/test_models.py and test_train_folds.py.
+# docker/requirements-gpu.txt is the exact environment; these are the lower bounds.
+neural = ["torch>=2.2", "transformers>=4.40", "multimolecule>=0.0.5", "peft>=0.10"]
 
 [build-system]
 requires = ["setuptools>=68"]
