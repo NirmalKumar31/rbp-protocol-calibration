@@ -331,6 +331,9 @@ s13b_local_analysis() {
   # against. It existed but was wired into nothing, so the manifest correctly called the
   # table frozen-only while a script sat beside it that rebuilds it from committed inputs.
   "$PY" scripts/four_models_table.py || die "four models table"
+  # Every aggregation and subset choice behind the headline that was made once and never
+  # argued for. Reads only committed per-dataset tables, so it runs anywhere.
+  "$PY" scripts/sensitivity_suite.py || die "sensitivity suite"
   "$PY" scripts/column_dictionary.py || die "column dictionary"
   # OFFLINE audit of the raw-input manifest: structure, coverage against the study panel, and
   # no credential-shaped string. Rebuilding it needs bucket access (--from-gcs); checking what

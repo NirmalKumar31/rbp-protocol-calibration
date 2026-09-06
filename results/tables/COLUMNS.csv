@@ -523,10 +523,6 @@ locality_ism.csv,seconds,float,,,95,0,67,21.7,46.6,22.9,Standard error,scripts/c
 manuscript_constants.csv,name,string,,,23,0,23,,,window_size_nt,,scripts/manuscript_constants.py
 manuscript_constants.csv,value,int,,,23,0,21,4,457998,101,The asserted quantity,scripts/manuscript_constants.py
 manuscript_constants.csv,source,string,,,23,0,19,,,config/params.yaml windows.size,,scripts/manuscript_constants.py
-manuscript_orphans.csv,source,empty,,,0,0,0,,,,,
-manuscript_orphans.csv,line,empty,,,0,0,0,,,,,
-manuscript_orphans.csv,value,empty,,,0,0,0,,,,The asserted quantity,
-manuscript_orphans.csv,context,empty,,,0,0,0,,,,,
 match_quality.csv,check,string,,yes,34,0,34,,,"pairs, gc arm","The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/match_quality.py
 match_quality.csv,value,float,,,34,0,33,0.0198,457998,456734.0,The asserted quantity,scripts/match_quality.py
 match_quality.csv,n,int,count,,34,0,1,94,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/match_quality.py
@@ -1018,10 +1014,6 @@ rehearsal_binding_gc.csv,k,int,,yes,94,0,1,4,4,4,k-mer order,scripts/cloud_rehea
 rehearsal_binding_gc.csv,n_boot,int,count,,94,0,1,2000,2000,2000,"Row count for that arm, which is twice the pair count",scripts/cloud_rehearsal.py
 rehearsal_binding_gc.csv,seconds,float,,,94,0,94,37.3,1988.3,106.4,Standard error,scripts/cloud_rehearsal.py
 rehearsal_binding_gc.csv,git_sha,string,,,94,0,1,,,a879bff,Short commit hash of the tree that produced the row,scripts/cloud_rehearsal.py
-release_facts.csv,check,string,,yes,7,0,7,,,tests collected,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",
-release_facts.csv,value,int,,,7,0,7,7,1013,731,The asserted quantity,
-release_facts.csv,n,empty,count,,7,7,0,,,,"Datasets, or rows, behind the value. Usually 94",
-release_facts.csv,note,string,,,7,0,1,,,derived from the built release by script,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",
 robustness.csv,check,string,,yes,14,0,14,,,"composition share, GC-matched","The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/cloud_analysis.py
 robustness.csv,value,float,,,14,0,14,0.100032,0.948331,0.948331166936274,The asserted quantity,scripts/cloud_analysis.py
 robustness.csv,ci_low,float,,,14,7,7,0.231019,0.920882,0.9208815084618847,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/cloud_analysis.py
@@ -1081,6 +1073,13 @@ score_scale_per_dataset.csv,cnn_published_neg2,float,AUROC,,94,0,94,-0.0125718,0
 score_scale_per_dataset.csv,splicebert_prob_neg2,float,,,94,0,94,-0.00373378,0.22965,0.09071203815970785,Quantity for that model class; see the producing script,scripts/score_scale_check.py
 score_scale_per_dataset.csv,splicebert_logit_neg2,float,,,94,0,94,-0.00448379,0.233147,0.09272794294061038,Quantity for that model class; see the producing script,scripts/score_scale_check.py
 score_scale_per_dataset.csv,splicebert_published_neg2,float,AUROC,,94,0,94,-0.00373378,0.22965,0.0907120381597078,The published nested contribution for that model class under bias-aware negatives (other RBPs' binding sites),scripts/score_scale_check.py
+sensitivity_suite.csv,check,string,,yes,53,0,53,,,"span, kmer, published (mean, all dataset","The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/sensitivity_suite.py
+sensitivity_suite.csv,value,float,,,53,0,39,0.125426,10.4997,5.417293920497092,The asserted quantity,scripts/sensitivity_suite.py
+sensitivity_suite.csv,ci_low,float,,,53,44,9,3.16341,7.92957,4.427867828708473,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/sensitivity_suite.py
+sensitivity_suite.csv,ci_high,float,,,53,44,9,4.22189,16.1875,6.582629896953713,Upper bound of the same interval as ci_low,scripts/sensitivity_suite.py
+sensitivity_suite.csv,n,int,count,,53,0,10,3,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/sensitivity_suite.py
+sensitivity_suite.csv,planning,string,,,53,0,2,,,planned before this script; the analysis,,scripts/sensitivity_suite.py
+sensitivity_suite.csv,note,string,,,53,0,20,,,the value in the paper,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/sensitivity_suite.py
 shuffled_arm.csv,check,string,,yes,19,0,19,,,pairs whose dinucleotide counts differ f,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/shuffled_arm.py
 shuffled_arm.csv,value,float,,,19,0,16,-0.000568348,20.6234,0.0,The asserted quantity,scripts/shuffled_arm.py
 shuffled_arm.csv,n,int,count,,19,0,1,94,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/shuffled_arm.py
@@ -1380,8 +1379,6 @@ variant_threshold_curve.csv,mismatched,float,,,21,0,16,0.675863,0.699163,0.67586
 variant_threshold_curve.csv,gap,float,,,21,0,16,-0.0114116,0.117241,-0.011411604964646866,,scripts/cloud_analysis.py
 variant_threshold_curve.csv,matched_wins,int,,,21,0,15,17,45,45,,scripts/cloud_analysis.py
 variant_threshold_curve.csv,p,float,,,21,0,16,1.02445e-07,0.870963,0.8709627614302943,Two-sided p-value,scripts/cloud_analysis.py
-verify_summary.csv,name,string,,,6,0,6,,,assertions,,
-verify_summary.csv,value,int,,,6,0,6,2,1023,1023,The asserted quantity,
 window_centring.csv,check,string,,yes,38,0,38,,,datasets rebuilt under every centring,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/window_centring.py
 window_centring.csv,value,float,,,38,0,32,0,6464.3,10.0,The asserted quantity,scripts/window_centring.py
 window_centring.csv,n,int,count,,38,0,2,10,60,60,"Datasets, or rows, behind the value. Usually 94",scripts/window_centring.py

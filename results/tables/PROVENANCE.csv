@@ -97,6 +97,7 @@ scale_check.csv,scripts/scale_check.py,s13b_local_analysis,raw-reproducible,23ba
 scale_sweep.csv,scripts/scale_sweep.py,s13b_local_analysis,raw-reproducible,70c5c0150412c737,2432,"""$PY"" scripts/scale_sweep.py || die ""scale sweep"""
 score_scale_check.csv,scripts/score_scale_check.py,s13b_local_analysis,evidence-recomputable,abeda5fa0f3545c5,2561,"""$PY"" scripts/score_scale_check.py --from-cache || die ""score scale"""
 score_scale_per_dataset.csv,scripts/score_scale_check.py,s13b_local_analysis,frozen-cache,3413924e1b77c478,47913,"""$PY"" scripts/score_scale_check.py --from-cache || die ""score scale"""
+sensitivity_suite.csv,scripts/sensitivity_suite.py,s13b_local_analysis,raw-reproducible,1a28405e5a683588,11238,"""$PY"" scripts/sensitivity_suite.py || die ""sensitivity suite"""
 shuffled_arm.csv,scripts/shuffled_arm.py,s13b_local_analysis,evidence-recomputable,ee2d23a027b4a7fd,1816,"""$PY"" scripts/shuffled_arm.py --from-cache || die ""shuffled fourth arm"""
 shuffled_arm_per_dataset.csv,scripts/shuffled_arm.py,s13b_local_analysis,frozen-cache,7bf724a7c3f7d4b9,9541,"""$PY"" scripts/shuffled_arm.py --from-cache || die ""shuffled fourth arm"""
 standalone_auroc.csv,scripts/standalone_auroc.py,s13b_local_analysis,evidence-recomputable,9920ef3c2dfb7269,2023,"""$PY"" scripts/standalone_auroc.py --from-cache || die ""standalone auroc"""

@@ -41,7 +41,13 @@ from rbp.utils.log import log  # noqa: E402
 TABLES = ROOT / "results" / "tables"
 OUT = TABLES / "COLUMNS.csv"
 SUMMARY = TABLES / "COLUMNS_SUMMARY.csv"
-SKIP = {"COLUMNS.csv", "COLUMNS_SUMMARY.csv", "PROVENANCE.csv"}
+# THE AUDITORS' OWN OUTPUT IS NOT PART OF THE RELEASE'S DATA, and including it made the
+# dictionary churn against itself: audit_manuscript.py rewrites manuscript_orphans.csv, whose
+# `source` column is empty when there are no orphans and populated when there are, so a run
+# that found none typed the column `empty` and the next run that found one failed the
+# staleness gate. Same set provenance.py calls META, for the same reason.
+SKIP = {"COLUMNS.csv", "COLUMNS_SUMMARY.csv", "PROVENANCE.csv", "manuscript_orphans.csv",
+        "release_facts.csv", "verify_summary.csv"}
 
 FIELDS = ["table", "column", "dtype", "unit", "key", "n_rows", "n_missing", "n_distinct",
           "min", "max", "example", "definition", "producing_script"]

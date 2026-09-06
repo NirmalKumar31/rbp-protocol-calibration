@@ -1,8 +1,8 @@
 check,value
-tables,136
-columns,1401
-schemas,91
+tables,134
+columns,1398
+schemas,90
 columns with a definition,1019
-columns without a definition,382
-columns with a producing script,1381
-columns typed empty,11
+columns without a definition,379
+columns with a producing script,1388
+columns typed empty,6

@@ -252,7 +252,8 @@ They now name this paper's, which are different claims about different quantitie
 **Exit 0 means every published number matched, to tolerance, the evidence committed for it,
 and that the analyses which rebuild from raw inputs rebuilt.** It does not mean every number
 was reconstructed from raw inputs, because most were not: `results/tables/PROVENANCE.csv`
-classifies all 131 research tables and only 22 are raw-reproducible. Exit 1 names the claim
+classifies every released table and only a minority are raw-reproducible. Exit 1 names the
+claim
 that broke. A pipeline that completes and quietly produces different science is worse than one
 that crashes, because nobody diffs a plausible table -- but a pipeline advertised as
 reconstructing what it is in fact regression-checking is its own version of the same

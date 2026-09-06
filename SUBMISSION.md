@@ -2,9 +2,11 @@
 
 Everything needed to post the preprint, and everything needed to verify every number in it
 offline against committed evidence. That is not the same as rebuilding every number from raw
-inputs: `results/tables/PROVENANCE.csv` classifies all 131 research tables, and 22 are
-raw-reproducible, 30 evidence-recomputable, 31 frozen-cache, 44 frozen-only, 2 cloud-produced
-and 2 unattributed. Use "verified against released evidence" and "reconstructed from raw
+inputs. `results/tables/PROVENANCE.csv` classifies every released table into
+raw-reproducible, evidence-recomputable, frozen-cache, frozen-only, cloud-produced and
+unattributed, and the counts are in that file rather than retyped here, because retyped counts
+in this file are exactly what an external review found eight of. Most tables are verified
+rather than reconstructed. Use "verified against released evidence" and "reconstructed from raw
 inputs" as distinct claims throughout; this file said "reproduce every number" and meant the
 first. Nothing here is a summary of the science, which is in `manuscript/paper.pdf`.
 
@@ -92,9 +94,10 @@ vocabulary covers the name, and the producing script for every column either way
 `results/tables/SCHEMA.md` explains the two common shapes, the units, the missing-value
 conventions and the protocol-suffix mapping.
 
-Coverage, so the gap is visible rather than implied: of 1386 columns across 134 tables, 1012
-carry a prose definition and 1366 name a producing script. The remainder are analysis-specific
-columns in the two unattributed legacy tables.
+Coverage is not implied, it is counted: `COLUMNS_SUMMARY.csv` records how many columns carry
+a prose definition and how many name a producing script, and the shortfall is the long tail of
+analysis-specific column names that appear once or twice. Those are not left undefined by
+oversight; a hand-written sentence for each is how this document's counts went stale twice.
 
 | item | file |
 |---|---|

@@ -1109,6 +1109,41 @@ bias-aware   & $+0.0130$ & $+0.0339$ & $+0.0122$ \\
 \end{tabular}
 \end{table}
 
+\subsection{The ordering survives every aggregation and subset choice we made without arguing
+for it}
+\label{sec:sensitivity}
+
+The headline is a ratio of panel means over all 94 datasets with both cell lines pooled and
+every dataset weighted equally. Four choices, made once, none of them preregistered and none
+argued for above. This subsection reports the alternatives. Every row is the same estimand under
+a different aggregation or a different subset, and all of them were run after the result was
+known, which makes them robustness checks rather than pre-specified analyses; the table records
+that per row.
+
+The three arms keep their order, dinucleotide above GC above bias-aware, in all twelve
+combinations of aggregator and stratum tested. The magnitudes move and not always downwards.
+Under the median the 4-mer's span is $5.09$ against the published $5.42$, and under a 10\%
+trimmed mean it is $5.81$; the convolutional network's is $10.50$ under the median against
+$7.42$ published, so the mean is not systematically the flattering choice. Split by cell line
+the 4-mer's span is $6.46$ in HepG2 ($n=45$) and $4.82$ in K562 ($n=49$), and no model's span
+falls below $3.58$ in either.
+
+Size does not carry it. The largest ten datasets hold $39\%$ of all pairs, but dropping the
+largest quartile leaves the 4-mer at $5.24$ and keeping only that quartile gives $5.78$.
+Achieved match quality does not carry it either, and moves it the way this paper's own argument
+predicts: dropping the decile of datasets whose GC matching left the largest residual gap raises
+the 4-mer's span to $5.56$, and the worst quartile to $5.81$, because better matching leaves a
+higher baseline and a higher baseline leaves more for the protocol to move. Leave-one-protein-out
+over all 79 proteins displaces a span by at most $0.48$ fold units, for the convolutional
+network, and $0.21$ for the 4-mer.
+
+Four sensitivities predate this table and are not rerun in it: the ordering holds on an unbounded
+estimand (Section~\ref{sec:estimands}), it survives raising the composition baseline to order three
+(Section~\ref{sec:orderthree}), it is not explained by dataset size, and the contrast replicates
+across cell lines on the 15 proteins measured in both. Two further sensitivities are not here
+because they need the window sequences rather than the released per-dataset tables: varying the
+class ratio away from 1:1, and the k-mer capacity ladder. Both are specified but unrun.
+
 \subsection{The estimator has a positive floor where the true contribution is zero}
 \label{sec:floor}
 

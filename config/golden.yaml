@@ -2602,6 +2602,30 @@ protocol_transport:
   max_lopo_shift_panel:       0.040
   max_lopo_shift_per_dataset: 0.015
 
+# THE SENSITIVITY SUITE. Every aggregation and subset choice behind the headline that was made
+# once and never argued for: the mean rather than the median, both cell lines pooled, all 94
+# datasets, equal weight per dataset. None was preregistered, so a referee is entitled to ask.
+#
+# WHAT IS GATED IS THE ORDERING, NOT THE MAGNITUDES. The magnitudes move -- the CNN's span is
+# LARGER under the median (10.5) than under the mean (7.4), and the k-mer's is larger in HepG2
+# (6.5) than in K562 (4.8) -- and pinning each to a tolerance would be gating noise. What the
+# paper claims is that the protocol moves the measurement and that the three arms keep their
+# order, and that is what must not break: 12 of 12 aggregator-and-stratum combinations.
+sensitivity_suite:
+  n_datasets: 94
+  # The published row must still be the published value, or the suite is measuring something
+  # else and every comparison in it is against the wrong reference.
+  span_kmer_published:       {value: 5.417, tol: 0.010}
+  span_cnn_published:        {value: 7.424, tol: 0.010}
+  span_splicebert_published: {value: 3.723, tol: 0.010}
+  # Every ordering row is 1. A single 0 means an aggregator or a cell line reverses the arms.
+  orderings_that_must_all_hold: 12
+  # A CEILING on how far one protein can move a span, in fold units. The largest observed is
+  # 0.475 for the CNN; 1.0 would be a different claim.
+  max_lopo_displacement: 1.0
+  # Both cell lines must show a span above 2, or "it holds in both" is not a statement.
+  min_span_within_a_cell_line: 2.0
+
 # THE COMMON-POSITIVE SENSITIVITY. The review's P1.1: the protocols do not vary ONLY the
 # negatives, because the matchers reject different positives, and a qualitative reason for
 # declining the analysis is not the analysis. Run, and it changes nothing: 0.23% of positives

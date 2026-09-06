@@ -2247,6 +2247,77 @@ def verify_protocol_transport(T, g):
 
 
 
+def verify_sensitivity_suite(T, g):
+    """The headline under every aggregation and subset choice nobody argued for.
+
+    The mean rather than the median, both cell lines pooled, all 94 datasets, equal weight per
+    dataset. Four choices, none preregistered, none defended in the text. What this asserts is
+    the ORDERING rather than the magnitudes: the magnitudes move, and pinning each to a
+    tolerance would gate noise. If a single aggregator or stratum reverses the three arms, the
+    claim that the protocol determines the measurement is weaker than the paper states it.
+    """
+    print("\nsensitivity suite  (does the headline survive the choices nobody argued for?)")
+    d = T.get("sensitivity_suite.csv")
+    if d is None:
+        return record(False, "sensitivity_suite.csv present", "MISSING",
+                      "run scripts/sensitivity_suite.py")
+    spec = g["sensitivity_suite"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    for m, key in (("kmer", "span_kmer_published"), ("cnn", "span_cnn_published"),
+                   ("splicebert", "span_splicebert_published")):
+        v = get(f"span, {m}, published (mean, all datasets, both cell lines)")
+        if v is not None:
+            near(f"the suite's reference row is the published span, {m}", v, spec[key])
+
+    # THE ORDERING, EVERYWHERE. One row per aggregator and per cell line, each 1 or 0.
+    orderings = [k for k in q.index if k.startswith("ordering dn > gc > neg2 holds")]
+    held = sum(1 for k in orderings if float(q.loc[k, "value"]) == 1.0)
+    record(len(orderings) == spec["orderings_that_must_all_hold"],
+           "every aggregator-and-stratum combination is tested", len(orderings),
+           spec["orderings_that_must_all_hold"])
+    record(held == len(orderings),
+           "the arms keep their order under every aggregator and in each cell line",
+           f"{held}/{len(orderings)}", "all of them")
+
+    # NO SINGLE PROTEIN CARRIES A SPAN.
+    disp = [float(q.loc[k, "value"]) for k in q.index
+            if k.endswith("largest leave-one-protein-out displacement")]
+    if disp:
+        record(max(disp) < spec["max_lopo_displacement"],
+               "no single protein moves any span by a fold unit",
+               f"{max(disp):.3f}", f"< {spec['max_lopo_displacement']}")
+    else:
+        record(False, "leave-one-protein-out rows present", "MISSING", "three rows")
+
+    # BOTH CELL LINES SEPARATELY. "It holds in both" is not a statement unless both are shown.
+    for cell in ("K562", "HepG2"):
+        vals = [float(q.loc[k, "value"]) for k in q.index
+                if k.startswith("span, ") and k.endswith(f", {cell} only")]
+        if vals:
+            record(min(vals) > spec["min_span_within_a_cell_line"],
+                   f"every model's span exceeds {spec['min_span_within_a_cell_line']} in "
+                   f"{cell} alone", f"min {min(vals):.3f}",
+                   f"> {spec['min_span_within_a_cell_line']}")
+
+    # AND THE SUITE MUST SAY, PER ROW, WHETHER IT WAS PLANNED. A robustness check chosen after
+    # the result is weaker evidence than one chosen before, and a table that does not say which
+    # invites the reader to assume the stronger one.
+    if "planning" in d.columns:
+        record(d["planning"].notna().all() and (d["planning"].astype(str) != "").all(),
+               "every sensitivity row declares whether it was planned or post-hoc",
+               "all rows", "all rows")
+    else:
+        record(False, "the suite declares planned versus post-hoc", "no planning column",
+               "a planning column")
+
+
 def verify_common_positives(T, g):
     """The contrast run on the positives both composition-matched arms retain.
 
@@ -5019,6 +5090,7 @@ def main():
              verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
              verify_cross_fitting, verify_positive_set_overlap, verify_common_positives,
              verify_protocol_transport, verify_negative_draws, verify_homology_folds,
+             verify_sensitivity_suite,
              verify_cache_evidence, verify_cross_tables, verify_integrity)
     n_paper = None
     for fn in (PAPER + LEGACY):
