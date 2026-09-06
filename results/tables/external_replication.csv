@@ -1,4 +1,5 @@
 check,value,ci_low,ci_high,n,note
+datasets in the Horlacher ENCODE deposit,223.0,,,223,counted from the unpacked deposit; the rest overlap our panel
 datasets,135.0,,,135,Horlacher ENCODE datasets outside our 94-dataset study panel
 proteins,108.0,,,135,the resampled unit
 overlap with our study panel,0.0,,,135,zero by construction; this is what criterion 1 of the protocol asks for and what horlacher_arm.py's 45-dataset intersection does not have

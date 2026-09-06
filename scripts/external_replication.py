@@ -156,6 +156,15 @@ def main():
                     "ci_high": float(np.percentile(b, 97.5)), "n": len(t), "note": note})
         return float(v.mean())
 
+    # THE DEPOSIT'S OWN SIZE, so the manuscript's count of it traces to a table rather than to
+    # nothing. Read from the unpacked deposit when it is present; omitted rather than guessed
+    # when it is not, because a hardcoded 223 here is the hand-maintained count this repository
+    # keeps getting wrong.
+    if DATA.exists():
+        n_dep = sum(1 for q in DATA.iterdir() if q.is_dir())
+        out.append({"check": "datasets in the Horlacher ENCODE deposit", "value": n_dep,
+                    "ci_low": "", "ci_high": "", "n": n_dep,
+                    "note": "counted from the unpacked deposit; the rest overlap our panel"})
     out.append({"check": "datasets", "value": len(t), "ci_low": "", "ci_high": "", "n": len(t),
                 "note": "Horlacher ENCODE datasets outside our 94-dataset study panel"})
     out.append({"check": "proteins", "value": len(uniq), "ci_low": "", "ci_high": "",

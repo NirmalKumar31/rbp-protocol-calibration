@@ -138,25 +138,22 @@ apparent AUROC moves the opposite way: replacing GC-matched with dinucleotide-ma
 lowers the 4-mer's own AUROC from 0.798 to 0.688 in all 94 datasets while raising its measured
 contribution from 0.027 to 0.066 in 88. Fitting on one protocol and scoring another attributes
 most of the movement to the evaluation protocol rather than the fitted model, under two
-decompositions that are different estimands rather than two weightings of one: averaging each
-dataset's own normalised shares gives $62.7\%$ (95\% CI 56.6 to 68.4) against $15.2\%$ for the
-training protocol, and decomposing the matrix of panel means gives $80.7\%$ (73.0 to 86.9)
-against $9.2\%$. No single protein moves either evaluation share by more than 3.0 percentage
-points.
+decompositions that are different estimands and not two weightings of one: $62.7\%$ (95\% CI
+56.6 to 68.4) against $15.2\%$ for training, averaging each dataset's own shares, and $80.7\%$
+(73.0 to 86.9) against $9.2\%$ for the matrix of panel means.
 
-The two-stage estimator has a floor, which is why it is not the primary one: applied to a
-2-mer, whose true contribution is zero because the baseline spans its features, it returns
-$+0.011$ to $+0.014$, or 90.4\% of the smallest protocol's value. That belongs to how the
-estimate is computed rather than to the estimand, and it is removable. Generating the score
-covariate outside the outer test fold cuts it by at least 95\% in every protocol and recovers
-the known zero to within $5\times10^{-4}$.
+The two-stage estimator has a floor, which is why it is not primary: on a 2-mer, whose true
+contribution is zero because the baseline spans its features, it returns $+0.011$ to $+0.014$,
+90.4\% of the smallest protocol's value. That belongs to how the estimate is computed rather
+than to the estimand, and it is removable. Generating the score covariate outside the outer test
+fold cuts it by at least 95\% in every protocol and recovers the known zero to within
+$5\times10^{-4}$.
 
-The effect is not a property of our own construction: on 135 datasets from
-\citet{horlacher2023} that our panel does not contain, analysed with their windows, their
-negatives and their folds, the same estimator gives a 1.69-fold span (95\% CI 1.41 to 2.03)
-across their two negative-set constructions, meeting criteria fixed before the benchmark was
-searched for. The directional relation between apparent difficulty and measured contribution
-does not replicate there, and we report it as not replicating.
+It is not a property of our own construction. On 135 datasets from \citet{horlacher2023} that
+our panel does not contain, using their windows, negatives and folds, the same estimator gives a
+1.69-fold span (95\% CI 1.41 to 2.03) across their two negative-set constructions, meeting
+criteria fixed before that benchmark was searched for. The directional relation between apparent
+difficulty and measured contribution does not replicate there, and we report it as failing.
 
 In a targeted survey of seven widely used methods and benchmarks, none reports a
 composition-only AUROC beside its headline. We recommend cross-fitting the score covariate,
@@ -190,7 +187,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 regression-checked offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 1013 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 1046 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. That is a check against committed evidence and not a rebuild from raw inputs: two of the
 assertions are genuine end-to-end rebuilds, 285 AUROCs from committed per-window scores and the

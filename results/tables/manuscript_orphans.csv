@@ -1,15 +1,1 @@
 source,line,value,context
-paper.tex,193,1013,"-{}-local\allowbreak{} results/tables}, which runs 1013 numeric assertions against a frozen"
-discussion.tex,358,1013,credit than it earns. Its 1013 assertions compare each published value against a frozen
-discussion.tex,370,1013,"distinction permits: it was found by inspection and by none of the 1013 assertions, as was the"
-methods.tex,471,1013,"harness runs 1013 numeric assertions against a frozen expectations file, and the harness asserts"
-results.tex,1119,223,release two negative-set constructions over the same positives for 223 ENCODE eCLIP datasets:
-README.md,50,1013,"No cloud account, no credentials, no data download. 1013 numeric assertions are checked"
-README.md,51,875,"against committed tables, of which **875 belong to this paper** and 136 to an earlier"
-README.md,59,1013,PYTHONPATH=src python scripts/verify.py --local results/tables   # 1013/1013
-README.md,59,1013,PYTHONPATH=src python scripts/verify.py --local results/tables   # 1013/1013
-README.md,112,731,"tests/          731 tests, no network or cloud; 2 modules need torch"
-SUBMISSION.md,18,323,"| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 323 words, no markup |"
-SUBMISSION.md,37,323,ones that would bite are the abstract (323 words against a typical 250) and the main text (53
-SUBMISSION.md,128,1013,"1013 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is"
-ZENODO.md,57,1013,"> Code, committed evidence and manuscript accompanying the preprint. All 1013 verification"
