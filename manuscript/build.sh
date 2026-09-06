@@ -32,8 +32,17 @@ command -v pdflatex >/dev/null || { echo "pdflatex not found; install MacTeX or 
 # fresh clone produced a warning. Bounded at four so a genuinely oscillating reference fails
 # loudly instead of looping.
 rerun_wanted() { grep -qE "Rerun to get|Label\(s\) may have changed" paper.log; }
+# A FAILED PASS MUST SAY WHY. This redirected pdflatex to /dev/null, so with -halt-on-error and
+# `set -e` a fatal error exited 1 having printed NOTHING: no message, no log excerpt, an empty
+# terminal and a non-zero status. That is how a build reported as clean here once turned out to
+# have aborted on a missing package. Print the error lines from paper.log before dying.
+die_with_log() {
+  echo "pdflatex FAILED on pass $1. From paper.log:" >&2
+  grep -nE "^!|^l\.[0-9]+|Emergency stop|Fatal error" paper.log | head -20 >&2
+  exit 1
+}
 for pass in 1 2 3 4; do
-  pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null
+  pdflatex -interaction=nonstopmode -halt-on-error paper.tex >/dev/null || die_with_log "$pass"
   rerun_wanted || break
 done
 if rerun_wanted; then

@@ -77,7 +77,7 @@ manuscript-to-table link; nothing closed the table-to-script link. Now `run.sh` 
 | P2.2 | CI ran none of README's claims. It now runs the verifier, the release check, ruff, shell syntax and the LaTeX build |
 | P2.4–5 | `constraints.txt`; optional pinned model revisions |
 | P2.9 | Five contradictory cost figures were five different quantities. `docs/COST.md` |
-| P2.16 | PDF title, author, subject and keywords were empty. Build is now warning-clean |
+| P2.16 | PDF title, author, subject and keywords were empty. The build now carries zero LaTeX warnings and one underfull-hbox diagnostic, stated separately |
 | P2.19, P2.21 | Per-directory data licences; `results/tables/SCHEMA.md` |
 
 ## Wrong in the review
