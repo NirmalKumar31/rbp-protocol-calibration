@@ -8,9 +8,11 @@ settings of one control. They asked three different questions, and each answer i
 interpretable against the question it answers.
 
 How much a sequence model adds over sequence composition is therefore not a property of the
-model alone. Holding the model, the peak set, the folds and the estimator fixed, and varying
-only how the negative windows were assembled, the measured contribution of a 4-mer varied
-5.4-fold, and between 3.7 and 7.4-fold across three model classes.
+model alone. Holding the model class and its hyperparameters, the peak set, the folds and the estimator
+fixed, refitting both the model and the baseline within each protocol, and varying only how the
+negative windows were assembled, the measured contribution of a 4-mer varied 5.4-fold under the
+two-stage estimator and 4.8-fold cross-fitted, and between 3.7 and 7.4-fold across three model
+classes under the two-stage estimator.
 
 This has consequences for reporting practice, and they are specific enough to state as a
 checklist. A paper reporting a sequence model's performance on RBP binding should give five
@@ -172,12 +174,17 @@ panel and over datasets for the subsample. No model larger than 20~M
 parameters was tested, and no published RBP-specific method: the three classes are a capacity
 ladder, not a survey of the methods a benchmark would rank.
 
-Every model here is trained and evaluated under one protocol, so what we vary is the
-training set and the evaluation set together. A design that trained under one protocol and
-evaluated under another would separate what the evaluation set makes measurable from what the
-training set makes learnable; \citet{tourne2026} performs that transfer and we do not. Our
-claims are therefore about the protocol as a whole choice, which is how a benchmark is used,
-and not about either half of it.
+Most results here vary the training set and the evaluation set together, because that is how a
+benchmark is used. Section~\ref{sec:transport} separates the two for the 4-mer, by fitting on
+one arm's windows and scoring another's, and finds most of the movement associated with the
+evaluation protocol. Three limits bound what that shows. It is the 4-mer alone: transporting a
+fitted CNN or SpliceBERT across arms would need the sweeps rerun, and we did not run them, so
+every statement about the two neural classes still refers to the protocol as a whole choice
+rather than to either half of it. The off-diagonal cells impose a distribution shift as well as
+a protocol change, so the decomposition is descriptive and not causal. And
+\citet{tourne2026} performs a transfer of a different kind, across datasets rather than across
+negative-set constructions within one dataset, so it is a complement to
+Section~\ref{sec:transport} and not a replication of it.
 
 Three design parameters were fixed once and never varied, and nothing here speaks to their
 influence. The class ratio is 1:1 in every arm, one negative per positive, where a genome-wide screen

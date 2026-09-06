@@ -1,7 +1,12 @@
 # Submission package
 
-Everything needed to post the preprint and to reproduce every number in it. This file is the
-index; nothing here is a summary of the science, which is in `manuscript/paper.pdf`.
+Everything needed to post the preprint, and everything needed to verify every number in it
+offline against committed evidence. That is not the same as rebuilding every number from raw
+inputs: `results/tables/PROVENANCE.csv` classifies all 131 research tables, and 22 are
+raw-reproducible, 30 evidence-recomputable, 31 frozen-cache, 44 frozen-only, 2 cloud-produced
+and 2 unattributed. Use "verified against released evidence" and "reconstructed from raw
+inputs" as distinct claims throughout; this file said "reproduce every number" and meant the
+first. Nothing here is a summary of the science, which is in `manuscript/paper.pdf`.
 
 ## What to upload
 
@@ -35,7 +40,9 @@ a supplement first.
 
 ## The manuscript
 
-`manuscript/paper.tex` builds `paper.pdf` with two runs of `pdflatex`, or in one step:
+`manuscript/paper.tex` builds `paper.pdf` with repeated runs of `pdflatex` until the
+cross-references reach a fixpoint, which is up to four and is not reliably two, or in one
+step:
 
 ```
 cd manuscript && ./build.sh

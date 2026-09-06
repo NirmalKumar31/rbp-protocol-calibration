@@ -46,7 +46,7 @@ specificity -- which are not what this paper reports. The current ones:
 |---|---|---|
 | the three-arm span, 5.42-fold | `GC` 94 | paired across arms; a dataset present in only one cannot be differenced |
 | the reversal, 94/94 down and 88/94 up | `GC` 94 | same reason: it is a per-dataset paired comparison |
-| three model classes, spans 5.42 / 7.42 / 3.72 | `GC` 94 | identical rows and folds for all three, which is the whole point of the contrast |
+| three model classes, spans 5.42 / 7.42 / 3.72 | `GC` 94 | identical rows and folds for all three *within each arm*, which is the whole point of the contrast; rows differ between arms by construction |
 | the estimator floor, +0.0119 / +0.0137 / +0.0111 | `GC` 94 | measured with the same estimator on the same rows it calibrates |
 | cross-fitting, floor to within 0.001 of zero | `GC` 94 | same rows again; the comparison is to the published value on those rows |
 | the shuffled fourth arm, baseline exactly 0.5000 | `GC` 94 | negatives are permutations of the positives, so the panel is the positives' |

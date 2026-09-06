@@ -1,5 +1,5 @@
 """R1n: is it the protocol, or the baseline it leaves? A referee found a way to ask.
-It is the baseline.
+Mostly the baseline, and not only the baseline.
 
     python scripts/protocol_or_baseline.py
 
@@ -24,9 +24,19 @@ than the neg2 discordance and why both are reported.
 
 WHAT THIS DOES TO THE PAPER. It converts the thesis from "the protocol determines the measured
 contribution" -- which invites "yes, via the baseline, so what?" -- into the sharper and more
-useful "the composition baseline is what determines the measurable contribution, and the
-protocol label carries essentially no information beyond it." That is a statement a benchmark
-builder can act on: report the baseline, because it is the whole story.
+useful "the composition baseline is most of what determines the measurable contribution". That
+is a statement a benchmark builder can act on: report the baseline, because it carries most of
+the signal a protocol label carries and it is directly interpretable.
+
+BUT NOT ALL OF IT, AND THIS FILE USED TO SAY OTHERWISE. The header claimed the protocol label
+"carries essentially no information beyond" the baseline and that the baseline is "the whole
+story", while section 2c of this same script prints "A protocol-specific residual DOES exist
+for neg2" and both of its estimates exclude zero: -0.0081 (CI -0.0130 to -0.0036) matched on
+nearest baseline, and -0.0043 (CI -0.0077 to -0.0012) as a within-dataset intercept at zero
+baseline shift. What is true is a ratio, not a nullity: incremental R2 of the baseline given
+the protocol label is 11.0%, of the protocol label given the baseline 1.0%. Eleven times is
+not infinity. The manuscript reports the residual (results.tex, the bias-aware paragraph); it
+was only this docstring that overstated.
 """
 
 import sys

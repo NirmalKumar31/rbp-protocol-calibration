@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Build the arXiv PDF, and leave this directory as a self-contained upload.
+# Build the preprint PDF, and leave this directory as a self-contained upload.
 #
-# arXiv wants a flat-ish source tree with the figures alongside the .tex, so the figures are
-# COPIED from results/figures/ rather than referenced out of the repo. That means the upload
-# cannot go stale relative to a figure that was regenerated: rerun this script.
+# The target venue is bioRxiv, which takes a PDF; this said "arXiv" long after that was
+# decided. Either wants a flat-ish source tree with the figures alongside the .tex, so the
+# figures are COPIED from results/figures/ rather than referenced out of the repo. That means
+# the upload cannot go stale relative to a figure that was regenerated: rerun this script.
 set -euo pipefail
 cd "$(dirname "$0")"
 

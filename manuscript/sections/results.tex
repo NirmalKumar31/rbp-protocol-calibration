@@ -542,9 +542,12 @@ is not an increment over anything, it is the model's apparent performance relabe
 
 \begin{table}[htbp]
 \centering
-\caption{Four negative-set constructions, the 4-mer logistic regression, $n=94$ datasets with
-identical positives and folds. The three matched arms are Table~\ref{tab:threemodels}'s first
-row; the shuffled arm generates each negative from its own positive.}
+\caption{Four negative-set constructions, the 4-mer logistic regression, $n=94$ datasets,
+identical folds. The shuffled arm uses the GC arm's positives exactly; the GC and dinucleotide
+arms' retained positives are near-identical rather than identical, because each arm keeps only
+the positives its own matching could pair (median Jaccard $0.9972$, minimum $0.9164$, identical
+in 10 of 94; Table~S8). The three matched arms are Table~\ref{tab:threemodels}'s first row; the
+shuffled arm generates each negative from its own positive.}
 \label{tab:shuffled}
 \begin{tabular}{lccc}
 \toprule
@@ -593,8 +596,9 @@ Table~\ref{tab:threemodels}).
 \begin{table}[htbp]
 \centering
 \caption{Nested contribution under three negative-set protocols for three model classes,
-$n=94$ datasets, identical rows and folds. Spans are ratios of panel means with
-protein-clustered percentile intervals.}
+$n=94$ datasets. Within each arm the three model classes are scored on identical rows and
+folds, which is what makes the across-model comparison exact; rows differ between arms by
+construction. Spans are ratios of panel means with protein-clustered percentile intervals.}
 \label{tab:threemodels}
 \begin{tabular}{lcccc}
 \toprule
@@ -754,7 +758,7 @@ retained rather than defended.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f9_deep_contrast}
-\caption{Three model classes on identical rows and folds, $n=94$ datasets: a 4-mer logistic
+\caption{Three model classes on identical rows and folds within each arm, $n=94$ datasets: a 4-mer logistic
 regression, a 7089-parameter convolutional network and a fully fine-tuned 19.78~M-parameter
 SpliceBERT. (a) Nested contribution in each composition-matched arm, per model; bars are 95\%
 protein-clustered percentile intervals, as in panel (b). (b) The two-arm contrast per model, with 95\% percentile

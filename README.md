@@ -8,7 +8,7 @@ logistic model on 19 composition features plus the model's score, minus the AURO
 features alone.
 
 The number moves **5.42-fold** (95% CI 4.43 to 6.58) for a 4-mer logistic regression, and 3.7 to
-7.4-fold across three model classes on identical rows. A model's apparent AUROC moves the
+7.4-fold across three model classes scored on identical rows within each arm. A model's apparent AUROC moves the
 opposite way. And the estimator itself returns **+0.011 to +0.014** when the true contribution is
 zero by construction, which is 90.4% of the smallest arm's reported value.
 
@@ -67,7 +67,7 @@ headline contrast recomputed from raw sequence.
 | | |
 |---|---|
 | **The protocol moves the measurement** | Nested contribution for one 4-mer: **+0.0663** dinucleotide-matched, **+0.0265** GC-matched, **+0.0122** bias-aware (negatives are other RBPs' sites). Apparent AUROC moves the other way, 0.798 to 0.688, in 94 of 94 datasets |
-| **It holds for three model classes** | Spans of 5.42, 7.42 and 3.72 for a 4-mer, a 7089-parameter CNN and a fine-tuned SpliceBERT, on identical rows and folds |
+| **It holds for three model classes** | Spans of 5.42, 7.42 and 3.72 for a 4-mer, a 7089-parameter CNN and a fine-tuned SpliceBERT. Within each arm all three are scored on identical rows and folds; rows differ between arms by construction |
 | **It is not an AUROC artefact** | The ordering holds on five estimands including unbounded deviance. The magnitude is scale-specific: 5.42-fold in AUROC, about 2.1-fold on unbounded scales |
 | **Shuffling removes the baseline entirely** | Dinucleotide-shuffled negatives pin the composition baseline at exactly **0.5000** on all 94 datasets, so the contribution becomes the model's own AUROC less a half. Across four constructions the span is 20.62-fold |
 | **The estimator has a floor** | Applied to a model whose information the baseline already contains, so the truth is zero, it returns **+0.0119 / +0.0137 / +0.0111**. Nearly flat across arms, so the span survives; but 90.4% of the bias-aware arm's value, so that level does not |

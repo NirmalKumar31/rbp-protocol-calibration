@@ -6,9 +6,16 @@
 #
 # This file wires the only mechanism that actually halts charges: budget -> Pub/Sub ->
 # Cloud Function -> detach the project from its billing account. Every VM stops, Batch
-# fails, Cloud Run stops serving. Buckets and their contents survive; storage becomes
-# inaccessible until billing is re-attached, so the worst case is an interrupted run and a
-# manual re-enable, never lost data.
+# fails, Cloud Run stops serving.
+#
+# TREAT A FIRING AS DATA LOSS UNTIL YOU HAVE CHECKED OTHERWISE. This comment used to promise
+# that buckets and their contents survive and that no data is ever lost, while
+# cloud/killswitch/main.py's docstring explicitly retracts that same guarantee. Google's own
+# documentation warns that disabling billing MAY DELETE some resources and that the deletion
+# can be non-recoverable; it does not promise that buckets survive, and neither do we. Anything
+# whose loss would matter must be backed up OUTSIDE the project this can fire on. An unsafe
+# guarantee here is worse than no guarantee, because it is exactly what would persuade an
+# operator to skip that backup.
 #
 # UI EQUIVALENT, for the record: none. The console can create the budget, the topic and the
 # function separately, but there is no console feature that stops spend. This has to be

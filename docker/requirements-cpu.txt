@@ -15,8 +15,11 @@ PyYAML==6.0.3
 requests==2.34.2
 matplotlib==3.11.1
 
-# Test runner: the image must be able to prove itself (step 2 gate: 356 tests pass INSIDE
-# the container). An image you cannot test is an image you are trusting on faith.
+# Test runner: the image must be able to prove itself. The step-2 gate runs the suite INSIDE
+# the container and asserts a floor, and the floor lives in docker/cloudbuild.cpu.yaml as
+# _EXPECTED_TESTS rather than in a comment here -- this line said "356 tests" for months after
+# the real selection had grown past 600. An image you cannot test is an image you are trusting
+# on faith, and a count you hand-maintain in two places is a count that is wrong in one.
 pytest==9.1.1
 
 # Cloud clients, only needed in the container
