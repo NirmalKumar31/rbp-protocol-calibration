@@ -183,14 +183,24 @@ across folds, so a fold whose predictor is shifted relative to the others contri
 comparisons that no within-fold analysis makes. Both alternatives, fold-averaging and
 rank-normalisation within fold before pooling, are computed and reported as sensitivities.
 
-Leakage between folds was audited by exact 32-mer sharing, not by clustered sequence
-identity. A 101~nt window contains 70 distinct 32-mers, and two unrelated sequences share one
-with negligible probability, and a shared 32-mer indicates common origin. Over all 94 datasets of the dinucleotide arm,
-holding fold 0 out, a median of 2.0\% of held-out windows shared any 32-mer with a training
-window (maximum 24.3\%), a median of 0.08\% shared more than half of their 32-mers, and the
-median dataset contained no window sharing more than 90\%. Chromosome grouping therefore leaves
-a small residue of homologous sequence across folds, which is the quantity a sequence-identity
-clustering step would remove.
+Leakage between folds was audited by exact 32-mer sharing. A 101~nt window contains 70 distinct
+32-mers, two unrelated sequences share one with negligible probability, and a shared 32-mer
+therefore indicates common origin rather than coincidence. Over all 94 datasets of the
+dinucleotide arm and all five held-out folds, a median of 2.0\% of held-out windows shared any
+32-mer with a training window and at most 29.0\%; at most 6.3\% of a fold's windows shared more
+than half of their 32-mers. An earlier version of this audit held out fold 0 only and reported a
+maximum of 24.3\%, which understated it: the median is unchanged over the full partition and the
+extreme is not.
+
+Chromosome grouping therefore leaves a residue of homologous sequence across folds, and we
+control it two ways rather than only measuring it. Deleting every held-out window that shares
+more than half its 32-mers with a training window removes 0.22\% of windows and moves the panel
+means to $+0.0263$, $+0.0659$ and $+0.0122$, a span of 5.42 against the published 5.42. Pulling
+every homology component that straddles two folds wholly into one of them, which tightens the
+published partition rather than replacing it and moves a mean of 1.1\% of windows, gives
+$+0.0265$, $+0.0662$ and $+0.0123$, a span of 5.40. Neither control is a sequence-identity
+clustering with a tunable threshold, which remains the stronger instrument; both remove the
+sharing that is actually present, and the protocol effect does not depend on it.
 
 \subsection{The composition baseline and the nested contribution}
 
@@ -375,7 +385,7 @@ published per-window score files do not carry.
 \subsection{Reproducibility}
 
 All published values are reproduced offline by a single command against committed evidence. The
-harness runs 998 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 1008 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

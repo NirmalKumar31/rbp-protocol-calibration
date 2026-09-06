@@ -60,10 +60,11 @@ contribution is their exact reverse. Harder discriminations do reveal more of wh
 what does not follow is that a bias-aware protocol is the harder one. The starkest form of this
 is that the 19-feature composition baseline beat the 4-mer outright in 14 of 94 datasets under
 dinucleotide matching, 29 of 94 under GC matching, and 53 of 94 under the bias-aware protocol,
-where it also beat the model on the panel mean. Under GC matching the contribution was
-significantly positive in 80 of 94 datasets on unadjusted marginal intervals, 79 of 94 after
-Benjamini-Hochberg control within the panel, and 75 of 94 once the measured design effect of
-1.15 is applied, or 72 of 94 at the more conservative 1.35 fixed in advance (Methods).
+where it also beat the model on the panel mean. The contribution is positive in 88 of the 94 datasets under GC matching, 93 under dinucleotide
+matching and 85 under the bias-aware protocol. Those are sign counts and not test results: as
+Methods sets out, DeLong's estimator is not valid against a strictly nested null, so per-dataset
+significance counts are reported nowhere in this paper as evidence and the protein-clustered
+bootstrap over point estimates is the inference.
 
 The direction of the GC-versus-dinucleotide contrast is what the design leads us to expect. The
 composition baseline reads local composition, and the two protocols constrain it

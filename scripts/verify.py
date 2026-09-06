@@ -2030,6 +2030,64 @@ def verify_region_annotation(T, g):
             near(f"labels changed by the {rule} rule", v, spec[key])
 
 
+def verify_homology_folds(T, g):
+    """Sequence homology across folds: audited on every fold, and controlled two ways.
+
+    Chromosome grouping prevents a shared locus straddling a split and does nothing about a
+    paralogue on another chromosome. This gate asserts the audit covers the whole partition,
+    that both controls are light touches rather than rewrites, and that the protocol span
+    survives each of them.
+    """
+    print("\nhomology across folds  (measured on all five, then removed two ways)")
+    d = T.get("homology_folds.csv")
+    if d is None:
+        return record(False, "homology_folds.csv present", "MISSING",
+                      "run scripts/homology_folds.py --store ../rbp-store")
+    spec = g["homology_folds"]
+    q = d.set_index("check")
+
+    def get(k):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        return float(q.loc[k, "value"])
+
+    n = get("datasets")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+    mx = get("the same, worst fold of each dataset")
+    if mx is not None:
+        record(mx > 0, "the audit found homology to control", f"{mx:.4f}", "> 0")
+    dr = get("fraction of windows the filter removes, dinucleotide arm")
+    if dr is not None:
+        at_most("the filter is a light touch", dr, spec["max_dropped_by_filter"])
+    mv = get("fraction of windows the tightening moves, dinucleotide arm")
+    if mv is not None:
+        at_most("and so is the tightening", mv, spec["max_moved_by_tightening"])
+    med = get("median across datasets of the per-dataset mean 32-mer sharing")
+    if med is not None:
+        near("median 32-mer sharing over all five folds", med, spec["leak_any_median"])
+    worst = get("maximum 32-mer sharing over every dataset and fold")
+    if worst is not None:
+        near("maximum 32-mer sharing over every fold", worst, spec["leak_any_max"])
+
+    sp = get("three-arm span, as published")
+    sf = get("three-arm span, filtered")
+    sh = get("three-arm span, homology-grouped folds")
+    if sp is not None:
+        near("span as published", sp, spec["span_published"])
+    if sf is not None:
+        near("span with echoed windows removed", sf, spec["span_filtered"])
+    if sh is not None:
+        near("span under homology-tightened folds", sh, spec["span_homology"])
+    # THE CONTROL MUST BE A TIGHTENING, NOT A DIFFERENT PARTITION. A version that reassigned
+    # folds from scratch discarded chromosome grouping and raised every contribution; if the
+    # homology span ever drifts far from the published one again, that is the first suspect.
+    if None not in (sp, sh):
+        at_most("tightening the partition barely moves the span, so homology is not carrying "
+                "the result", abs(sh - sp) / sp, 0.05)
+
+
 def verify_negative_draws(T, g):
     """Draw-to-draw variability of the negatives, and what it does to the interval.
 
@@ -4895,7 +4953,7 @@ def main():
              verify_device_portability, verify_matching_robustness,
              verify_region_matched_neural, verify_negative_set_survey, verify_estimator_floor,
              verify_cross_fitting, verify_positive_set_overlap, verify_common_positives,
-             verify_protocol_transport, verify_negative_draws,
+             verify_protocol_transport, verify_negative_draws, verify_homology_folds,
              verify_cache_evidence, verify_cross_tables, verify_integrity)
     n_paper = None
     for fn in (PAPER + LEGACY):

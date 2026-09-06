@@ -34,6 +34,8 @@ fold_integrity.csv,scripts/fold_integrity.py,s13b_local_analysis,evidence-recomp
 fold_integrity_per_dataset.csv,scripts/fold_integrity.py,s13b_local_analysis,frozen-cache,1fe9ddecccfa97d8,31402,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
 gene_clustered_cv.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,evidence-recomputable,97f8085027ebb5a1,2028,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
 gene_clustered_cv_per_dataset.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,frozen-cache,01a9bfcb8ed368ce,26619,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
+homology_folds.csv,scripts/homology_folds.py,s13b_local_analysis,evidence-recomputable,522c636ac916b31c,2205,"""$PY"" scripts/homology_folds.py --from-cache || die ""homology folds"""
+homology_folds_per_dataset.csv,scripts/homology_folds.py,s13b_local_analysis,frozen-cache,602089df349b7559,36898,"""$PY"" scripts/homology_folds.py --from-cache || die ""homology folds"""
 horlacher_arm.csv,scripts/horlacher_arm.py,s13b_local_analysis,frozen-cache,8c222bcf67c7f2ee,1786,"""$PY"" scripts/horlacher_arm.py --from-cache || die ""horlacher arm"""
 horlacher_per_dataset.csv,scripts/horlacher_arm.py,s13b_local_analysis,evidence-recomputable,c7c580118f876def,8631,"""$PY"" scripts/horlacher_arm.py --from-cache || die ""horlacher arm"""
 incremental_value.csv,scripts/incremental_value.py,s13b_local_analysis,raw-reproducible,17164d09432e22a9,1229,"""$PY"" scripts/incremental_value.py || die ""incremental value"""

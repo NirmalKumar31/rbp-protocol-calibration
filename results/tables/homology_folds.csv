@@ -1,0 +1,21 @@
+check,value,ci_low,ci_high,n,note
+datasets,94.0,94.0,94.0,94,
+"held-out windows sharing any 32-mer with training, mean over all five folds",0.03339572382157999,0.026033237631424188,0.042505147577036176,94,the published figure audited fold 0 only
+"the same, worst fold of each dataset",0.040945916885936684,0.03266108569960041,0.051302674913537294,94,
+"held-out windows sharing more than half their 32-mers, worst fold",0.003939754591330984,0.0026980706028393872,0.005635992106514653,94,
+"fraction of windows the filter removes, dinucleotide arm",0.0022091260552251375,0.001564254606835141,0.002968999832745793,94,
+"fraction of windows the tightening moves, dinucleotide arm",0.01099684361342464,0.007953747663258398,0.014545548791984761,94,
+median across datasets of the per-dataset mean 32-mer sharing,0.019994905928881652,,,94,over all five held-out folds
+maximum 32-mer sharing over every dataset and fold,0.2903225806451613,,,94,"the fold-0-only audit reported 24.3%, which understated this"
+"contribution as published, gc arm",0.026513098340627504,0.020384564412688,0.03309605285808229,94,
+"contribution with echoed held-out windows removed, gc arm",0.026335068112021912,0.020236034439236307,0.03280654767832118,94,
+"contribution under homology-grouped folds, gc arm",0.02650149513947631,0.020359798830079278,0.033061766842570284,94,
+"contribution as published, dn arm",0.06626403675115053,0.054073753103355875,0.07990446807174477,94,
+"contribution with echoed held-out windows removed, dn arm",0.06587985531995712,0.05372437939159464,0.07949509861826914,94,
+"contribution under homology-grouped folds, dn arm",0.06620968785360343,0.05398379833300792,0.07991818316699048,94,
+"contribution as published, neg2 arm",0.012231944163197651,0.009754584941553283,0.015055647482416442,94,
+"contribution with echoed held-out windows removed, neg2 arm",0.012160729575197902,0.009691580009467807,0.014942531841198021,94,
+"contribution under homology-grouped folds, neg2 arm",0.012250066632998552,0.009758225756642286,0.01507997339940515,94,
+"three-arm span, as published",5.417293920497092,,,94,
+"three-arm span, filtered",5.417426225341007,,,94,
+"three-arm span, homology-grouped folds",5.404843078587951,,,94,

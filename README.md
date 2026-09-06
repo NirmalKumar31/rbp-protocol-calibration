@@ -41,8 +41,8 @@ throughout for different quantities.
 
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download. 998 numeric assertions are checked
-against committed tables, of which **860 belong to this paper** and 136 to an earlier
+No cloud account, no credentials, no data download. 1008 numeric assertions are checked
+against committed tables, of which **870 belong to this paper** and 136 to an earlier
 variant-scoring study whose code and evidence are still here and still pass. The verifier prints
 that split on every run, because one total covering two papers is not this paper's evidence. That is a regression gate on the published values, not a proof that
 each is attached to the right claim; the Limitations section says what it does not cover.
@@ -50,8 +50,8 @@ each is attached to the right claim; the Limitations section says what it does n
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e . -c constraints.txt   # pins the offline-verification environment
-PYTHONPATH=src python scripts/verify.py --local results/tables   # 998/998
-PYTHONPATH=src python -m pytest tests -q                          # 727, needs torch
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 1008/1008
+PYTHONPATH=src python -m pytest tests -q                          # 728, needs torch
 ```
 
 `verify.py` re-derives every published value from the committed result tables and fails if any
@@ -99,7 +99,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          727 tests, no network or cloud; 2 modules need torch
+tests/          728 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes
