@@ -332,6 +332,10 @@ s13b_local_analysis() {
   # table frozen-only while a script sat beside it that rebuilds it from committed inputs.
   "$PY" scripts/four_models_table.py || die "four models table"
   "$PY" scripts/column_dictionary.py || die "column dictionary"
+  # OFFLINE audit of the raw-input manifest: structure, coverage against the study panel, and
+  # no credential-shaped string. Rebuilding it needs bucket access (--from-gcs); checking what
+  # is committed does not, which is the half a reader can run.
+  "$PY" scripts/raw_inputs.py --check || die "raw input manifest"
   "$PY" scripts/shuffled_arm.py --from-cache || die "shuffled fourth arm"
   "$PY" scripts/multiplier_variance.py || die "multiplier variance"
   "$PY" scripts/score_scale_check.py --from-cache || die "score scale"

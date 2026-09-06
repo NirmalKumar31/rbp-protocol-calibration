@@ -59,11 +59,25 @@ def build_from_spec(spec, train_cfg):
 
     Everything -- repo, class, head shape, LoRA rank -- comes from config, so this
     function holds no model-specific knowledge.
+
+    THE REVISION IS PASSED HERE TOO, AND IT WAS NOT. docker/bake_weights.py has honoured an
+    optional `revision:` key for as long as it has existed, with a comment explaining that
+    without one `from_pretrained` resolves whatever the hub's `main` points at on the day it
+    runs. This function, which is the RUNTIME path every sweep actually goes through, ignored
+    the key entirely. So pinning a revision in config would have pinned the baked weights and
+    left the runtime free to fetch something else, which is worse than not pinning at all
+    because it looks pinned. Both paths now read the same key.
+
+    It stays OPTIONAL rather than required. The published sweeps ran before the key existed
+    and no revision was recorded for them, so demanding one would mean either inventing a hash
+    or refusing to rerun the study's own configuration. What can be done is done: the key is
+    honoured wherever it appears, and its absence is logged rather than passed over.
     """
     import multimolecule as mm
     from multimolecule import RnaTokenizer
-    tok = RnaTokenizer.from_pretrained(spec["repo"])
-    encoder = getattr(mm, spec["cls"]).from_pretrained(spec["repo"])
+    kw = {"revision": spec["revision"]} if spec.get("revision") else {}
+    tok = RnaTokenizer.from_pretrained(spec["repo"], **kw)
+    encoder = getattr(mm, spec["cls"]).from_pretrained(spec["repo"], **kw)
     model = LMClassifier(tok, encoder,
                          hidden=train_cfg.get("head_hidden", 128),
                          dropout=train_cfg.get("head_dropout", 0.3))

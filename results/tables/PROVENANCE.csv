@@ -77,6 +77,7 @@ protocol_or_baseline.csv,scripts/protocol_or_baseline.py,s13b_local_analysis,raw
 protocol_transport.csv,scripts/protocol_transport.py,s13b_local_analysis,evidence-recomputable,3131c66b461c4bd4,4784,"""$PY"" scripts/protocol_transport.py --from-cache || die ""protocol transport"""
 protocol_transport_per_dataset.csv,scripts/protocol_transport.py,s13b_local_analysis,frozen-cache,a66a2062626159ed,36126,"""$PY"" scripts/protocol_transport.py --from-cache || die ""protocol transport"""
 r1_robustness.csv,scripts/r1_robustness.py,s13b_local_analysis,raw-reproducible,79717da9fb887f31,2138,"""$PY"" scripts/r1_robustness.py     || die ""replication and efficiency"""
+raw_inputs.csv,scripts/raw_inputs.py,,cloud-produced,5f76cbab059b5b2a,71954,"written by raw_inputs, a cloud stage"
 recommendation_works.csv,scripts/recommendation_works.py,s13b_local_analysis,raw-reproducible,af573ac92beec95d,1536,"""$PY"" scripts/recommendation_works.py || die ""recommendation test"""
 recompute.csv,scripts/recompute.py,s13b_local_analysis,raw-reproducible,256d120f4a783475,21350,"""$PY"" scripts/recompute.py         || die ""recompute from per-example evidence"""
 region_annotation.csv,scripts/region_annotation.py,s13b_local_analysis,evidence-recomputable,cfa48d368037beb8,3827,"""$PY"" scripts/region_annotation.py --from-cache || die ""region annotation rules"""

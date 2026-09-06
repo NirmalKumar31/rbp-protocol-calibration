@@ -79,6 +79,10 @@ RANK = {RAW: 0, EVID: 1, CACHE: 2, FROZEN: 3, CLOUD: 4}
 CLOUD_PRODUCERS = {
     "sweep_dinuc.csv": "CLOUD:cloud_train",          # the sweep driver writes it per dataset
     "variant_tasks.tsv": "CLOUD:variant_splicebert",  # writes the variants/ manifest
+    # Built from the raw bucket's live object metadata: sizes, MD5s and creation times are
+    # read from GCS, not computed from anything a reader has. Rebuilding it needs read access
+    # to that bucket, which is what cloud-produced means here.
+    "raw_inputs.csv": "CLOUD:raw_inputs",
 }
 
 # Tables with more than one real writer. The manifest names the OFFLINE producer as canonical,
@@ -286,7 +290,17 @@ def owner(table, inv):
     which covers tables produced by the cloud stages rather than by a local script. Returns ""
     rather than a guess when neither applies: UNKNOWN is a better answer than a wrong one,
     because a wrong one is reported as a reproducibility guarantee.
+
+    AN EXPLICIT DECLARATION BEATS THE INFERENCE. CLOUD_PRODUCERS used to be consulted only as a
+    last resort, after the write-call scan had failed, which is wrong for a script that writes
+    the table locally but can only OBTAIN its contents from the cloud. raw_inputs.py is exactly
+    that: run.sh invokes it as `--check`, which reads the committed file and writes nothing, and
+    rebuilding needs read access to the raw bucket. Inferring from the write call alone
+    classified it raw-reproducible, which advertises that a reader without a GCP account can
+    regenerate it. They cannot.
     """
+    if table in CLOUD_PRODUCERS:
+        return CLOUD_PRODUCERS[table]
     W = writers()
     w = W.get(table, [])
     if not w:

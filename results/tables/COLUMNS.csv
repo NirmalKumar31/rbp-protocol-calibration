@@ -800,12 +800,12 @@ protocol_or_baseline.csv,n,float,count,,39,27,5,27,282,282.0,"Datasets, or rows,
 protocol_or_baseline.csv,note,string,,,39,25,6,,,5-fold accuracy; chance is 1/3,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/protocol_or_baseline.py
 protocol_or_baseline.csv,ci_low,float,,,39,34,5,-0.0269306,-4.2497e-05,-0.02693057049360594,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/protocol_or_baseline.py
 protocol_or_baseline.csv,ci_high,float,,,39,34,5,-0.0157257,0.0122248,-0.015725662293961624,Upper bound of the same interval as ci_low,scripts/protocol_or_baseline.py
-protocol_transport.csv,check,string,,yes,18,0,18,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/protocol_transport.py
-protocol_transport.csv,value,float,,,18,0,18,0.00830954,94,94.0,The asserted quantity,scripts/protocol_transport.py
-protocol_transport.csv,ci_low,float,,,18,5,13,0.00620344,94,94.0,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/protocol_transport.py
-protocol_transport.csv,ci_high,float,,,18,5,13,0.0106312,94,94.0,Upper bound of the same interval as ci_low,scripts/protocol_transport.py
-protocol_transport.csv,n,int,count,,18,0,1,94,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/protocol_transport.py
-protocol_transport.csv,note,string,,,18,7,4,,,diagonal is the published within-arm val,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/protocol_transport.py
+protocol_transport.csv,check,string,,yes,24,0,24,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/protocol_transport.py
+protocol_transport.csv,value,float,,,24,0,24,-0.0299046,94,94.0,The asserted quantity,scripts/protocol_transport.py
+protocol_transport.csv,ci_low,float,,,24,8,16,0.00620344,94,94.0,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/protocol_transport.py
+protocol_transport.csv,ci_high,float,,,24,8,16,0.0106312,94,94.0,Upper bound of the same interval as ci_low,scripts/protocol_transport.py
+protocol_transport.csv,n,int,count,,24,0,2,79,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/protocol_transport.py
+protocol_transport.csv,note,string,,,24,7,7,,,diagonal is the published within-arm val,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/protocol_transport.py
 protocol_transport_per_dataset.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/protocol_transport.py
 protocol_transport_per_dataset.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/protocol_transport.py
 protocol_transport_per_dataset.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/protocol_transport.py
@@ -833,6 +833,18 @@ r1_robustness.csv,ci_low,float,,,19,16,3,-0.115964,0.812384,0.8123841545264275,"
 r1_robustness.csv,ci_high,float,,,19,16,3,0.465153,0.97235,0.9723498706402544,Upper bound of the same interval as ci_low,scripts/r1_robustness.py
 r1_robustness.csv,n,int,count,,19,0,2,15,94,15,"Datasets, or rows, behind the value. Usually 94",scripts/r1_robustness.py
 r1_robustness.csv,note,string,,,19,2,17,,,"HepG2 vs K562; separate experiments, sep","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/r1_robustness.py
+raw_inputs.csv,path,string,,yes,251,0,251,,,GRCh38.primary_assembly.genome.fa,,scripts/raw_inputs.py
+raw_inputs.csv,kind,string,,,251,0,5,,,genome FASTA,,scripts/raw_inputs.py
+raw_inputs.csv,accession,string,,yes,251,7,244,,,ENCFF992LCW,ENCODE file accession,scripts/raw_inputs.py
+raw_inputs.csv,cell,string,,yes,251,7,2,,,HepG2,K562 or HepG2,scripts/raw_inputs.py
+raw_inputs.csv,size_bytes,int,bytes,,251,0,250,472,3151417447,3151417447,File size in bytes,scripts/raw_inputs.py
+raw_inputs.csv,md5_base64,string,,,251,0,251,,,Sb24DSGmTcsWrPyUGEM1bg==,Content hash of the file named in this row,scripts/raw_inputs.py
+raw_inputs.csv,uploaded_utc,string,,,251,0,147,,,2026-08-25T15:52:19Z,,scripts/raw_inputs.py
+raw_inputs.csv,source_url,string,,,251,2,247,,,https://ftp.ebi.ac.uk/pub/databases/genc,,scripts/raw_inputs.py
+raw_inputs.csv,url_provenance,string,,,251,0,5,,,config/params.yaml reference.genome,,scripts/raw_inputs.py
+raw_inputs.csv,assembly,string,,,251,0,1,,,GRCh38,,scripts/raw_inputs.py
+raw_inputs.csv,annotation,string,,,251,1,1,,,GENCODE v45,,scripts/raw_inputs.py
+raw_inputs.csv,terms_url,string,,,251,2,3,,,https://www.gencodegenes.org/pages/data_,,scripts/raw_inputs.py
 recommendation_works.csv,check,string,,yes,21,0,21,,,"rank agreement, raw, gc vs dn","The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/recommendation_works.py
 recommendation_works.csv,value,float,,,21,0,16,0.0209515,3,0.8477621645052921,The asserted quantity,scripts/recommendation_works.py
 recommendation_works.csv,ci_low,float,,,21,15,6,-0.0894078,0.00732219,0.007322194559956192,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/recommendation_works.py
@@ -1366,7 +1378,7 @@ variant_threshold_curve.csv,gap,float,,,21,0,16,-0.0114116,0.117241,-0.011411604
 variant_threshold_curve.csv,matched_wins,int,,,21,0,15,17,45,45,,scripts/cloud_analysis.py
 variant_threshold_curve.csv,p,float,,,21,0,16,1.02445e-07,0.870963,0.8709627614302943,Two-sided p-value,scripts/cloud_analysis.py
 verify_summary.csv,name,string,,,6,0,6,,,assertions,,
-verify_summary.csv,value,int,,,6,0,5,2,1013,1013,The asserted quantity,
+verify_summary.csv,value,int,,,6,0,6,2,1023,1023,The asserted quantity,
 window_centring.csv,check,string,,yes,38,0,38,,,datasets rebuilt under every centring,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/window_centring.py
 window_centring.csv,value,float,,,38,0,32,0,6464.3,10.0,The asserted quantity,scripts/window_centring.py
 window_centring.csv,n,int,count,,38,0,2,10,60,60,"Datasets, or rows, behind the value. Usually 94",scripts/window_centring.py

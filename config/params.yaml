@@ -157,6 +157,19 @@ models:
     kind: lm
     label: SpliceBERT
     repo: multimolecule/splicebert
+    # revision: <commit sha>
+    #
+    # EVERY lm ENTRY TAKES AN OPTIONAL `revision:`, honoured by BOTH loading paths --
+    # docker/bake_weights.py at image build and src/rbp/models/lm.py at runtime. Without one,
+    # from_pretrained resolves whatever the hub's `main` points at that day, so the model
+    # identity is not recoverable from this file.
+    #
+    # NONE IS SET, AND SETTING ONE NOW WOULD BE A LIE. The published sweeps ran before the key
+    # was honoured at runtime and no revision was recorded at the time. Writing today's hub
+    # SHA here would pin future runs to weights that are not demonstrably the ones that
+    # produced the frozen scores, while looking exactly like a record that they are. The
+    # honest state is: unpinned, disclosed in the manuscript's limitations, and pinnable by
+    # anyone starting a new sweep, who should set it.
     cls: SpliceBertModel
     params_m: 19.72
     mode: full
