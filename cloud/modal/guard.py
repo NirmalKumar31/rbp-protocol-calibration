@@ -84,6 +84,7 @@ def _epoch(ts):
         return None
 
 
+
 # EVERY SWEEP APP, NOT ONE. This matched the literal description "rbp-sweep" while the apps
 # that actually ran the GC, bias-aware and region-matched arms are named rbp-gc-sweep,
 # rbp-neg2-sweep and rbp-neg2-rm-sweep -- modal_gc_sweep.py derives the name from RBP_ARM. So
@@ -95,6 +96,15 @@ LIVE = ("ephemeral", "running", "deployed")
 
 class Unobservable(RuntimeError):
     """The Modal CLI could not be read. NOT the same as nothing running."""
+
+
+class UnparseableStart(Unobservable):
+    """A LIVE app whose start time we cannot read. Distinct because the fix is different.
+
+    An unreadable timestamp is not the same failure as an unreachable CLI: we know the app
+    exists and is running, we just cannot say for how long. It is grouped under Unobservable so
+    every existing `except Unobservable` keeps failing closed.
+    """
 
 
 def live_apps():
@@ -118,14 +128,30 @@ def live_apps():
         apps = json.loads(r.stdout)
     except json.JSONDecodeError as e:
         raise Unobservable(f"modal app list returned unparseable output: {e}") from e
-    out = []
+    out, blind = [], []
     for a in apps:
         # Modal's own field names have varied; be liberal about which key holds what.
         state = str(a.get("State") or a.get("state") or "").lower()
         desc = a.get("Description") or a.get("description") or ""
         if APP_NAME.match(desc) and state in LIVE:
-            out.append((a.get("app_id") or a.get("App ID"),
-                        _epoch(a.get("created_at") or a.get("Created at") or "")))
+            app_id = a.get("app_id") or a.get("App ID")
+            raw = a.get("created_at") or a.get("Created at") or ""
+            started = _epoch(raw)
+            if started is None:
+                blind.append(f"{app_id} (created_at={raw!r})")
+            out.append((app_id, started))
+    # A LIVE APP WITH AN UNREADABLE START TIME USED TO BOUND AT ZERO, FOREVER. _epoch returns
+    # None on anything it cannot parse, this function kept the app in the list with that None,
+    # and report() summed `for _a, s in live if s` -- so the app was excluded from the figure
+    # printed as an UPPER BOUND while it went on holding ten containers. A rename of the field,
+    # a CLI upgrade, a timezone suffix Python's fromisoformat does not take: any of those turns
+    # the cost ceiling off silently, on the one code path whose entire job is to be paranoid.
+    # Same shape as the returncode bug two functions up. Fail closed instead: the caller either
+    # stops the app or the operator looks at modal.com/apps.
+    if blind:
+        raise UnparseableStart(
+            f"{len(blind)} live sweep app(s) have an unreadable start time, so no honest upper "
+            f"bound exists: {', '.join(blind)}")
     return out
 
 
@@ -191,7 +217,16 @@ def report(model, budget, started_epoch, live=None):
     if live is None:
         live = [(None, started_epoch)] if started_epoch else []
     now = time.time()
-    upper = sum((now - s) / 3600 * MAX_CONTAINERS * RATE for _a, s in live if s)
+    # NO SILENT DROPS. This filtered `if s` and therefore omitted any app whose start time was
+    # missing from a figure it labelled an upper bound. live_apps() now refuses to return such
+    # an app at all, and this is the second line of defence: an entry that reaches here without
+    # a start time is a programming error, not something to quietly skip.
+    missing = [a for a, s in live if not s]
+    if missing:
+        raise UnparseableStart(
+            f"live app(s) with no start time reached report(): {missing}. An upper bound that "
+            "excludes a running app is not an upper bound.")
+    upper = sum((now - s) / 3600 * MAX_CONTAINERS * RATE for _a, s in live)
     lower = secs / 3600 * RATE
     print(f"[{dt.datetime.now():%H:%M:%S}] {model}: {n} runs observed on modal")
     print(f"    upper bound  ${upper:6.2f}   ({len(live)} live app(s) x {MAX_CONTAINERS} "
@@ -268,8 +303,10 @@ def main():
         return
     print(f"guarding app {app_id}, budget ${a.budget:.2f}, "
           f"burn ${MAX_CONTAINERS*RATE:.2f}/h at full fan-out\n")
-    if not started:               # fall back to now if the timestamp did not parse
-        started = time.time()
+    # `started` cannot be None here: live_apps() raises rather than returning an app without
+    # one, and the Unobservable above catches that. Kept as an assertion rather than a silent
+    # fallback to now, which is the least conservative possible guess for an upper bound.
+    assert started, "app_state() returned a live app with no start time"
     last_seen = []                # the most recent COMPLETE live-app list, for the outage case
 
     while True:
