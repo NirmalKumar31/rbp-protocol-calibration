@@ -178,7 +178,11 @@ def f0():
         ax[2].set_ylim(0, ax[2].get_ylim()[1] * 1.35)   # room for the legend over the peak
         ax[2].set_xlabel("composition-only AUROC (the baseline the protocol leaves)")
         ax[2].set_ylabel("datasets")
-        ax[2].set_title("c  same positives, three protocols", loc="left", fontsize=9)
+        # NOT "same positives": the matchers reject different windows, so the arms share a
+        # median Jaccard of 0.9972 and are identical in only 10 of 94 datasets. Corrected
+        # here after the same wording was fixed in f1 and missed in f0.
+        ax[2].set_title("c  near-identical positives, three protocols", loc="left",
+                        fontsize=9)
     else:
         ax[2].axis("off")
     save(fig, "f0_panel_overview")

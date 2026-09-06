@@ -583,7 +583,8 @@ to its source.
 \subsection{The span holds for three model classes}
 \label{sec:models}
 
-Both neural models were trained on all three arms under the same folds, seed and code path,
+Both neural models were trained on all three arms under the same folds and code path, and
+under the same configured seed after initialisation, which was itself unseeded,
 with per-window out-of-fold scores retained (Figure~\ref{fig:models},
 Table~\ref{tab:threemodels}).
 
@@ -1034,22 +1035,30 @@ refitting it would put the training arm's coefficients against different columns
 Table~\ref{tab:transport} gives all nine combinations. Its diagonal reproduces the published
 within-arm contributions exactly, which is what makes the off-diagonal cells comparable to
 them. Holding the evaluation arm fixed and varying the training arm moves the contribution by
-0.0141; holding the training arm fixed and varying the evaluation arm moves it by 0.0438. A
-balanced two-way decomposition computed per dataset attributes $62.7\%$ of the variance across
-the nine cells to the evaluation protocol (95\% CI 56.6 to 68.4), $15.2\%$ to the training
-protocol (12.7 to 17.8) and $22.2\%$ to their interaction (18.2 to 26.4).
+0.0141; holding the training arm fixed and varying the evaluation arm moves it by 0.0438.
+
+A balanced two-way decomposition puts a number on that, and the number depends on how datasets
+are weighted, so we give both. Decomposing each dataset's own $3\times3$ matrix and averaging
+the resulting shares over datasets, which weights every dataset equally, attributes $62.7\%$ of
+the variance to the evaluation protocol (95\% CI 56.6 to 68.4), $15.2\%$ to the training
+protocol (12.7 to 17.8) and $22.2\%$ to their interaction (18.2 to 26.4). Decomposing the
+$3\times3$ matrix of panel means instead, which weights a dataset by the size of its effect,
+gives $80.7\%$, $9.2\%$ and $10.1\%$; that form has no interval, being a function of means
+rather than a per-dataset quantity. The evaluation protocol dominates under either, and the
+interaction is between a tenth and a fifth of the variance rather than negligible.
 
 The two effects are not merely unequal, they are different in kind. Training on GC-matched or
 dinucleotide-matched negatives is nearly interchangeable: evaluated on the GC arm the two give
 $+0.0265$ and $+0.0269$. Training on the bias-aware arm is not, and costs about half the
 contribution wherever it is evaluated, which is the one place a training-distribution effect is
 clearly visible: negatives drawn from other proteins' binding sites are a harder and less
-informative contrast to learn from. What the composition-matching choice moves is almost
-entirely the measurement.
+informative contrast to learn from. What the composition-matching choice moves is
+predominantly the measurement rather than the model, though not exclusively: the interaction
+term is where the remainder sits.
 
-The interaction is not negligible and we do not treat it as such: a fifth of the variance is
-in how a particular training protocol meets a particular evaluation protocol, which is what the
-bias-aware row shows concretely. The comparison is also descriptive rather than causal. Off-diagonal
+The interaction is not negligible and we do not treat it as such: a tenth to a fifth of the
+variance is in how a particular training protocol meets a particular evaluation protocol, which
+is what the bias-aware row shows concretely. The comparison is descriptive rather than causal. Off-diagonal
 cells evaluate a model on windows drawn under a protocol it was not fitted for, which is a
 distribution shift as well as a protocol change, and the contributions themselves come from the
 two-stage estimator whose information route Section~\ref{sec:crossfit} identifies. What the

@@ -193,14 +193,19 @@ maximum of 24.3\%, which understated it: the median is unchanged over the full p
 extreme is not.
 
 Chromosome grouping therefore leaves a residue of homologous sequence across folds, and we
-remove it rather than only measuring it. Deleting every held-out window that shares more than
-half its 32-mers with a training window removes 0.22\% of windows and leaves the panel means at
-$+0.0263$, $+0.0659$ and $+0.0122$, a span of 5.42. Deleting every held-out window that shares
-\emph{any} 32-mer with a training window is the strongest form available: it removes all exact
-cross-fold sharing, which the code asserts by re-indexing every 32-mer at stride one afterwards
-and failing if one still crosses a fold. That costs 3.3\% of windows and gives $+0.0240$,
-$+0.0618$ and $+0.0118$, a span of 5.24. The effect is smaller with the homology gone, by about
-7\% of the contribution and 3\% of the span, and it is plainly still there.
+remove it rather than only measuring it. Both filters delete whole matched PAIRS: negatives are
+matched 1:1 to positives, and deleting a window without its partner would change the class
+balance as well as the sharing, in a direction that differs by dataset. An earlier version
+deleted single windows and the code now asserts exact balance after each filter.
+
+Deleting every held-out window that shares more than half its 32-mers with a training window,
+and its partner, removes 0.44\% of windows and leaves the panel means at $+0.0263$, $+0.0659$
+and $+0.0121$, a span of 5.44. Deleting every held-out window that shares \emph{any} 32-mer with
+a training window is the strongest form available: it removes all exact cross-fold sharing,
+which the code asserts by re-indexing every 32-mer at stride one afterwards and failing if one
+still crosses a fold. That costs 6.3\% of windows and gives $+0.0240$, $+0.0611$ and $+0.0116$,
+a span of 5.25. The contribution falls by about 8\% with the homology gone and the span by 3\%,
+and the effect is plainly still there.
 
 We do not report a homology-aware re-partition, because on these data none exists. Requiring a
 split to respect chromosome blocking and also to place every 32-mer-sharing pair in one fold
@@ -391,8 +396,9 @@ genomic coordinates that the published per-window score files do not carry.
 
 \subsection{Reproducibility}
 
-All published values are reproduced offline by a single command against committed evidence. The
-harness runs 1012 numeric assertions against a frozen expectations file, and the harness asserts
+Every published value is regression-checked offline by a single command against committed
+evidence, which is a different and weaker claim than rebuilding it from raw inputs. The
+harness runs 1013 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

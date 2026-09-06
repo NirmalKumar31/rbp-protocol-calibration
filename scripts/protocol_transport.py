@@ -32,9 +32,13 @@ WHAT THE TABLE SEPARATES. With the diagonal being the published within-arm resul
   column effect  holding the training arm fixed and varying the evaluation arm isolates what
                  the evaluation negatives did to the measurement, baseline included.
 
-If the column effect carries nearly all of the protocol dependence, then what the protocol
-moves is the measurement rather than the model, which is the paper's thesis stated causally
-rather than by association.
+If the column effect carries most of the protocol dependence, what the protocol moves is
+largely the measurement rather than the model. This is DESCRIPTIVE and not causal, for three
+reasons that belong next to the number rather than in a later caveat: the off-diagonal cells
+evaluate a model on windows drawn under a protocol it was not fitted for, which is a
+distribution shift as well as a protocol change; the contribution is computed with the
+two-stage estimator whose information route this paper identifies; and the shares depend on how
+datasets are weighted, so both weightings are reported.
 """
 
 import argparse
@@ -179,12 +183,33 @@ def main():
     ss_in = (inter ** 2).sum(axis=(0, 1))
     tot = ss_tr + ss_ev + ss_in
     good = tot > 0
-    add("share of variance from the TRAINING protocol", ss_tr[good] / tot[good],
-        "balanced two-way sum of squares, per dataset, protein-clustered interval")
-    add("share of variance from the EVALUATION protocol", ss_ev[good] / tot[good],
-        "balanced two-way sum of squares, per dataset, protein-clustered interval")
-    add("share of variance from their INTERACTION", ss_in[good] / tot[good],
-        "omitted entirely by the ratio-of-ranges summary this replaces")
+    W = ("mean over datasets of each dataset's own normalised share; equal weight per dataset, "
+         "so a dataset with a tiny protocol effect counts as much as a large one")
+    add("share of variance from the TRAINING protocol, per-dataset weighting",
+        ss_tr[good] / tot[good], W)
+    add("share of variance from the EVALUATION protocol, per-dataset weighting",
+        ss_ev[good] / tot[good], W)
+    add("share of variance from their INTERACTION, per-dataset weighting",
+        ss_in[good] / tot[good], W)
+
+    # THE OTHER WEIGHTING, because the choice is not neutral and naming one without the other
+    # invites the reader to assume there is only one answer. This decomposes the 3x3 matrix of
+    # PANEL MEANS, which weights datasets by how large their effect is. It gives a larger
+    # evaluation share and a smaller interaction; both are legitimate and they answer different
+    # questions. Reported so the dependence on weighting is visible rather than buried.
+    P = M.mean(axis=2)                                    # 3 x 3 panel means
+    mp = P.mean()
+    rp, cp = P.mean(axis=1) - mp, P.mean(axis=0) - mp
+    ip = P - P.mean(axis=1)[:, None] - P.mean(axis=0)[None, :] + mp
+    sp_tr, sp_ev, sp_in = 3 * (rp ** 2).sum(), 3 * (cp ** 2).sum(), (ip ** 2).sum()
+    tp = sp_tr + sp_ev + sp_in
+    for nm, v in (("TRAINING", sp_tr), ("EVALUATION", sp_ev), ("INTERACTION", sp_in)):
+        out.append({"check": f"share of variance from the {nm} protocol, panel-mean weighting"
+                             if nm != "INTERACTION" else
+                             "share of variance from their INTERACTION, panel-mean weighting",
+                    "value": float(v / tp), "ci_low": "", "ci_high": "", "n": len(t),
+                    "note": "decomposition of the 3x3 matrix of panel means; no interval, "
+                            "because it is a function of means rather than a per-dataset value"})
 
     # The marginal ranges are kept as the descriptive quantities they are, unnormalised, so a
     # reader can see the raw movement without a ratio being read as a partition.

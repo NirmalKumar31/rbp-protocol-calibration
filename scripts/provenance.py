@@ -71,8 +71,28 @@ CLOUD = "cloud-produced"        # written by a cloud stage, not by any local scr
 FROZEN = "frozen-only"          # needs the window store, a GPU, or cloud credentials
 RANK = {RAW: 0, EVID: 1, CACHE: 2, FROZEN: 3, CLOUD: 4}
 
+# CLOUD-PRODUCED TABLES, DECLARED RATHER THAN GUESSED. The previous version scanned cloud
+# scripts for any textual MENTION of a filename and took the first match, which recreated the
+# read-versus-write confusion this module exists to prevent: both files below were attributed to
+# cloud_analysis.py, which fetches them from the bucket and reads them. A short declared list is
+# honest about being hand-maintained; a heuristic that silently picks a reader is not.
+CLOUD_PRODUCERS = {
+    "sweep_dinuc.csv": "CLOUD:cloud_train",          # the sweep driver writes it per dataset
+    "variant_tasks.tsv": "CLOUD:variant_splicebert",  # writes the variants/ manifest
+}
+
+# Tables with more than one real writer. The manifest names the OFFLINE producer as canonical,
+# because the question the manifest answers is what a reader without cloud access can rebuild,
+# and it records the other in the invocation column rather than hiding it.
+CANONICAL_WRITER = {
+    "matched_four_models.csv": "four_models_table",   # cloud_analysis.py also writes it
+}
+
 # Tables written by this script or by the auditors, which have no upstream stage.
-META = {"PROVENANCE.csv", "manuscript_orphans.csv", "release_facts.csv", "verify_summary.csv"}
+META = {"PROVENANCE.csv", "manuscript_orphans.csv", "release_facts.csv", "verify_summary.csv",
+        # A generated INDEX of the tables, in the same class as this manifest: it describes
+        # the release rather than being a result of it.
+        "COLUMNS.csv"}
 
 
 def invocations():
@@ -275,19 +295,16 @@ def owner(table, inv):
     if len(w) == 1:
         return w[0]
     if len(w) > 1:
-        # Two scripts writing one name is a real problem; prefer the stem match, flag otherwise.
-        stem = table.replace("_per_dataset", "").replace("_per_fold", "").removesuffix(".csv")
-        return stem if stem in w else sorted(w)[0]
+        # AMBIGUITY MUST BE DECLARED, NOT RESOLVED ALPHABETICALLY. matched_four_models.csv is
+        # written by cloud_analysis.py and by four_models_table.py; picking the first silently
+        # marked it frozen-only and hid the offline path that rebuilds it.
+        if table in CANONICAL_WRITER:
+            return CANONICAL_WRITER[table]
+        return "AMBIGUOUS:" + "+".join(sorted(w))
     stem = table.replace("_per_dataset", "").replace("_per_fold", "").removesuffix(".csv")
     if (ROOT / "scripts" / f"{stem}.py").exists() or stem in inv:
         return stem
-    # A CLOUD STAGE IS A PRODUCER TOO. sweep_dinuc.csv and variant_tasks.tsv are written by the
-    # Batch and sweep jobs and fetched from the bucket; reporting them as "nobody can regenerate
-    # this" is false, and reporting them as locally reproducible would be worse.
-    for f in sorted((ROOT / "scripts").glob("cloud_*.py")) + sorted((ROOT / "cloud").rglob("*.py")):
-        if table in f.read_text():
-            return f"CLOUD:{f.stem}"
-    return ""
+    return CLOUD_PRODUCERS.get(table, "")
 
 
 def build():
@@ -311,6 +328,15 @@ def build():
                          "invocation": "no producing script; see unattributed/README.md"})
             continue
         who = owner(p.name, inv)
+        if who.startswith("AMBIGUOUS:"):
+            # Loud, not silent: a table two scripts write needs a human to say which is canonical.
+            rows.append({"table": rel, "producing_script": who, "run_sh_stage": "",
+                         "status": "AMBIGUOUS",
+                         "sha256": hashlib.sha256(p.read_bytes()).hexdigest()[:16],
+                         "bytes": p.stat().st_size,
+                         "invocation": "more than one script writes this; declare the canonical "
+                                       "producer in CANONICAL_WRITER"})
+            continue
         if who.startswith("CLOUD:"):
             status, stage, cmd = CLOUD, "", f"written by {who[6:]}, a cloud stage"
             who = who[6:]
@@ -342,7 +368,7 @@ def main():
         counts[r["status"]] = counts.get(r["status"], 0) + 1
 
     log(f"  {len(rows)} committed tables")
-    for k in (RAW, EVID, CACHE, FROZEN, CLOUD, "unattributed", "UNKNOWN"):
+    for k in (RAW, EVID, CACHE, FROZEN, CLOUD, "unattributed", "AMBIGUOUS", "UNKNOWN"):
         if counts.get(k):
             log(f"    {k:22s} {counts[k]:3d}")
 

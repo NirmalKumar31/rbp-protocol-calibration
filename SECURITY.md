@@ -18,13 +18,13 @@ public first.
 | a project or bucket id committed in source | `tests/unit/test_no_hardcoded_project.py`, matching the id's shape rather than one historical name, over every tracked `.py`, `.sh`, `.yaml` and `.json` |
 | a billing account id committed anywhere | the same test, over every tracked file including docs |
 | a private key in Terraform state | no `google_service_account_key` resource exists; the one key is minted out of band. See `docs/REPRODUCE.md` for its lifecycle and revocation |
-| runaway GPU spend | `cloud/modal/guard.py`, which discovers every sweep app by pattern and **fails closed** if it cannot read the Modal CLI |
+| runaway GPU spend | `cloud/modal/guard.py`, which discovers every sweep app by pattern, sums the bound over all of them, and on losing sight of the Modal CLI keeps charging every app it last saw alive rather than the one it started with |
 | runaway GCP spend | `cloud/killswitch/`, which detaches billing. It reports at startup whether it actually holds the permission to do so, because a dry run proves only the read |
 | a cost report that cannot distinguish zero from unobservable | `cloud/cost.sh` counts and names failed queries and exits non-zero |
 
 ## The history scan, and what it found
 
-Run 2026-09-05 over all 202 commits on every ref (`git log --all -p`), looking for private-key
+Run 2026-09-05 over every commit on every ref (206 at the time of writing) (`git log --all -p`), looking for private-key
 blocks, service-account JSON fields, AWS keys, GitHub and Slack tokens, and billing account IDs.
 
 **Clean:** no private key, service-account key material, or API token appears anywhere in the

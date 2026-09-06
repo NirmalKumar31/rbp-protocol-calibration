@@ -76,6 +76,9 @@ step "release documents are consistent with the artefacts (full-suite job: --req
 echo "  NOTE: run with torch present, so this mirrors the full-suite job and not the"
 echo "        torch-free 'test' job. Check the Actions log for that one."
 
+step "the column dictionary is current"
+"$PY" scripts/column_dictionary.py || fail "column_dictionary.py"
+
 step "every committed table has a producing script"
 "$PY" scripts/provenance.py --check || fail "provenance.py"
 

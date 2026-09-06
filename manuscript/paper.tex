@@ -133,8 +133,9 @@ because the corrected estimator below is affordable only for the k-mer classes. 
 apparent AUROC moves the opposite way: replacing GC-matched with dinucleotide-matched negatives
 lowers the 4-mer's own AUROC from 0.798 to 0.688 in all 94 datasets while raising its measured
 contribution from 0.027 to 0.066 in 88. Fitting on one protocol and scoring another attributes
-63\% of the variance across the nine train-by-evaluate combinations to the evaluation protocol,
-15\% to the training protocol and 22\% to their interaction.
+most of the movement to the evaluation protocol rather than the fitted model: 63\% of a
+per-dataset variance decomposition, or 81\% weighting datasets by effect size, against 15\% and
+9\% for the training protocol.
 
 The estimator also has a floor. Applied to a 2-mer, whose true contribution is zero because the
 baseline spans its features, it returns $+0.011$ to $+0.014$: 90.4\% of the smallest protocol's
@@ -173,10 +174,13 @@ construction; sequence composition; incremental value; AUROC
 All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
-reproducible offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 1012 numeric assertions against a frozen
+regression-checked offline from the repository with \texttt{python scripts/verify.py
+-{}-local\allowbreak{} results/tables}, which runs 1013 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
-skip. One quantity is an exception and is marked as such in the text: the design effect, whose
+skip. That is a check against committed evidence and not a rebuild from raw inputs: two of the
+assertions are genuine end-to-end rebuilds, 285 AUROCs from committed per-window scores and the
+headline contrast from raw sequence, and \texttt{results/tables/PROVENANCE.csv} classifies every
+released table by which of the two applies to it. One quantity is an exception and is marked as such in the text: the design effect, whose
 block bootstrap needs the genomic coordinates that the published per-window score files do not
 carry. It is reproduced by \texttt{scripts/design\_effect.py} against the window store, which is
 regenerated from the accessions above in one command.

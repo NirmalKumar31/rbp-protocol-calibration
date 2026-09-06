@@ -270,12 +270,20 @@ def main():
           f"burn ${MAX_CONTAINERS*RATE:.2f}/h at full fan-out\n")
     if not started:               # fall back to now if the timestamp did not parse
         started = time.time()
+    last_seen = []                # the most recent COMPLETE live-app list, for the outage case
 
     while True:
         try:
             live = live_apps()
+            last_seen = live or last_seen
         except Unobservable:
-            live = [(app_id, started)]
+            # THE LAST COMPLETE LIST, not the one app we started with. Falling back to
+            # [(app_id, started)] meant that if three apps were live and the CLI then failed,
+            # the upper bound silently dropped to a third of the burn and the stop list to one
+            # app -- while SECURITY.md advertised this guard as failing closed. Keep charging
+            # every app last observed alive until one is positively seen to have stopped.
+            live = last_seen or [(app_id, started)]
+            print(f"    cannot observe modal; still charging {len(live)} app(s) last seen alive")
         upper, lower = report(a.model, a.budget, started, live)
         if upper >= a.budget:
             print(f"    OVER BUDGET on the upper bound (${upper:.2f} >= ${a.budget:.2f})")
@@ -283,7 +291,8 @@ def main():
             try:
                 targets = [x for x, _s in live_apps()]
             except Unobservable:
-                targets = [app_id]
+                targets = [x for x, _s in last_seen] or [app_id]
+                print(f"    modal unobservable; stopping the {len(targets)} app(s) last seen")
             failed = [x for x in targets if not stop(x)]
             if failed:
                 print(f"    COULD NOT CONFIRM STOP FOR: {', '.join(failed)}")

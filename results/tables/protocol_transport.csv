@@ -9,8 +9,11 @@ datasets,94.0,94.0,94.0,94,
 "contribution, trained on neg2, evaluated on gc",0.012969162683935715,0.008581510554486136,0.018127805310191026,94,
 "contribution, trained on neg2, evaluated on dn",0.033850666752397535,0.023667683905578555,0.046001416760383294,94,
 "contribution, trained on neg2, evaluated on neg2",0.012231944163197651,0.009754584941553283,0.015055647482416442,94,diagonal is the published within-arm value
-share of variance from the TRAINING protocol,0.1517283466898138,0.12739358417483868,0.17782573116740308,94,"balanced two-way sum of squares, per dataset, protein-clustered interval"
-share of variance from the EVALUATION protocol,0.6266555289031626,0.5655297772659541,0.6839700507991345,94,"balanced two-way sum of squares, per dataset, protein-clustered interval"
-share of variance from their INTERACTION,0.22161612440702355,0.18222169815901865,0.2640434607495866,94,omitted entirely by the ratio-of-ranges summary this replaces
+"share of variance from the TRAINING protocol, per-dataset weighting",0.1517283466898138,0.12739358417483868,0.17782573116740308,94,"mean over datasets of each dataset's own normalised share; equal weight per dataset, so a dataset with a tiny protocol effect counts as much as a large one"
+"share of variance from the EVALUATION protocol, per-dataset weighting",0.6266555289031626,0.5655297772659541,0.6839700507991345,94,"mean over datasets of each dataset's own normalised share; equal weight per dataset, so a dataset with a tiny protocol effect counts as much as a large one"
+"share of variance from their INTERACTION, per-dataset weighting",0.22161612440702355,0.18222169815901865,0.2640434607495866,94,"mean over datasets of each dataset's own normalised share; equal weight per dataset, so a dataset with a tiny protocol effect counts as much as a large one"
+"share of variance from the TRAINING protocol, panel-mean weighting",0.09197959118440792,,,94,"decomposition of the 3x3 matrix of panel means; no interval, because it is a function of means rather than a per-dataset value"
+"share of variance from the EVALUATION protocol, panel-mean weighting",0.8072731826019891,,,94,"decomposition of the 3x3 matrix of panel means; no interval, because it is a function of means rather than a per-dataset value"
+"share of variance from their INTERACTION, panel-mean weighting",0.10074722621360303,,,94,"decomposition of the 3x3 matrix of panel means; no interval, because it is a function of means rather than a per-dataset value"
 range of training-arm marginal means,0.014124367089547528,,,94,descriptive; not a variance component
 range of evaluation-arm marginal means,0.04383475647169677,,,94,descriptive; not a variance component

@@ -86,8 +86,10 @@ def test_the_manifest_covers_every_committed_table():
     import csv
     listed = {r["table"] for r in csv.DictReader(MANIFEST.open())}
     tables = ROOT / "results" / "tables"
-    meta = {"PROVENANCE.csv", "manuscript_orphans.csv", "release_facts.csv",
-            "verify_summary.csv"}
+    # Kept in step with provenance.META rather than retyped, which is how this list went stale
+    # the moment COLUMNS.csv was added.
+    import importlib
+    meta = importlib.import_module("provenance").META
     on_disk = {str(p.relative_to(tables)) for pat in ("*.csv", "*.tsv", "*/*.csv", "*/*.tsv")
                for p in tables.glob(pat) if p.name not in meta and p.name != "README.md"}
     assert on_disk <= listed, f"not in the manifest: {sorted(on_disk - listed)}"

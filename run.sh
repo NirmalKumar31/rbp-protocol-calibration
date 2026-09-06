@@ -327,6 +327,11 @@ s13b_local_analysis() {
   "$PY" scripts/protocol_transport.py --from-cache || die "protocol transport"
   "$PY" scripts/negative_draws.py --from-cache || die "negative draws"
   "$PY" scripts/homology_folds.py --from-cache || die "homology folds"
+  # The OFFLINE producer of matched_four_models.csv, which recompute.py validates
+  # against. It existed but was wired into nothing, so the manifest correctly called the
+  # table frozen-only while a script sat beside it that rebuilds it from committed inputs.
+  "$PY" scripts/four_models_table.py || die "four models table"
+  "$PY" scripts/column_dictionary.py || die "column dictionary"
   "$PY" scripts/shuffled_arm.py --from-cache || die "shuffled fourth arm"
   "$PY" scripts/multiplier_variance.py || die "multiplier variance"
   "$PY" scripts/score_scale_check.py --from-cache || die "score scale"

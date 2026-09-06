@@ -64,7 +64,6 @@ from rbp.utils.log import log  # noqa: E402
 TABLES = ROOT / "results" / "tables"
 ARMS = {"gc": "gc", "dn": "dinuc", "neg2": "neg2"}
 K = 32
-STRIDE = 8          # every 8th 32-mer: any real overlap of 101-nt windows still shares one
 CUTOFF = 0.5        # "more than half its 32-mers seen in training" = effectively a duplicate
 N_FOLDS = 5
 
@@ -81,7 +80,7 @@ def components(seqs):
 
     idx = defaultdict(list)
     for i, s in enumerate(seqs):
-        for j in range(0, len(s) - K + 1, STRIDE):
+        for j in range(len(s) - K + 1):
             idx[s[j:j + K]].append(i)
     for v in idx.values():
         r0 = find(v[0])
@@ -130,44 +129,6 @@ def collapse_check(seqs, chrom):
     return len(grp), biggest / len(seqs)
 
 
-def _unused_homology_folds(seqs, y, chrom_folds):
-    """Chromosome folds with every straddling homology component pulled into ONE fold.
-
-    THIS ADDS TO THE PUBLISHED PARTITION RATHER THAN REPLACING IT, and the first version of this
-    function did the opposite. It assigned components to folds from scratch, balancing size,
-    which silently discarded chromosome grouping: two peaks 10 kb apart share no 32-mer, so they
-    became free to land on opposite sides of a split. Contributions duly rose, and calling that
-    a leakage control would have been backwards -- the partition was weaker, not stronger, and a
-    referee would say so in one sentence.
-
-    A component that already sits inside one fold is left alone, which is almost all of them.
-    A component that straddles folds is moved wholly into the fold holding most of it, breaking
-    ties toward the smaller fold. The result still respects chromosome grouping everywhere the
-    two do not conflict, and where they do conflict homology wins. It is therefore strictly
-    stronger than the published partition: no homologous pair straddles a split, and no locus
-    pair does either except where a homology component forced the move.
-    """
-    fold = np.asarray(chrom_folds).copy()
-    moved = 0
-    for c in components(seqs):
-        if len(c) < 2:
-            continue
-        here = fold[c]
-        if len(np.unique(here)) == 1:
-            continue
-        counts = np.bincount(here, minlength=N_FOLDS)
-        best = np.flatnonzero(counts == counts.max())
-        # Tie-break toward the fold that is currently smaller, so the moves do not all pile up.
-        sizes = np.bincount(fold, minlength=N_FOLDS)
-        target = int(best[np.argmin(sizes[best])])
-        fold[c] = target
-        moved += len(c)
-    y = np.asarray(y)
-    if any(len(np.unique(y[fold == f])) < 2 for f in np.unique(fold)):
-        return None, moved
-    return fold, moved
-
-
 def audit_all_folds(d):
     """Fraction of each held-out fold's windows echoed in its training folds, per fold."""
     seqs = d.seq_rna.tolist()
@@ -182,6 +143,47 @@ def audit_all_folds(d):
         per.append({"fold": int(f), "any": float((frac > 0).mean()),
                     "gt50": float((frac > CUTOFF).mean())})
     return per
+
+
+def pair_key(d, arm):
+    """One key per matched positive/negative pair, so a filter can remove both members.
+
+    WHY THIS IS NEEDED. Both filters below delete held-out WINDOWS. Negatives are matched 1:1 to
+    positives, so deleting one member of a pair leaves the other unpartnered, and the deletions
+    are not symmetric between classes -- measured on three datasets the GC arm dropped 268
+    positives against 73 negatives, and on the full panel the imbalance runs the other way. The
+    model is refitted after filtering, so the resulting number confounds three changes: removal
+    of sharing, destruction of the matching, and a class-balance shift. Only the first is the
+    thing being measured.
+
+    gc and dinuc encode the pair in the id: PROTEIN_pos_i partners PROTEIN_neg_i. The
+    bias-aware arm does not -- its positives keep their original indices while its negatives are
+    renumbered -- so the pair is recoverable only from position within a fold, which is how
+    build_neg2.py constructs them. That is inferred rather than declared, so it is asserted.
+    """
+    ids = d.id.astype(str).to_numpy()
+    y = d.label.to_numpy()
+    if arm in ("gc", "dn"):
+        key = np.array([i.rsplit("_", 1)[-1] for i in ids])
+        if len(set(key[y == 1])) != int((y == 1).sum()):
+            return None
+        return key
+    order = np.empty(len(d), dtype=object)
+    fa = d.fold.to_numpy()
+    for fv in np.unique(fa):
+        for lab in (1, 0):
+            sel = np.flatnonzero((fa == fv) & (y == lab))
+            order[sel] = [f"{fv}:{k}" for k in range(len(sel))]
+    for fv in np.unique(fa):
+        if ((fa == fv) & (y == 1)).sum() != ((fa == fv) & (y == 0)).sum():
+            return None
+    return order
+
+
+def drop_pairs(keep, key):
+    """Extend a window mask to whole pairs: if either member goes, both go."""
+    doomed = set(key[~keep])
+    return np.array([k not in doomed for k in key])
 
 
 def gain(seqs, y, folds):
@@ -221,7 +223,14 @@ def build(store, limit):
                 ref = build_reference([s for s, m in zip(seqs, te) if not m], K)
                 frac = overlap_profile([s for s, m in zip(seqs, te) if m], ref, K)
                 keep[np.flatnonzero(te)[frac > CUTOFF]] = False
+            key = pair_key(d, arm)
+            if key is None:
+                sys.exit(f"{ds} {arm}: matched pairs are not recoverable, so a window filter "
+                         f"cannot be made pair-aware. Refusing to report a confounded number.")
+            keep = drop_pairs(keep, key)
             if keep.sum() > 200 and len(np.unique(y[keep])) == 2:
+                if int((y[keep] == 1).sum()) != int((y[keep] == 0).sum()):
+                    sys.exit(f"{ds} {arm}: the >50% filter left the classes unbalanced")
                 rec[f"gain_filtered_{arm}"] = gain([s for s, m in zip(seqs, keep) if m],
                                                    y[keep], fa[keep])
                 rec[f"dropped_{arm}"] = float(1 - keep.mean())
@@ -238,7 +247,10 @@ def build(store, limit):
                 ref = build_reference([s for s, m in zip(seqs, te) if not m], K)
                 frac = overlap_profile([s for s, m in zip(seqs, te) if m], ref, K)
                 keep0[np.flatnonzero(te)[frac > 0]] = False
+            keep0 = drop_pairs(keep0, key)
             if keep0.sum() > 200 and len(np.unique(y[keep0])) == 2:
+                if int((y[keep0] == 1).sum()) != int((y[keep0] == 0).sum()):
+                    sys.exit(f"{ds} {arm}: the exhaustive filter left the classes unbalanced")
                 ks = [s for s, m in zip(seqs, keep0) if m]
                 kf = fa[keep0]
                 idx = defaultdict(set)

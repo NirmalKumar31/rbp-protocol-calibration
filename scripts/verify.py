@@ -2176,9 +2176,15 @@ def verify_protocol_transport(T, g):
 
     tr = get("range of training-arm marginal means")
     ev = get("range of evaluation-arm marginal means")
-    st = get("share of variance from the TRAINING protocol")
-    se = get("share of variance from the EVALUATION protocol")
-    si = get("share of variance from their INTERACTION")
+    st = get("share of variance from the TRAINING protocol, per-dataset weighting")
+    se = get("share of variance from the EVALUATION protocol, per-dataset weighting")
+    si = get("share of variance from their INTERACTION, per-dataset weighting")
+    # THE OTHER WEIGHTING, asserted too, because reporting one share without the other invites
+    # the reader to think the decomposition has a single answer. It does not: weighting datasets
+    # by effect size moves evaluation from 63% to 81% and the interaction from 22% to 10%.
+    pe = get("share of variance from the EVALUATION protocol, panel-mean weighting")
+    if pe is not None:
+        near("variance share, evaluation, panel-mean weighting", pe, spec["share_eval_panel"])
     if st is not None:
         near("variance share, training protocol", st, spec["share_train"])
     if se is not None:
