@@ -124,9 +124,16 @@ def _one(task):
         if pos_df is None:
             return None
         peaks = list(win.read_peaks(peak_path(DATA_ROOT, protein, cell)))
-        excl = neg.exclusion_zones(peaks, cfg.negatives["min_peak_distance"])
-        pools = {q: neg.available(index, q, excl, cfg.windows["size"])
-                 for q in {p["region"] for p in positives}}
+        # ONLY THE DINUCLEOTIDE BUILDER TAKES `pools`. build_negatives, the GC one, computes
+        # its own internally and ignores anything passed, so precomputing them for that arm did
+        # the expensive part twice and threw half away. available() costs what it costs per
+        # REGION rather than per pair, so a two-dataset smoke test hid it and the full panel did
+        # not. No effect on any number: the GC arm's results are identical either way.
+        pools = None
+        if arm == "dinuc":
+            excl = neg.exclusion_zones(peaks, cfg.negatives["min_peak_distance"])
+            pools = {q: neg.available(index, q, excl, cfg.windows["size"])
+                     for q in {p["region"] for p in positives}}
         negs = draw_one(arm, positives, peaks, fasta, index, cfg, seed, pools)
         s = _score(pos_df, negs)
         if s is None:
