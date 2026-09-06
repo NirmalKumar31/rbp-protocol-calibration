@@ -2141,6 +2141,107 @@ def verify_negative_draws(T, g):
                int(nb), spec["n_draws_below_gc"])
 
 
+def verify_redraw_composition(T, g):
+    """The composition-matched arms redrawn, which verify_negative_draws could not do.
+
+    That check measures draw-to-draw variability on the bias-aware arm alone, and said the
+    other two arms could not be redrawn without a genome that "is not part of the released
+    evidence". The genome was on the machine the whole time. This is the same measurement on
+    the GC arm over ten draws, and on however many dinucleotide draws the compute budget
+    bought, which is fewer and is reported as the number it is.
+
+    What it does NOT claim. It does not reproduce the published build dataset by dataset, and
+    cannot: the committed window tables hold RETAINED pairs, so a redraw begins from a positive
+    set the original matcher had already filtered. What it measures is draw variability
+    CONDITIONAL on the retained positives. The agreement asserted at the published seed is at
+    the panel level, and the per-dataset row below is a ceiling on the disagreement, not a
+    claim of identity.
+    """
+    print("\nredrawn composition-matched negatives  (the term the published intervals omit)")
+    d = T.get("redraw_composition.csv")
+    if d is None:
+        return record(False, "redraw_composition.csv present", "MISSING",
+                      "run scripts/redraw_composition.py --summarise")
+    spec = g["redraw_composition"]
+    q = d.set_index("check")
+
+    def get(k, col="value"):
+        if k not in q.index:
+            record(False, f"row present: {k}", "MISSING", "the row")
+            return None
+        v = q.loc[k, col]
+        return None if v == "" or pd.isna(v) else float(v)
+
+    # --- the GC arm, the one the budget bought outright -----------------------------------
+    n = get("draws, gc arm")
+    if n is not None:
+        record(int(n) == spec["gc_draws"], "independent draws, gc arm",
+               int(n), spec["gc_draws"])
+    at_most("gc arm, worst per-dataset gap at the published seed",
+            get("published seed reproduces the published contribution, gc arm"),
+            spec["gc_max_reproduction_gap"])
+    # Per dataset the two constructions differ; at the panel level they must not, because the
+    # panel mean is the quantity the paper reports and the one the redraw is validating.
+    seed_mean = get("panel mean at the published seed, gc arm")
+    near("gc arm, panel mean at the published seed", seed_mean,
+         spec["gc_published_seed_panel_mean"])
+    if seed_mean is not None:
+        at_most("gc arm, published seed agrees with the published build at panel level",
+                abs(seed_mean - spec["gc_published_panel_mean"]), spec["gc_max_seed_gap"])
+    near("gc arm, panel mean over the draws",
+         get("panel-mean contribution across draws, gc arm"), spec["gc_panel_mean"])
+    # Not the mean of the draws but the extremes: a mean can sit on the published value while
+    # individual draws wander, and it is the individual draw the paper actually published.
+    for col, lab in (("ci_low", "weakest"), ("ci_high", "strongest")):
+        v = get("panel-mean contribution across draws, gc arm", col)
+        if v is not None:
+            at_most(f"gc arm, {lab} draw's distance from the published panel mean",
+                    abs(v - spec["gc_published_panel_mean"]), spec["gc_max_draw_excursion"])
+    at_most("gc arm, between-draw SE of the panel mean",
+            get("between-draw SE of the panel mean, gc arm"), spec["gc_max_se_draw"])
+    near("gc arm, between-protein SE of the panel mean",
+         get("between-protein SE of the panel mean, gc arm"), spec["gc_se_protein"])
+    sp = get("between-protein SE of the panel mean, gc arm")
+    sd = get("between-draw SE of the panel mean, gc arm")
+    if sp is not None and sd:
+        at_least("gc arm, between-protein SE dominates the between-draw SE", sp / sd,
+                 spec["gc_min_se_ratio"])
+    # THE POINT OF THE EXERCISE. The published intervals hold one draw fixed. If propagating
+    # the draw moved them, every interval in the paper would be understated.
+    w = get("widening from propagating the draw, gc arm")
+    if w is not None:
+        at_most("gc arm, propagating the draw barely widens the interval", w,
+                spec["gc_max_widening"])
+        record(w >= 0.0, "gc arm, and it widens rather than shrinks it", f"{w:.5f}", ">= 0")
+    at_most("gc arm, median per-dataset spread across draws",
+            get("median per-dataset spread across draws, gc arm"),
+            spec["gc_max_median_spread"])
+
+    # --- the dinucleotide arm, k draws, absent until the run produced any -------------------
+    # Gated on the golden block rather than on the table, so that a table that silently lost
+    # its dinucleotide rows fails here instead of passing quietly with fewer checks.
+    if "dinuc_draws" in spec:
+        n = get("draws, dinuc arm")
+        if n is not None:
+            record(int(n) == spec["dinuc_draws"], "independent draws, dinuc arm",
+                   int(n), spec["dinuc_draws"])
+        at_most("dinuc arm, worst per-dataset gap at the published seed",
+                get("published seed reproduces the published contribution, dinuc arm"),
+                spec["dinuc_max_reproduction_gap"])
+        near("dinuc arm, panel mean over the draws",
+             get("panel-mean contribution across draws, dinuc arm"), spec["dinuc_panel_mean"])
+        at_most("dinuc arm, between-draw SE of the panel mean",
+                get("between-draw SE of the panel mean, dinuc arm"), spec["dinuc_max_se_draw"])
+        sp = get("between-protein SE of the panel mean, dinuc arm")
+        sd = get("between-draw SE of the panel mean, dinuc arm")
+        if sp is not None and sd:
+            at_least("dinuc arm, between-protein SE dominates the between-draw SE", sp / sd,
+                     spec["dinuc_min_se_ratio"])
+        at_most("dinuc arm, propagating the draw barely widens the interval",
+                get("widening from propagating the draw, dinuc arm"),
+                spec["dinuc_max_widening"])
+
+
 def verify_protocol_transport(T, g):
     """Train-protocol by evaluation-protocol, which separates two things the design confounds.
 
@@ -5199,6 +5300,7 @@ def main():
              verify_cross_fitting, verify_positive_set_overlap, verify_common_positives,
              verify_protocol_transport, verify_negative_draws, verify_homology_folds,
              verify_sensitivity_suite, verify_external_replication,
+             verify_redraw_composition,
              verify_cache_evidence, verify_cross_tables, verify_integrity)
     n_paper = None
     for fn in (PAPER + LEGACY):

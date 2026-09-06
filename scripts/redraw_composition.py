@@ -57,7 +57,7 @@ DATA_ROOT = ROOT.parent / "rna-binding-proteins"
 DEFAULT_STORE = ROOT.parent / "rbp-store"
 DEFAULT_INDEX = DATA_ROOT / "data/interim/regions.pkl"
 DEFAULT_FASTA = DATA_ROOT / "data/raw/GRCh38.primary_assembly.genome.fa"
-DRAWS = ROOT / "results" / "draws"
+DRAWS = TABLES / "draws"
 
 ARMS = {"gc": "gc", "dinuc": "dinuc"}
 ARM_COL = {"gc": "gc", "dinuc": "dn"}
@@ -212,6 +212,13 @@ def summarise(arms):
                         "value": float(d.max()), "ci_low": "", "ci_high": "", "n": len(p),
                         "note": "maximum absolute per-dataset difference; if this is not "
                                 "small the redraw is not redrawing the published construction"})
+            # The panel-level version of the same check. Per dataset the two constructions
+            # differ because the redraw conditions on the retained positives; the panel mean
+            # is where they are supposed to agree, and it is the number the paper quotes.
+            out.append({"check": f"panel mean at the published seed, {arm} arm",
+                        "value": float(p["gain"].mean()),
+                        "ci_low": float(p["published"].mean()), "ci_high": "", "n": len(p),
+                        "note": "ci_low is the published panel mean, not a bound"})
 
         per_seed = t.groupby("seed")["gain"].mean()
         out.append({"check": f"draws, {arm} arm", "value": len(seeds), "ci_low": "",

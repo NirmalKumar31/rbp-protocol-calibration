@@ -2564,6 +2564,31 @@ negative_draws:
   max_median_range: 0.006     # per-dataset range across draws
   n_draws_below_gc: 5         # the ordering must survive every draw
 
+# THE COMPOSITION-MATCHED ARMS, REDRAWN. `negative_draws` above measures draw-to-draw
+# variability on the bias-aware arm only, on the stated ground that the other two arms need a
+# genome that is "not part of the released evidence". The genome was on the author's machine
+# the whole time, MD5-identical to the bucket copy, so the ground was false and the gap it left
+# was the largest unpropagated term in the uncertainty statement. Ten GC draws close it: the
+# draw contributes a standard error twenty-five times smaller than the between-protein term,
+# and propagating it widens the panel-mean interval by under a tenth of one percent.
+#
+# THESE ARE NOT A REPRODUCTION OF THE PUBLISHED BUILD. The committed window tables hold
+# RETAINED pairs, so a redraw starts from positives the original matcher already filtered.
+# Agreement is asserted at the panel level; the per-dataset row is a ceiling on disagreement.
+redraw_composition:
+  gc_draws: 10
+  gc_published_panel_mean: 0.026513      # three_arm_models_per_dataset.csv, kmer_gain_gc
+  gc_max_reproduction_gap: 0.030         # worst per-dataset gap at the published seed
+  gc_published_seed_panel_mean: {value: 0.027082, tol: 0.0005}
+  gc_max_seed_gap: 0.002                 # and its distance from the published build
+  gc_max_draw_excursion: 0.002           # no single draw's panel mean may stray further
+  gc_panel_mean: {value: 0.026773, tol: 0.0005}
+  gc_se_protein: {value: 0.003238, tol: 0.0003}
+  gc_max_se_draw: 0.0005
+  gc_min_se_ratio: 10.0                  # observed 24.9; below 10 the draw stops being noise
+  gc_max_widening: 0.01                  # observed 0.0008. This is the whole point.
+  gc_max_median_spread: 0.015
+
 # TRAIN-PROTOCOL BY EVALUATION-PROTOCOL. The design changes the negatives in training and in
 # evaluation at once, so the published contrast cannot say which of the two moves the number.
 # Fitting on one arm and scoring another separates them: three quarters of the effect is in the

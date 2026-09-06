@@ -326,6 +326,10 @@ s13b_local_analysis() {
   "$PY" scripts/common_positives.py --from-cache || die "common positives"
   "$PY" scripts/protocol_transport.py --from-cache || die "protocol transport"
   "$PY" scripts/negative_draws.py --from-cache || die "negative draws"
+  # The same measurement on the composition-matched arms, which the line above could not
+  # make. --summarise reads the committed per-draw tables under results/tables/draws;
+  # producing THEM needs the genome and both window stores and was a one-off cloud run.
+  "$PY" scripts/redraw_composition.py --summarise || die "redraw composition"
   "$PY" scripts/homology_folds.py --from-cache || die "homology folds"
   # The OFFLINE producer of matched_four_models.csv, which recompute.py validates
   # against. It existed but was wired into nothing, so the manifest correctly called the

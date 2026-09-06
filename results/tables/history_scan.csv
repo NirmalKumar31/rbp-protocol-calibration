@@ -1,6 +1,6 @@
 check,value,note
-commits on HEAD,221,
-commits on all refs,231,the scan covers this set
+commits on HEAD,223,
+commits on all refs,233,the scan covers this set
 commits containing a private key block,0,the matched strings are deliberately not printed here
 commit-and-file pairs containing a private key block,0,a file touched in two commits counts twice
 diff lines containing a private key block,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"

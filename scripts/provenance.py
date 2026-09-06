@@ -128,7 +128,11 @@ def invocations():
             continue
         for mm in re.finditer(r'scripts/([a-z0-9_]+)\.py([^|]*)', line):
             name, args = mm.group(1), mm.group(2)
-            if "--from-cache" in args:
+            if "--from-cache" in args or "--summarise" in args:
+                # --summarise is --from-cache under another name: it recomputes a summary from
+                # committed per-draw tables and touches no raw input. Falling through to RAW
+                # would have claimed `run.sh all` rebuilds it from downloaded data, which needs
+                # the genome, both window stores and an afternoon of rented CPU.
                 st = EVID
             elif "--store" in args:
                 st = FROZEN
@@ -335,6 +339,18 @@ def build():
         if p.name in META:
             continue
         rel = str(p.relative_to(TABLES))
+        if rel.startswith("draws/"):
+            # One negative redraw at one seed. Each is cloud-produced and none is rebuildable
+            # here: the arms need the genome and both window stores. They are committed because
+            # redraw_composition.csv is derived from them, and a summary whose inputs are absent
+            # is a frozen number with a script beside it pretending otherwise.
+            rows.append({"table": rel, "producing_script": "scripts/redraw_composition.py",
+                         "run_sh_stage": "", "status": CLOUD,
+                         "sha256": hashlib.sha256(p.read_bytes()).hexdigest()[:16],
+                         "bytes": p.stat().st_size,
+                         "invocation": "one seed of `redraw_composition.py --arm ...`, run on a "
+                                       "rented 8-vCPU instance; --summarise reads them back"})
+            continue
         if rel.startswith("unattributed/"):
             rows.append({"table": rel, "producing_script": "", "run_sh_stage": "",
                          "status": "unattributed",

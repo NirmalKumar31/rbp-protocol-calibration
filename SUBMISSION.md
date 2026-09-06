@@ -125,7 +125,7 @@ ask for, and it is listed here rather than described as finished.
 python scripts/verify.py --local results/tables
 ```
 
-1046 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+1059 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 

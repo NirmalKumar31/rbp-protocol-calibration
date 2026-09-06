@@ -293,11 +293,23 @@ range across draws has median 0.0038 and maximum 0.0245. Every one of the five d
 arm below the GC arm's $+0.0265$, so the protocol ordering does not depend on the draw that was
 taken.
 
-The two composition-matched arms cannot be redrawn the same way, because their negatives are
-new windows cut from the genome rather than existing windows reassigned, and the genome is not
-part of the released evidence. What is established is therefore that draw uncertainty is small
-where we can measure it, on the arm where an absolute effect of a given size would matter most,
-and assumed rather than shown to be comparable on the other two.
+The composition-matched arms need a different procedure, because their negatives are new
+windows cut from the genome rather than existing windows reassigned. That costs compute rather
+than access: the assembly is a public GENCODE release and is listed in the input manifest with
+its checksum. Ten independent draws of the GC arm give panel means from $+0.0262$ to $+0.0273$
+about a published $+0.0265$. The between-draw standard error of the panel mean is 0.00013
+against a between-protein standard error of 0.00324, a factor of 25, so adding the two in
+quadrature widens the interval by 0.08\%, against 3.6\% on the bias-aware arm. Per dataset the
+spread across draws has median 0.0079 and maximum 0.0284.
+
+One qualification applies to the composition-matched redraws and not to the bias-aware one. The
+committed window tables hold the pairs the matcher retained, so a redraw starts from a positive
+set that has already been filtered, and what it varies is the negatives given those positives
+rather than the construction end to end. At the published seed the redrawn panel mean is
+$+0.0271$ against $+0.0265$, a difference of 0.0006, but individual datasets differ by up to
+0.0213, which is the size of the conditioning and is reported rather than smoothed away. Draw
+uncertainty is therefore measured and small on the two arms where it has been measured, and the
+composition-matched result is the one that governs the primary contrast.
 
 One limitation concerns the provenance of the neural scores. Initialisation was unseeded across
 all 2830 committed fold-runs, at the cost quantified in Methods. A second, that 20 of the 94
@@ -355,7 +367,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 1046 assertions compare each published value against a frozen
+credit than it earns. Its 1059 assertions compare each published value against a frozen
 expectations file generated from the same run those values come from, so they are regression
 coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
 original run was correct. Two assertions do more, and they are the reproducibility claim worth
@@ -367,7 +379,7 @@ Everything downstream of the neural scores is bit-reproducible; the scores thems
 because initialisation was unseeded, so a rerun gives slightly different scores and then
 identical numbers from every step after them. The harness asserts values, not the provenance of
 the code producing them, and the fold-partition defect above is exactly the class that
-distinction permits: it was found by inspection and by none of the 1046 assertions, as was the
+distinction permits: it was found by inspection and by none of the 1059 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces the numbers in this text, decimals and bare counts alike, to a

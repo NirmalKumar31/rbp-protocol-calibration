@@ -11,12 +11,15 @@ deviation 0.0031, maximum 0.0079 -- but a quantity that is measured and not prop
 missing from the interval a reader acts on.
 
 Why the bias-aware arm and not all three. Redrawing a composition-matched arm means generating
-new candidate windows from the genome, and the genome FASTA is a 3 GB download that is not part
-of the released evidence. The bias-aware arm needs no such thing: its negatives ARE other
-proteins' binding sites, every one of which is already in the window store. So this arm can be
-redrawn exactly -- same procedure, same pool, different seed -- at no cost beyond CPU time, and
-the other two cannot. That is a real limit on what follows and it is stated rather than papered
-over: what is measured here is draw variability for one of three protocols.
+new candidate windows from the genome, and this file used to say that put it out of reach
+because the FASTA "is a 3 GB download that is not part of the released evidence". That was
+wrong twice over: the assembly is a public GENCODE release listed in the raw-input manifest
+with its checksum, and a copy was already on the machine the sentence was written on. The
+obstacle was compute, and scripts/redraw_composition.py bought it. What survives is the cheap
+part: the bias-aware arm's negatives ARE other proteins' binding sites, every one of which is
+already in the window store, so it can be redrawn exactly -- same procedure, same pool,
+different seed -- for nothing but local CPU. What is measured HERE is draw variability for one
+of three protocols; the other two are in results/tables/redraw_composition.csv.
 
 The arm chosen is also the informative one for this question. It has the smallest contribution
 of the three, so a draw effect of a given absolute size matters most there, and the Results
@@ -162,9 +165,11 @@ def main():
     add("median per-dataset range across draws", float(np.median(spread)))
     add("maximum per-dataset range across draws", float(spread.max()))
     # The ordering claim across draws is NOT reported here, deliberately. It needs the other
-    # two arms' contributions under the same redraw, and those arms cannot be redrawn without
-    # the genome. Emitting len(seeds) as though it were that count, which an earlier version of
-    # this file did, is reporting a constant as a measurement.
+    # two arms' contributions under the same redraw. Those live in redraw_composition.csv and
+    # were produced later, on different seeds and conditional on the retained positives, so
+    # they do not compose with these into a single ordering count. Emitting len(seeds) as
+    # though it were that count, which an earlier version of this file did, is reporting a
+    # constant as a measurement.
     add("draws whose panel mean stays below the GC arm's published 0.0265",
         float((per_draw < 0.0265).sum()),
         note="the weaker ordering statement the available redraws can support")

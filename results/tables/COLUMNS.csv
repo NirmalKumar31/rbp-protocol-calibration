@@ -294,6 +294,96 @@ donor_tasks.tsv,donor_pairs,int,,,475,0,76,467,32387,1083,,scripts/donor_draw.py
 donor_tasks.tsv,target_qual,float,,,475,0,95,0.653142,0.9487,0.7553366918800132,,scripts/donor_draw.py
 donor_tasks.tsv,donor_qual,float,,,475,0,76,0.653142,0.9487,0.7689529870260527,,scripts/donor_draw.py
 donor_tasks.tsv,jaccard,float,,,475,0,161,0,0.0199307,0.0,Intersection over union of two positive sets. Not a count ratio; an earlier version of this column was min(n)/max(n) and is corrected,scripts/donor_draw.py
+draws/gc_seed1007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed1007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed1007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed1007.csv,seed,int,,yes,94,0,1,1007,1007,1007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed1007.csv,pairs,int,count,,94,0,92,430,32369,1034,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed1007.csv,comp,float,,,94,0,94,0.637155,0.967678,0.8548172577247848,,scripts/redraw_composition.py
+draws/gc_seed1007.csv,full,float,,,94,0,94,0.663147,0.971151,0.8648036395063022,,scripts/redraw_composition.py
+draws/gc_seed1007.csv,gain,float,AUROC,,94,0,94,-0.00247161,0.116296,0.00998638178151745,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed1007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed2007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed2007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed2007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed2007.csv,seed,int,,yes,94,0,1,2007,2007,2007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed2007.csv,pairs,int,count,,94,0,94,430,32375,1035,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed2007.csv,comp,float,,,94,0,94,0.63749,0.965795,0.8442922822002847,,scripts/redraw_composition.py
+draws/gc_seed2007.csv,full,float,,,94,0,94,0.672334,0.969571,0.855630703166935,,scripts/redraw_composition.py
+draws/gc_seed2007.csv,gain,float,AUROC,,94,0,94,-0.00371526,0.114667,0.011338420966650276,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed2007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed3007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed3007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed3007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed3007.csv,seed,int,,yes,94,0,1,3007,3007,3007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed3007.csv,pairs,int,count,,94,0,93,430,32378,1032,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed3007.csv,comp,float,,,94,0,94,0.635203,0.966028,0.8398345952767261,,scripts/redraw_composition.py
+draws/gc_seed3007.csv,full,float,,,94,0,94,0.657796,0.969754,0.8502371777537407,,scripts/redraw_composition.py
+draws/gc_seed3007.csv,gain,float,AUROC,,94,0,94,-0.00136509,0.114588,0.010402582477014644,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed3007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed4007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed4007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed4007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed4007.csv,seed,int,,yes,94,0,1,4007,4007,4007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed4007.csv,pairs,int,count,,94,0,93,430,32377,1035,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed4007.csv,comp,float,,,94,0,94,0.633446,0.966761,0.8500025671544261,,scripts/redraw_composition.py
+draws/gc_seed4007.csv,full,float,,,94,0,94,0.671499,0.970705,0.8590725571191861,,scripts/redraw_composition.py
+draws/gc_seed4007.csv,gain,float,AUROC,,94,0,94,-0.00306144,0.117332,0.009069989964759939,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed4007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed5007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed5007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed5007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed5007.csv,seed,int,,yes,94,0,1,5007,5007,5007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed5007.csv,pairs,int,count,,94,0,94,430,32377,1031,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed5007.csv,comp,float,,,94,0,94,0.637317,0.966854,0.8390458351717514,,scripts/redraw_composition.py
+draws/gc_seed5007.csv,full,float,,,94,0,94,0.668619,0.970397,0.86018489859929,,scripts/redraw_composition.py
+draws/gc_seed5007.csv,gain,float,AUROC,,94,0,94,-0.00144294,0.112355,0.021139063427538685,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed5007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed6007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed6007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed6007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed6007.csv,seed,int,,yes,94,0,1,6007,6007,6007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed6007.csv,pairs,int,count,,94,0,94,430,32376,1029,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed6007.csv,comp,float,,,94,0,94,0.632462,0.966089,0.8437772998967739,,scripts/redraw_composition.py
+draws/gc_seed6007.csv,full,float,,,94,0,94,0.647677,0.969484,0.8561342071189159,,scripts/redraw_composition.py
+draws/gc_seed6007.csv,gain,float,AUROC,,94,0,94,-0.00362156,0.114638,0.012356907222142,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed6007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed7.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed7.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed7.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed7.csv,seed,int,,yes,94,0,1,7,7,7,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed7.csv,pairs,int,count,,94,0,94,430,32382,1032,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed7.csv,comp,float,,,94,0,94,0.636363,0.967406,0.8471564960038459,,scripts/redraw_composition.py
+draws/gc_seed7.csv,full,float,,,94,0,94,0.660624,0.971357,0.8610848206237606,,scripts/redraw_composition.py
+draws/gc_seed7.csv,gain,float,AUROC,,94,0,94,-0.00306989,0.115146,0.013928324619914667,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed7.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed7007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed7007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed7007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed7007.csv,seed,int,,yes,94,0,1,7007,7007,7007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed7007.csv,pairs,int,count,,94,0,94,430,32371,1028,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed7007.csv,comp,float,,,94,0,94,0.637475,0.966891,0.8491848854638223,,scripts/redraw_composition.py
+draws/gc_seed7007.csv,full,float,,,94,0,94,0.661376,0.970681,0.8605552317219034,,scripts/redraw_composition.py
+draws/gc_seed7007.csv,gain,float,AUROC,,94,0,94,-0.00173722,0.112471,0.011370346258081088,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed7007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed8007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed8007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed8007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed8007.csv,seed,int,,yes,94,0,1,8007,8007,8007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed8007.csv,pairs,int,count,,94,0,94,430,32372,1035,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed8007.csv,comp,float,,,94,0,94,0.637588,0.966559,0.8323610819389017,,scripts/redraw_composition.py
+draws/gc_seed8007.csv,full,float,,,94,0,94,0.644538,0.970426,0.8478172186048681,,scripts/redraw_composition.py
+draws/gc_seed8007.csv,gain,float,AUROC,,94,0,94,-0.00120804,0.112953,0.015456136665966458,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed8007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
+draws/gc_seed9007.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/redraw_composition.py
+draws/gc_seed9007.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/redraw_composition.py
+draws/gc_seed9007.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/redraw_composition.py
+draws/gc_seed9007.csv,seed,int,,yes,94,0,1,9007,9007,9007,Random seed for this draw or run,scripts/redraw_composition.py
+draws/gc_seed9007.csv,pairs,int,count,,94,0,94,429,32374,1034,Matched positive/negative pairs; rows are twice this,scripts/redraw_composition.py
+draws/gc_seed9007.csv,comp,float,,,94,0,94,0.635816,0.967129,0.8486516467194685,,scripts/redraw_composition.py
+draws/gc_seed9007.csv,full,float,,,94,0,94,0.670193,0.970658,0.8602767042414764,,scripts/redraw_composition.py
+draws/gc_seed9007.csv,gain,float,AUROC,,94,0,94,-0.00138444,0.114338,0.011625057522007931,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/redraw_composition.py
+draws/gc_seed9007.csv,published,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/redraw_composition.py
 estimands.csv,check,string,,yes,79,0,79,,,"auroc_gain, dn arm, kmer","The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/estimands.py
 estimands.csv,value,float,,,79,0,65,0.0112687,3524,0.06626403675115056,The asserted quantity,scripts/estimands.py
 estimands.csv,n,int,count,,79,0,4,3,846,94,"Datasets, or rows, behind the value. Usually 94",scripts/estimands.py
@@ -875,6 +965,12 @@ recompute.csv,published,float,,,285,0,285,0.518821,0.9487,0.7553366918800132,,sc
 recompute.csv,recomputed,float,,,285,0,285,0.518821,0.9487,0.7553366918800132,,scripts/recompute.py
 recompute.csv,abs_diff,float,,,285,0,4,0,3.33067e-16,0.0,,scripts/recompute.py
 recompute.csv,note,empty,,,285,285,0,,,,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/recompute.py
+redraw_composition.csv,check,string,,yes,9,0,9,,,published seed reproduces the published ,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/redraw_composition.py
+redraw_composition.csv,value,float,,,9,0,9,0.000130227,10,0.0213494504259926,The asserted quantity,scripts/redraw_composition.py
+redraw_composition.csv,ci_low,float,,,9,7,2,0.0261533,0.0265131,0.026513098340627504,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/redraw_composition.py
+redraw_composition.csv,ci_high,float,,,9,8,1,0.0272676,0.0272676,0.027267598719946613,Upper bound of the same interval as ci_low,scripts/redraw_composition.py
+redraw_composition.csv,n,int,count,,9,0,4,10,940,94,"Datasets, or rows, behind the value. Usually 94",scripts/redraw_composition.py
+redraw_composition.csv,note,string,,,9,1,8,,,maximum absolute per-dataset difference;,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/redraw_composition.py
 region_annotation.csv,check,string,,yes,48,0,48,,,positives where the recomputed published,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/region_annotation.py
 region_annotation.csv,value,float,,,48,0,38,0,2.25128e+06,0.0,The asserted quantity,scripts/region_annotation.py
 region_annotation.csv,n,int,count,,48,0,4,5,468,468,"Datasets, or rows, behind the value. Usually 94",scripts/region_annotation.py

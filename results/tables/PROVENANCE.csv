@@ -24,6 +24,16 @@ device_portability_per_fold.csv,scripts/device_portability.py,s13b_local_analysi
 donor_overlap.csv,scripts/cloud_analysis.py,,frozen-only,43b141aab1a48869,7243,not invoked by run.sh
 donor_overlap_strata.csv,scripts/cloud_analysis.py,,frozen-only,d4e8d187148fd4dd,456,not invoked by run.sh
 donor_tasks.tsv,scripts/donor_draw.py,,frozen-only,9f93d41b7b7e5c0a,42638,not invoked by run.sh
+draws/gc_seed1007.csv,scripts/redraw_composition.py,,cloud-produced,0a3d2a12d80267bb,10440,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed2007.csv,scripts/redraw_composition.py,,cloud-produced,b425804849357dd1,10427,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed3007.csv,scripts/redraw_composition.py,,cloud-produced,8e31c0747fa029a4,10425,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed4007.csv,scripts/redraw_composition.py,,cloud-produced,aecbd6cc863a1be4,10430,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed5007.csv,scripts/redraw_composition.py,,cloud-produced,9c33495b26b936ac,10432,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed6007.csv,scripts/redraw_composition.py,,cloud-produced,63d396fd9a8e17e3,10420,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed7.csv,scripts/redraw_composition.py,,cloud-produced,b1523ad22b47caf8,10132,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed7007.csv,scripts/redraw_composition.py,,cloud-produced,1809b2d25f27a721,10436,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed8007.csv,scripts/redraw_composition.py,,cloud-produced,67f7809b5742af4f,10437,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/gc_seed9007.csv,scripts/redraw_composition.py,,cloud-produced,029c7e8ce60c15ce,10430,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
 estimands.csv,scripts/estimands.py,,frozen-only,5b35dd05a858a5f7,4686,not invoked by run.sh
 estimands_per_dataset.csv,scripts/estimands.py,,frozen-only,630d9a4a20c96dbb,123678,not invoked by run.sh
 estimator_floor.csv,scripts/estimator_floor.py,s13b_local_analysis,evidence-recomputable,b48cabbf2fb9fece,1239,"""$PY"" scripts/estimator_floor.py --from-cache || die ""estimator floor"""
@@ -84,6 +94,7 @@ r1_robustness.csv,scripts/r1_robustness.py,s13b_local_analysis,raw-reproducible,
 raw_inputs.csv,scripts/raw_inputs.py,,cloud-produced,5f76cbab059b5b2a,71954,"written by raw_inputs, a cloud stage"
 recommendation_works.csv,scripts/recommendation_works.py,s13b_local_analysis,raw-reproducible,af573ac92beec95d,1536,"""$PY"" scripts/recommendation_works.py || die ""recommendation test"""
 recompute.csv,scripts/recompute.py,s13b_local_analysis,raw-reproducible,256d120f4a783475,21350,"""$PY"" scripts/recompute.py         || die ""recompute from per-example evidence"""
+redraw_composition.csv,scripts/redraw_composition.py,s13b_local_analysis,evidence-recomputable,36977e564a5bd690,1324,"""$PY"" scripts/redraw_composition.py --summarise || die ""redraw composition"""
 region_annotation.csv,scripts/region_annotation.py,s13b_local_analysis,evidence-recomputable,cfa48d368037beb8,3827,"""$PY"" scripts/region_annotation.py --from-cache || die ""region annotation rules"""
 region_annotation_per_dataset.csv,scripts/region_annotation.py,s13b_local_analysis,frozen-cache,b6b4a33271853e41,109306,"""$PY"" scripts/region_annotation.py --from-cache || die ""region annotation rules"""
 region_asymmetry.csv,scripts/region_asymmetry.py,s13b_local_analysis,evidence-recomputable,2044c9bfd9dfad1c,1740,"""$PY"" scripts/region_asymmetry.py --from-cache || die ""region asymmetry"""
