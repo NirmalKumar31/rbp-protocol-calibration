@@ -242,9 +242,16 @@ def summarise(arms):
             [members[j] for j in rng.integers(0, len(uniq), len(uniq))])].mean()
             for _ in range(4000)]
         se_prot = float(np.std(b, ddof=1))
+        # With few draws this SE has few degrees of freedom and is itself uncertain. The note
+        # says so on the row rather than in prose somewhere else, because the row is what gets
+        # quoted. Below five draws the min-max range on the panel-mean row is the honest
+        # summary and the SE is an indication.
+        df_note = ("" if len(seeds) >= 5 else
+                   f"; only {len(seeds) - 1} degrees of freedom, so read the min-max range "
+                   f"on the panel-mean row instead")
         out.append({"check": f"between-draw SE of the panel mean, {arm} arm", "value": se_draw,
                     "ci_low": "", "ci_high": "", "n": len(seeds),
-                    "note": f"SD across draws {sd_draw:.6f} over sqrt({len(seeds)})"})
+                    "note": f"SD across draws {sd_draw:.6f} over sqrt({len(seeds)}){df_note}"})
         out.append({"check": f"between-protein SE of the panel mean, {arm} arm",
                     "value": se_prot, "ci_low": "", "ci_high": "", "n": len(uniq),
                     "note": "the component the published interval already carries"})
