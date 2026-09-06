@@ -559,3 +559,107 @@ figure right and the neural ones left behind by the dinucleotide-arm retrain.
   the instrument is RELOCATION to a supplementary note, not deletion. Needs a venue.
 * **F1** (anchored SMInput/RBNS negative set, 2-3 weeks) and **F2** (a published method on the
   ladder) are the next paper, deferred on time not money.
+
+---
+
+# EXECUTION LOG, 2026-09-06. SIX AUDITS. READY TO PUBLISH.
+
+**This section supersedes everything above it on any conflict.**
+
+`main` is at `4948af8`. CI green on that exact commit, all four jobs. A clean `git archive`
+export passes every gate with the same counts as the working tree. **Only Zenodo and the tag
+remain, and both are the author's action.**
+
+    verify       1013/1013   (875 this paper, 136 the earlier variant study, 2 harness)
+    tests        731 collected
+    manuscript   53 pages, 0 LaTeX warnings, builds to a fixpoint from a clean export
+    ruff         clean          provenance --check   matches
+    orphans      0              release_consistency  exit 0
+
+## What six audits changed
+
+Four external audits plus two self-audits. Each found real defects in the PREVIOUS round's
+fixes. Severity fell monotonically: fabricated numbers -> a broken control design -> an
+unnamed estimand -> stale counts -> plumbing. The last two rounds found no science defects.
+
+**Claims that were WRONG and are now corrected by measurement:**
+
+1. The estimator's floor was attributed to CONDITIONING. It is the outer-fold information
+   route: cross-fitting removes >=95% and recovers the known zero to within 5e-4.
+2. "The bias is one-directional, it can only help the score column" is WRONG IN SIGN for the
+   4-mer: closing the route RAISES the contribution.
+3. The title said "more than five-fold" while the recommended estimator gives 4.84. Retitled
+   to carry no number a later section corrects.
+4. `positive_set_overlap.csv`'s "Jaccard" was `min(n)/max(n)`, exact to 1e-16, because it keyed
+   on a per-arm ROW INDEX. Minimum 0.9237 -> 0.9164.
+5. "76% of the effect is the evaluation data" was a ratio of two marginal ranges: no
+   interaction term, no uncertainty. Proper two-way decomposition: 63/15/22 per-dataset
+   weighting, 81/9/10 panel-mean weighting. BOTH are now reported and the weighting is named.
+6. The homology control failed twice. Version 1 replaced chromosome grouping. Version 2 indexed
+   at stride 8, catching ~1 homologous pair in 8, and split 9-15 chromosomes per dataset.
+   Version 3 deleted windows without their matched partners, breaking class balance.
+
+## THE BUG CLASS THAT BIT THIS REPOSITORY THREE TIMES
+
+**An unchecked return code turns "could not look" into "found nothing".**
+
+  * `cloud/cost.sh` sent gcloud errors to /dev/null, so an auth failure printed "VMs: none".
+  * `cloud/modal/guard.py` never checked the CLI's exit, so an expired token read as "no app
+    running" and the guard exited zero.
+  * `tests/unit/test_no_hardcoded_project.py` caught only FileNotFoundError from `git ls-files`.
+    An unpacked archive HAS git but is not a repo, so the call exited 128 with empty stdout, the
+    fallback never fired, and the scan silently stopped checking JSON **in exactly the archival
+    case it exists to protect**. Found only because a clean export collected 730 tests and the
+    working tree 731.
+
+If you add a subprocess call anywhere in this repository, check its return code.
+
+## New analyses added, all free, all gated
+
+    scripts/cross_fitting.py       closes the outer-fold route. Reproduces the published path
+                                   to 5e-17, which is what makes the comparison like-for-like.
+    scripts/protocol_transport.py  3x3 train-arm by evaluation-arm. Both arms share one
+                                   chromosome-to-fold map, so cross-arm scoring leaks nothing.
+    scripts/negative_draws.py      five draws of the bias-aware arm. The other two arms need a
+                                   genome that is not in the release, so they are NOT redrawn.
+    scripts/homology_folds.py      audits all five folds; two pair-aware filters; and the
+                                   measured IMPOSSIBILITY of a chromosome+homology partition
+                                   (largest joint component holds 97.6% of a median dataset).
+    scripts/common_positives.py    the contrast on shared positives. Moves it by 0.0003.
+    scripts/provenance.py          producer per table, parsed from real write calls by ast.
+    scripts/release_consistency.py every stated count derived from the artefact.
+    scripts/column_dictionary.py   COLUMNS.csv, generated, replacing hand-typed schema counts.
+
+## TRAPS, ADDING TO THE LIST ABOVE
+
+5. **A blind regex updating the assertion count rewrote `457,998` pairs to `457,1005`.** Use
+   `(?<![,}\d])\b<N>\b` so it cannot match inside a thousands group.
+6. **`--n` on any analysis script must not overwrite the committed table.** It truncated a
+   94-row release table to 5 rows once. Every such script now writes `.partial.csv`.
+7. **`release_facts.csv` is environment-dependent.** Only a run that derives every fact may
+   write it, or the no-torch CI job rewrites it and the git-diff gate fires.
+8. **`verify.py` READS `manuscript_orphans.csv`.** Run `audit_manuscript.py` FIRST; CI does.
+   A stale orphan report made the gate pass while a fresh audit found four.
+9. **`ci_local.sh` cannot reproduce the torch-free `test` job**, because this laptop has torch.
+   Anything depending on torch being ABSENT passes locally and fails in CI.
+10. The paper/legacy/harness split must be printed AFTER every assertion is recorded.
+
+## Deliberately NOT done, with the reason
+
+  * **Neural cross-fitting** (~$76 GPU). The 2-mer and 4-mer channels flip sign, so they cannot
+    bound a transformer; extrapolating would be speculation. Disclosed in abstract and Methods.
+  * **Redrawing the composition-matched arms.** Needs a 3 GB genome plus what was 488 cloud
+    tasks. The bias-aware arm needs neither, which is why only it was redrawn.
+  * **A journal-length cut and a formal supplement.** bioRxiv's guide states no limits; a
+    journal will need both. `SUBMISSION.md` says so.
+  * **Rewriting git history** to remove a live billing account ID present in 11 historical
+    revisions. It identifies, it cannot authorise, and no key or token exists anywhere in the
+    history. Recorded in SECURITY.md with three options. THE AUTHOR'S DECISION.
+  * **Moving narrative comments out of source.** Declined: the commentary is mostly bugs that
+    cost real time, and a changelog puts it where nobody reads it at the moment they need it.
+
+## The last two steps
+
+1. Tag the frozen commit. Version is deliberately `0.9.0`/Beta until one exists.
+2. Mint the Zenodo deposit, use the **CONCEPT** DOI, uncomment the two-line sentence at the end
+   of `manuscript/sections/data-availability.tex`, rebuild.
