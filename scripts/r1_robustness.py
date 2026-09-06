@@ -40,6 +40,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr, wilcoxon
 
+from rbp.utils.log import log
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 TABLES = ROOT / "results" / "tables"
@@ -48,16 +50,19 @@ SEED = 0
 Z95 = 1.959963985
 
 
-def log(m):
-    print(m, flush=True)
-
 
 def main():
     cm = pd.read_csv(TABLES / "cost_of_matching.csv")
     cm["contrast"] = cm.delta_auroc_dn - cm.delta_auroc_gc
     rows = []
 
-    def add(check, value, lo=np.nan, hi=np.nan, n=len(cm), note=""):
+    # n defaults to the row count captured here, deliberately: every row this
+    # helper writes describes the same panel. Bound to a name so the capture is
+    # visible rather than hidden in a default argument.
+    _n_default = len(cm)
+
+    def add(check, value, lo=np.nan, hi=np.nan, n=None, note=""):
+        n = _n_default if n is None else n
         rows.append({"check": check, "value": float(value), "ci_low": lo, "ci_high": hi,
                      "n": n, "note": note})
 
@@ -73,7 +78,7 @@ def main():
              for i in (rng.integers(0, n_rep, n_rep) for _ in range(N_BOOT))
              if len(np.unique(a[i])) > 2]
     lo, hi = np.percentile(boots, [2.5, 97.5])
-    add(f"proteins assayed in both cell lines", float(n_rep), n=n_rep,
+    add("proteins assayed in both cell lines", float(n_rep), n=n_rep,
         note=f"{' vs '.join(w.columns)}; separate experiments, separately drawn negatives")
     add("REPLICATION of the contrast across cell lines", r.statistic, lo, hi, n_rep,
         note=f"pearson, p={r.pvalue:.3g}; spearman {rs.statistic:+.3f}")
@@ -103,7 +108,11 @@ def main():
     for _ in range(N_BOOT):
         idx = common[rng2.integers(0, len(common), len(common))]
         try:
-            f = lambda P: pearsonr(P.loc[idx].iloc[:, 0], P.loc[idx].iloc[:, 1]).statistic
+            # Same as protocol_or_baseline.py: idx is rebound per bootstrap draw and f
+            # reads it late, but f is called on the next line and never escapes the draw.
+            def f(P):
+                return pearsonr(P.loc[idx].iloc[:, 0],  # noqa: B023
+                                P.loc[idx].iloc[:, 1]).statistic  # noqa: B023
             dif.append(f(w) - max(f(pg), f(pd_)))
         except Exception:
             continue

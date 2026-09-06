@@ -13,7 +13,7 @@ from rbp.utils import panel
 @pytest.fixture
 def repo(tmp_path):
     (tmp_path / "config").mkdir()
-    for arm, sub in panel.ARMS.items():
+    for _arm, sub in panel.ARMS.items():
         for cell in ("K562", "HepG2"):
             (tmp_path / sub / cell).mkdir(parents=True)
     return tmp_path

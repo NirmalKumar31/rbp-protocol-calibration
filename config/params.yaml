@@ -103,13 +103,14 @@ negatives:
 cv:
   k: 5
   # chrom -> fold, solved once for ALL datasets in both cell lines by
-  # scripts/optimize_folds.py, so the 57 proteins measured in K562 and HepG2 are
+  # scripts/optimize_folds.py, so the 15 proteins measured in BOTH K562 and HepG2 are
   # evaluated on the same chromosomes. Frozen in config/folds.tsv.
   folds: config/folds.tsv
   # Validation is the next fold cyclically, so each fold is test once, val once and
   # train k-2 times. No extra data is spent on model selection.
   val_offset: 1
-  # Pooled out-of-fold AUROC is primary: it is invariant to fold size, which matters
+  # Pooled out-of-fold AUROC is primary: it weights every window equally rather than every
+  # fold equally, which matters
   # because small panels have peaks concentrated on a few chromosomes and cannot be
   # balanced by any partition (worst case 0.42 of one dataset in one fold). The
   # pair-weighted average of per-fold AUROCs is reported alongside as a sensitivity

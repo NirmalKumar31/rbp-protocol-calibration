@@ -11,7 +11,8 @@ model adds over composition" is one order of composition. If it does not, then t
 baseline is a sharper instrument than the order-2 one and the paper can say which models it
 separates.
 
-This runs R1o's design on R1g's evidence: three model classes, both arms, 94 datasets, the
+This runs R1o's design on R1g's evidence: three model classes, all three arms, 94 datasets,
+the
 per-window scores already committed under data/evidence. No GPU, nothing refitted on the deep
 side -- the CNN and SpliceBERT scores are exactly the ones R1g used.
 
@@ -36,17 +37,29 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from baseline_order import REPRO_TOL, composition  # noqa: E402
 from deep_model_contrast import MIN_COVERAGE, MODELS, arm_roots, oof  # noqa: E402
+
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ORDERS = (2, 3)
 
 
-def log(m):
-    print(m, flush=True)
+
+
+def _top3_share(t, model, arm):
+    """Percent of an arm's total order-3 contribution held by its three largest datasets.
+
+    Pulled out of the log line it used to be written inline in, where the same 60-character
+    subexpression appeared four times and the statement ran to 226 characters. Concentration,
+    not a mean: a panel mean can be carried by three datasets and this says when it is.
+    """
+    v = t[f"{model}_gain3_{arm}"].to_numpy(float)
+    pos = np.sort(v[v > 0])[::-1]
+    return 100 * pos[:3].sum() / pos.sum() if pos.size else float("nan")
 
 
 def main():
@@ -127,6 +140,15 @@ def main():
                      f"the composition block has drifted. Refusing to write.")
         t.to_csv(per, index=False)
 
+    # THE THIRD ARM WAS COMPUTED AND NEVER REPORTED. Every loop below used to read
+    # ("gc", "dn") while the per-dataset table carried neg2 columns for all three models, so
+    # the bias-aware arm's order-3 numbers existed on disk and appeared in nothing. Read the
+    # arm set off the table instead, and require the two the paper's headline needs.
+    ARMS_HERE = [x for x in ("gc", "dn", "neg2") if f"comp2_{x}" in t.columns]
+    for need in ("gc", "dn"):
+        if need not in ARMS_HERE:
+            sys.exit(f"{per} has no {need} arm; refusing to report a partial table")
+
     out = []
     rng = np.random.default_rng(0)
     prot = t.protein.to_numpy()
@@ -144,7 +166,7 @@ def main():
         return float(v.mean())
 
     w = max(float((t[f"{m}_gain2_{arm}"] - t[f"{m}_published_{arm}"]).abs().max())
-            for m in MODELS for arm in ("gc", "dn"))
+            for m in MODELS for arm in ARMS_HERE)
     out.append({"check": "max |order-2 gain - R1g published gain|", "value": w, "n": len(t)})
     if w > REPRO_TOL:
         sys.exit(f"order-2 does not reproduce R1g ({w:.2e})")
@@ -152,7 +174,7 @@ def main():
     log(f"\n=== R1r: baseline order across model classes, n = {len(t)}, "
         f"{len(uniq)} proteins ===")
     log(f"  order-2 reproduces deep_contrast_per_dataset.csv to {w:.2e}\n")
-    for arm in ("gc", "dn"):
+    for arm in ARMS_HERE:
         add(f"composition AUROC, order-2 baseline, {arm} arm", t[f"comp2_{arm}"])
         add(f"composition AUROC, order-3 baseline, {arm} arm", t[f"comp3_{arm}"])
         # The headroom the order-3 baseline takes away. This is what the compression
@@ -184,7 +206,7 @@ def main():
     # model, and the shares differ because the totals differ. That has to be measured and
     # printed next to the shares, or the shares are misleading.
     log("  absolute amount absorbed by raising the baseline one order:")
-    for arm in ("gc", "dn"):
+    for arm in ARMS_HERE:
         for model in MODELS:
             a = t[f"{model}_gain2_{arm}"] - t[f"{model}_gain3_{arm}"]
             v = add(f"{model} absolute absorbed by order 3, {arm} arm", a)
@@ -209,7 +231,7 @@ def main():
         return r2 * norm.ppf(np.clip(np.asarray(a, dtype=float), 1e-6, 1 - 1e-6))
 
     log("  compression-corrected: residual after transplanting the order-2 d' increment")
-    for arm in ("gc", "dn"):
+    for arm in ARMS_HERE:
         res = {}
         for model in MODELS:
             c2, c3 = t[f"comp2_{arm}"], t[f"comp3_{arm}"]
@@ -234,11 +256,11 @@ def main():
             f"ceiling is removed")
 
     # AND THE ABSORBED SPREAD ON THE DINUCLEOTIDE ARM, which the first gate left ungated.
-    for arm in ("gc", "dn"):
+    for arm in ARMS_HERE:
         vals = [float((t[f"{m}_gain2_{arm}"] - t[f"{m}_gain3_{arm}"]).mean()) for m in MODELS]
         out.append({"check": f"absorbed spread across model classes, {arm} arm",
                     "value": float(max(vals) - min(vals)), "n": len(t)})
-    for arm in ("gc", "dn"):
+    for arm in ARMS_HERE:
         d = ((t[f"cnn_gain2_{arm}"] - t[f"cnn_gain3_{arm}"])
              - (t[f"kmer_gain2_{arm}"] - t[f"kmer_gain3_{arm}"]))
         add(f"cnn minus kmer, absolute absorbed, {arm} arm", d)
@@ -246,7 +268,7 @@ def main():
     # AND THE PER-DATASET SIGN, which is what the share cannot show. A mean of +0.0058 is
     # consistent with "small everywhere" and with "positive in two thirds, negative in a
     # third". For the k-mer over a trinucleotide baseline it is the second.
-    for arm in ("gc", "dn"):
+    for arm in ARMS_HERE:
         for model in MODELS:
             n_pos = int((t[f"{model}_gain3_{arm}"] > 0).sum())
             out.append({"check": f"{model} order-3 gain positive in, {arm} arm",
@@ -255,7 +277,7 @@ def main():
             f"{m} {int((t[f'{m}_gain3_{arm}'] > 0).sum())}/{len(t)}" for m in MODELS))
 
     # THE QUESTION: does a model with positional structure survive what a bag of 4-mers does not?
-    for arm in ("gc", "dn"):
+    for arm in ARMS_HERE:
         base = t[f"kmer_gain3_{arm}"]
         for model in ("cnn", "splicebert"):
             d = t[f"{model}_gain3_{arm}"] - base
@@ -277,8 +299,62 @@ def main():
             mult = t[f"{model}_gain{order}_dn"].mean() / t[f"{model}_gain{order}_gc"].mean()
             out.append({"check": f"{model} dn/gc multiplier, order-{order} baseline",
                         "value": float(mult), "n": len(t)})
-        log("  order-%d multipliers: " % order + "  ".join(
+        log(f"  order-{order} multipliers: " + "  ".join(
             f"{m} {t[f'{m}_gain{order}_dn'].mean() / t[f'{m}_gain{order}_gc'].mean():.2f}x"
+            for m in MODELS))
+
+    # THE THREE-ARM SPAN AT EACH ORDER, on the full panel. The Discussion's 7.16 came from
+    # baseline_order.py: 4-mer only, 30 size-stratified datasets, and TWO arms plus a
+    # bias-aware column read off a different row set. Now that all three arms are here for all
+    # three models, the span is the paper's own headline quantity recomputed one order up.
+    # Print the denominator and its positive count beside every span, because a span whose
+    # denominator is +0.0019 is a near-zero-denominator artefact and not a magnitude.
+    if "neg2" in ARMS_HERE:
+        log("\n  three-arm span of the contribution, per order:")
+        for order in ORDERS:
+            for model in MODELS:
+                m = {arm: float(t[f"{model}_gain{order}_{arm}"].mean()) for arm in ARMS_HERE}
+                lo_arm = min(m, key=m.get)
+                span = m[max(m, key=m.get)] / m[lo_arm]
+                b = np.array([
+                    max(t[f"{model}_gain{order}_{a}"].to_numpy(float)[i].mean()
+                        for a in ARMS_HERE)
+                    / min(t[f"{model}_gain{order}_{a}"].to_numpy(float)[i].mean()
+                          for a in ARMS_HERE) for i in draws])
+                out.append({"check": f"{model} three-arm span, order-{order} baseline",
+                            "value": float(span),
+                            "ci_low": float(np.percentile(b, 2.5)),
+                            "ci_high": float(np.percentile(b, 97.5)), "n": len(t),
+                            "note": f"smallest arm {lo_arm} at {m[lo_arm]:+.4f}"})
+                out.append({"check": f"{model} smallest-arm contribution, order-{order}",
+                            "value": m[lo_arm], "n": len(t), "note": lo_arm})
+                log(f"    order-{order} {model:11s} {span:6.2f}x  "
+                    f"smallest arm {lo_arm} {m[lo_arm]:+.4f} "
+                    f"({int((t[f'{model}_gain{order}_{lo_arm}'] > 0).sum())}/{len(t)} positive)")
+
+    # CONCENTRATION. The Discussion says 51% of the surviving positive mass sits in 3 of 30
+    # datasets. On the full panel that has to be recomputed, and it is worth having for every
+    # model, because concentration is the difference between "a small effect everywhere" and
+    # "nothing, plus a few outliers".
+    log("\n  share of surviving positive mass in the top 3 datasets:")
+    for arm in ARMS_HERE:
+        for model in MODELS:
+            v = t[f"{model}_gain3_{arm}"].to_numpy(float)
+            pos = np.sort(v[v > 0])[::-1]
+            share = float(pos[:3].sum() / pos.sum()) if pos.size else float("nan")
+            out.append({"check": f"{model} top-3 share of order-3 positive mass, {arm} arm",
+                        "value": share, "n": len(t),
+                        "note": f"{pos.size} datasets positive"})
+            # THE SHARE ALONE IS PANEL-SIZE DEPENDENT and would let a bigger panel look less
+            # concentrated for free: 3 of 30 is a tenth of the panel, 3 of 94 a thirty-second.
+            # Divide by the share three datasets would hold if the mass were spread evenly, so
+            # the number means "times over-represented" and is comparable across panel sizes.
+            if pos.size:
+                out.append({"check": f"{model} top-3 over-representation, order-3, {arm} arm",
+                            "value": float(share / (3 / pos.size)), "n": len(t),
+                            "note": "top-3 share / uniform share, panel-size invariant"})
+        log(f"    {arm:5s} " + "  ".join(
+            f"{m} {_top3_share(t, m, arm):.0f}%"
             for m in MODELS))
 
     pd.DataFrame(out).to_csv(TABLES / "baseline_order_models.csv", index=False)

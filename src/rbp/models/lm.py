@@ -16,7 +16,6 @@ import torch
 import torch.nn as nn
 
 
-
 def masked_mean_pool(hidden, ids, tok):
     keep = torch.ones_like(ids, dtype=torch.bool)
     for sid in (tok.cls_token_id, tok.eos_token_id, tok.pad_token_id):

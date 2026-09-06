@@ -17,7 +17,20 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-FORBIDDEN = re.compile(r"rbp-composition-2026")
+# A PATTERN, NOT A NAME. This was the literal string `rbp-composition-2026` -- the project the
+# study started in -- and it stayed that way after the move to `rbp-repro-2026`. So the test
+# whose docstring says it "is the only thing that stops the habit coming back" spent the whole
+# second half of the project guarding a name nothing used any more, while the habit came back
+# under the new one: scripts/device_portability.py carried `rbp-repro-2026-derived` as an
+# argparse default, and docs/REPRODUCE.md claimed in the same breath that no such literal
+# existed anywhere in the source. An external review found it; this test could not.
+#
+# The pattern matches this project's id shape in any generation, plus the -derived and -raw
+# bucket suffixes built from it. It deliberately does NOT try to match every possible GCP
+# project id: a generic matcher would fire on `ci-no-such-project` in the CI workflow and on
+# every hyphenated word in a docstring, and a test that cries wolf gets an exemption added
+# rather than a bug fixed.
+FORBIDDEN = re.compile(r"\brbp-[a-z0-9]+-20\d\d(-derived|-raw)?\b")
 # A BILLING ACCOUNT ID IS THE THING THAT ACTUALLY MATTERS, and this test did not look for it.
 # The real one sat as a shell default in cloud/cost.sh and in a gcloud command in
 # cloud/killswitch/main.py, in a repo whose README claims "no hardcoded project id... a test
@@ -40,8 +53,49 @@ def _tracked():
     Scanning the working directory is the wrong scope: cloud/jobs/rendered/ holds 30 untracked
     build artifacts carrying the old project id, and they are gitignored precisely so they
     never become public. What matters is what `git ls-files` would ship.
+
+    THE FALLBACK EXISTS BECAUSE THE CONTAINER HAS NO GIT. This ran `git ls-files` at
+    COLLECTION time and raised FileNotFoundError inside the image, which aborted collection and
+    failed every Cloud Build of the GPU image -- so the published image had been stale since
+    this test was added, and a Batch job died on an arm the image had never heard of. Where git
+    is unavailable the fallback walks the search directories instead and takes its exclusions
+    FROM .gitignore rather than from a hand-written list. Two ignored trees would otherwise
+    trip it: `cloud/jobs/rendered/`, which holds 31 Batch specs rendered against whichever
+    project submitted them, and `cloud/terraform/terraform.tfvars`, which holds the real
+    billing account id and is ignored for exactly that reason. Reading the same file git reads
+    keeps the two paths from drifting; a fallback that fails the moment it is exercised is a
+    trap, not a safety net. The matching is substring-crude, so it can only over-exclude, and
+    the git path already covers the superset.
     """
-    out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True)
+    out = None
+    try:
+        out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True,
+                             text=True)
+    except FileNotFoundError:
+        pass
+    # A NON-ZERO EXIT IS ALSO A FAILURE, and only FileNotFoundError was caught. An unpacked
+    # archive -- a git export, a Zenodo deposit, anything without .git -- still HAS the git
+    # binary, so this ran, printed "fatal: not a git repository", exited 128, and returned an
+    # empty stdout. The loop below then yielded nothing, _TRACKED came out empty, and every
+    # .json file was skipped as untracked. The scan silently stopped checking JSON in exactly
+    # the archival case it exists to protect. Same shape as the cost script reporting an auth
+    # failure as zero spend: an unchecked return code turns "could not look" into "found
+    # nothing".
+    if out is None or out.returncode != 0:
+        # .gitignore IS ITSELF ABSENT IN THE IMAGE, which is the second way this fallback
+        # failed a build. Treat it as optional: where it exists there are ignored trees to
+        # exclude, and where it does not there is nothing to exclude either, because the image
+        # contains only what the Dockerfile copies.
+        gi = ROOT / ".gitignore"
+        pats = [ln.strip().strip("/") for ln in gi.read_text().splitlines()
+                if ln.strip() and not ln.startswith("#") and "*" not in ln] \
+            if gi.exists() else []
+        for d in SEARCH:
+            for p in (ROOT / d).rglob("*"):
+                s = str(p.relative_to(ROOT))
+                if p.is_file() and not any(q in s for q in pats):
+                    yield p
+        return
     for name in out.stdout.split("\0"):
         if not name:
             continue
@@ -72,11 +126,55 @@ def _files():
                 yield p
 
 
+def _executable_lines(path):
+    """Line numbers whose content is code rather than narration.
+
+    THE RULE IS ABOUT WHAT RUNS, NOT ABOUT WHAT IS WRITTEN. Widening the pattern from one
+    historical project name to the id's shape turned up three more hits, and all three were
+    docstrings explaining why the old bucket returns 403 -- `src/rbp/utils/localstore.py`
+    exists BECAUSE that bucket died, and a docstring that cannot say which bucket is a
+    docstring that has been lobotomised to please a regex. The test already grants docs this
+    exemption for exactly this reason: "Docs describe a specific historical run and should
+    name it."
+
+    A comment cannot redirect a pipeline to the wrong account. An argparse default can, and
+    that is the one this test failed to catch. So comments and docstrings are narration, and
+    every other string literal is code.
+    """
+    text = path.read_text(errors="ignore")
+    if path.suffix != ".py":
+        # Shell, YAML and JSON: whole-line `#` comments only. An inline `#` inside a quoted
+        # string would be mis-stripped, so it is not attempted; over-strictness here is safe.
+        return {i for i, ln in enumerate(text.splitlines(), 1)
+                if not ln.lstrip().startswith("#")}
+    import ast
+    import io
+    import tokenize
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return set(range(1, text.count("\n") + 2))
+    docstring_spans = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            body = getattr(node, "body", [])
+            if (body and isinstance(body[0], ast.Expr)
+                    and isinstance(body[0].value, ast.Constant)
+                    and isinstance(body[0].value.value, str)):
+                docstring_spans.append((body[0].lineno, body[0].end_lineno))
+    narration = {i for a, b in docstring_spans for i in range(a, b + 1)}
+    for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+        if tok.type == tokenize.COMMENT:
+            narration.add(tok.start[0])
+    return set(range(1, text.count("\n") + 2)) - narration
+
+
 @pytest.mark.parametrize("path", sorted(_files(), key=str), ids=lambda p: str(p.name))
 def test_no_hardcoded_project_id(path):
+    code = _executable_lines(path)
     hits = [f"{i}: {ln.strip()}"
             for i, ln in enumerate(path.read_text(errors="ignore").splitlines(), 1)
-            if FORBIDDEN.search(ln)]
+            if i in code and FORBIDDEN.search(ln)]
     assert not hits, (
         f"{path.relative_to(ROOT)} hardcodes the project id:\n  " + "\n  ".join(hits) +
         "\nResolve it through rbp.utils.cloud (python) or $PROJECT_ID (shell) instead.")

@@ -1,0 +1,16 @@
+check,value,ci_low,ci_high,n,note
+datasets,94.0,94.0,94.0,94,
+"positives dropped by intersecting, fraction of the GC arm's",0.0023106073787511157,0.0006713507574314201,0.004450882055069949,94,
+"contribution on common positives, gc arm",0.02652133096857434,0.02040171650899034,0.03309469796787865,94,
+"contribution on all retained positives, gc arm",0.026517385286942346,0.02038718852509769,0.033102580816860974,94,
+"shift from intersecting, gc arm",3.945681632005447e-06,-4.0775641434680065e-05,3.9792154501092104e-05,94,
+"contribution as published, gc arm",0.026513098340627504,0.020384564412688,0.03309605285808229,94,
+"contribution on common positives, dn arm",0.06659939261301821,0.05444185669095138,0.08024672025931973,94,
+"contribution on all retained positives, dn arm",0.06626978310601295,0.05407734335258862,0.07990922315805743,94,
+"shift from intersecting, dn arm",0.0003296095070052524,0.00013380775592887194,0.0005452407884898498,94,
+"contribution as published, dn arm",0.06626403675115053,0.054073753103355875,0.07990446807174477,94,
+dinucleotide-over-GC contrast on common positives,0.040078061644443864,0.032876493681840216,0.04795492992958393,94,
+dinucleotide-over-GC contrast on all retained positives,0.03975239781907062,0.032506023469056844,0.047659229712861705,94,
+dn/gc ratio on common positives,2.5111632855806962,,,94,
+dn/gc ratio on all retained positives,2.4991069967462223,,,94,the comparison of record; both sides processed identically
+datasets where the contrast stays positive on common positives,88.0,,,94,the published count is 88 of 94

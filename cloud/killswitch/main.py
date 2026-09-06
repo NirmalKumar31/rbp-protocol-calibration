@@ -10,10 +10,16 @@ re-evaluates -- roughly every 20-30 minutes, not only when a threshold trips. Th
 is triggered by that topic, compares actual spend against the limit, and detaches billing
 if it is over.
 
-WHAT HAPPENS WHEN IT FIRES. Every VM stops, Batch jobs fail, Cloud Run stops serving.
-Buckets and their contents SURVIVE -- storage is not deleted, it just becomes inaccessible
-until billing is re-attached. So the worst case is an interrupted run and a manual
-re-enable, never lost data.
+WHAT HAPPENS WHEN IT FIRES, STATED THE WAY GOOGLE STATES IT. Every VM stops, Batch jobs
+fail, Cloud Run stops serving. Google's own documentation warns that disabling billing may
+DELETE some resources and that the deletion can be non-recoverable; it does not promise that
+buckets survive, and this docstring used to, ending on the words "never lost data". That was a
+guarantee we were not in a position to give.
+
+What is true: charges already incurred remain payable, billing reports lag by up to a day so
+the figure that triggered this is not the final one, and anything whose loss would matter must
+be backed up OUTSIDE the project this can fire on. Treat a firing as data loss until you have
+checked otherwise.
 
 RE-ENABLING IS DELIBERATELY MANUAL:
 
@@ -22,10 +28,21 @@ RE-ENABLING IS DELIBERATELY MANUAL:
 
 If this could re-enable itself the guardrail would be pointless.
 
-TESTED BY DRY RUN, NOT BY FIRING IT. Setting KILL_THRESHOLD_USD low enough to trip on
-current spend proves the whole path -- Pub/Sub delivery, parsing, permissions, the decision
--- while DRY_RUN=true stops it at the last step. Firing it for real would take the project
-down to prove it can take the project down.
+WHAT THE DRY RUN PROVES, AND WHAT IT DOES NOT. Setting KILL_THRESHOLD_USD low enough to trip
+on current spend exercises Pub/Sub delivery, message parsing, the threshold decision, and the
+getBillingInfo READ. It stops before updateBillingInfo, so it does NOT prove the service
+account may perform the write that is the actual stop.
+
+That distinction was missing here for the whole project, and the docstring claimed the dry run
+proved "permissions" without qualification. It cannot: billing-account access and the
+project-level updateBillingInfo permission are granted separately in GCP, and this function
+only ever reads. The two are checked apart now -- `permission_check()` below asks the IAM API
+whether the caller holds the write, which is a read-only question with a real answer.
+
+Firing it for real would take the project down to prove it can take the project down, so the
+remaining honest options are the permission check below or a rehearsal in a disposable
+project. Neither is a substitute for the other: the check can pass while a deny policy or an
+org constraint blocks the call.
 """
 
 import base64
@@ -48,6 +65,67 @@ def billing():
 def is_enabled(api):
     info = api.projects().getBillingInfo(name=PROJECT_NAME).execute()
     return bool(info.get("billingAccountName", ""))
+
+
+def _verdict(x):
+    return {True: "HELD", False: "NOT HELD", None: "UNKNOWN"}[x]
+
+
+def permission_check(api=None):
+    """Does this identity actually hold the permission that constitutes the stop?
+
+    testIamPermissions is a read: it answers "would this call be allowed" without making it.
+    Called at cold start so the answer appears in the logs of every deployment, rather than
+    being discovered at 3am by the one invocation that needed to work.
+
+    A False here means the killswitch is decorative. It does not raise, because a killswitch
+    that refuses to start is worse than one that starts and warns: the threshold logging and
+    the alerting path still have value, and an exception at import would take those too.
+
+    AND A TRUE HERE IS STILL NOT A REHEARSAL. testIamPermissions answers about IAM. An
+    organisation policy, a deny policy or a billing-account link lock can block the write with
+    every permission held. The only thing that proves the stop works is firing it in a
+    disposable project.
+    """
+    # THE RIGHT PERMISSION, ON THE RIGHT RESOURCE, AND THERE ARE TWO ROUTES. The first version
+    # of this asked for resourcemanager.projects.updateBillingInfo, which is the name of the API
+    # METHOD and not of a permission Google grants. Unlinking a project is authorised by either
+    # billing.resourceAssociations.delete on the billing account, or
+    # resourcemanager.projects.deleteBillingAssignment on the project. Testing the wrong string
+    # returns "not held" against an identity that can in fact make the call, which is the worse
+    # of the two possible errors: it teaches you to ignore the check.
+    want = "resourcemanager.projects.deleteBillingAssignment"
+    held = None
+    try:
+        crm = discovery.build("cloudresourcemanager", "v1", cache_discovery=False)
+        got = crm.projects().testIamPermissions(
+            resource=PROJECT, body={"permissions": [want]}).execute()
+        held = want in (got.get("permissions") or [])
+    except Exception as e:                                    # noqa: BLE001
+        print(f"project-route permission check failed to run: {e}", flush=True)
+    print(f"permission {want}: {_verdict(held)}", flush=True)
+    if held:
+        return True
+
+    # The billing-account route. Checked second because it needs the account id, which the
+    # function only has when the project is still linked.
+    try:
+        api = billing()
+        acct = api.projects().getBillingInfo(
+            name=PROJECT_NAME).execute().get("billingAccountName", "")
+        if not acct:
+            print("no billing account linked, so the account route cannot be tested",
+                  flush=True)
+            return held
+        want2 = "billing.resourceAssociations.delete"
+        got = api.billingAccounts().testIamPermissions(
+            resource=acct, body={"permissions": [want2]}).execute()
+        held2 = want2 in (got.get("permissions") or [])
+        print(f"permission {want2} on {acct}: {_verdict(held2)}", flush=True)
+        return bool(held or held2)
+    except Exception as e:                                    # noqa: BLE001
+        print(f"billing-account route check failed to run: {e}", flush=True)
+        return held
 
 
 def disable(api):
@@ -80,8 +158,10 @@ def handle(event):
         print("billing already disabled, nothing to do", flush=True)
         return
     if DRY_RUN:
+        held = permission_check()
         print(f"DRY RUN: would disable billing on {PROJECT} "
-              f"(cost {cost:.2f} >= {LIMIT:.2f})", flush=True)
+              f"(cost {cost:.2f} >= {LIMIT:.2f}); write permission "
+              f"{ {True: 'held', False: 'NOT HELD', None: 'unknown'}[held] }", flush=True)
         return
     print(f"DISABLING BILLING on {PROJECT}: cost {cost:.2f} >= {LIMIT:.2f}", flush=True)
     print(disable(api), flush=True)

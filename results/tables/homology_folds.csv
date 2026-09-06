@@ -1,0 +1,23 @@
+check,value,ci_low,ci_high,n,note
+datasets,94.0,94.0,94.0,94,
+"held-out windows sharing any 32-mer with training, mean over all five folds",0.033395723821580035,0.026033237631424233,0.04250514757703622,94,the published figure audited fold 0 only
+"the same, worst fold of each dataset",0.04094591688593672,0.03266108569960045,0.051302674913537336,94,
+"held-out windows sharing more than half their 32-mers, worst fold",0.0039397545913310164,0.002698070602839418,0.005635992106514687,94,
+"fraction of windows the filter removes, dinucleotide arm",0.004416221192209225,0.0031276390529453814,0.005934501718795642,94,
+"fraction of windows the exhaustive filter removes, dinucleotide arm",0.06288525080044102,0.049933773244363946,0.078229127012459,94,
+"chromosome-plus-homology groups, median over datasets",3.0,,,94,1 means no partition can satisfy both constraints
+largest chromosome-plus-homology group as a fraction of windows,0.9756503788893567,,,94,median over datasets
+median across datasets of the per-dataset mean 32-mer sharing,0.019994905928881687,,,94,over all five held-out folds
+maximum 32-mer sharing over every dataset and fold,0.2903225806451613,,,94,"the fold-0-only audit reported 24.3%, which understated this"
+"contribution as published, gc arm",0.02651309834062755,0.020384564412688034,0.03309605285808232,94,
+"contribution with echoed held-out windows removed, gc arm",0.02629759938389618,0.02018631811675202,0.032792235103328356,94,
+"contribution with ALL cross-fold sharing removed, gc arm",0.02403887162858852,0.018047172318950873,0.030536071650816458,94,
+"contribution as published, dn arm",0.06626403675115058,0.05407375310335592,0.07990446807174481,94,
+"contribution with echoed held-out windows removed, dn arm",0.06594664622137777,0.05379590253826851,0.07959738881670879,94,
+"contribution with ALL cross-fold sharing removed, dn arm",0.0610514650364727,0.04875734214851009,0.07480204620677144,94,
+"contribution as published, neg2 arm",0.012231944163197693,0.009754584941553318,0.015055647482416473,94,
+"contribution with echoed held-out windows removed, neg2 arm",0.012131539898193214,0.009683752840348291,0.014893328854186668,94,
+"contribution with ALL cross-fold sharing removed, neg2 arm",0.011618308127860438,0.009227649101342317,0.014307192356665019,94,
+"three-arm span, as published",5.4172939204970785,,,94,
+"three-arm span, filtered",5.435966643542045,,,94,
+"three-arm span, all cross-fold sharing removed",5.254763805934246,,,94,

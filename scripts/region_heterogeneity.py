@@ -32,6 +32,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import kruskal, mannwhitneyu, spearmanr
 
+from rbp.utils.log import log
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 TABLES = ROOT / "results" / "tables"
@@ -39,9 +41,6 @@ N_BOOT = 2000
 SEED = 0
 MIN_GROUP = 8
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def main():
@@ -80,7 +79,13 @@ def summarise(m):
 
     out = []
 
-    def add(check, value, lo=np.nan, hi=np.nan, n=len(m), note=""):
+    # n defaults to the row count captured here, deliberately: every row this
+    # helper writes describes the same panel. Bound to a name so the capture is
+    # visible rather than hidden in a default argument.
+    _n_default = len(m)
+
+    def add(check, value, lo=np.nan, hi=np.nan, n=None, note=""):
+        n = _n_default if n is None else n
         out.append({"check": check, "value": float(value), "ci_low": lo, "ci_high": hi,
                     "n": n, "note": note})
 
@@ -133,7 +138,7 @@ def summarise(m):
     for _, x in res_df.iterrows():
         ci = f" [{x.ci_low:+.4f}, {x.ci_high:+.4f}]" if pd.notna(x.ci_low) else ""
         log(f"  {x.check:44} {x.value:+.4f}{ci}   {x.note}")
-    log(f"\n  wrote region_heterogeneity.csv")
+    log("\n  wrote region_heterogeneity.csv")
 
 
 if __name__ == "__main__":

@@ -22,9 +22,12 @@ import numpy as np  # noqa: E402
 from pyfaidx import Fasta  # noqa: E402
 
 from rbp.data import annotation as ann  # noqa: E402
-from rbp.data import encode  # noqa: E402
+from rbp.data import (  # noqa: E402
+    encode,  # noqa: E402
+    splits,
+)
 from rbp.data import negatives as neg  # noqa: E402
-from rbp.data import splits, windows as win  # noqa: E402
+from rbp.data import windows as win
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
 
@@ -191,7 +194,7 @@ def main():
     if not a.protein and "SLURM_ARRAY_TASK_ID" in os.environ:
         names = [names[int(os.environ["SLURM_ARRAY_TASK_ID"])]]
 
-    print(f"loading region index, fold map and genome ...", flush=True)
+    print("loading region index, fold map and genome ...", flush=True)
     index = pickle.loads(Path(a.index).read_bytes())
     fold_map = load_fold_map(cfg)
     fasta = Fasta(str(ROOT / "data/raw/GRCh38.primary_assembly.genome.fa"))

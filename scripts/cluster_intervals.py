@@ -74,7 +74,6 @@ def main():
     # whether the correction matters at all, so it is reported rather than assumed.
     rows = []
     for m in MODELS:
-        c = d[f"{m}_gain_dn"] - d[f"{m}_gain_gc"]
         pairs = [g[f"{m}_gain_dn"].values - g[f"{m}_gain_gc"].values
                  for _, g in d.groupby("protein") if len(g) == 2]
         r = np.corrcoef(np.array([p[0] for p in pairs]),

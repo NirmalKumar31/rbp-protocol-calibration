@@ -23,12 +23,15 @@ fraction of the R1 contrast removed by order 3,0.8684101693272935,30,,,
 "change in fold range, order 3 minus order 2",4.6218711095278175,30,-1.8897979009967045,16.43485087114852,P(<=0) = 0.18
 "order-3 gain positive in, gc arm",18.0,30,,,
 "median per-dataset order-3/order-2 ratio, gc arm",0.14607225874935742,30,,,
+"top-3 over-representation of order-3 mass, gc arm",3.0734968046412363,30,,,
 "share of the positive order-3 mass in its top 3 datasets, gc arm",0.512249467440206,30,,,
 "order-3 gain positive in, dn arm",23.0,30,,,
 "median per-dataset order-3/order-2 ratio, dn arm",0.11937079217158827,30,,,
+"top-3 over-representation of order-3 mass, dn arm",2.909929409360892,30,,,
 "share of the positive order-3 mass in its top 3 datasets, dn arm",0.37955600991663807,30,,,
 "order-3 gain positive in, neg2 arm",17.0,30,,,
 "median per-dataset order-3/order-2 ratio, neg2 arm",-0.02049454692657444,30,,,
+"top-3 over-representation of order-3 mass, neg2 arm",2.878521169093853,30,,,
 "share of the positive order-3 mass in its top 3 datasets, neg2 arm",0.5079743239577388,30,,,
 "spearman(dataset size, order-3 retained fraction), gc arm",0.3539488320355951,30,,,p = 0.055
 "spearman(dataset size, order-3 retained fraction), dn arm",0.6266963292547274,30,,,p = 0.000

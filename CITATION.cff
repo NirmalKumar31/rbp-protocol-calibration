@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+# This file describes the SOFTWARE. preferred-citation below is the paper, which is what a
+# reader of the results should cite; the two carry the same title on purpose, because the
+# repository has no separate identity from the study it produced.
+title: >-
+  Apparent sequence-model contribution depends strongly on
+  negative-set construction: analysis code and released evidence
+message: >-
+  If you use this software or its released evidence, please cite
+  the preprint. No DOI exists yet: the Zenodo deposit is minted
+  from a tagged release, and SUBMISSION.md tracks that as the last
+  outstanding step. Add a doi: key here when it exists.
+type: software
+authors:
+  - given-names: Nirmalkumar
+    family-names: Thirupallikrishnan Kesavan
+    email: thirupallikrishnan.n@northeastern.edu
+    affiliation: Northeastern University
+repository-code: 'https://github.com/NirmalKumar31/rbp-protocol-calibration'
+abstract: >-
+  A calibration study across 94 paired ENCODE eCLIP datasets.
+  Holding the model, the peak set, the chromosome-blocked folds
+  and the estimator fixed and varying how negative windows
+  are constructed moves a model's measured nested contribution
+  5.42-fold under the two-stage estimator this literature uses,
+  and 4.84-fold under the cross-fitted estimator the paper
+  recommends, while its apparent AUROC moves the opposite way.
+  The two-stage estimator also returns a positive increment for a
+  model whose information the composition baseline already
+  contains, where the true contribution is zero by construction;
+  cross-fitting the covariate removes at least 95 percent of it.
+keywords:
+  - RNA-binding proteins
+  - eCLIP
+  - negative sets
+  - benchmark calibration
+  - sequence models
+license: MIT
+# 0.9.0 until a tag exists. A version number in a citation file is a claim that something
+# immutable is named by it, and nothing is until the release is cut.
+version: 0.9.0
+
+preferred-citation:
+  type: article
+  title: >-
+    Apparent sequence-model contribution depends strongly on
+    negative-set construction: a calibration across 94 ENCODE eCLIP
+    datasets
+  authors:
+    - given-names: Nirmalkumar
+      family-names: Thirupallikrishnan Kesavan
+      email: thirupallikrishnan.n@northeastern.edu
+      affiliation: Northeastern University
+  year: 2026

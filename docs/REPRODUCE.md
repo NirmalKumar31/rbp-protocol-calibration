@@ -1,9 +1,12 @@
 # Reproduce the whole study, from raw inputs to verified results
 
-Cloud only. The laptop submits jobs and reads results; it never computes. Roughly
-**$5 of GCP credit** and **~$32 on Modal** against a $50 budget.
+Cloud only. The laptop submits jobs and reads results; it never computes. Roughly **$60** without credits; see **[COST.md](COST.md)**, which is the only authoritative cost
+table and separates what was measured from what is forecast.
 
-Nothing here has been run yet. This is the procedure.
+The study has been run; this is the procedure for running it again from raw inputs. To check
+every published number without running any of it, see
+[`../SUBMISSION.md`](../SUBMISSION.md):
+`python scripts/verify.py --local results/tables` needs only a clone.
 
 ---
 
@@ -43,6 +46,41 @@ rm /tmp/rbp-modal.json
 
 If a `rbp-gcp` secret already exists from a previous project, **delete it first** -- Modal
 will not overwrite, and stage 9 would silently write into the old project's bucket.
+
+```bash
+modal secret list | grep rbp-gcp        # is one already there, and from when?
+modal secret delete rbp-gcp             # if so, before creating
+```
+
+### The key's lifecycle, which does not end when the run does
+
+A service-account key is a bearer credential with no expiry. GCP will not rotate it, Modal will
+not expire it, and `rm /tmp/rbp-modal.json` above deletes only the local copy -- the key itself
+stays valid in GCP and in Modal's secret store until someone revokes it. An external review
+asked for this to be written down and it was not; here it is.
+
+**Scope.** `rbp-modal` holds object read/write on the derived bucket and nothing else.
+Terraform grants no project-level role to it, so a leaked key reaches derived artefacts and not
+compute, billing or IAM. That is the blast radius to reason about.
+
+**When the run ends, revoke it.** Both halves, in this order, so a job that is still running
+fails loudly rather than silently losing its output:
+
+```bash
+modal secret delete rbp-gcp
+gcloud iam service-accounts keys list \
+  --iam-account=rbp-modal@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
+gcloud iam service-accounts keys delete KEY_ID \
+  --iam-account=rbp-modal@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
+```
+
+**Rotation, if a run spans weeks.** Create the new key, update the Modal secret, confirm one
+task succeeds, then delete the old key id. The list command above shows creation dates, and a
+key older than the run it was minted for is one nobody is tracking.
+
+**What is deliberately not automated.** Terraform contains no `google_service_account_key`
+resource, because that stores the private key in Terraform state in plaintext and the state
+bucket is a different security boundary from the secret store. The manual step is the point.
 
 ---
 
@@ -122,17 +160,28 @@ yourself, then:
 | 1 | terraform | GCP | $0 | buckets, service accounts, IAM, budget, killswitch |
 | 2 | images | Cloud Build | ~$0.50 | CPU + GPU images, weights baked in |
 | 3 | ingest **(public internet)** | Batch | ~$0.20 | genome, GENCODE, ClinVar, ENCODE peaks |
-| 4 | panel **(public internet)** | Batch | ~$0.10 | candidate datasets, both arms |
-| 5 | preprocess **all candidates** + finalize | Batch | ~$2 | matched datasets, both arms, and the pair counts |
+| 4 | panel **(public internet)** | Batch | ~$0.10 | candidate datasets, all arms |
+| 5 | preprocess **all candidates** + finalize | Batch | ~$2 | matched datasets, all arms, and the pair counts |
 | 6 | **select panel** | local | $0 | `manifest/study_panel.tsv` — *the* panel |
-| 7 | rehearsal | Batch | ~$0.60 | **R1** |
-| 8 | CNN | Batch | ~$3 | **R2** |
-| 9 | **SpliceBERT** | **Modal** | **~$31** | **R2** |
-| 10 | locality | Modal | ~$0.30 | **R3** |
-| 11 | variants **(public internet)** | Batch | ~$0.30 | assignments + phyloP |
-| 12 | ClinVar + mismatch control | Modal | ~$0.60 | **R4** |
+| 7 | rehearsal | Batch | ~$0.60 | the k-mer baseline on the whole panel |
+| 8 | CNN | Batch | ~$3 | per-window scores, dinucleotide arm |
+| 9 | **SpliceBERT** | **Modal** | **~$31** | per-window scores, dinucleotide arm |
+| 10 | locality | Modal | ~$0.30 | *earlier study; not used by this paper* |
+| 11 | variants **(public internet)** | Batch | ~$0.30 | *earlier study; not used by this paper* |
+| 12 | ClinVar + mismatch control | Modal | ~$0.60 | *earlier study; not used by this paper* |
 | 13 | aggregate + figures | Batch | ~$0.10 | tables, figures |
 | 14 | **verify** | local | $0 | pass/fail against golden numbers |
+
+Stages 10 to 12 belong to the earlier variant-scoring study. They are still in `run.sh` because
+the code and its tests are still here and still pass, and removing a working stage to tidy a
+table is how a pipeline stops being the thing that produced the results. Nothing this paper
+reports depends on them; `results/tables/PROVENANCE.csv` names the producing stage for every
+committed table, so the mapping is checkable rather than described.
+
+**Stages 8 and 9 cover the dinucleotide arm only.** The GC and bias-aware sweeps ran through
+`cloud/modal/modal_gc_sweep.py` with `RBP_ARM` set, outside this stage graph, and their
+per-window scores are committed under `data/evidence/`. That is the concrete content of the
+distinction in `PROVENANCE.csv` between `raw-reproducible` and `evidence-recomputable`.
 
 Paid stages ask before spending. `RBP_YES=1` skips the prompt once you have decided.
 
@@ -174,7 +223,7 @@ internet access to every other worker for no reason.
 ## Step 4. Verify
 
 ```bash
-./run.sh stage 15
+./run.sh stage 14
 ```
 
 Every claim in `config/golden.yaml` is asserted with an explicit tolerance. Tolerances
@@ -184,13 +233,21 @@ inference (measured at max 1.1e-4 per variant) — and nothing more.
 Where a claim is about unanimity or ordering, the **count** is checked rather than the mean,
 because that is what the paper asserts:
 
-- R1: every dataset must fall, and the gain over composition must **at least double** under
-  the harder control. If that ratio inverts, the paper's thesis is false regardless of how
-  close the other numbers land.
-- R2: the four-model ordering must hold exactly.
-- R3: SpliceBERT more concentrated on ≥85%, and **significantly reversed on zero**.
-- R4: the ladder must be monotone, and matched must exceed mismatched by ≥0.60, or the
-  signal is not binding-specific and R4 must be withdrawn.
+These were written for the earlier four-model, ISM and ClinVar study and named its claims.
+They now name this paper's, which are different claims about different quantities.
+
+- **The reversal.** The 4-mer's own AUROC must fall from GC-matched to dinucleotide-matched
+  negatives in all 94 datasets, and its contribution must rise in 88. If those move the same
+  way the paper's central observation is gone, whatever the panel means say.
+- **The span.** The three-arm contribution span must stay above 3-fold and the ordering
+  dinucleotide > GC > bias-aware must hold. A span near 1 would mean protocol choice does not
+  matter, which is the null this paper argues against.
+- **The floor.** Applied to a 2-mer, whose true contribution is zero by construction, the
+  estimator must return a positive value in every arm, and that value must be nearly flat
+  across arms. Flat is what protects the span; positive is the finding.
+- **Cross-fitting.** Closing the outer-fold route must remove most of the floor and land within
+  0.001 of zero for the 2-mer. That is the check that the correction works, because the target
+  is known. For the 4-mer the channel must not be positive: it was claimed to be, and is not.
 
 **Exit 0 means the science reproduced.** Exit 1 names the claim that broke. A pipeline that
 completes and quietly produces different science is worse than one that crashes, because

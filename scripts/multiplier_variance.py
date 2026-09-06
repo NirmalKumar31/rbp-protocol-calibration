@@ -40,7 +40,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.stats import spearmanr
+from scipy.stats import pearsonr, spearmanr
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -176,12 +176,14 @@ def main():
              "note": f"p = {p_block:.4f}; permutes protein labels between datasets"},
             {"check": "excess over the block-preserving null, protein", "value": float(pb),
              "n": len(t), "note": f"p = {p_block:.4f}"}]
-    print(f"\n  dataset as the factor: {100 * ds_share:.1f}%  vs protein's {100 * obs['protein']:.1f}%")
-    print(f"  -> protein (79 levels) is nearly the dataset factor (94 levels), so the")
-    print(f"     wholesale null is too permissive. Against a null that permutes protein")
-    print(f"     labels BETWEEN datasets and keeps each (dataset x model) block intact:")
+    print(f"\n  dataset as the factor: {100 * ds_share:.1f}%  "
+          f"vs protein's {100 * obs['protein']:.1f}%")
+    print("  -> protein (79 levels) is nearly the dataset factor (94 levels), so the")
+    print("     wholesale null is too permissive. Against a null that permutes protein")
+    print("     labels BETWEEN datasets and keeps each (dataset x model) block intact:")
     print(f"     null {100 * null_block.mean():.1f}% [{100 * np.percentile(null_block, 2.5):.1f}, "
-          f"{100 * np.percentile(null_block, 97.5):.1f}]   excess {100 * pb:+.1f}%  p={p_block:.4f}")
+          f"{100 * np.percentile(null_block, 97.5):.1f}]   "
+          f"excess {100 * pb:+.1f}%  p={p_block:.4f}")
 
     # THE DIRECT TEST, which is stronger than any share: does the SAME protein get the same
     # multiplier in the other cell line? Fifteen proteins are assayed in both.
@@ -193,10 +195,57 @@ def main():
         rho, pv = spearmanr(both[cells[0]], both[cells[1]])
         out += [{"check": "cross-cell-line correlation of the log multiplier", "value": r,
                  "n": len(both), "note": f"{both.index.get_level_values(0).nunique()} proteins "
-                                         f"in both lines, x {both.index.get_level_values(1).nunique()} models"},
+                                         f"in both lines, x "
+                                         f"{both.index.get_level_values(1).nunique()} models"},
                 {"check": "cross-cell-line spearman of the log multiplier", "value": float(rho),
                  "n": len(both), "note": f"p = {pv:.4f}"}]
-        print(f"\n  THE DIRECT TEST: the same protein's log multiplier across cell lines")
+
+        # AND THE SAME TEST AT THE RIGHT CLUSTER LEVEL. Those rows are fifteen proteins by
+        # three models sharing windows, labels and folds, so the p-value over 40 rows is
+        # anti-conservative and contradicts this project's own rule of resampling proteins.
+        # Collapsing over models costs an order of magnitude in p and is reported as primary.
+        col = both.groupby(level=0).mean()
+        cr, cp = pearsonr(col[cells[0]], col[cells[1]])
+        csr, csp = spearmanr(col[cells[0]], col[cells[1]])
+
+        # B13. AN INTERVAL, BECAUSE n IS 15. A correlation quoted with a p and no interval at
+        # this sample size invites the reader to treat the point estimate as the finding. The
+        # Fisher z interval is wide enough to make the honest reading obvious, and a
+        # bias-corrected bootstrap over the same fifteen proteins is reported beside it so the
+        # width is not an artefact of the normal approximation at small n.
+        z = np.arctanh(cr)
+        se = 1.0 / np.sqrt(len(col) - 3)
+        lo_f, hi_f = np.tanh(z - 1.959964 * se), np.tanh(z + 1.959964 * se)
+        rng = np.random.default_rng(7)
+        a1, a2 = col[cells[0]].to_numpy(), col[cells[1]].to_numpy()
+        draws = []
+        for _ in range(4000):
+            i = rng.integers(0, len(a1), len(a1))
+            if np.std(a1[i]) > 0 and np.std(a2[i]) > 0:
+                draws.append(float(np.corrcoef(a1[i], a2[i])[0, 1]))
+        lo_b, hi_b = np.percentile(draws, [2.5, 97.5])
+        out += [{"check": "cross-cell-line correlation, collapsed over models",
+                 "value": float(cr), "n": len(col), "note": f"p = {cp:.4f}",
+                 "ci_low": float(lo_f), "ci_high": float(hi_f)},
+                {"check": "cross-cell-line correlation, collapsed, bootstrap CI",
+                 "value": float(np.median(draws)), "n": len(col),
+                 "note": f"{len(draws)} protein draws",
+                 "ci_low": float(lo_b), "ci_high": float(hi_b)},
+                {"check": "cross-cell-line spearman, collapsed over models",
+                 "value": float(csr), "n": len(col), "note": f"p = {csp:.4f}"}]
+        print(f"    Fisher z 95% CI [{lo_f:+.3f}, {hi_f:+.3f}]   "
+              f"bootstrap [{lo_b:+.3f}, {hi_b:+.3f}] over {len(col)} proteins")
+        print(f"    collapsed over models: r = {cr:+.3f} (p={cp:.4f})  "
+              f"spearman {csr:+.3f} (p={csp:.4f})  over {len(col)} proteins")
+        for m in both.index.get_level_values(1).unique():
+            s = both.xs(m, level=1)
+            if len(s) < 4:
+                continue
+            mr, mp = pearsonr(s[cells[0]], s[cells[1]])
+            out.append({"check": f"cross-cell-line correlation, {m} only", "value": float(mr),
+                        "n": len(s), "note": f"p = {mp:.4f}"})
+            print(f"      {m:11s} r = {mr:+.3f} (p={mp:.3f}) over {len(s)} proteins")
+        print("\n  THE DIRECT TEST: the same protein's log multiplier across cell lines")
         print(f"    r = {r:+.3f}  spearman {rho:+.3f} (p={pv:.4f})  over {len(both)} "
               f"protein x model pairs")
         print("    This is what the section should lead with; a variance share is weaker.")

@@ -1,0 +1,20 @@
+check,value,n,note,ci_low,ci_high
+pairs whose dinucleotide counts differ from their source,0.0,94,,,
+fraction of pairs with an identical composition feature vector,1.0,94,"identical to 9 decimals, so the baseline cannot separate them",,
+"composition AUROC, shuffled arm",0.5,94,,0.5,0.5
+"max |composition AUROC - 0.5|, shuffled arm",0.0,94,,,
+"4-mer nested contribution, shuffled arm",0.25226465860663955,94,,0.23724600708807625,0.2677017844589707
+"4-mer standalone AUROC, shuffled arm",0.7528330067030825,94,,0.7382716959463685,0.7682014480131298
+"contribution minus (standalone AUROC - 0.5), shuffled arm",-0.0005683480964431651,94,,-0.0011455721661011275,3.3829754291144516e-05
+"composition AUROC, dn arm, shared datasets",0.6274272695414447,94,,0.6124482258708109,0.6431620784676941
+"4-mer contribution, dn arm, shared datasets",0.06626403675115053,94,,0.05374508159518835,0.08009965562803281
+"composition AUROC, gc arm, shared datasets",0.7827305897323874,94,,0.7614192470827716,0.8037114557661579
+"4-mer contribution, gc arm, shared datasets",0.026513098340627504,94,,0.020246835224857606,0.033118096980725924
+"composition AUROC, neg2 arm, shared datasets",0.8247778749636611,94,,0.8067505940753091,0.8425545798152412
+"4-mer contribution, neg2 arm, shared datasets",0.012231944163197651,94,,0.009724558412330499,0.01516973823385593
+shuffled baseline below the lowest matched baseline,0.12742726954144468,94,,,
+shuffled contribution above the largest matched contribution,0.18600062185548902,94,,,
+four-protocol span of the 4-mer contribution,20.62343117667511,94,shuffled over neg2,17.032580366084762,25.5192970129548
+"three-protocol span, same datasets, for comparison",5.417293920497092,94,,,
+"positives discarded, shuffle failed",0.0,94,,,
+"positives discarded, shuffle too similar to its source",0.0,94,,,

@@ -1,45 +1,135 @@
-# RBP negative-set calibration: a reproducible rebuild
+# Apparent sequence-model contribution depends strongly on negative-set construction
 
-**What a sequence model appears to contribute is set by how the benchmark's negatives were
-built.** Holding the model, the positives, the folds and the estimator fixed and changing only
-the negative-set protocol, the same 4-mer's contribution over a composition baseline moves
-**5.4-fold** (95% CI 4.4 to 6.6). No rescaling of AUROC removes it: across eight monotone
-transforms the range never falls below **2.00x** [1.67, 2.46].
+A calibration study across 94 paired ENCODE eCLIP datasets. We hold the model class and its
+hyperparameters, the peak set, the chromosome-to-fold map and the estimator implementation
+fixed, change how negative windows are constructed, and measure each model's **nested
+contribution**: the out-of-fold AUROC of a
+logistic model on 19 composition features plus the model's score, minus the AUROC of those
+features alone.
 
-**Report the composition-only AUROC under the same negative-set protocol alongside every
-headline AUROC, and never compare contributions measured under different protocols.**
+The number moves **5.42-fold** (95% CI 4.43 to 6.58) for a 4-mer logistic regression, and 3.7 to
+7.4-fold across three model classes on identical rows. A model's apparent AUROC moves the
+opposite way. And the estimator itself returns **+0.011 to +0.014** when the true contribution is
+zero by construction, which is 90.4% of the smallest arm's reported value.
 
-| | result |
-|---|---|
-| **R1** | Three protocols, one model: nested contribution **+0.0663** (dinucleotide-matched), **+0.0265** (GC-matched), **+0.0122** (negatives = other RBPs' sites). Apparent AUROC moves the OPPOSITE way, falling 0.1095 in 94/94 while the contribution rises 2.5x |
-| **R1m** | No monotone rescaling reaches protocol independence; floor **2.00x**, achieved by dividing by the baseline's own headroom |
-| **R1l / R1n** | Protocol and baseline are largely confounded, but not unmeasurably so. Given the baseline, the protocol label adds **1.0%** of variance; given the protocol, the baseline adds **11.0%**. The 0.0056-wide common support was the THREE-WAY intersection; pairwise, GC vs neg2 overlaps **0.212** over **130/188** cells, and there a protocol residual survives at matched baseline, **−0.0081** [−0.0130, −0.0036] |
-| **R1g** | Holds for three model classes: k-mer **+0.0398**, CNN **+0.0530**, SpliceBERT **+0.0864**. The multiplier is mostly a property of the PROTEIN, and the direct test is the evidence: the same protein's log multiplier agrees across cell lines at **r = +0.586** (p = 0.0001, 40 protein x model pairs). As a variance share it is 64.8%, but protein is nearly the *dataset* factor (68.0%), so against a null that permutes protein labels between datasets the excess is **+7.2** points (p = 0.0030), not the +35.1 a wholesale permutation suggests. Cell line is not detectable (15 informative proteins); model class is small but **not** null (2.8%, p = 0.023) |
-| **R1o / R1r** | Raising the composition baseline to order 3 absorbs a near-CONSTANT absolute amount from every model class (**+0.021** GC, **+0.054** dinuc), which is nearly all of a 4-mer's contribution and a quarter of SpliceBERT's. Over a trinucleotide baseline the 4-mer is positive in only **65/94** datasets against SpliceBERT's **94/94**. The protocol contrast survives at order 3 for all three models |
-| **R1c / R1j** | Two artifacts bounded against matched placebos: strand **−0.0055** (85% survives), untranscribed negatives **−0.0043** (90% survives) |
+Those are the two-stage estimator this literature uses. Cross-fitting the score covariate — the
+fix — cuts that floor by at least 95% and returns the zero the construction requires; the 4-mer's
+protocol span is then **4.84-fold**, so the effect survives the correction.
 
-## Run it
+> **Report the composition-only AUROC obtained under the same protocol alongside every headline
+> AUROC. Do not compare contributions measured under different protocols.**
+
+## If you are reviewing this
+
+The primary claim is that a model's **measured** contribution over a composition baseline
+depends strongly on how the negative windows were built: 5.42-fold across three protocols for a
+4-mer, while its apparent AUROC moves the opposite way. A two-way decomposition of the nine
+train-by-evaluate combinations attributes most of the movement to the **evaluation** protocol
+rather than the fitted model — 63% weighting datasets equally, 81% weighting them by effect
+size, against 15% and 9% for training — so most of what the protocol moves is the measurement
+(`sec:transport`). It is descriptive, not causal.
+
+- **Verifiable offline, in one command, in under a minute:** every published number, against
+  committed tables. That is regression checking, not independent reproduction.
+- **Not regenerable without cloud and raw data:** the neural sweeps for two of three protocols,
+  and anything needing the 2.9 GB window store.
+  `results/tables/PROVENANCE.csv` says which of the two every released table is.
+- **Known to be incomplete:** the cross-fitted estimator we recommend is computed for the k-mer
+  classes only; the two neural spans come from the estimator we say to replace, and are
+  exploratory. Intervals condition on one negative draw and one fold partition.
+
+The panel is 95 datasets; 94 carry all three protocols, and the one that does not
+(NCBP2 in K562) is named in Supplementary Table S1. Both counts are correct and appear
+throughout for different quantities.
+
+## Check it in thirty seconds, offline
+
+No cloud account, no credentials, no data download. 1013 numeric assertions are checked
+against committed tables, of which **875 belong to this paper** and 136 to an earlier
+variant-scoring study whose code and evidence are still here and still pass. The verifier prints
+that split on every run, because one total covering two papers is not this paper's evidence. That is a regression gate on the published values, not a proof that
+each is attached to the right claim; the Limitations section says what it does not cover.
 
 ```bash
-export GOOGLE_CLOUD_PROJECT=your-new-project
-./run.sh preflight     # spends nothing, gates everything
-./run.sh all           # pauses at each paid stage
-./run.sh stage 15      # verify against config/golden.yaml
+git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
+python -m pip install -e . -c constraints.txt   # pins the offline-verification environment
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 1013/1013
+PYTHONPATH=src python -m pytest tests -q                          # 731, needs torch
+```
+
+`verify.py` re-derives every published value from the committed result tables and fails if any
+disagrees with `config/golden.yaml`. Two of its assertions are end-to-end rebuilds rather than
+comparisons against a record: 285 AUROCs recomputed from committed per-window scores, and the
+headline contrast recomputed from raw sequence.
+
+## What the study found
+
+| | |
+|---|---|
+| **The protocol moves the measurement** | Nested contribution for one 4-mer: **+0.0663** dinucleotide-matched, **+0.0265** GC-matched, **+0.0122** bias-aware (negatives are other RBPs' sites). Apparent AUROC moves the other way, 0.798 to 0.688, in 94 of 94 datasets |
+| **It holds for three model classes** | Spans of 5.42, 7.42 and 3.72 for a 4-mer, a 7089-parameter CNN and a fine-tuned SpliceBERT, on identical rows and folds |
+| **It is not an AUROC artefact** | The ordering holds on five estimands including unbounded deviance. The magnitude is scale-specific: 5.42-fold in AUROC, about 2.1-fold on unbounded scales |
+| **Shuffling removes the baseline entirely** | Dinucleotide-shuffled negatives pin the composition baseline at exactly **0.5000** on all 94 datasets, so the contribution becomes the model's own AUROC less a half. Across four constructions the span is 20.62-fold |
+| **The estimator has a floor** | Applied to a model whose information the baseline already contains, so the truth is zero, it returns **+0.0119 / +0.0137 / +0.0111**. Nearly flat across arms, so the span survives; but 90.4% of the bias-aware arm's value, so that level does not |
+| **The floor is removable** | It is the outer-fold route, not conditioning. Cross-fitting the covariate cuts it by **at least 95%** and lands within 5e-4 of the known zero. The span goes 5.42 to **4.84**. Measured for the k-mer classes; the CNN and SpliceBERT would need four times the GPU sweep |
+| **The baseline's order matters too** | Raising it to order three removes most of a 4-mer's contribution and a third of SpliceBERT's; at order four the baseline overfits and the estimator's error exceeds most published increments |
+| **None of seven surveyed reports the baseline** | Of seven widely used methods and benchmarks selected by hand rather than by a systematic search, five build negatives by relocating genomic intervals, which leaves composition unconstrained, and **none** reports a composition-only AUROC. Seven hand-picked sources are not a systematic review, and the survey's selection rule is stated in `scripts/negative_set_survey.py` |
+
+## Rebuild it from raw data
+
+The offline check above needs nothing, and it verifies released results rather than
+reconstructing them. Regenerating the result tables from raw data needs the window store and,
+for the neural arms, a GPU. `run.sh all` covers the dinucleotide arm end to end; the GC and
+bias-aware sweeps were run through `cloud/modal/` and their per-window scores are committed
+rather than rebuilt by the default path. `docs/REPRODUCE.md` marks which is which per stage.
+
+```bash
+export GOOGLE_CLOUD_PROJECT=your-project
+./run.sh preflight        # spends nothing, gates everything
+./run.sh all              # pauses before every paid stage
 ```
 
 Full procedure: **[docs/REPRODUCE.md](docs/REPRODUCE.md)**.
-Why the dataset counts differ: **[docs/PANELS.md](docs/PANELS.md)**.
+Why dataset counts differ between analyses: **[docs/PANELS.md](docs/PANELS.md)**.
 
-## Cost
+Cost: **~$20 of real money** was spent on the published run and **~$60** is the forecast for a
+rerun without credits. One table, with what is measured separated from what is forecast:
+**[docs/COST.md](docs/COST.md)**. Every paid stage asks first.
 
-~$5 GCP credit, ~$32 Modal. Stage 9 (SpliceBERT) is 95% of it. Every paid stage asks first.
+## Layout
+
+```
+manuscript/     the paper and its figures
+scripts/        one analysis per file; each writes a table under results/tables/
+src/rbp/        the library the scripts import
+tests/          731 tests, no network or cloud; 2 modules need torch
+config/         params.yaml (the study's settings), golden.yaml (expected values)
+results/tables/ every number in the paper (SCHEMA.md documents the columns)
+data/evidence/  per-window out-of-fold scores for all three model classes
+```
 
 ## Design rules
 
-1. **No local compute.** Every stage runs in a container on Batch or on Modal.
-2. **No hardcoded project id.** Everything resolves through `rbp.utils.cloud`; a test fails
-   the build if a literal reappears.
-3. **The panel is an artefact, not a flag** (`manifest/study_panel.tsv`), written once.
-4. **Task counts come from manifests**, never typed.
-5. **Completion markers are written last**, so an interrupted stage redoes its work.
-6. **Verification is a stage.** Reproducibility that is not checked is not reproducibility.
+1. **Verification is a stage**, not an afterthought. Reproducibility that is not checked is not
+   reproducibility.
+2. **No hardcoded project id.** Everything resolves through `rbp.utils.cloud`, and a test fails
+   the build if a literal reappears. The test watches a pattern, not one historical name: it
+   watched only the old project id for a while, and the current one duly reappeared in an
+   argparse default underneath it.
+3. **The panel is an artefact, not a flag.** Written once, and committed three ways so a
+   reader never has to take it on trust: `results/tables/supplementary_table_s1.csv` is the
+   study panel of record, with ENCODE accession, experiment and an `in_three_arm_panel` flag
+   per row; `config/panel_final_{cell}_{arm}.tsv` carries each arm's own membership and pair
+   counts; and `manifest/study_panel.tsv` in the derived bucket is what the cloud stages read.
+   `tests/unit/test_panel_is_committed.py` checks the first two against the committed
+   per-window scores, because for a while the bias-aware arms had no panel file at all and
+   their membership was whatever directories existed on one laptop.
+4. **Task counts come from manifests**, never typed by hand.
+5. **Completion markers are written last**, so an interrupted stage redoes its work rather than
+   being skipped.
+
+## Licence and citation
+
+Code and derived data under MIT and CC BY 4.0 respectively; see `LICENSE`. Intermediate window
+tables containing genomic sequence are not redistributed and are regenerated from the ENCODE
+accessions in Supplementary Table S1.

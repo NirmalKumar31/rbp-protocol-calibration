@@ -1,0 +1,15 @@
+check,value,ci_low,ci_high,n,note
+datasets,94.0,,,94,
+independent draws,5.0,,,94,
+"panel-mean contribution, seed 7",0.012231944163197693,,,94,the published draw
+"panel-mean contribution, seed 11",0.012824179047685727,,,94,
+"panel-mean contribution, seed 23",0.012526320948017457,,,94,
+"panel-mean contribution, seed 42",0.012334621913990982,,,94,
+"panel-mean contribution, seed 101",0.01312143192391469,,,94,
+"between-protein standard error, the published draw",0.0013502451614407001,,,94,what the protein-clustered bootstrap already carries
+between-draw standard error of the panel mean,0.00036509255942368025,,,94,"what it holds fixed, and therefore omits"
+combined standard error,0.001398733202916323,,,94,the two added in quadrature
+ratio of combined to published interval width,1.0359105463661773,,,94,how much wider an interval including draw uncertainty would be
+median per-dataset range across draws,0.0037492662250166453,,,94,
+maximum per-dataset range across draws,0.02453977509371108,,,94,
+draws whose panel mean stays below the GC arm's published 0.0265,5.0,,,94,the weaker ordering statement the available redraws can support

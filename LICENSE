@@ -23,7 +23,9 @@ SOFTWARE.
 ---
 
 DATA AND RESULTS. The contents of `results/` and `data/evidence/` are released
-under CC-BY-4.0. They are derived from public sources that carry their own terms
+under CC-BY-4.0, and each of those directories carries its own LICENSE file
+naming that licence and linking its legal code, so a directory extracted on its
+own still says what it is. They are derived from public sources that carry their own terms
 and must be cited independently:
 
   ENCODE Consortium eCLIP peaks        https://www.encodeproject.org

@@ -51,9 +51,52 @@ if [ "$FAST" = "0" ]; then
   echo "  package verified"
 fi
 
-# Not in the workflow, because it needs the committed tables and takes longer than CI should.
-# Run here anyway: it is the check that actually protects the published numbers.
-step "verifier (local only, not in the workflow)"
+# THIS IS NOW IN THE WORKFLOW TOO. It used to carry the note "not in the workflow, because it
+# needs the committed tables and takes longer than CI should", which was wrong on both counts:
+# the tables are committed, so a clean clone has them, and the run takes under a minute. The
+# effect of leaving it out was that README's headline instruction was gated nowhere.
+step "manuscript numbers trace to a table (BEFORE the verifier, which reads its output)"
+"$PY" scripts/audit_manuscript.py | tail -3 || fail "audit_manuscript.py"
+
+step "verifier"
 "$PY" scripts/verify.py --local results/tables | tail -2 || fail "verify.py"
+
+step "release documents are consistent with the artefacts (full-suite job: --require-all)"
+"$PY" scripts/release_consistency.py --require-all || fail "release_consistency.py"
+
+# WHAT THIS SCRIPT STILL CANNOT REPRODUCE, and it cost two red CI runs to learn. The workflow
+# has two python environments: the `test` job installs requirements-cpu.txt with NO torch, and
+# `full-suite` adds a CPU torch wheel. This machine has torch, so running here exercises the
+# second and silently skips the first. That is exactly the drift this file exists to prevent,
+# and the failure mode is one-directional: anything that depends on torch being ABSENT passes
+# here and fails there.
+#
+# Making a torch-free venv on every run costs more than it saves, so the honest thing is to say
+# so. If you change what the `test` job runs, check the Actions log, not this script.
+echo "  NOTE: run with torch present, so this mirrors the full-suite job and not the"
+echo "        torch-free 'test' job. Check the Actions log for that one."
+
+step "the column dictionary is current"
+"$PY" scripts/column_dictionary.py || fail "column_dictionary.py"
+
+step "every committed table has a producing script"
+"$PY" scripts/provenance.py --check || fail "provenance.py"
+
+step "regenerated artefacts match what is committed"
+git diff --exit-code -- results/tables/ >/dev/null || fail "a generated table changed; commit it"
+echo "  clean"
+
+step "ruff"
+if "$PY" -m ruff --version >/dev/null 2>&1; then
+  "$PY" -m ruff check . || fail "ruff"
+else
+  echo "  SKIP: ruff not installed here (pip install ruff). CI runs it regardless."
+fi
+
+step "shell syntax"
+for f in $(git ls-files '*.sh' 2>/dev/null || find . -name '*.sh' -not -path './.git/*'); do
+  bash -n "$f" || fail "bash -n $f"
+done
+echo "  all shell scripts parse"
 
 printf '\nALL CI-LOCAL CHECKS PASSED\n'

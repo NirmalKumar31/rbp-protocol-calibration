@@ -8,7 +8,10 @@ WHY THIS IS NEEDED HERE SPECIFICALLY. On GCP the spend rate was capped by quota 
 liked it or not -- CPUS_ALL_REGIONS=12 meant three nodes and $0.24/hour, so even total
 abandonment took six days to reach the $40 killswitch. Modal's whole value is that it
 removes that cap, and it removes the accidental cost ceiling along with it. Ten A10G
-containers burn $15.80/hour, which is 2.5 days of the GCP sweep every sixty minutes.
+containers burn $11.00/hour, which is roughly two days of the GCP sweep every sixty minutes.
+(That figure read $15.80 for months. It was MAX_CONTAINERS times the pre-correction rate of
+$1.58, left behind by the very commit that establishes forty lines below why $1.58 was wrong
+by 44%. A prose number beside a constant is a second copy of that constant.)
 
 Modal exposes no spend figure over the CLI and no budget limit, so the guard has to be
 built from what is observable: how long the app has been up, and how much work has landed
@@ -16,9 +19,10 @@ in GCS.
 
 TWO ESTIMATES, AND THE CONSERVATIVE ONE IS THE ONE THAT ACTS.
 
-  upper bound   elapsed x MAX_CONTAINERS x rate. Assumes every container busy every second.
-                Always >= reality. This is what triggers the stop, because a guard that
-                under-estimates is not a guard.
+  upper bound   summed over every live sweep app: each app's elapsed time x its own
+                MAX_CONTAINERS x rate. Assumes every container busy every second, so it is
+                >= reality PROVIDED every live app is counted -- which is why it sums rather
+                than taking the oldest, and why that was a real bug and not a refinement.
 
   lower bound   GPU-seconds actually recorded by finished runs, priced at the same rate.
                 Cannot include work still in flight, so it always UNDER-states.
@@ -39,6 +43,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -79,55 +84,153 @@ def _epoch(ts):
         return None
 
 
-def app_state():
-    """The running rbp-sweep app, if any: (app_id, started_epoch)."""
-    out = subprocess.run(["modal", "app", "list", "--json"],
-                         capture_output=True, text=True).stdout
+# EVERY SWEEP APP, NOT ONE. This matched the literal description "rbp-sweep" while the apps
+# that actually ran the GC, bias-aware and region-matched arms are named rbp-gc-sweep,
+# rbp-neg2-sweep and rbp-neg2-rm-sweep -- modal_gc_sweep.py derives the name from RBP_ARM. So
+# the guard reported "no running rbp-sweep app" and returned success for three of the four
+# sweeps it exists to guard, on the most expensive arms, and looked healthy doing it.
+APP_NAME = re.compile(r"^rbp-[a-z0-9-]*-?sweep$")
+LIVE = ("ephemeral", "running", "deployed")
+
+
+class Unobservable(RuntimeError):
+    """The Modal CLI could not be read. NOT the same as nothing running."""
+
+
+def live_apps():
+    """EVERY live sweep app: [(app_id, started_epoch)].
+
+    Plural, because this returned the first match and stopped. Two arms can be swept at once --
+    that is what MAX_CONTAINERS=10 across four apps is for -- and the guard would then watch one
+    and let the other run unmetered, while reporting a burn rate for the pair.
+
+    RAISES rather than returning (None, None) when Modal cannot be read. Those two states used
+    to be identical: the returncode was never checked, so an expired token, a network failure
+    or a CLI upgrade that changed the output shape all produced an empty parse, which the
+    caller printed as "no running app" and exited zero. A cost guard that cannot see must fail
+    closed, because the failure it guards against is invisible by definition.
+    """
+    r = subprocess.run(["modal", "app", "list", "--json"], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise Unobservable(f"modal app list exited {r.returncode}: "
+                           f"{(r.stderr or r.stdout).strip()[:200]}")
     try:
-        apps = json.loads(out)
-    except json.JSONDecodeError:
-        return None, None
+        apps = json.loads(r.stdout)
+    except json.JSONDecodeError as e:
+        raise Unobservable(f"modal app list returned unparseable output: {e}") from e
+    out = []
     for a in apps:
         # Modal's own field names have varied; be liberal about which key holds what.
         state = str(a.get("State") or a.get("state") or "").lower()
         desc = a.get("Description") or a.get("description") or ""
-        if desc == "rbp-sweep" and state in ("ephemeral", "running", "deployed"):
-            return (a.get("app_id") or a.get("App ID"),
-                    _epoch(a.get("created_at") or a.get("Created at") or ""))
-    return None, None
+        if APP_NAME.match(desc) and state in LIVE:
+            out.append((a.get("app_id") or a.get("App ID"),
+                        _epoch(a.get("created_at") or a.get("Created at") or "")))
+    return out
 
 
-def work_done(model):
-    """(runs, gpu_seconds) from GCS. The receipt, not the promise."""
+def app_state():
+    """The OLDEST live sweep, for callers that want one: (app_id, started_epoch).
+
+    Oldest rather than first-listed, because the upper bound is elapsed time times the
+    container cap, so the longest-running app is the one that bounds the spend.
+    """
+    live = live_apps()
+    if not live:
+        return None, None
+    return min(live, key=lambda x: x[1] or 0.0)
+
+
+# ARMS TO COUNT. The prefix was the literal "runs/dinuc/", so work landing under runs/gc/,
+# runs/neg2/ or runs/neg2_rm/ contributed zero to the lower bound -- the guard's only
+# measurement of what has actually been paid for. Combined with the app-name bug above, the
+# guard was blind at both ends for every arm except the first one written.
+ARMS = ("dinuc", "gc", "neg2", "neg2_rm")
+
+
+def work_done(model, arms=ARMS):
+    """(runs, gpu_seconds, unobserved_arms) from GCS. The receipt, not the promise.
+
+    ZERO RECEIPTS AT A PREFIX IS NOT ZERO COST. cloud/modal/modal_gc_sweep.py opens with the
+    words "with no GCS anywhere": its arms keep inputs and outputs on a Modal Volume. So adding
+    runs/gc/, runs/neg2/ and runs/neg2_rm/ to this listing did NOT make those sweeps
+    observable -- it made them contribute a confident zero to the figure called the lower bound,
+    for work that was running and being billed.
+
+    An arm with no receipts is therefore reported as unobserved rather than counted as nothing,
+    and the caller says so instead of printing a number that looks measured.
+    """
     from google.cloud import storage
     c = storage.Client(project=PROJECT)
-    n, secs = 0, 0.0
-    for b in c.list_blobs(DERIVED, prefix="runs/dinuc/"):
-        if b.name.endswith("metrics.json") and f"/{model}/" in b.name:
-            m = json.loads(b.download_as_text())
-            if m.get("platform") == "modal":
-                n += 1
-                secs += float(m.get("seconds", 0))
-    return n, secs
+    n, secs, unobserved = 0, 0.0, []
+    for arm in arms:
+        seen = 0
+        for b in c.list_blobs(DERIVED, prefix=f"runs/{arm}/"):
+            if b.name.endswith("metrics.json") and f"/{model}/" in b.name:
+                m = json.loads(b.download_as_text())
+                if m.get("platform") == "modal":
+                    seen += 1
+                    secs += float(m.get("seconds", 0))
+        if seen:
+            n += seen
+        else:
+            unobserved.append(arm)
+    return n, secs, unobserved
 
 
-def report(model, budget, started_epoch):
-    n, secs = work_done(model)
-    elapsed_h = (time.time() - started_epoch) / 3600 if started_epoch else 0.0
-    upper = elapsed_h * MAX_CONTAINERS * RATE
+def report(model, budget, started_epoch, live=None):
+    """Print both bounds. The upper one sums over EVERY live app.
+
+    IT USED TO USE ONE APP'S ELAPSED TIME. Each sweep application carries its own
+    max_containers=10, so two concurrent apps can hold twenty containers, and multiplying the
+    oldest app's elapsed hours by ten then produced a figure BELOW reality while the code called
+    it an upper bound and the docstring said "Always >= reality". An upper bound that can be
+    exceeded is not one; it is an estimate with a misleading name.
+    """
+    n, secs, unobserved = work_done(model)
+    if live is None:
+        live = [(None, started_epoch)] if started_epoch else []
+    now = time.time()
+    upper = sum((now - s) / 3600 * MAX_CONTAINERS * RATE for _a, s in live if s)
     lower = secs / 3600 * RATE
-    print(f"[{dt.datetime.now():%H:%M:%S}] {model}: {n} runs done on modal")
-    print(f"    upper bound  ${upper:6.2f}   (elapsed {elapsed_h:.2f} h x {MAX_CONTAINERS}"
-          f" x ${RATE:.3f})")
-    print(f"    lower bound  ${lower:6.2f}   ({secs/3600:.2f} GPU-h recorded)")
+    print(f"[{dt.datetime.now():%H:%M:%S}] {model}: {n} runs observed on modal")
+    print(f"    upper bound  ${upper:6.2f}   ({len(live)} live app(s) x {MAX_CONTAINERS} "
+          f"containers x ${RATE:.3f}/h each)")
+    print(f"    lower bound  ${lower:6.2f}   ({secs/3600:.2f} GPU-h with a receipt)")
+    if unobserved:
+        print(f"    NOT IN THE LOWER BOUND: {', '.join(unobserved)} -- no receipts at their GCS "
+              f"prefix. Those arms may run on a Modal Volume, in which case work is being done "
+              f"and billed that this figure cannot see.")
     print(f"    budget       ${budget:6.2f}")
     return upper, lower
 
 
 def stop(app_id):
+    """Stop one app and CONFIRM it stopped. Returns True only if it is no longer live.
+
+    The old version printed whatever the CLI said and returned. A nonzero exit, an expired
+    token or a rename would all have printed something and been read as success, which in a
+    guard means the containers keep burning while the log says STOPPING.
+    """
     print(f"    STOPPING APP {app_id}", flush=True)
     r = subprocess.run(["modal", "app", "stop", app_id], capture_output=True, text=True)
     print("   ", (r.stdout or r.stderr).strip()[:300])
+    if r.returncode != 0:
+        print(f"    STOP FAILED for {app_id}, exit {r.returncode}. STOP IT BY HAND at "
+              f"modal.com/apps", flush=True)
+        return False
+    for _ in range(6):
+        time.sleep(5)
+        try:
+            if app_id not in {a for a, _s in live_apps()}:
+                print(f"    confirmed stopped: {app_id}", flush=True)
+                return True
+        except Unobservable as e:
+            print(f"    cannot confirm the stop ({e})", flush=True)
+            return False
+    print(f"    {app_id} IS STILL LIVE 30s after a successful stop command. STOP IT BY HAND.",
+          flush=True)
+    return False
 
 
 def main():
@@ -152,25 +255,60 @@ def main():
     p.add_argument("--interval", type=int, default=120)
     a = p.parse_args()
 
-    app_id, started = app_state()
+    try:
+        app_id, started = app_state()
+    except Unobservable as e:
+        print(f"CANNOT OBSERVE MODAL: {e}")
+        print("Refusing to report 'nothing running'. Fix the CLI or the credentials, or stop "
+              "the app by hand at modal.com/apps.")
+        sys.exit(2)
     if not app_id:
-        print("no running rbp-sweep app")
-        report(a.model, a.budget, None)
+        print("no running sweep app")
+        report(a.model, a.budget, None, [])
         return
     print(f"guarding app {app_id}, budget ${a.budget:.2f}, "
           f"burn ${MAX_CONTAINERS*RATE:.2f}/h at full fan-out\n")
     if not started:               # fall back to now if the timestamp did not parse
         started = time.time()
+    last_seen = []                # the most recent COMPLETE live-app list, for the outage case
 
     while True:
-        upper, lower = report(a.model, a.budget, started)
+        try:
+            live = live_apps()
+            last_seen = live or last_seen
+        except Unobservable:
+            # THE LAST COMPLETE LIST, not the one app we started with. Falling back to
+            # [(app_id, started)] meant that if three apps were live and the CLI then failed,
+            # the upper bound silently dropped to a third of the burn and the stop list to one
+            # app -- while SECURITY.md advertised this guard as failing closed. Keep charging
+            # every app last observed alive until one is positively seen to have stopped.
+            live = last_seen or [(app_id, started)]
+            print(f"    cannot observe modal; still charging {len(live)} app(s) last seen alive")
+        upper, lower = report(a.model, a.budget, started, live)
         if upper >= a.budget:
             print(f"    OVER BUDGET on the upper bound (${upper:.2f} >= ${a.budget:.2f})")
-            stop(app_id)
+            # EVERY live app, not the one being timed. Whatever is running is costing money.
+            try:
+                targets = [x for x, _s in live_apps()]
+            except Unobservable:
+                targets = [x for x, _s in last_seen] or [app_id]
+                print(f"    modal unobservable; stopping the {len(targets)} app(s) last seen")
+            failed = [x for x in targets if not stop(x)]
+            if failed:
+                print(f"    COULD NOT CONFIRM STOP FOR: {', '.join(failed)}")
+                sys.exit(2)
             sys.exit(1)
         if not a.watch:
             return
-        app_id2, _s = app_state()
+        try:
+            app_id2, _s = app_state()
+        except Unobservable as e:
+            # Mid-watch, this is the dangerous moment: the app may still be burning. Keep
+            # watching rather than exiting, and say so, so a transient network blip does not
+            # silently end the only supervision the run has.
+            print(f"    cannot observe modal ({e}); still watching, app NOT assumed finished")
+            time.sleep(a.interval)
+            continue
         if not app_id2:
             print("    app finished on its own")
             return

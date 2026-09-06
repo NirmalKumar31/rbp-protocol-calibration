@@ -118,7 +118,6 @@ def fetch(positions, url=DEFAULT_URL, cache=None, progress=True):
     which cuts HTTP requests by roughly two orders of magnitude. Variants cluster in
     genes, so the grouping wins often.
     """
-    import pyBigWig
 
     want = {(_norm(c), int(p)) for c, p in positions}
     values = {k: v for k, v in load_cache(cache).items() if k in want}

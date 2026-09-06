@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from rbp.data import negatives as neg
-from rbp.data import splits, windows as win
+from rbp.data import splits
+from rbp.data import windows as win
 
 
 class TestRevcomp:

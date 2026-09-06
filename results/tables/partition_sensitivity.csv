@@ -1,0 +1,10 @@
+check,value,n
+4-mer contrast under frozen (config/folds.tsv),0.03975093841052303,94
+4-mer contrast under alternative 1,0.039167889130923325,94
+4-mer contrast under alternative 2,0.03961955342634406,94
+4-mer contrast under alternative 3,0.03934393687998579,94
+partitions compared,4.0,4
+minimum 4-mer contrast over partitions,0.039167889130923325,4
+maximum 4-mer contrast over partitions,0.03975093841052303,4
+range of the 4-mer contrast over partitions,0.0005830492795997066,4
+contrast is positive under every partition,1.0,4

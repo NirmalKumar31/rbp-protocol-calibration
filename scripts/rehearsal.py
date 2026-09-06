@@ -115,7 +115,7 @@ def summarise(res):
         c = res[col]
         print(f"{lab:22} {c.median():8.3f} {c.mean():8.3f} {c.min():8.3f} {c.max():8.3f}")
 
-    print(f"\ngain over composition, distribution across datasets:")
+    print("\ngain over composition, distribution across datasets:")
     for lo, hi, lab in ((-1, 0.005, "<0.005 (composition explains it)"),
                         (0.005, 0.02, "0.005-0.02"), (0.02, 0.05, "0.02-0.05"),
                         (0.05, 1, ">0.05 (substantial)")):
@@ -125,11 +125,11 @@ def summarise(res):
     print(f"  lr_p < 0.05:            {int((res.lr_p < 0.05).sum())}/{len(res)}"
           f"   <- significance is not the finding; the gain is")
 
-    print(f"\nthe 8 datasets composition explains most completely:")
+    print("\nthe 8 datasets composition explains most completely:")
     print(res.nsmallest(8, "delta_auroc")[
         ["dataset", "pairs", "composition_auroc", "auroc", "delta_auroc"]
     ].to_string(index=False))
-    print(f"\nthe 8 where the model adds most:")
+    print("\nthe 8 where the model adds most:")
     print(res.nlargest(8, "delta_auroc")[
         ["dataset", "pairs", "composition_auroc", "auroc", "delta_auroc"]
     ].to_string(index=False))
@@ -137,7 +137,7 @@ def summarise(res):
     # The confound flagged during step 1: dataset size predicts AUROC, so it could drive
     # both sides of the transfer correlation. Measured here so it is not a surprise later.
     lp = np.log(res.pairs)
-    print(f"\nconfound check, correlation with log(pairs):")
+    print("\nconfound check, correlation with log(pairs):")
     for c in ("auroc", "composition_auroc", "delta_auroc"):
         print(f"  {c:20} r = {np.corrcoef(lp, res[c])[0,1]:+.3f}")
 

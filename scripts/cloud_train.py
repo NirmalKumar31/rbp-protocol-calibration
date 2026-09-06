@@ -41,9 +41,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
+from rbp.utils import cloud as cloudcfg  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
-from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 WORK = Path(os.environ.get("WORK_DIR", "/tmp/rbp"))
 # ONE MANIFEST PER JOB, keyed by a tag.
@@ -518,7 +518,7 @@ def main():
                         "control that, restrict --models and use --tag.")
     p.add_argument("--every", type=int, default=None,
                    help="keep every Nth dataset after sorting by pairs. A systematic, "
-                        "size-unbiased sample for when a budget cannot cover the panel.")
+                        "size-stratified sample for when a budget cannot cover the panel.")
     p.add_argument("--tag", default=None,
                    help="suffix for the manifest object, so one job per model set can have "
                         "its own frozen list. Workers read it via MANIFEST_TAG.")

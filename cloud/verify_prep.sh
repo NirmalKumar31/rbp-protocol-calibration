@@ -13,7 +13,18 @@
 # Project and buckets come from the environment, never from a literal. A hardcoded id is
 # how a pipeline ends up only running on its author's account. Override with:
 #   export GOOGLE_CLOUD_PROJECT=your-project
-PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-$(.venv/bin/python -c 'import sys;sys.path.insert(0,"src");from rbp.utils import cloud;print(cloud.project())')}"
+# THE INTERPRETER IS A PARAMETER, and it has to be. This said `.venv/bin/python`, which does
+# not exist in this repository: the working environment is a venv in a sibling project, so the
+# substitution produced an EMPTY project id and the next line then reported "no image digest
+# published", which points at the image rather than at the interpreter. Fall back to python3 and
+# fail loudly if the id cannot be resolved.
+PY="${PY:-python3}"
+PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-$("$PY" -c 'import sys;sys.path.insert(0,"src");from rbp.utils import cloud;print(cloud.project())' 2>/dev/null)}"
+if [ -z "${PROJECT_ID}" ]; then
+  echo "cannot resolve the GCP project id. Set GOOGLE_CLOUD_PROJECT, or point PY at an" >&2
+  echo "interpreter that can import src/rbp (PY=/path/to/python $0 ...)." >&2
+  exit 1
+fi
 DERIVED="${DERIVED_BUCKET:-${PROJECT_ID}-derived}"
 RAW="${RAW_BUCKET:-${PROJECT_ID}-raw}"
 

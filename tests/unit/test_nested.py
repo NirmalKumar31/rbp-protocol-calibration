@@ -6,10 +6,9 @@ motif score is worse than no control, because it produces a number that looks li
 evidence.
 """
 
+import math
 import sys
 from pathlib import Path
-
-import math
 
 import numpy as np
 import pytest

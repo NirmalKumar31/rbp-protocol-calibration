@@ -39,9 +39,9 @@ import pandas as pd  # noqa: E402
 
 from rbp.data.splits import split_of_fold  # noqa: E402
 from rbp.eval import locality_ism as loc  # noqa: E402
+from rbp.utils import cloud as cloudcfg  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
 from rbp.utils import panel as panelmod  # noqa: E402
-from rbp.utils import cloud as cloudcfg  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 BUCKET = cloudcfg.derived_bucket()
@@ -250,7 +250,7 @@ def main():
         return cloud_one(cfg, idx, a.force)
     if a.gather:
         return summarise(cloud_gather(a.out), a.out)
-    k, C = cfg.cv["k"], 0.01
+    k = cfg.cv["k"]
     want = [m.strip() for m in a.models.split(",")]
     device = None
     if "splicebert" in want:

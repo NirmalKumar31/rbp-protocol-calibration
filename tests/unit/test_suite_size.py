@@ -44,6 +44,16 @@ def test_suite_is_at_least_the_documented_size(pytestconfig):
     if ignored:
         pytest.skip(f"--ignore given ({len(ignored)} path(s)): the collected count is a "
                     f"subset by construction and cannot be compared to a whole-suite floor")
+    # THE THIRD WAY COLLECTION SHRINKS WITHOUT ANY TEST BEING REMOVED: a partial file tree.
+    # Several modules parametrise over files -- the figure checks over manuscript/figures/*.pdf,
+    # the hardcoded-id checks over the tracked source -- so where those directories are absent
+    # the same modules collect fewer cases. The container image copies config, src, scripts and
+    # tests and nothing else, and collects 680 against 699 here. Raising the floor to match a
+    # full checkout therefore failed the image build, which is the exact failure this file's
+    # docstring warns about, and it took scripts/check_image_tree.sh to surface it.
+    if not (ROOT / "manuscript").exists():
+        pytest.skip("no manuscript/ in this tree: the file-parametrised tests collect fewer "
+                    "cases by construction, so a whole-suite floor does not apply")
     floor = yaml.safe_load((ROOT / "config" / "golden.yaml").read_text())["integrity"][
         "min_tests_passing"]
     tr = pytestconfig.pluginmanager.get_plugin("terminalreporter")

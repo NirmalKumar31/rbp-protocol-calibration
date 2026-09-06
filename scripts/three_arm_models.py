@@ -30,6 +30,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from rbp.utils.log import log
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -40,22 +42,43 @@ MODELS = ("kmer", "cnn", "splicebert")
 N_BOOT = 4000
 
 
-def log(m):
-    print(m, flush=True)
-
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--store", default=str(ROOT.parent / "rbp-store"))
-    p.add_argument("--from-cache", action="store_true")
+    p.add_argument("--from-cache", action="store_true",
+                   help="use the committed per-dataset table instead of rebuilding it")
     a = p.parse_args()
     warnings.filterwarnings("ignore")
 
+    # THIS TABLE HAD NO PRODUCER, and it is gated. `--store` was accepted and never read: the
+    # branch was `if a.from_cache or per.exists()`, so whenever the committed table was
+    # present -- always -- it was used, and the flag did nothing. That surfaced after the
+    # dinucleotide retrain, when this script printed the pre-retrain contributions while
+    # deep_model_contrast.py printed the new ones and neither disagreed with itself.
+    #
+    # It needs no store. Every column here is a projection of deep_contrast_per_dataset.csv,
+    # which IS regenerated from the per-window evidence: checked column by column, the GC and
+    # bias-aware columns are bit-identical between the two tables and only the retrained
+    # dinucleotide columns differ. So it is rebuilt by projection, and the flag now means what
+    # it says.
     per = TABLES / "three_arm_models_per_dataset.csv"
-    if a.from_cache or per.exists():
+    src = TABLES / "deep_contrast_per_dataset.csv"
+    if not a.from_cache and src.exists():
+        d = pd.read_csv(src)
+        cols = ["dataset", "protein", "cell"]
+        for arm in ARMS:
+            cols.append(f"comp_{arm}")
+            cols += [f"{m}_gain_{arm}" for m in MODELS]
+        missing = [c for c in cols if c not in d.columns]
+        if missing:
+            sys.exit(f"{src} lacks {missing}; run deep_model_contrast.py --store first")
+        t = d[cols].copy()
+        t.to_csv(per, index=False)
+        log(f"rebuilt {per.name} from {src.name} ({len(t)} datasets)")
+    elif per.exists():
         t = pd.read_csv(per)
     else:
-        sys.exit(f"{per} absent; regenerate it with the sweep outputs on the store")
+        sys.exit(f"{per} absent and {src} absent; run deep_model_contrast.py --store first")
     if t.empty:
         sys.exit(f"{per} is empty")
 
@@ -119,7 +142,7 @@ def main():
     order = sorted(spans, key=spans.get)
     out.append({"check": "model class with the widest span", "value": float(max(spans.values())),
                 "n": len(t), "note": max(spans, key=spans.get)})
-    log(f"  ordering by span: " + " < ".join(f"{m} {spans[m]:.2f}x" for m in order))
+    log("  ordering by span: " + " < ".join(f"{m} {spans[m]:.2f}x" for m in order))
     log("  -> widest for the CNN, not the largest model: the span does not grow with capacity,")
     log("     the same non-monotonicity the ratio-scale multiplier shows.")
 
@@ -129,6 +152,27 @@ def main():
                 "value": int(sum(x == "neg2" for x in lowest)), "n": len(MODELS)})
     log(f"\n  the bias-aware arm yields the least for {sum(x == 'neg2' for x in lowest)}"
         f"/{len(MODELS)} model classes, and has the highest composition baseline of the three")
+
+    # THE TWO EFFECTS IN THE SAME UNITS, because the Introduction compares them and a fold
+    # change and an AUROC difference are not comparable. Ranges of panel means: protocol range
+    # holding the model fixed, model-class range holding the protocol fixed. These are
+    # DIFFERENCES of means, which no column aggregate reproduces, so they are emitted here
+    # rather than left for audit_manuscript.py to fail on.
+    log("\n  the two effects in absolute AUROC, as ranges of panel means:")
+    for m in MODELS:
+        v = [t[f"{m}_gain_{arm}"].mean() for arm in ARMS]
+        out.append({"check": f"protocol range of panel means, within {m}",
+                    "value": float(max(v) - min(v)), "n": len(t),
+                    "note": f"fold {max(v) / min(v):.2f}"})
+        log(f"    protocol range within {m:12s} {max(v) - min(v):.4f}  "
+            f"(fold {max(v) / min(v):.2f})")
+    for arm in ARMS:
+        v = [t[f"{m}_gain_{arm}"].mean() for m in MODELS]
+        out.append({"check": f"model-class range of panel means, within {arm} arm",
+                    "value": float(max(v) - min(v)), "n": len(t),
+                    "note": f"fold {max(v) / min(v):.2f}"})
+        log(f"    model-class range within {arm:5s} arm  {max(v) - min(v):.4f}  "
+            f"(fold {max(v) / min(v):.2f})")
 
     pd.DataFrame(out).to_csv(TABLES / "three_arm_models.csv", index=False)
     log("\nwrote three_arm_models.csv")

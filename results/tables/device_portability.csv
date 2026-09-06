@@ -1,0 +1,17 @@
+check,value,n,note
+folds compared across devices,5.0,5,
+folds with identical row sets across devices,5.0,5,
+folds with identical labels across devices,5.0,5,
+folds with identical fold assignment across devices,5.0,5,
+windows compared across devices,26288.0,5,
+Pearson correlation between CPU and GPU per-window scores,0.9903096393388701,5,
+lowest Pearson correlation over folds,0.9813845528350416,5,
+Spearman correlation between CPU and GPU per-window scores,0.9934017666240766,5,
+lowest Spearman correlation over folds,0.9916177877868944,5,
+"max |AUROC difference| between devices, per fold",0.00067854567717196,5,
+"mean AUROC, Modal A10G",0.9541344837221949,5,
+"mean AUROC, GCP Batch CPU",0.9543498590427214,5,
+CPU wall time per fold as a multiple of A10G,1.6519118049859511,5,
+CNN sweep cost on Modal A10G,6.732000000000001,5,measured over 470 fold-runs
+same work extrapolated to spot CPU at the measured ratio,0.08593245209536919,5,extrapolation from one dataset; excludes egress and storage
+initialisation seeded across the two runs,0.0,5,"unseeded, so this bounds device and initialisation jointly"

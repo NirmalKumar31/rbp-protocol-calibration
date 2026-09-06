@@ -14,7 +14,8 @@ the same code path and full datasets, and the only intended difference is how th
 windows were chosen. Nothing here is capped, subsampled or early-stopped differently between
 arms, because any of those would confound protocol with training.
 
-FOLD PROVENANCE, and it is not uniform across arms. For **20 of the 94 dinucleotide-arm datasets** the
+FOLD PROVENANCE, and it is not uniform across arms. For **20 of the 94 dinucleotide-arm
+datasets** the
 committed CNN and SpliceBERT scores were produced under a stratified random partition rather
 than config/folds.tsv's chromosome grouping -- fold SIZES preserved, so invisible to any count
 check, but up to 23 chromosomes per fold and up to 44.5% of rows having a same-strand neighbour
@@ -54,7 +55,7 @@ from sklearn.metrics import roc_auc_score  # noqa: E402
 
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
-from rbp.utils import panel as panelmod  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 # BOTH ARMS' PER-WINDOW SCORES ARE COMMITTED, and that is what makes this table checkable.
@@ -73,9 +74,6 @@ MODELS = ["kmer", "cnn", "splicebert"]
 MIN_COVERAGE = 0.99
 R2 = np.sqrt(2.0)
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def dprime(a):

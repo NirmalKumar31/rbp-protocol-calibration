@@ -145,7 +145,7 @@ def report(res):
     print("  the conclusion does not depend on which multiplier is used, which is the "
           "only reason it is worth stating")
 
-    print(f"\nMDE vs pathogenic count (why pooling was the right call):")
+    print("\nMDE vs pathogenic count (why pooling was the right call):")
     for lo, hi in ((0, 10), (10, 20), (20, 50), (50, 200), (200, 10 ** 9)):
         s = ok[(ok.n_pathogenic >= lo) & (ok.n_pathogenic < hi)]
         if len(s):
@@ -171,8 +171,8 @@ def main():
     if a.validate:
         print(f"\n{'':=<72}")
         print(f"VALIDATING the analytic MDE by simulation on {a.validate} datasets")
-        print(f"resampling each dataset's own delta and conservation; only labels are")
-        print(f"simulated, so the real predictor distributions are preserved")
+        print("resampling each dataset's own delta and conservation; only labels are")
+        print("simulated, so the real predictor distributions are preserved")
         print(f"{'':=<72}")
         s = pd.read_csv(TABLES / "variant_scores.csv")
         c = pd.read_csv(TABLES / "variant_conservation.csv")[["vid", "conservation"]]

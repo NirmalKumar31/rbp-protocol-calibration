@@ -45,9 +45,18 @@ def fetch(cfg):
 
     for name, s in lm_specs(cfg):
         repo = s["repo"]
-        RnaTokenizer.from_pretrained(repo)
-        getattr(mm, s["cls"]).from_pretrained(repo)
-        print(f"  baked {name:12} {repo}", flush=True)
+        # REVISION, WHEN THE CONFIG GIVES ONE. Without it from_pretrained resolves whatever the
+        # hub's `main` points at on the day of the build, so two builds of the same Dockerfile
+        # can bake different weights and the image digest -- which is what the release calls
+        # the pin -- only records that they differed after the fact. The published images were
+        # built before this existed and their revisions were not recorded, so the key is
+        # optional rather than required: making it mandatory would mean inventing a hash.
+        rev = s.get("revision")
+        kw = {"revision": rev} if rev else {}
+        RnaTokenizer.from_pretrained(repo, **kw)
+        getattr(mm, s["cls"]).from_pretrained(repo, **kw)
+        print(f"  baked {name:12} {repo}{'@' + rev if rev else ' (UNPINNED: hub main)'}",
+              flush=True)
 
 
 def verify(cfg):

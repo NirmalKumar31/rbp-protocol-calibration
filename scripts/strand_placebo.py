@@ -42,11 +42,12 @@ warnings.filterwarnings("ignore")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-import numpy as np                                                      # noqa: E402
-import pandas as pd                                                     # noqa: E402
-
-from rbp.eval import baseline, nested                                   # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
 from strand_audit import gene_index, own_strands  # noqa: E402                        # noqa: E402
+
+from rbp.eval import baseline, nested  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 REPRO_TOL = 2.0e-3
@@ -56,9 +57,6 @@ DESIGN = "region_x_genedensity_q4"
 N_BOOT = 2000
 SEED = 0
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def pair_key(ids):

@@ -30,6 +30,13 @@ ARMS = {
     # The bias-aware arm. Its windows are built by scripts/build_neg2.py directly under
     # processed/neg2; this entry is what lets --arm neg2 resolve through the path helpers.
     "neg2": "data/processed_neg2",
+    # The REGION-MATCHED bias-aware arm, built by build_neg2.py --match-region. Same 94
+    # datasets and the same 456,734 pairs as `neg2`, drawn stratified on transcript region
+    # instead of uniformly inside the fold. It exists because `neg2` matches fold only, and
+    # region alone separates that arm's classes at median AUROC 0.748. It is a separate arm
+    # rather than a replacement: the published result is the unstratified draw, and this one
+    # bounds how much of it is region mix.
+    "neg2_rm": "data/processed_neg2_rm",
 }
 
 # The two composition-matched arms, which is what "both arms" means everywhere in this project

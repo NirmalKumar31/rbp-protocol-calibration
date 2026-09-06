@@ -19,7 +19,6 @@ Stages, each cached to disk so a rerun is cheap:
 """
 
 import argparse
-import pickle
 import sys
 import time
 from pathlib import Path
@@ -101,7 +100,7 @@ def report_assign(df):
           f"{df.label.sum():,} pathogenic, {int((df.label == 0).sum()):,} benign")
     print(f"distinct variants: {df.vid.nunique():,}")
     print(f"{'':=<70}")
-    print(f"\nper-dataset pathogenic count (this is what killed the per-protein analysis):")
+    print("\nper-dataset pathogenic count (this is what killed the per-protein analysis):")
     for q in (0.1, 0.25, 0.5, 0.75, 0.9):
         print(f"  p{int(q*100):02d}  {per.n_path.quantile(q):6.0f}")
     for t in (10, 20, 30, 50):
@@ -241,7 +240,7 @@ def transfer(per):
 
     pr = np.corrcoef(resid(x), resid(y))[0, 1]
     from scipy.stats import spearmanr
-    print(f"  binding AUROC vs controlled variant coefficient:")
+    print("  binding AUROC vs controlled variant coefficient:")
     print(f"    Pearson  r = {r:+.3f}")
     print(f"    Spearman   = {spearmanr(x, y).statistic:+.3f}")
     print(f"    PARTIAL (log pairs out) = {pr:+.3f}   <- pre-registered primary")

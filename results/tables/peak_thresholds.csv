@@ -1,0 +1,8 @@
+check,value,n,note
+peak files audited,95.0,95,
+peaks in the panel,463091.0,95,
+minimum log2 fold-enrichment over the panel,3.00000834144449,95,threshold 3.0
+minimum -log10 p over the panel,3.00025052987495,95,threshold 3.0
+fraction of peaks carrying ENCODE's IDR label,0.9168845863987856,95,424601 peaks
+datasets with no IDR-named peaks,9.0,95,
+files below either threshold,0.0,95,zero means ENCODE filtered upstream

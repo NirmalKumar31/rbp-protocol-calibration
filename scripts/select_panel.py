@@ -17,8 +17,14 @@ WHY SYSTEMATIC SAMPLING AND NOT A THRESHOLD. AUROC correlates with dataset size 
 to +0.67 across every model class. So keeping "the biggest N" would confound the panel with
 the very quantity being measured: the subset would look better than the population for a
 reason that has nothing to do with the science. Sorting by pair count and keeping every Nth
-is unbiased in size BY CONSTRUCTION -- the sample spans the full range, including the
+SPANS THE SIZE RANGE BY CONSTRUCTION -- the sample covers the full range, including the
 smallest and largest datasets.
+
+It is a DETERMINISTIC SUBSET AND NOT A PROBABILITY SAMPLE, and this docstring used to call it
+"unbiased in size by construction", which conflates the two. The phase is fixed at row 0
+rather than drawn, so nothing here rules out aliasing against structure that happens to be
+ordered by pair count. Range coverage is what the design needs and range coverage is what this
+delivers; every interval in the paper is conditional on the panel it produced.
 
 WHY THE DINUCLEOTIDE ARM DEFINES IT. The two arms do not contain the same datasets: matching
 is a search, it succeeds to different degrees, and a dataset can clear the min_pairs floor
@@ -40,13 +46,11 @@ import pandas as pd  # noqa: E402
 
 from rbp.utils import cloud as cloudcfg  # noqa: E402
 from rbp.utils.localstore import uri  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 PANEL_KEY = "manifest/study_panel.tsv"
 CELLS = ("K562", "HepG2")
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def read_arm_panels(bucket, arm):
@@ -100,7 +104,8 @@ def select(bucket, every, primary="dinuc"):
         raise SystemExit(
             f"panel is size-biased: kept range does not span the full distribution "
             f"(reaches 5th pct: {lo_ok}, 95th pct: {hi_ok}). Refusing to write it.")
-    log(f"size-unbiased: spans the 5th and 95th percentile of the full panel  OK")
+    log("spans the 5th and 95th percentile of the full panel  OK  "
+        "(range coverage, not a probability sample)")
 
     # How much of the panel also exists in the other arm, reported now so the R1 count is
     # never a surprise later.

@@ -39,14 +39,12 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
+from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
 ARMS = ("gc", "dn", "neg2")
 DIRS = {"gc": "processed/gc", "dn": "processed/dinuc", "neg2": "processed/neg2"}
 
-
-def log(m):
-    print(m, flush=True)
 
 
 def per_dataset(store, datasets):

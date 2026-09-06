@@ -7,13 +7,31 @@ index; nothing here is a summary of the science, which is in `manuscript/paper.p
 
 | bioRxiv asks for | file |
 |---|---|
-| Manuscript PDF | `manuscript/paper.pdf` (22 pages) |
-| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 212 words, no markup |
+| Manuscript PDF | `manuscript/paper.pdf` (53 pages) |
+| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 323 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 
-**Subject area:** Bioinformatics. **Licence:** CC BY 4.0, matching the licence on `results/`
-and `data/evidence/`. **Type:** New Results.
+**Venue: bioRxiv.** **Subject area:** Bioinformatics. **Licence:** CC BY 4.0, matching the
+licence on `results/` and `data/evidence/`. **Type:** New Results.
+
+bioRxiv's requirements were checked against its submission guide rather than assumed, because
+three reviews raised length and supplement questions that turn entirely on the venue. What the
+guide actually states is that it **does not specify** page, abstract, figure, table or reference
+limits, that it accepts a single PDF containing text and display items, and that supplementary
+material may be supplied as separate files. That is an absence of stated limits, which is not
+the same as a guarantee that none exist -- an earlier version of this paragraph asserted the
+stronger claim and a review was right to object.
+
+**Check the live submission form on the day of upload.** Nothing below depends on a limit being
+absent; it depends only on nothing being misdescribed.
+
+What that does NOT settle: a journal submission afterwards will impose its own limits, and the
+ones that would bite are the abstract (323 words against a typical 250) and the main text (53
+pages, 16 table environments). The long-form abstract and the guidance for cutting are kept
+where they can be found again -- see the note above `\begin{abstract}` in `paper.tex` -- and
+`results/tables/PROVENANCE.csv` already identifies which tables are secondary and would move to
+a supplement first.
 
 ## The manuscript
 
@@ -23,13 +41,14 @@ and `data/evidence/`. **Type:** New Results.
 cd manuscript && ./build.sh
 ```
 
-`build.sh` copies the six main figures out of `results/figures/` so the directory is a
-self-contained upload, and it **fails** rather than warns on an undefined reference or citation.
+`build.sh` derives the figure list from `sections/*.tex` and copies those figures out of
+`results/figures/`, so the directory is a self-contained upload that cannot go stale against a
+figure added to the text. It **fails** rather than warns on an undefined reference or citation.
 
 Structure follows the convention of the target literature (Horlacher *et al.* 2023 and Chen
 *et al.* 2024, both *Briefings in Bioinformatics*): Abstract, Introduction, Materials and
 Methods, Results with declarative subsection headings, Discussion with Limitations, Conclusion,
-then the declarations and 20 references.
+then the declarations and 26 references.
 
 `manuscript/` contains only what the submission needs: `paper.tex`, `sections/`, `figures/`,
 `build.sh` and the built `paper.pdf`. Drafting notes and the record of editorial decisions are
@@ -43,23 +62,45 @@ on the `working-notes` branch.
 | Figure 2 | `results/figures/f11_scale_sweep.pdf` | eight reparameterisations |
 | Figure 3 | `results/figures/f12_protocol_or_baseline.pdf` | baseline attribution |
 | Figure 4 | `results/figures/f9_deep_contrast.pdf` | model classes |
-| Figure 5 | `results/figures/f14_external_validation.pdf` | independent benchmark |
-| Figure 6 | `results/figures/f15_recommendation.pdf` | the recommendation, in and out of sample |
+| Figure 5 | `results/figures/f16_order_profile.pdf` | baseline order, and where the baseline stops being one |
+| Figure 6 | `results/figures/f14_external_validation.pdf` | externally constructed benchmark |
+| Figure 7 | `results/figures/f15_recommendation.pdf` | the recommendation, in and out of sample |
 
-Tables 1 to 6 are typeset in the manuscript from the committed tables below. All figure PDFs
-embed TrueType fonts and rasters are 400 dpi.
+The numbering is the order the figures appear in the text, which `manuscript/build.sh` derives
+from `sections/*.tex`. Adding a figure to the text renumbers this table; it is not maintained
+by hand and should be reread rather than trusted.
+
+The manuscript's tables are typeset from the committed tables below; a count is deliberately
+not given here, because it went stale twice. Every figure PDF is pure vector with embedded
+TrueType fonts, which `tests/unit/test_figure_output.py` asserts rather than this file
+claiming it.
 
 ## Supplementary material
+
+Column definitions for every released table are in `results/tables/COLUMNS.csv`, one row per
+file per column, generated by `scripts/column_dictionary.py`. `results/tables/SCHEMA.md`
+explains the two common shapes, the units, the missing-value conventions and the
+protocol-suffix mapping.
 
 | item | file |
 |---|---|
 | Table S1, panel and ENCODE accessions | `results/tables/supplementary_table_s1.csv` |
 | Table S2, achieved match quality | `results/tables/match_quality.csv`, `match_quality_per_dataset.csv` |
-| Table S3, fold integrity of retained scores | `results/tables/fold_integrity.csv`, `fold_integrity_per_dataset.csv` |
-| Table S9, positive-set overlap between arms | `results/tables/positive_set_overlap.csv` |
+| Table S3, fold integrity of retained scores, all three arms | `results/tables/fold_integrity.csv`, `fold_integrity_per_dataset.csv` |
+| Table S4, standalone model AUROCs by arm | `results/tables/standalone_auroc.csv`, `standalone_auroc_per_dataset.csv` |
+| Table S5, region asymmetry and the region-matched arm | `results/tables/region_asymmetry.csv`, `region_asymmetry_per_dataset.csv` |
+| Table S6, ENCODE peak thresholds across the panel | `results/tables/peak_thresholds.csv`, `peak_thresholds_per_dataset.csv` |
+| Table S7, design-effect components | `results/tables/design_effect.csv`, `design_effect_per_dataset.csv` |
+| Table S8, positive-set overlap between arms | `results/tables/positive_set_overlap.csv` |
 | Per-dataset results, three protocols by three models | `results/tables/three_arm_models_per_dataset.csv` |
-| Supplementary figures S1 to S8 | `results/figures/f0,f1,f2,f3,f4,f6,f13*` |
-| Legends for every display item | typeset in `manuscript/paper.pdf` as figure and table captions |
+| Supplementary figures S1 to S10 | `results/figures/f0,f1,f2,f3,f4,f5,f6,f7,f8,f13*` (every PDF in `results/figures/` that is not one of the main figures listed above) |
+| Legends for the MAIN display items | typeset in `manuscript/paper.pdf` as figure and table captions |
+
+**The supplementary figures are loose PDFs and are not yet a packaged supplement.** They are
+named `f0` to `f8` and `f13` rather than S1 to S10, they carry no separate legends, and the
+captions in `paper.pdf` cover the seven main figures only. bioRxiv accepts supplementary
+material as separate files, so this is postable as it stands; it is not what a journal will
+ask for, and it is listed here rather than described as finished.
 
 ## Reproducing the numbers
 
@@ -67,23 +108,54 @@ embed TrueType fonts and rasters are 400 dpi.
 python scripts/verify.py --local results/tables
 ```
 
-649 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+1013 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 
 Two assertions are stronger than regression gates. `scripts/recompute.py` rebuilds 285 published
-AUROCs from committed per-example scores to a maximum absolute difference of 2.2e-16, and
+AUROCs from committed per-example scores to a maximum absolute difference of 3.3e-16, and
 `scripts/k_sweep.py` rebuilds the headline contrast from raw sequence to 1.2e-06. Per-window
 out-of-fold scores are committed for all three model classes and all three protocols
 (`data/evidence/`), so every cell of the model-class comparison is recomputable here.
 
-The full pipeline from raw ENCODE files needs a genome, cloud credentials and roughly 50 US
-dollars of compute, and is not required to check any published value. `run.sh` documents it.
+The full pipeline from raw ENCODE files needs a genome, cloud credentials and roughly 60 US
+dollars of compute at current prices, and is not required to check any published value.
+`run.sh` documents it and `docs/COST.md` breaks the figure down.
 
 ## Still outstanding
 
-1. **Zenodo DOI.** `manuscript/sections/data-availability.tex` and the Code availability section
-   currently give the GitHub URL only. See `docs/ZENODO.md` for the procedure; the DOI has to
-   replace the placeholder and the manuscript then needs one rebuild.
-2. Nothing else. The reference list is verified, the figures are final, and the verifier and
-   test suite pass on a clean clone.
+1. **Zenodo DOI.** The manuscript currently gives the GitHub URL only. `docs/ZENODO.md` has the
+   procedure. When the DOI exists, uncomment the two-line sentence at the end of
+   `manuscript/sections/data-availability.tex`, insert the **concept** DOI (it resolves to the
+   latest version and survives future releases; the per-version DOI does not), and run
+   `cd manuscript && ./build.sh`. That is the only manuscript edit required.
+2. **A journal submission after the preprint** will need the abstract cut to about 250 words
+   and a main/supplement split. Neither is required by bioRxiv, and both depend on which
+   journal, so neither is done.
+
+The reference list is verified, the figures are final, and the verifier and test suite pass on
+a clean clone. This list previously read "Nothing else", which was wrong when it was written:
+an external review then found eight stale counts in this file alone. Counts stated here are now
+checked by `scripts/release_consistency.py`, which derives each one from the built artefact and
+fails on a mismatch, so the way this section goes stale next will not be a number.
+
+## What the last review round changed
+
+Four independent reviews were run against the manuscript and the repository. None broke a
+headline claim; all four returned major revision on presentation and disclosure. The
+substantive change is a new Results subsection: the bias-aware protocol matches fold only,
+while both composition-matched protocols also match transcript region, so region alone
+separates its classes at a median AUROC of 0.748 against exactly 0.5000 in the other two. That
+asymmetry was undisclosed. Rebuilding the arm with the donor draw stratified on region lowers its composition baseline
+from 0.8248 to 0.8052 and its contribution from +0.0122 to +0.0092, so 46% of its baseline
+excess over the GC arm is region mix. The arm still carries the highest baseline and the lowest
+contribution of the three, so the ordering is not a region artefact, and the span widens from
+5.42 to 7.20.
+
+The other changes worth naming: the Methods stated the paired-variance argument backwards; the
+design effect of 1.35 was an unsourced constant and is now measured at 1.15, so the published
+figure is conservative; the ENCODE peak files turn out to be pre-thresholded, so the Limitations
+conceded a flaw the study does not have; `\citet{demler2012}` on DeLong for nested models is now
+cited and answered; and the title no longer generalises the inference the paper exists to
+refute. Twenty-five new assertions gate the new evidence, including the bias-aware arm's fold
+integrity, which the manuscript had asserted was clean without ever measuring it.

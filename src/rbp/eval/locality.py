@@ -11,7 +11,7 @@ WHAT FAILED FIRST. I tried a proxy: measure how repetitive a protein's enriched 
 on the theory that dinucleotide matching necessarily puts a repeat motif into the negatives.
 It did not validate -- correlation with positive-control retention came out +0.298, the wrong
 sign. And with 8 ground-truth proteins the standard error of a correlation is about 0.45, so
-that exercise could not have validated anything either way. See docs/24.
+that exercise could not have validated anything either way.
 
 THE MEASURE HERE. Skip the motif. Ask the question the composition story actually turns on:
 
@@ -93,9 +93,10 @@ def locality(df, k=5, kmer_k=5, min_distance=25, max_windows=400, seed=7,
     The k-mer is selected and the model is fit on training folds only; the windows scored
     come from the held-out fold. Returns None when no fold yields enough usable pairs.
     """
+    from sklearn.linear_model import LogisticRegression
+
     from ..data.splits import fold_roles
     from .baseline import kmer_matrix
-    from sklearn.linear_model import LogisticRegression
 
     y = df[label_col].to_numpy()
     folds = df[fold_col].to_numpy()

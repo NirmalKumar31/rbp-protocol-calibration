@@ -1,20 +1,33 @@
 How much a sequence model adds over sequence composition is a joint property of the model and
-of the negative set it was evaluated against. Across 94 ENCODE eCLIP datasets, varying only the
-construction of the negative windows changed the measured contribution of a 4-mer by a factor of
-5.4, and of three model classes by factors between 3.8 and 7.6, while moving in the opposite
-direction to apparent performance. The bias-aware protocol proposed to remove compositional and
-accessibility artefacts produced the easiest discrimination of the three and the smallest
-measured contribution, so a lower score on a more carefully constructed negative set should not
-be read as evidence of a more demanding evaluation.
+of the negative set it was evaluated against, and on this panel the two axes move against each
+other: the protocol that made the discrimination easiest by AUROC was also the one that left a
+sequence model least to add.
 
-Part of this dependence is arithmetic, and eight standard reparameterisations reduce it. None
-removes it, and the exponent that does close the span is fitted rather than chosen: it does not
-transport between benchmarks, and it differs between model classes measured on the same data.
-There is therefore no protocol-free summary of what a sequence model contributes that can be
-computed once and compared across studies.
+The estimator that measures it is also not neutral, and that turns out to be fixable. Given a
+model whose information the composition baseline already contains, so that the true increment is
+zero, the two-stage estimator this literature uses returns $+0.0111$ to $+0.0137$ on these data.
+That floor is nearly the same in every arm, so it does not create the difference between
+protocols, but it is nine tenths of the smallest arm's reported value, so increments of that
+size say nothing about a model. It is almost entirely one identifiable route: the score covariate
+on the training rows of each outer fold comes from base models that saw that fold. Generating the
+covariate outside the outer test fold reduces the floor by at least 95\% in every arm and
+returns the zero the construction requires, at the cost of ten extra base fits per dataset. The protocol span narrows
+from 5.42-fold to 4.84-fold and survives.
 
-We recommend that the composition-only AUROC obtained under the same protocol be reported
-alongside every headline AUROC, and that contributions measured under different negative-set
-protocols not be compared. The first is the only summary of a protocol's effect that a reader
-can act on. The second is a restriction we are able to justify, where a normalisation that
-removes the need for it is not.
+For a benchmark designer this has two operational consequences. Cross-fit the score covariate, so that no base model
+contributing a training-row covariate has seen the outer test fold; on a model of this size that
+is ten extra fits per dataset and it removes almost all of the estimator's floor. Then report the
+composition-only AUROC obtained under the same protocol alongside every headline AUROC; it costs
+one logistic regression on nineteen features and it is the only summary of a protocol's effect
+that a reader can act on. And do not compare contributions measured under different negative-set protocols, nor read an
+increment as evidence of contribution without a null for the estimator that produced it.
+That restriction is one we can justify, where a normalisation that would remove the need for it
+is not. Of eight standard coordinates, five reduce the span without closing it, two are controls
+and one widens it. The exponent that appears to close it closes only under one way of
+aggregating the panel, and is in any case fitted rather than chosen, differing between
+benchmarks and between model classes measured on the same data.
+
+A third consequence bears on how protocols are compared with each other. The three here hold different
+things fixed, and the one that frees transcript region pays for it in a baseline that a
+nineteen-feature model can read. Loosening a constraint does not make a protocol more
+stringent.

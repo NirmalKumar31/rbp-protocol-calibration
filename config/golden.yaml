@@ -213,7 +213,7 @@ r1_strand_contrast:
 
 # --- R1: the strand artifact, measured properly (restriction + matched placebo) ---------
 #
-# THE PRE-REGISTERED TEST, AND IT PASSED. Written into docs/61 before it was run: the contrast
+# THE PRE-REGISTERED TEST, AND IT PASSED. Fixed before it was run: the contrast
 # must keep its sign, its interval must exclude zero, and at least 60% of the published point
 # estimate must survive. Result: +0.0318 [+0.0234, +0.0415], 85% surviving.
 #
@@ -405,15 +405,15 @@ r1g_deep_contrast:
     positive_datasets: {value: 88, tol: 3}
   cnn:
     nested_gc:      {value: 0.0330, tol: 0.0025}
-    nested_dn:      {value: 0.0860, tol: 0.0040}
-    contrast_auroc: {value: 0.0530, tol: 0.0035}
+    nested_dn:      {value: 0.0837, tol: 0.0040}
+    contrast_auroc: {value: 0.0506, tol: 0.0035}
     protocol_min:   {value: 0.0213, tol: 0.0025}
     protocol_max:   {value: 0.0412, tol: 0.0030}
     positive_datasets: {value: 89, tol: 3}
   splicebert:
     nested_gc:      {value: 0.0890, tol: 0.0045}
-    nested_dn:      {value: 0.1754, tol: 0.0060}
-    contrast_auroc: {value: 0.0864, tol: 0.0040}
+    nested_dn:      {value: 0.1735, tol: 0.0060}
+    contrast_auroc: {value: 0.0845, tol: 0.0040}
     protocol_min:   {value: 0.0253, tol: 0.0025}
     protocol_max:   {value: 0.0543, tol: 0.0035}
     positive_datasets: {value: 94, tol: 3}
@@ -563,11 +563,15 @@ r1h_protocol_identification:
   # identified. What is reported is the span and how many specifications keep the sign.
   spec_span_min_kmer:       {value: -0.0044, tol: 0.0040}
   spec_span_max_kmer:       {value: 0.0200, tol: 0.0040}
-  spec_span_min_splicebert: {value: -0.0103, tol: 0.0040}
-  spec_span_max_splicebert: {value: 0.0044, tol: 0.0040}
+  spec_span_min_splicebert: {value: -0.0260, tol: 0.0050}
+  spec_span_max_splicebert: {value: 0.0031, tol: 0.0040}
   spec_excluding_zero_kmer:       4
   spec_excluding_zero_cnn:        6
-  spec_excluding_zero_splicebert: 1
+  # WAS 1, NOW 0, and the change came from the dinucleotide retrain rather than from any
+  # analysis choice. SpliceBERT's transplant residual now keeps its sign in NONE of the six
+  # specifications, which strengthens the paper's refusal to decompose the span: the one
+  # model that had a single surviving specification no longer has it.
+  spec_excluding_zero_splicebert: 0
   spec_total: 6
   # THE CLAIM, AND IT IS NOT A CAPACITY CLAIM. The CNN -- the MIDDLE rung -- is the only
   # model whose protocol effect survives every specification. Any ordering by parameter count
@@ -762,6 +766,16 @@ r1l_baseline_confounding:
   residual_dn:   {value: 0.0247, tol: 0.008}
   residual_neg2: {value: -0.0143, tol: 0.008}
   residuals_must_be_ordered: true
+  # THE POOLED SPEARMAN, CLUSTERED. Its nominal p treated 282 cells as independent when each
+  # dataset appears once per arm and fifteen proteins carry two datasets. It was the smallest
+  # p in the paper, which is the worst place to leave an inflated one. The relation survives:
+  # what is gated is that the pooled and both composition-matched intervals EXCLUDE zero while
+  # the bias-aware interval CONTAINS it, because that pattern is the claim, not the endpoints.
+  spearman_clustered_pooled:  {value: -0.604, tol: 0.03}
+  spearman_clustered_gc:      {value: -0.545, tol: 0.04}
+  spearman_clustered_dn:      {value: -0.460, tol: 0.04}
+  spearman_clustered_neg2:    {value: -0.122, tol: 0.04}
+  spearman_clustered_signs_must_hold: true
 
 # --- R1m: no rescaling of AUROC removes the protocol dependence --------------------------
 #
@@ -997,6 +1011,26 @@ r1r_baseline_order_models:
   gain_order3_splicebert_gc: {value: 0.0668, tol: 0.010}
   gain_order3_kmer_dn:       {value: 0.0124, tol: 0.005}
   gain_order3_splicebert_dn: {value: 0.1213, tol: 0.015}
+  # B2: THE BIAS-AWARE ARM AT ORDER 3, on the full panel. These columns sat in
+  # baseline_order_models_per_dataset.csv from the start and were summarised nowhere, because
+  # every reporting loop read ("gc", "dn"). The arm is the fold range's own denominator, so
+  # its absence meant the order-3 span had never been measured on the full panel.
+  gain_order3_kmer_neg2:       {value: 0.0019, tol: 0.0012}
+  gain_order3_cnn_neg2:        {value: 0.0057, tol: 0.0025}
+  gain_order3_splicebert_neg2: {value: 0.0335, tol: 0.008}
+  span_order3_kmer:       {value: 6.60, tol: 1.60}
+  span_order3_cnn:        {value: 8.43, tol: 1.80}
+  span_order3_splicebert: {value: 3.54, tol: 0.50}
+  min_span_order3_ci_low: 1.0
+  # The denominator behind those spans. The caution is only honest while it holds.
+  max_smallest_arm_order3: 0.005
+  # The exception. 1.29 (gc) and 1.37 (dn) sit above 1 and neg2 sits BELOW, so the "k-mer is
+  # the more fragile model under a raised baseline" reading is a two-of-three statement, the
+  # same shape as the apparent-difficulty ordering's SpliceBERT exception.
+  corrected_ratio_neg2: {value: 0.91, tol: 0.15}
+  # Concentration, panel-size invariant. The raw share fell 51% -> 21% and that is the panel
+  # tripling, not dispersion; over-representation ROSE.
+  top3_over_representation_gc: {value: 4.66, tol: 0.80}
   contrast_order3_kmer:       {value: 0.0067, tol: 0.003}
   contrast_order3_cnn:        {value: 0.0309, tol: 0.007}
   contrast_order3_splicebert: {value: 0.0545, tol: 0.008}
@@ -1321,7 +1355,7 @@ integrity:
   # 607 collect locally after the local-store shim added 10. Raised with the suite, because
   # a floor left behind is the bug this key exists to prevent: it once read 480 while the
   # suite had grown to 576.
-  min_tests_passing: 610
+  min_tests_passing: 695
   # HOW MANY CHECKS RAN, asserted, because almost every gate in verify.py is written
   # `if value is not None:` and therefore DISAPPEARS when a row is missing instead of failing.
   # Deleting five rows from one table once produced "106/106 passed". Asserting the count
@@ -1329,7 +1363,12 @@ integrity:
   # Raise this deliberately when checks are added; that is the point, not an inconvenience.
   # Counts the DOMAIN checks only, i.e. everything except this meta-check itself, so the
   # number here is directly comparable to the per-section output above it.
-  min_domain_checks: 648
+  # THE FLOOR IS NOT THE TOTAL, and reading the total off the summary line and pasting it here
+  # breaks the run. min_domain_checks is compared against the DOMAIN checks only, which excludes
+  # both this check itself and the manuscript-coverage check appended after it, so the floor
+  # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
+  # count check fail, which then read as an artefact discrepancy that did not exist.
+  min_domain_checks: 1011
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -1344,18 +1383,20 @@ integrity:
   # NEW unsourced number fails the build.
   #
   # DO NOT RAISE THIS TO MAKE A BUILD PASS. Add the number to the table that owns it.
-  # Down from 45. Cutting the dead sections removed most of them, and pruning the limitations
-  # that belonged to those sections removed the rest. The two that remain are both the
-  # algebraic identity that retracted the composition-share claim:
   #
-  #   0.127853   C = mean(composition_auroc) - 0.5, the constant that makes share_m = C/gain_m
-  #   1.648166   share_kmer/share_SB == gain_SB/gain_kmer, quoted to 6 dp precisely to show the
-  #              two routes agree EXACTLY, which is what proves it is an identity
+  # NOW ZERO, and down from 45. Three things got it there. Cutting the dead sections removed
+  # most of them. The last two floats, 0.127853 and 1.648166, were the algebraic identity that
+  # retracted the composition-share claim; they left the prose with that retraction and this
+  # ceiling stayed at 2 after they were already gone, which is how a ratchet quietly stops
+  # ratcheting. And audit_manuscript.py now checks BARE INTEGERS, which it never did: that
+  # found 18 more, every one of them a correct number that no result table could ever source,
+  # because a count is a property of a table's shape and not an aggregate of its values.
+  # scripts/manuscript_constants.py now derives each of those from its actual source -- the
+  # config, the constructed model object, the committed evidence tree -- so they are checked
+  # rather than exempted.
   #
-  # They are evidence ABOUT a retraction rather than claims, and reproducing them in a table
-  # would mean re-deriving a quantity the paper exists to disown. A THIRD ORPHAN MEANS SOMEONE
-  # PRINTED A NUMBER WITH NO SOURCE.
-  max_manuscript_orphans: 2
+  # AT ZERO, ANY ORPHAN AT ALL MEANS SOMEONE PRINTED A NUMBER WITH NO SOURCE.
+  max_manuscript_orphans: 0
   # Duplicated numbers must agree. cost_of_matching.csv is a join of the two rehearsal arms and
   # verify.py read only the join, so scrambling rehearsal_binding_dinuc.csv passed 166/166
   # while breaking 88/94, 94/94 and the Wilcoxon p. Exact equality: these are copies, not
@@ -1565,7 +1606,7 @@ r4_unconditional_refit:
 
 # --- R1s: whose property is the protocol multiplier? -------------------------------------
 #
-# README.md and docs/65 asserted "a property of the PROTEIN (68.9% of variance) not the model
+# README.md asserted "a property of the PROTEIN (68.9% of variance) not the model
 # (1.5%)" from a referee agent's decomposition that lived in no script and no table. Recomputed
 # over the 262 (dataset x model) cells where both arms are positive, on the LOG multiplier, it
 # approximately reproduces -- and a permutation null changes the reading.
@@ -1596,9 +1637,22 @@ r1s_multiplier_variance:
   excess_protein_block: {value: 0.072, tol: 0.030}
   # AND THE DIRECT TEST, which is stronger than any variance share and is what the section now
   # leads with: does the SAME protein get the same multiplier in the other cell line?
-  cross_cell_r:   {value: 0.586, tol: 0.10}
-  cross_cell_rho: {value: 0.594, tol: 0.10}
+  cross_cell_r:   {value: 0.582, tol: 0.10}
+  cross_cell_rho: {value: 0.605, tol: 0.10}
   cross_cell_n:   {value: 40, tol: 0}
+  # B13. THE INTERVAL, BECAUSE n IS 15. The collapsed correlation is the paper's "direct test"
+  # of reproducibility across cell lines, and it was quoted with a p and no interval. At
+  # fifteen proteins the Fisher z interval runs +0.124 to +0.850 and a bootstrap over the same
+  # fifteen gives -0.012 to +0.905, which CONTAINS ZERO. The point estimate is therefore
+  # consistent with reproducibility and is not evidence for it, and the gate below pins that
+  # reading: if the bootstrap lower bound ever rises above zero the text may be strengthened,
+  # and until then it may not.
+  cross_cell_collapsed_r:       {value: 0.598, tol: 0.05}
+  cross_cell_fisher_low:        {value: 0.124, tol: 0.06}
+  cross_cell_fisher_high:       {value: 0.850, tol: 0.05}
+  cross_cell_boot_low:          {value: -0.012, tol: 0.08}
+  cross_cell_boot_high:         {value: 0.905, tol: 0.05}
+  cross_cell_boot_must_span_zero: true
   block_null_must_be_reported: true
   # THE GATE THAT MATTERS. If a future run ever shows protein's share failing to beat its own
   # permutation null, the README's headline about R1g is false and must come out rather than
@@ -1705,40 +1759,297 @@ match_quality:
 # for those 20. None of the 549 assertions checked it: the harness gated the VALUES the scores
 # produced and never what produced them, now at the level of the evidence files.
 #
-# WHAT MOVES, AND IT IS LESS THAN THE DEFECT SUGGESTS. The k-mer is refit in-script on the
-# study folds for every dataset, so it is a clean internal control. Dropping the 20:
-#   k-mer      +0.0398 -> +0.0436   (+0.0038)
+# RESOLVED 2026-09-04 BY RETRAINING, not by bounding. The 200 affected fold-runs were rerun on
+# config/folds.tsv and their scores replaced, so all three arms are 94/94 and the gates above
+# are set to zero rather than to a disclosed 20. What it moved, measured:
+#   k-mer      +0.0398 -> +0.0398   (unchanged; it is refit in-script on the study folds)
 #   CNN        +0.0530 -> +0.0506   (-0.0024)
-#   SpliceBERT +0.0864 -> +0.0878   (+0.0015)
-# all inside the protein-clustered half-widths of ~0.009. The affected quantity is the CNN's
-# dinucleotide-arm deep gain: difference-in-differences against the k-mer is +0.0294, though the
-# leaky datasets are also the panel's largest (median 15,596 vs 4,373 pairs) so that is an upper
-# bound confounded with size.
+#   SpliceBERT +0.0864 -> +0.0845   (-0.0019)
+# Both inside the protein-clustered half-widths of ~0.009, and the CNN shift is exactly the
+# -0.0024 the drop-the-20 sensitivity had predicted. Only the 20 moved; the GC arm is
+# bit-identical; the k-mer moved at most 0.000183 from two extra rows entering the paired set.
 #
 # THE GC ARM IS CLEAN, 94 OF 94. So R1's headline, R1m, R1n, R1q and the GC arm of R1o/R1r are
 # untouched, and every k-mer number in the paper is untouched.
+# --- The region asymmetry, found by inspection after 649 assertions passed ---------------
+#
+# THE THIRD DEFECT THIS HARNESS DID NOT CATCH, and the pattern is now unmistakable: every one
+# was about what PRODUCED a number rather than the number itself. The two composition-matched
+# matchers draw candidates of the same region class; build_neg2.py matches fold only and says
+# so in its own docstring. So the arm carrying the paper's one non-tautological result was the
+# only arm in which transcript region was free to separate the classes, and it does, at a
+# median AUROC of 0.748 against exactly 0.5 in the other two.
+#
+# The result survives -- region-matching the arm leaves it with the highest baseline and the
+# lowest contribution -- but "survives" is a gate, not a hope, so it is asserted below.
+region_asymmetry:
+  # EXACT, not approximate. 0.5 is what a matcher that matches region produces by
+  # construction; any drift means it stopped.
+  matched_arms_exact_tol: 0.0005
+  region_auroc_gc:      {value: 0.5000, tol: 0.001}
+  region_auroc_dn:      {value: 0.5000, tol: 0.001}
+  region_auroc_neg2:    {value: 0.7484, tol: 0.02}
+  region_auroc_matched: {value: 0.5026, tol: 0.02}
+  comp_matched:         {value: 0.8017, tol: 0.01}
+  gain_matched:         {value: 0.0062, tol: 0.003}
+  # THE PRIMARY REGION-MATCHED ESTIMATE: the arm rebuilt through build_neg2.py --match-region,
+  # which keeps every pair rather than discarding 30% of them and hits the match exactly. Its
+  # region-only AUROC is gated to the same 0.5000 the other two matched arms are, because a
+  # stratified draw that misses is a broken draw.
+  region_auroc_built: {value: 0.5000, tol: 0.001}
+  comp_built:         {value: 0.8052, tol: 0.01}
+  gain_built:         {value: 0.0092, tol: 0.003}
+  retained_built:     {value: 1.000, tol: 0.001}
+  region_share_of_excess: {value: 0.46, tol: 0.06}
+  # The dose-response, which is what makes region a candidate explanation rather than a
+  # coincidence. Signs are the claim; the magnitudes are loosely toleranced.
+  dose_baseline: {value: 0.287, tol: 0.08}
+  dose_gain:     {value: -0.253, tol: 0.08}
+
+# --- ENCODE filtered the peaks upstream; an earlier draft conceded a flaw we do not have --
+#
+# The Limitations used to say the positive set "includes weak peaks that a study applying
+# ENCODE's standard thresholds would exclude". Reading all 95 released files shows the minimum
+# log2 fold-enrichment in the panel is 3.0000 and the minimum -log10 p is 3.0003, which ARE
+# ENCODE's thresholds. There were no weak peaks to exclude. Gated as a floor, because the
+# claim is "none is below", not "few are".
+peak_thresholds:
+  n_files:      {value: 95, tol: 0}
+  n_peaks:      {value: 463091, tol: 0}
+  min_log2fc:   {value: 3.0000, tol: 0.001}
+  min_neglog10p: {value: 3.0003, tol: 0.001}
+  idr_fraction: {value: 0.917, tol: 0.005}
+  fold_enrichment_floor: 3.0
+  significance_floor: 3.0
+
+# --- The two tables that were committed ungated, which is how their docstring drifted -----
+#
+# design_effect.csv and standalone_auroc.csv went in without a verifier block, and the
+# design-effect docstring promptly quoted a pre-final run (1.11 / 0.996 / 77-of-94) over a CSV
+# reading 1.15 / 1.048 / 75-of-94. Exactly the failure the script was written to fix.
+design_effect:
+  clustering_10kb:   {value: 1.100, tol: 0.03}
+  clustering_100kb:  {value: 1.104, tol: 0.03}
+  clustering_1000kb: {value: 1.138, tol: 0.03}
+  fitting:           {value: 1.048, tol: 0.05}
+  measured_product:  {value: 1.153, tol: 0.05}
+  # The applied 1.35 must stay ABOVE the measured product, because the paper keeps it on the
+  # grounds that it is the conservative choice. If that ever inverts, the claim inverts.
+  applied_must_exceed_measured: true
+  n_significant_unadjusted: {value: 80, tol: 0}
+  n_significant_applied:    {value: 72, tol: 0}
+
+standalone_auroc:
+  model_alone_dn:   {value: 0.6879, tol: 0.01}
+  model_alone_gc:   {value: 0.7981, tol: 0.01}
+  model_alone_neg2: {value: 0.8169, tol: 0.01}
+  drop_gc_to_dn:    {value: 0.1102, tol: 0.012}
+  # The progression is the claim: the harder the protocol looks, the less often composition
+  # alone beats the model. Two-sided, because each can only be wrong in one direction.
+  comp_beats_model_dn:   {value: 14, tol: 3}
+  comp_beats_model_gc:   {value: 29, tol: 3}
+  comp_beats_model_neg2: {value: 53, tol: 4}
+  comp_beats_model_must_increase_with_easiness: true
+  # A7. THE PREMISE OF SECTION 3.4, which was argued and never quantified: a protocol that is
+  # hard for the model is hard for composition. Correlated on the MODEL ALONE and not on
+  # comp+model, which is a superset of the composition column and returns +0.94 for free -- the
+  # same wrong-quantity trap standalone_auroc.py was written to fix.
+  corr_alone_comp_pooled: {value: 0.8937, tol: 0.02}
+  corr_alone_comp_gc:     {value: 0.9114, tol: 0.03}
+  corr_alone_comp_dn:     {value: 0.6238, tol: 0.05}
+  corr_alone_comp_neg2:   {value: 0.9556, tol: 0.03}
+  corr_alone_comp_must_exclude_zero: true
+  # B7. THE 3x3, because the apparent-AUROC side of the thesis existed for the 4-mer only.
+  # Dinucleotide matching is the hardest discrimination for all three model classes. The
+  # bias-aware arm is the easiest for only TWO of them: SpliceBERT finds GC matching easier by
+  # 0.0039. So "the easiest protocol of the three" is unambiguous on the composition baseline
+  # and marginal on a strong model's own AUROC, and the counts below are gated so the
+  # unqualified phrasing cannot come back.
+  alone_kmer_dn:       {value: 0.6879, tol: 0.010}
+  alone_cnn_dn:        {value: 0.7076, tol: 0.010}
+  alone_splicebert_dn: {value: 0.8099, tol: 0.010}
+  alone_kmer_neg2:       {value: 0.8169, tol: 0.010}
+  alone_cnn_neg2:        {value: 0.8162, tol: 0.010}
+  alone_splicebert_neg2: {value: 0.8732, tol: 0.010}
+  models_dn_hardest: 3
+  models_neg2_easiest: 2
+  splicebert_neg2_minus_gc: {value: -0.0039, tol: 0.004}
+  # B8's COUNTERPART ON OUR DATA. The title relation, per dataset, on the model's OWN AUROC.
+  # TWO GATES BECAUSE THE SIGN AND THE MAGNITUDE SAY DIFFERENT THINGS. The direction inverts in
+  # 88 of 94 datasets, which is the claim; the correlation between how much difficulty rose and
+  # how much contribution rose is POSITIVE at +0.385, so the paper is not claiming the
+  # magnitudes covary and the second gate stops that being read into it.
+  opposite_gc_to_dn:   {value: 88, tol: 3}
+  opposite_gc_to_neg2: {value: 57, tol: 5}
+  magnitude_corr_gc_to_dn: {value: 0.385, tol: 0.06}
+
+# --- 1b/1c: the nested fit's two specification choices, measured on the full panel ---------
+#
+# BOTH ARE REAL OBJECTIONS AND THEY GET DIFFERENT TREATMENT, so both are gated.
+#
+# THE COVARIATE SCALE is an inconsistency: the 4-mer's score is a log odds, the neural models'
+# are probabilities, and logistic regression is not invariant to a nonlinear transform of a
+# covariate. Measured, the logit scale RAISES every neural contribution, so the published
+# probability-scale figures are the conservative ones, and the two-arm contrast moves in the
+# fourth decimal against a protein-clustered half-width near 0.009. The gate below pins the
+# DIRECTION -- if the effect ever turns negative for a neural model the "conservative" claim
+# is false and the primary numbers have to be refit rather than defended.
+#
+# THE STANDARDISATION WINDOW is improper but symmetric and label-free. Measured at 4e-5 on any
+# panel mean, which is below the precision the paper quotes. Gated as a CEILING: if it ever
+# exceeds the fourth decimal the whole-dataset form stops being defensible.
+# --- B1: the protocol ordering on five estimands, not just AUROC -------------------------
+#
+# THE OBJECTION THIS ANSWERS. An AUROC increment is bounded above by 1 - c, so part of any
+# comparison between arms with unequal baselines is arithmetic. Two long reviews said the same
+# thing: "no protocol-free measure of contribution exists" is a claim about AUROC and not about
+# measurement. If the ordering came from the ceiling it should weaken on a scale without one.
+#
+# IT DOES NOT. dinucleotide > GC > bias-aware in 15 of 15 estimand-by-model cells, including
+# delta deviance, which is unbounded above. That is gated at 5 of 5 estimands.
+#
+# BUT THE MAGNITUDE IS SCALE-DEPENDENT, and the paper says so. The 4-mer's span is 5.42x in
+# AUROC and 2.09x in deviance; the unbounded scales give smaller spans in every case, which is
+# exactly what the ceiling objection predicts. So the DIRECTION is estimand-free and the
+# five-fold figure is an AUROC-scale property. The deviance span is gated as a floor above 1.5
+# so the "roughly two-fold on unbounded scales" reading cannot silently become "no effect".
+# --- B4: is the bias-aware deficit label noise from co-binding? ---------------------------
+#
+# THE MOST SERIOUS NON-COMPOSITIONAL EXPLANATION for the bias-aware arm, and it is rejected on
+# magnitude and on sign. Its negatives are other RBPs' binding sites; RBPs co-bind, so a
+# negative could be a mislabelled positive, and label noise depresses any contribution without
+# needing this paper's compositional story. The construction excludes donor windows within
+# 500 nt of the target's own WINDOWS, which is weaker than excluding them from its PEAKS.
+#
+# MEASURED: at most 0.29% of bias-aware negatives fall inside a called target peak, median
+# zero. Not enough mislabelling to account for a deficit of 0.021. AND THE SIGN IS BACKWARDS --
+# the third of datasets with the MOST residual overlap has the SMALLEST deficit. Both are
+# gated, because either one alone could be argued around.
+# --- B14: where the discriminative signal actually sits along the window ------------------
+#
+# The Methods justified the CNN's global max-pool with "the discriminative signal is
+# approximately 15 nt off centre, varying by protein". That number had no table, no script and
+# no figure, and the manuscript audit could not catch it because a bare 15 inside a clause about
+# design rationale is indistinguishable from a page number.
+#
+# MEASURED, with no model fitted: mutual information in bits between the base at each of the 101
+# positions and the label. The peak sits a MEDIAN OF 23 nt from the midpoint, not 15, with an
+# IQR of 11 to 29 and a maximum of 48, and within 5 nt of the midpoint in only 13 of 94
+# datasets. The claim's direction and its "varying by protein" were right and its magnitude was
+# understated, which makes the design choice MORE justified rather than less.
+#
+# Gated as a floor on the offset and a ceiling on how many datasets are centred, because both
+# have to hold for position-invariance to be the right architecture.
+# --- B6: does the headline survive a different chromosome partition? ----------------------
+#
+# Every number in this paper uses one balanced chromosome-to-fold assignment, chosen once and
+# frozen. The fold-to-fold spreads reported throughout therefore describe variability WITHIN
+# that partition and say nothing about variability ACROSS the choice of it, which the
+# Limitations had to carry as an untested design parameter.
+#
+# MEASURED over three alternatives built under the same objective and the same minimum of three
+# chromosomes per fold: contrasts +0.0392, +0.0396, +0.0393 against +0.0398 frozen. Range
+# 0.0006, an eighth of the protein-clustered half-width.
+#
+# THE GATE HAS TWO HALVES because a range this small could hide either failure. The range must
+# stay SMALL, so the partition is not carrying the result; and the contrast must stay POSITIVE
+# under every partition, since a small range around a sign flip would be worthless. Note the
+# frozen partition gives the LARGEST of the four, which the text discloses rather than rounds
+# away.
+#
+# 4-mer only, and not as a shortcut: the neural sweeps trained on the frozen assignment, so
+# re-partitioning them would compare their old folds against new ones.
+# --- B9: two choices in how the AUROC is aggregated across folds --------------------------
+#
+# Pooled versus fold-averaged, and raw versus rank-normalised within fold. The ordering holds
+# under all three aggregations for all three model classes, so the headline is not a property of
+# pooling. What the choice affects is the LEVEL, and only for the neural models: pooling costs
+# the CNN and SpliceBERT about 0.008 of contribution in the dinucleotide arm against 0.0001 for
+# the 4-mer, and the two alternatives agree with each other to within 0.0007 -- which is the
+# signature of five independently trained fold models not sharing a scale, since averaging
+# within fold and rank-normalising within fold are two different repairs for that one cause.
+# Pooling is retained because it weights each row once instead of weighting a small fold as
+# heavily as a large one.
+auroc_aggregation:
+  n_aggregations_ordered: 3
+  fold_avg_minus_pooled_cnn_dn:        {value: 0.0083, tol: 0.003}
+  fold_avg_minus_pooled_kmer_dn:       {value: 0.0001, tol: 0.0008}
+  max_disagreement_between_alternatives: 0.002
+
+partition_sensitivity:
+  n_partitions: 4
+  contrast_frozen: {value: 0.0398, tol: 0.002}
+  max_contrast_range: 0.004
+  contrast_must_be_positive_under_every_partition: true
+
+positional_signal:
+  median_abs_offset: {value: 23.0, tol: 3.0}
+  min_median_abs_offset: 10.0
+  max_datasets_near_centre: 30
+  mi_centre: {value: 0.0058, tol: 0.0015}
+  mi_peak:   {value: 0.0136, tol: 0.0030}
+  centre_must_be_below_peak: true
+
+cobinding_noise:
+  max_overlap_fraction: 0.01
+  median_overlap:  {value: 0.0000, tol: 0.0005}
+  deficit_lowest_third:  {value: -0.0190, tol: 0.004}
+  deficit_highest_third: {value: -0.0078, tol: 0.004}
+  overlap_must_not_explain_deficit: true
+
+estimands:
+  n_estimands_ordered: 5
+  deviance_span_kmer:       {value: 2.09, tol: 0.25}
+  deviance_span_cnn:        {value: 3.09, tol: 0.35}
+  deviance_span_splicebert: {value: 2.13, tol: 0.25}
+  min_deviance_span: 1.5
+  residual_auroc_kmer_dn: {value: 0.6314, tol: 0.02}
+  residual_auroc_must_exceed_chance: 0.55
+
+nested_scale:
+  logit_gain_cnn_gc:        {value: 0.00079, tol: 0.0004}
+  logit_gain_splicebert_gc: {value: 0.00298, tol: 0.0010}
+  logit_gain_cnn_dn:        {value: 0.00045, tol: 0.0004}
+  logit_gain_splicebert_dn: {value: 0.00327, tol: 0.0010}
+  logit_must_raise_neural: true
+  max_within_fold_effect: 0.0002
+  max_contrast_shift_from_scale: 0.0010
+
 fold_integrity:
-  n_score_sets: 376
+  # 564, not 376: the bias-aware arm was added after three referees pointed out that the
+  # manuscript asserted it was clean on the strength of "donors are sampled within fold" --
+  # an argument from construction, which is exactly what the dinucleotide arm's docstring
+  # made before it turned out to be wrong. It is the denominator of every reported span.
+  n_score_sets: 564
   grouped_gc: {value: 94, tol: 0}
   aligned_gc: {value: 94, tol: 0}
-  grouped_dn: {value: 74, tol: 0}
-  leaky_datasets: {value: 20, tol: 0}
+  # THE DINUCLEOTIDE ARM IS NOW CLEAN, and these three keys are the record of it. It was
+  # 74/94 grouped, 20 leaky, 23 chromosomes in a single fold. Those 200 fold-runs were
+  # retrained on the study partition on 2026-09-04 and their scores replaced, so the arm is
+  # held to exactly the standard the other two are: 94, zero, five. Raising any of these back
+  # would mean the retrain has been reverted.
+  grouped_dn: {value: 94, tol: 0}
+  grouped_neg2: {value: 94, tol: 0}
+  aligned_dn: {value: 94, tol: 0}
+  aligned_neg2: {value: 94, tol: 0}
+  max_chroms_per_score_fold_neg2: {value: 5, tol: 0}
+  # Same standard the GC arm is held to, and for the same reason: zero, not small.
+  neg2_must_be_fully_grouped: true
+  max_cross_fold_neighbours_neg2: 0.0
+  leaky_datasets: {value: 0, tol: 0}
   max_chroms_per_score_fold_gc: {value: 5, tol: 0}
-  max_chroms_per_score_fold_dn: {value: 23, tol: 0}
-  contrast_kmer_clean:      {value: 0.0436, tol: 0.006}
-  contrast_cnn_clean:       {value: 0.0506, tol: 0.006}
-  contrast_splicebert_clean: {value: 0.0878, tol: 0.008}
+  max_chroms_per_score_fold_dn: {value: 5, tol: 0}
+  dn_must_be_fully_grouped: true
+  max_cross_fold_neighbours_dn: 0.0
   # THE GATES THAT MATTER.
   #  1. The GC arm must stay perfectly chromosome-grouped with ZERO cross-fold neighbours. It
   #     carries the headline; if it ever leaks, the paper stops.
-  #  2. No NEW dataset may become leaky. The count is pinned at exactly 20, two-sided, because
-  #     a one-sided floor would pass a rerun that leaked more.
-  #  3. The conclusion must survive dropping them. If a contrast shift ever exceeds this bound
-  #     the leaky datasets are load-bearing and the dinucleotide deep sweep must be rerun
-  #     rather than caveated.
+  #  2. NO dataset in ANY arm may be leaky. The count is pinned at exactly 0, two-sided. It was
+  #     pinned at 20 with a bound on how far the conclusion could move when they were dropped;
+  #     that bound existed because the sweep had not been rerun, and it has been, so the
+  #     tolerance for the defect is now zero in all three arms rather than a disclosed 20.
   gc_must_be_fully_grouped: true
   max_cross_fold_neighbours_gc: 0.0
-  max_contrast_shift_from_leakage: 0.006
 
 # --- R1u: a protocol-free coordinate EXISTS in sample. It does not TRANSPORT. --------------
 #
@@ -1799,6 +2110,16 @@ r1u_transport:
   #     ever finds the two benchmarks agreeing on an exponent, the claim must be restated.
   #  3. The external falsification must be reported whichever way it points.
   in_sample_exponent_must_be_reported: true
+  # THE OTHER HALF OF THE SAME FACT. The exponent closes the span only under a mean of
+  # per-dataset ratios, which a headroom of 0.0267 can dominate. Under the median and under the
+  # ratio of panel means it never approaches 1. Gate both directions so neither the awkward
+  # in-sample minimum nor its explanation can be dropped.
+  min_span_median:            {value: 1.238, tol: 0.05}
+  min_span_ratio_of_means:    {value: 1.278, tol: 0.06}
+  min_headroom:               {value: 0.0267, tol: 0.004}
+  min_cells_below_headroom_015: 50
+  min_span_under_robust_aggregation: 1.15
+  aggregation_artefact_must_hold: true
   min_exponent_ratio: 1.8
   external_falsification_must_be_reported: true
 
@@ -1811,8 +2132,8 @@ r1u_transport:
 #
 # THE SPAN IS NOT AN ARTEFACT OF THE CHEAP MODEL:
 #   4-mer       +0.0663 / +0.0265 / +0.0122   5.42x [4.43, 6.58]
-#   CNN         +0.0860 / +0.0330 / +0.0113   7.63x [6.23, 9.63]
-#   SpliceBERT  +0.1754 / +0.0890 / +0.0466   3.76x [3.27, 4.34]
+#   CNN         +0.0837 / +0.0330 / +0.0113   7.42x [6.07, 9.31]
+#   SpliceBERT  +0.1735 / +0.0890 / +0.0466   3.72x [3.23, 4.30]
 #
 # Two things follow. It is present for every model class, so "a five-fold span measured with a
 # bag of k-mers is an artefact of a weak model" is answered directly rather than by analogy.
@@ -1830,8 +2151,24 @@ r1v_three_arm_models:
   cnn_neg2:        {value: 0.0113, tol: 0.004}
   splicebert_neg2: {value: 0.0466, tol: 0.008}
   span_kmer:       {value: 5.42, tol: 0.60}
-  span_cnn:        {value: 7.63, tol: 1.00}
-  span_splicebert: {value: 3.76, tol: 0.60}
+  span_cnn:        {value: 7.42, tol: 1.00}
+  span_splicebert: {value: 3.72, tol: 0.60}
+  # A5. THE TWO EFFECTS IN THE SAME UNITS. The Introduction compared a protocol-driven
+  # contribution range against gaps in APPARENT AUROC between model classes, which are
+  # different quantities, and concluded the protocol effect was "nearly three times" one and
+  # "about half" the other. In matching units neither dominates: as absolute AUROC the larger
+  # depends on which arm and model you start from, and only as a fold change is the protocol
+  # effect reliably the bigger of the two. Gated as the ORDERING of the fold ranges, because
+  # that is the surviving claim; the absolute ranges are gated as values.
+  range_protocol_kmer:       {value: 0.0540, tol: 0.008}
+  range_protocol_cnn:        {value: 0.0724, tol: 0.012}
+  range_protocol_splicebert: {value: 0.1269, tol: 0.020}
+  range_modelclass_gc:       {value: 0.0625, tol: 0.010}
+  range_modelclass_dn:       {value: 0.1073, tol: 0.018}
+  range_modelclass_neg2:     {value: 0.0353, tol: 0.008}
+  # Not "protocol dominates": the ranges overlap. See the note in verify.py, where the first
+  # version of this gate asserted dominance and correctly failed.
+  fold_ranges_must_overlap: true
   # THE CLAIM, gated as the sentence the paper makes rather than as three loose numbers: the
   # span survives for the WEAKEST-spanning model class. If it ever falls toward 1 for any
   # model, the headline stops being a property of the benchmark and becomes one of the 4-mer.
@@ -1883,8 +2220,13 @@ r1w_models_by_protocol:
   argmin_range_splicebert: {value: 1.124, tol: 0.10}
   inc_protocol_kmer:       {value: 0.0100, tol: 0.004}
   inc_baseline_kmer:       {value: 0.1105, tol: 0.020}
-  inc_protocol_cnn:        {value: 0.0625, tol: 0.015}
-  inc_baseline_cnn:        {value: 0.0234, tol: 0.010}
+  # Both recentred after the retrain, and they moved in opposite directions: the CNN's
+  # protocol-label increment fell from 0.0625 to 0.0460 while its baseline increment rose from
+  # 0.0234 to 0.0347, so the baseline now carries less than the label for this model rather
+  # than more. The paper's claim is about the 4-mer, where the ordering is unchanged and much
+  # wider (0.0100 against 0.1104), and it says so.
+  inc_protocol_cnn:        {value: 0.0460, tol: 0.015}
+  inc_baseline_cnn:        {value: 0.0347, tol: 0.012}
   inc_protocol_splicebert: {value: 0.0107, tol: 0.005}
   inc_baseline_splicebert: {value: 0.2406, tol: 0.030}
   gradient_neg2_splicebert: {value: -0.568, tol: 0.10}
@@ -1900,3 +2242,401 @@ r1w_models_by_protocol:
   cnn_reversal_must_be_reported: true
   two_family_mechanism_is_kmer_specific: true
   recommendation_pairs_improved: 3
+
+# B5: THE SHUFFLED FOURTH ARM. Dinucleotide-preserving shuffling is what GraphProt, iDeepS and
+# RBPsuite do and what Tourne indicts, and it is not a matching protocol: each negative is a
+# permutation of its own positive, so the 19-feature composition block takes the SAME VALUE on
+# both members of every pair. The baseline is therefore exactly uninformative, and the "nested
+# contribution" is the model's own AUROC less a half wearing a different name.
+#
+# The construction is gated as an exact zero and the baseline as an exact half, deliberately.
+# A tolerance on either would hide the result: there is no dataset on which composition does
+# anything at all, and that is stronger than "composition does little".
+shuffled_arm:
+  n_datasets: 94
+  min_fraction_tied: 0.9999
+  max_deviation_from_half: 1.0e-9
+  contribution: {value: 0.2523, tol: 0.010}
+  standalone:   {value: 0.7528, tol: 0.010}
+  max_identity_residual: 0.002
+  # The headline widens from 5.42x across three matched protocols to 20.62x across the four
+  # constructions in use. The three-protocol figure must reproduce exactly, on these same rows,
+  # or the fourth point is being added to a different span.
+  three_protocol_span: {value: 5.42, tol: 0.05}
+  four_protocol_span:  {value: 20.62, tol: 2.50}
+  min_four_protocol_span_ci_low: 5.42
+
+# B3: THE COMPOSITION-ORDER PROFILE, orders 1 to 4. Reporting two orders invites "why not
+# another?"; reporting the function retires the question. Orders 2 and 3 are pinned by two
+# independently produced tables and come back at machine precision, so the profile passes
+# through both published points rather than being a smooth curve through the wrong ones.
+#
+# THE SECTION'S REAL RESULT IS THE NOISE FLOOR. At order four the baseline spans the 4-mer's
+# entire feature space, so the true contribution is exactly zero and anything measured is the
+# estimator's own error. It measures +0.09 to +0.14 and is positive on all 94 datasets in all
+# three arms: 2 to 7 times the contribution the paper reports at order two. The mechanism is
+# a 337-column baseline overfitting, which is why the floor shrinks as the sample grows
+# (rho -0.83 to -0.95) and why the baseline's own AUROC FALLS from order 3 to 4 but not from
+# 1 to 2. That confines the problem to orders the paper does not use, and it qualifies the
+# recommendation to raise the baseline's order: the gain in sharpness stops before order four.
+order_profile:
+  n_datasets: 94
+  max_anchor2: 1.0e-12
+  max_anchor3: 1.0e-12
+  columns: {1: 4, 2: 19, 3: 82, 4: 337}
+  kmer_order1_gc:        {value: 0.0616, tol: 0.006}
+  kmer_order1_dn:        {value: 0.1010, tol: 0.010}
+  kmer_order1_neg2:      {value: 0.0363, tol: 0.005}
+  splicebert_order1_dn:  {value: 0.2106, tol: 0.015}
+  cnn_order4_gc:         {value: 0.0139, tol: 0.004}
+  splicebert_order4_gc:  {value: 0.0548, tol: 0.008}
+  span_order1_kmer:       {value: 2.78, tol: 0.35}
+  span_order1_cnn:        {value: 3.98, tol: 0.50}
+  span_order1_splicebert: {value: 2.85, tol: 0.30}
+  # 4 orders x 3 model classes, every interval clear of zero.
+  n_order_model_cells: 12
+  floor_gc:   {value: 0.0986, tol: 0.012}
+  floor_dn:   {value: 0.1444, tol: 0.015}
+  floor_neg2: {value: 0.0899, tol: 0.012}
+  min_floor_multiple: 2.0
+  max_baseline_fell_early: 5
+  min_baseline_fell_late: 25
+  max_floor_size_rho: -0.70
+
+# B17: THE REGION LABEL MEANS TWO DIFFERENT THINGS BY CLASS, which is what the anchor found.
+# Recomputing annotation.classify from the same GENCODE index reproduces the committed label
+# for every one of 2,251,282 POSITIVES in all three arms, and differs for ~10% of the two
+# matched arms' NEGATIVES: for a matched negative the column records the region POOL the
+# matcher drew from, and merged per-region intervals overlap, so a window drawn from the CDS
+# pool can have a midpoint the priority rule calls a 3' UTR of another isoform. The bias-aware
+# arm is at exactly 0%, because its negatives are other proteins' positives.
+#
+# So "region-only AUROC is exactly 0.5000 in both matched arms" is exact for the label the
+# matcher ENFORCED and becomes ~0.546 under a common re-annotation. Both are gated; gating only
+# the first would let the unqualified sentence come back.
+#
+# The ASYMMETRY is the claim, and it survives all five annotations, from +0.2484 on the
+# enforced labels to +0.1055 under a reversed priority. The bias-aware arm's own figure is not
+# rule-invariant either (0.6622 to 0.7617), so the gate is on the smallest gap, not on any one
+# value.
+region_annotation:
+  min_positives_checked: 2200000
+  neg_reclass_gc: {value: 0.1033, tol: 0.005}
+  neg_reclass_dn: {value: 0.1017, tol: 0.005}
+  max_stored_deviation: 1.0e-9
+  min_reannotated_excess: 0.02
+  neg2_auroc: {value: 0.7484, tol: 0.010}
+  n_rules: 5
+  min_asymmetry: 0.08
+  changed_reversed:     {value: 0.4122, tol: 0.02}
+  changed_coding_first: {value: 0.1080, tol: 0.01}
+  changed_majority:     {value: 0.1119, tol: 0.01}
+
+# B10: GENE-CLUSTERED FOLDS. The objection is that windows from one gene split across folds
+# leak. Chromosome grouping is strictly COARSER than gene grouping, so a locus cannot span a
+# fold and the leakage described is impossible by construction. That was asserted as an exact
+# zero and it is not one: 22 gene groups span a frozen boundary, holding 176 windows of ~2.7M.
+# Every one is a gene NAME shared across chromosomes, which the index keys on -- 72 such names
+# genome-wide, 36 of them pseudo-autosomal chrX/chrY pairs and the widest spanning 24
+# chromosomes (multi-copy small-RNA families). That is the ONE leakage channel chromosome
+# grouping cannot close, and it is gated as a small non-zero so neither the finding nor its
+# scale can be lost.
+#
+# The finer design is the LESS conservative one, so its agreement bounds what the coarser
+# published choice costs rather than validating it.
+gene_clustered_cv:
+  n_datasets: 94
+  max_frozen_reproduction: 1.0e-12
+  max_spanning_groups: 40
+  max_spanning_windows: 400
+  multi_chrom_names: 72
+  par_pairs: 36
+  widest_name: 24
+  min_chroms_split: 1.0
+  gain_frozen_gc:  {value: 0.0265, tol: 0.002}
+  gain_gene_gc:    {value: 0.0269, tol: 0.003}
+  gain_frozen_dn:  {value: 0.0663, tol: 0.003}
+  gain_gene_dn:    {value: 0.0664, tol: 0.004}
+  contrast_frozen: {value: 0.0398, tol: 0.002}
+  contrast_gene:   {value: 0.0394, tol: 0.003}
+  max_contrast_change: 0.003
+  max_multiplier_deviation: 0.08
+
+# B16: WINDOW CENTRING. The comparison asked for is summit- versus midpoint-centred windows, and
+# it CANNOT BE RUN: narrowPeak column 10 is -1 in every row of every ENCODE eCLIP file here, so
+# no summit exists. Gated as an exact zero, so substituting three other centres is never
+# mistaken for the comparison that was requested.
+#
+# Rebuilding the published midpoint centring is NOT a reproduction control, which is how it was
+# written. Both matchers sample their candidate windows from an RNG, so a rebuild is a fresh
+# draw of the same construction. That makes it a measurement of run-to-run variability instead,
+# and the arm constraining fifteen degrees of freedom is the more variable by two orders of
+# magnitude: matching sixteen frequencies depends on which candidates were sampled, while a
+# five-point GC tolerance is met by a large fraction of any pool.
+#
+# The centring moves the contrast by 0.0077, an order of magnitude more than the fold design
+# (0.0003) or the chromosome partition (0.0006), so it is the largest of the three open design
+# parameters and the gate says so rather than listing three reassurances.
+window_centring:
+  min_datasets: 10
+  min_files_checked: 10
+  redraw_gc: 0.001
+  redraw_dn: 0.020
+  gain_midpoint_gc: {value: 0.0295, tol: 0.004}
+  gain_midpoint_dn: {value: 0.0779, tol: 0.008}
+  contrast_midpoint:   {value: 0.0484, tol: 0.006}
+  contrast_five_prime: {value: 0.0430, tol: 0.006}
+  contrast_shift25:    {value: 0.0407, tol: 0.006}
+  max_contrast_range: 0.015
+
+# E3: DEVICE PORTABILITY. cloud/submit_cpu_sweep.sh had never been run against a dataset whose
+# results were not already committed, so the GCP CPU path was infrastructure the repo described
+# rather than infrastructure it had used. Running it on the region-matched arm, which exists in
+# no GCS prefix, means nothing can be overwritten and the results must be produced from scratch.
+#
+# The same dataset, folds and commit trained on a Modal A10G and on one vCPU of a GCP
+# e2-standard-4 agree to 0.0007 AUROC on every fold, with per-window scores correlating at
+# Pearson 0.9903. Initialisation is unseeded, so this bounds DEVICE AND SEED JOINTLY -- which is
+# also exactly what a reader reproducing this work would experience, since that is what the
+# released code does.
+#
+# AND THE PRACTICAL FINDING: a 7,089-parameter network is only 1.7x slower on one vCPU than on
+# an A10G, because a model that small never fills the device. The CNN sweep's $6.73 of A10G time
+# extrapolates to about $0.09 of spot CPU.
+device_portability:
+  n_folds: 5
+  min_windows: 20000
+  min_pearson: 0.97
+  min_pearson_worst: 0.95
+  min_spearman: 0.97
+  max_auroc_difference: 0.005
+  max_cpu_slowdown: 4.0
+
+# B11: THE MATCHER'S TWO FREE PARAMETERS, varied for the first time. negatives.py defends its
+# greedy assignment on the grounds that an exact one "buys very little here", which was an
+# assertion. It is now measured: exact assignment improves the achieved L1 by 0.004 to 0.005,
+# about 2%, and moves the contribution by at most 0.002. The defence holds.
+#
+# THE FLOOR HAD TO BE SCALED WITH THE MULTIPLE or the section would have tested nothing:
+# n_want is max(pool_min, multiple x bucket size) and buckets are small, so at the published
+# pool_min of 1500 the floor binds in most buckets and 4x/8x/16x return identical negatives.
+#
+# REBUILDING THE PUBLISHED SETTING IS A FRESH DRAW, not a reproduction, because candidate_pool
+# samples its windows. The gate is therefore on the median deviation AND on its correlation
+# with dataset size: sampling noise shrinks as n grows and drift does not.
+#
+# THE RESULT: across the six settings a higher composition baseline goes with a smaller
+# contribution at r = -0.926. That is this paper's mechanism measured on its own implementation
+# choices rather than on a protocol label.
+matching_robustness:
+  n_datasets: 12
+  n_rebuilds: 72
+  n_settings: 6
+  max_median_redraw: 0.008
+  max_redraw_size_rho: -0.60
+  max_l1_improvement: 0.015
+  max_contribution_change: 0.005
+  l1_greedy8:   {value: 0.2474, tol: 0.010}
+  gain_greedy8: {value: 0.0765, tol: 0.006}
+  comp_greedy8: {value: 0.6319, tol: 0.010}
+  contribution_range: {value: 0.0106, tol: 0.005}
+  baseline_range:     {value: 0.0446, tol: 0.010}
+  min_floor_bound_fraction: 0.5
+  max_baseline_contribution_r: -0.70
+  max_subsampled_buckets: 20
+
+# F3: THE REGION-MATCHED ARM FOR ALL THREE MODEL CLASSES. The bias-aware arm matches fold only,
+# so region alone separates its classes at a median AUROC of 0.748, and the repair existed for
+# the 4-mer ONLY because nothing could dispatch a neural sweep for the arm. The obvious
+# objection -- that a convolutional network or a language model might lean on region in a way a
+# bag of 4-mers does not -- had no answer. 940 fold-runs on Modal A10G, $18.97.
+#
+# It does not change the answer. With region matched the bias-aware arm still gives the smallest
+# contribution of the three for every model class, and the correction WIDENS the span in all
+# three cases (5.42 -> 7.20, 7.42 -> 8.40, 3.72 -> 4.93), which is the opposite of what a
+# confound-driven result would do. Gated as a direction, not merely as three values.
+#
+# SpliceBERT loses the most from the repair (-0.0114 against -0.0030 and -0.0013), so the
+# language model was the one leaning hardest on transcript region.
+#
+# The 4-mer column is a CROSS-TABLE CONTROL: region_asymmetry.py computed it independently from
+# a different script on the same windows, and it agrees to 1.14e-16.
+region_matched_neural:
+  n_datasets: 94
+  max_control_gap: 1.0e-9
+  baseline:         {value: 0.8052, tol: 0.004}
+  gain_kmer:        {value: 0.0092, tol: 0.002}
+  gain_cnn:         {value: 0.0100, tol: 0.002}
+  gain_splicebert:  {value: 0.0352, tol: 0.005}
+  span_kmer:        {value: 7.20, tol: 1.20}
+  span_cnn:         {value: 8.40, tol: 1.40}
+  span_splicebert:  {value: 4.93, tol: 0.70}
+  published_span_kmer:       {value: 5.42, tol: 0.05}
+  published_span_cnn:        {value: 7.42, tol: 0.05}
+  published_span_splicebert: {value: 3.72, tol: 0.05}
+
+# F5: WHAT THIS LITERATURE ACTUALLY DOES. The recommendation to report a composition-only AUROC
+# is only worth making if the field does not already do it, and only aimed correctly if we know
+# what the field constructs. Both were assumed until this survey and one assumption was WRONG.
+#
+# The paper claimed sequence-level dinucleotide shuffling is "what most published predictors
+# use" and named GraphProt, iDeepS and RBPsuite. None of the seven surveyed sources uses it as
+# its primary construction. GraphProt shuffles genomic COORDINATES within bound genes; the
+# RBP-24 dataset does the same with BedTools; RBPsuite 2.0 uses pybedtools shuffle to non-peak
+# regions of the same transcript. Sequence shuffling appears only as a FASTA-input option in
+# RNAProt and as an alternative in DeepCLIP.
+#
+# Five of seven relocate genomic INTERVALS, which leaves composition entirely unconstrained --
+# a stronger motivation for reporting the baseline than the claim the paper originally made.
+# And 0 of 7 report a composition-only AUROC beside their headline, which is what makes the
+# recommendation a change rather than a description of practice.
+negative_set_survey:
+  n_sources: 7
+  n_with_baseline: 0
+  n_sequence_shuffle: 0
+  min_coordinate: 4
+
+# THE ESTIMATOR'S FLOOR AT THE ORDER-TWO BASELINE. The order-four profile calibrates a
+# 337-column baseline; every headline here uses the nineteen-column one, so that calibration
+# bounds an estimator the paper does not use. A 2-mer supplies an EXACT null at the order we do
+# use: windows are a fixed 101 nt, so its sixteen dinucleotide counts are one hundred times the
+# frequencies, and the fifteen frequency columns plus the intercept span all sixteen. Its true
+# contribution is zero by construction.
+#
+# It measures +0.0119, +0.0137 and +0.0111. Two consequences, and they point opposite ways:
+#   THE SPAN SURVIVES. The floor spans 1.24x while the contributions span 5.43x, so it covers
+#   23% of the range it would have to explain and cannot produce the ordering.
+#   THE LEVEL DOES NOT. The floor is 90.6% of the bias-aware arm's reported +0.0122, so that
+#   arm's absolute increment is an upper bound. Gated so the qualification cannot be dropped.
+#
+# The floor happens to rank the arms in the published order. That is recorded rather than
+# hidden, because a reader who spots the coincidence should find it already addressed.
+# THE OUTER-FOLD ROUTE, MEASURED BY CLOSING IT. scripts/cross_fitting.py refits the base model
+# on the folds excluding both the outer test fold and the row being scored, so no information
+# from the outer test fold reaches the nested coefficients. Two claims in earlier drafts died
+# here and the values below are what killed them: the floor is this route rather than the
+# conditioning effect the Results attributed it to, and the bias is NOT one-directional -- for
+# the 4-mer, closing the route raises the contribution.
+# POSITIVE-SET OVERLAP. The committed table existed with no producing script and its `jaccard`
+# column was min(n)/max(n) -- a count ratio, exact to 1e-16, labelled a Jaccard index. It
+# answers "did the arms retain the same NUMBER of positives", not "the same positives", because
+# the id it keyed on is a per-arm row index: the same id names chr12 in one arm and chr9 in the
+# other. Recomputed on genomic coordinate the median is unchanged and the minimum moves from
+# 0.9237 to 0.9164.
+# HOMOLOGY ACROSS FOLDS: audited on every fold, then CONTROLLED two ways. The published audit
+# held out fold 0 only and reported a maximum of 24.3%; over all five folds it is 29.0%, so the
+# extreme was understated while the median was not. Both controls leave the span at 5.40-5.42.
+# The homology arm TIGHTENS the chromosome partition rather than replacing it -- an earlier
+# version replaced it, which discarded chromosome grouping and inflated every contribution, and
+# max_moved below is what stops that returning unnoticed.
+homology_folds:
+  n_datasets: 94
+  leak_any_median: {value: 0.0200, tol: 0.0030}
+  leak_any_max:    {value: 0.2903, tol: 0.0100}
+  # Both filters delete whole matched PAIRS, so these are roughly double the single-window
+  # rates. Deleting one member of a pair changes class balance as well as sharing, and the
+  # direction differs by dataset, so the resulting number would confound the two.
+  max_dropped_by_filter: 0.02       # the >50% filter must be a light touch, not a rewrite
+  max_dropped_exhaustive: 0.12      # removing ALL sharing costs more, but must not gut the data
+  span_published:  {value: 5.417, tol: 0.030}
+  span_filtered:   {value: 5.436, tol: 0.060}
+  # ALL exact cross-fold sharing removed. This is the control that actually moves the number,
+  # and that is the point: the >50% filter changes nothing because little is that echoed, while
+  # deleting every window sharing a single 32-mer costs 7% of the contribution and 3% of the
+  # span. The span survives; the honest figure is 5.24 rather than 5.42.
+  span_nosharing:  {value: 5.255, tol: 0.080}
+  # No five-fold partition can respect chromosome blocking AND homology: the largest joint
+  # component holds 97.6% of a median dataset's windows. Asserted so the claim that a
+  # regrouping control is impossible here stays measured rather than remembered.
+  min_collapse_largest: 0.90
+
+# NEGATIVE-DRAW UNCERTAINTY, PROPAGATED RATHER THAN ONLY MEASURED. Every published protocol
+# used one stochastic draw and the protein bootstrap holds it fixed, so the stated intervals
+# omitted construction uncertainty. The bias-aware arm can be redrawn exactly without the genome
+# because its negatives are other proteins' binding sites, already in the store. Five draws:
+# including the draw component widens the interval by 3.6%.
+negative_draws:
+  n_datasets: 94
+  n_draws: 5
+  se_protein:  {value: 0.00135, tol: 0.0003}
+  se_draw:     {value: 0.00037, tol: 0.0002}
+  max_widening: 1.15          # combined / published interval width must stay below this
+  max_median_range: 0.006     # per-dataset range across draws
+  n_draws_below_gc: 5         # the ordering must survive every draw
+
+# TRAIN-PROTOCOL BY EVALUATION-PROTOCOL. The design changes the negatives in training and in
+# evaluation at once, so the published contrast cannot say which of the two moves the number.
+# Fitting on one arm and scoring another separates them: three quarters of the effect is in the
+# evaluation data. The diagonal is asserted against the published within-arm values, because if
+# it drifts the transport is measuring something else.
+protocol_transport:
+  n_datasets: 94
+  diag_gc:      {value: 0.0265, tol: 0.0010}
+  diag_dn:      {value: 0.0663, tol: 0.0010}
+  diag_neg2:    {value: 0.0122, tol: 0.0010}
+  train_spread: {value: 0.0141, tol: 0.0020}
+  eval_spread:  {value: 0.0438, tol: 0.0030}
+  # THE RATIO OF THOSE TWO RANGES WAS REPORTED AS "76% carried by the evaluation arm". It is not
+  # a decomposition: no interaction term, no uncertainty, and two ranges summing to a whole is
+  # arithmetic rather than a partition. Replaced by a balanced two-way sum-of-squares split
+  # computed per dataset, which carries an interval and shows the 22% interaction the ratio hid.
+  share_train: {value: 0.152, tol: 0.020}
+  share_eval:  {value: 0.627, tol: 0.030}
+  share_inter: {value: 0.222, tol: 0.025}
+  share_eval_panel: {value: 0.807, tol: 0.030}   # the other weighting, reported beside it
+
+# THE COMMON-POSITIVE SENSITIVITY. The review's P1.1: the protocols do not vary ONLY the
+# negatives, because the matchers reject different positives, and a qualitative reason for
+# declining the analysis is not the analysis. Run, and it changes nothing: 0.23% of positives
+# dropped, the dn/gc ratio moves 2.499 -> 2.511.
+common_positives:
+  n_datasets: 94
+  frac_dropped:       {value: 0.0023, tol: 0.0005}
+  gain_common_gc:     {value: 0.0265, tol: 0.0010}
+  gain_common_dn:     {value: 0.0666, tol: 0.0015}
+  shift_gc:           {value: 0.0000, tol: 0.0003}
+  shift_dn:           {value: 0.0003, tol: 0.0003}
+  ratio_common:       {value: 2.511, tol: 0.030}
+  ratio_full:         {value: 2.499, tol: 0.030}
+  n_contrast_positive: 88
+
+positive_set_overlap:
+  n_datasets: 94
+  median_jaccard: {value: 0.9972, tol: 0.0005}
+  min_jaccard:    {value: 0.9164, tol: 0.0005}
+  n_identical: 10
+
+cross_fitting:
+  n_datasets: 94
+  # The 2-mer's true contribution is zero by construction, so a cross-fitted value near zero is
+  # the check that the procedure works. Tolerance is absolute and tight for that reason.
+  cf2_gc:   {value: 0.0005, tol: 0.0008}
+  cf2_dn:   {value: -0.0001, tol: 0.0008}
+  cf2_neg2: {value: 0.0003, tol: 0.0008}
+  # The 4-mer, whose truth is unknown. These must stay close to the published panel means.
+  cf4_gc:   {value: 0.0282, tol: 0.003}
+  cf4_dn:   {value: 0.0671, tol: 0.004}
+  cf4_neg2: {value: 0.0139, tol: 0.002}
+  # The channel for the 4-mer is NEGATIVE in every arm. Asserted as a sign, because the sign is
+  # the claim that was wrong before it was measured.
+  max_channel_4mer: 0.0005          # channel must be <= this, i.e. not meaningfully positive
+  min_floor_removed: 0.95           # fraction of the 2-mer floor the cross-fitting removes
+  # THE LABEL-FREE ROUTE, measured rather than argued about. A review noted that calling the
+  # result "fully cross-fitted" while standardising over the whole dataset is too strong,
+  # because at fixed C the scale sets the effective penalty. Refitting every transform inside
+  # the outer training rows changes the answer by less than 1e-4 in all six cells.
+  max_cost_of_global_scaling: 0.0001
+  min_datasets_floor_lowered: 85    # of 94, per arm
+  span_published: {value: 5.42, tol: 0.05}
+  span_crossfitted: {value: 4.84, tol: 0.10}
+
+estimator_floor:
+  n_datasets: 94
+  floor_gc:   {value: 0.0119, tol: 0.003}
+  floor_dn:   {value: 0.0137, tol: 0.003}
+  floor_neg2: {value: 0.0111, tol: 0.003}
+  min_datasets_positive: 70
+  max_floor_span: 1.60
+  max_floor_span_fraction: 0.35
+  min_worst_ratio: 0.70
+  floor_ordering_matches: 1
