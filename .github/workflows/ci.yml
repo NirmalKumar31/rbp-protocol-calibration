@@ -121,6 +121,14 @@ jobs:
           PYTHONPATH: src
         run: python scripts/provenance.py --check
 
+      # And the same for the column dictionary. It is generated from the tables, so a table
+      # gaining a column silently makes it incomplete; nothing noticed while its dtypes were
+      # wrong for 87 columns.
+      - name: the column dictionary matches the tables
+        env:
+          PYTHONPATH: src
+        run: python scripts/column_dictionary.py --check
+
       # Regenerating the checked-in artefacts must not change them. Without this the two steps
       # above can rewrite a table, pass on the value they just wrote, and leave the repository
       # holding a report nobody committed.

@@ -1,0 +1,8 @@
+check,value
+tables,134
+columns,1386
+schemas,89
+columns with a definition,1012
+columns without a definition,374
+columns with a producing script,1366
+columns typed empty,11
