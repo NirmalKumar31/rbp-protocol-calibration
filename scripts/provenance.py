@@ -91,8 +91,9 @@ CANONICAL_WRITER = {
 # Tables written by this script or by the auditors, which have no upstream stage.
 META = {"PROVENANCE.csv", "manuscript_orphans.csv", "release_facts.csv", "verify_summary.csv",
         # A generated INDEX of the tables, in the same class as this manifest: it describes
-        # the release rather than being a result of it.
-        "COLUMNS.csv"}
+        # the release rather than being a result of it. COLUMNS_SUMMARY.csv holds its counts,
+        # which SCHEMA.md used to hand-maintain.
+        "COLUMNS.csv", "COLUMNS_SUMMARY.csv"}
 
 
 def invocations():
