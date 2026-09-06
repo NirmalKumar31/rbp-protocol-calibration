@@ -362,3 +362,23 @@ def test_the_shouty_header_habit_does_not_come_back():
     assert len(hits) <= 60, (
         f"{len(hits)} ALL-CAPS docstring headers, up from 21. The device is back:\n  "
         + "\n  ".join(hits[:15]))
+
+
+def test_the_trailer_change_is_recorded_as_granularity_not_a_narrowing():
+    """206 of the first 228 commits carry an AI co-author trailer; later ones do not.
+
+    A signal that simply stops looks like concealment. A signal that stops with the reason
+    written down, the historical ones left in place and the manuscript named as the disclosure
+    of record, is a change of granularity. The difference is entirely in whether it is written
+    down, so this fails if it stops being.
+    """
+    sub = _read("SUBMISSION.md")
+    assert "Per-commit AI co-author trailers stop after" in sub, (
+        "the trailer change has dropped out of the submission checklist, which makes it look "
+        "like a signal that quietly stopped rather than one that was deliberately relocated")
+    assert "change of granularity and not of disclosure" in sub
+    paper = ROOT / "manuscript" / "paper.tex"
+    if paper.exists():
+        assert "trailers stop after" in paper.read_text(), (
+            "the AI-use paragraph must know it is now the disclosure of record, because "
+            "narrowing it later would leave nothing in its place")
