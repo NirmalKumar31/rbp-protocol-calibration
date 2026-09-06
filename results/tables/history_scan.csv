@@ -1,0 +1,28 @@
+check,value,note
+commits on HEAD,207,
+commits on all refs,217,the scan covers this set
+commits containing a private key block,0,the matched strings are deliberately not printed here
+commit-and-file pairs containing a private key block,0,a file touched in two commits counts twice
+diff lines containing a private key block,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits containing a service-account key material,0,the matched strings are deliberately not printed here
+commit-and-file pairs containing a service-account key material,0,a file touched in two commits counts twice
+diff lines containing a service-account key material,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits containing a AWS access key,0,the matched strings are deliberately not printed here
+commit-and-file pairs containing a AWS access key,0,a file touched in two commits counts twice
+diff lines containing a AWS access key,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits containing a GitHub token,0,the matched strings are deliberately not printed here
+commit-and-file pairs containing a GitHub token,0,a file touched in two commits counts twice
+diff lines containing a GitHub token,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits containing a Slack token,0,the matched strings are deliberately not printed here
+commit-and-file pairs containing a Slack token,0,a file touched in two commits counts twice
+diff lines containing a Slack token,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits containing a Google API key,0,the matched strings are deliberately not printed here
+commit-and-file pairs containing a Google API key,0,a file touched in two commits counts twice
+diff lines containing a Google API key,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits containing a OAuth access token,0,the matched strings are deliberately not printed here
+commit-and-file pairs containing a OAuth access token,0,a file touched in two commits counts twice
+diff lines containing a OAuth access token,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits containing a GCP billing account ID,4,the matched strings are deliberately not printed here
+commit-and-file pairs containing a GCP billing account ID,9,a file touched in two commits counts twice
+diff lines containing a GCP billing account ID,11,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+commits containing credential material of any kind,0,"everything except the billing account ID, which is an identifier rather than a credential and is documented in SECURITY.md"

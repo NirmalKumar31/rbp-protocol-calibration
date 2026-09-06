@@ -430,6 +430,9 @@ gene_clustered_cv_per_dataset.csv,comp_gene_dn,float,AUROC,,94,0,94,0.37067,0.85
 gene_clustered_cv_per_dataset.csv,gain_gene_dn,float,AUROC,,94,0,94,-0.00642902,0.248216,0.04939836260152464,Nested contribution under dinucleotide-matched negatives,scripts/gene_clustered_cv.py
 gene_clustered_cv_per_dataset.csv,published_gain_gc,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/gene_clustered_cv.py
 gene_clustered_cv_per_dataset.csv,published_gain_dn,float,,,94,0,94,-0.00360316,0.24737,0.0480770794164786,,scripts/gene_clustered_cv.py
+history_scan.csv,check,string,,yes,27,0,27,,,commits on HEAD,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/history_scan.py
+history_scan.csv,value,int,,,27,0,6,0,217,207,The asserted quantity,scripts/history_scan.py
+history_scan.csv,note,string,,,27,1,5,,,the scan covers this set,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/history_scan.py
 homology_folds.csv,check,string,,yes,22,0,22,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/homology_folds.py
 homology_folds.csv,value,float,,,22,0,22,0.00393975,94,94.0,The asserted quantity,scripts/homology_folds.py
 homology_folds.csv,ci_low,float,,,22,7,15,0.00269807,94,94.0,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/homology_folds.py

@@ -336,6 +336,9 @@ s13b_local_analysis() {
   # no credential-shaped string. Rebuilding it needs bucket access (--from-gcs); checking what
   # is committed does not, which is the half a reader can run.
   "$PY" scripts/raw_inputs.py --check || die "raw input manifest"
+  # The history secret scan, as a gate rather than a paragraph with a date on it. Non-zero if
+  # credential material appears anywhere in the history, or if a documented finding changes.
+  "$PY" scripts/history_scan.py --check || die "history secret scan"
   "$PY" scripts/shuffled_arm.py --from-cache || die "shuffled fourth arm"
   "$PY" scripts/multiplier_variance.py || die "multiplier variance"
   "$PY" scripts/score_scale_check.py --from-cache || die "score scale"

@@ -24,14 +24,23 @@ public first.
 
 ## The history scan, and what it found
 
-Run 2026-09-05 over every commit on every ref (206 at the time of writing) (`git log --all -p`), looking for private-key
-blocks, service-account JSON fields, AWS keys, GitHub and Slack tokens, and billing account IDs.
+`scripts/history_scan.py` runs it, over every commit on every ref (`git log --all -p`), looking
+for private-key blocks, service-account JSON fields, AWS keys, GitHub, Slack and Google API
+tokens, OAuth tokens, and billing account IDs. **The counts are in
+`results/tables/history_scan.csv`, generated, not typed here.** They were typed here, as "206
+commits at the time of writing"; by the time an external audit read it the repository was larger,
+the audit counted a third number, and there was no way to tell which described the release. The
+scan is now a gate, and `--check` fails if any FINDING changes, which is the property that
+matters rather than the size of the history.
 
 **Clean:** no private key, service-account key material, or API token appears anywhere in the
-history.
+history, and the scan exits non-zero if that ever stops being true.
 
-**One finding, and it is real.** A live GCP **billing account ID** appears in 11 places in the
-history. It was scrubbed from the working tree by commit `f3fab95` ("Submission packaging:
+**One finding, and it is real.** A live GCP **billing account ID** is in the history. Three
+counts, because this document previously gave one of them without saying which: it was
+introduced in **4 distinct commits**, touches **9 commit-and-file pairs**, and matches **11 diff
+lines** counting both sides, the last being the "11 places" this section used to quote. It was
+scrubbed from the working tree by commit `f3fab95` ("Submission packaging:
 scrub a live billing ID") and `tests/unit/test_no_hardcoded_project.py` has forbidden it in
 tracked files ever since, so it is absent from every current file. Git history is not the
 working tree: anyone who clones this public repository can recover it.
@@ -52,6 +61,12 @@ The options, in order of cost:
 **This has not been done, because rewriting published history and force-pushing a public
 repository is the repository owner's decision and not an automatic remediation.** It is recorded
 here rather than quietly fixed or quietly ignored.
+
+**Status as of the current release candidate: deliberately deferred to the release phase, not
+resolved and not dropped.** The scan is a gate now, so the finding cannot fade out of the record
+between here and the tag: `scripts/history_scan.py --check` fails if it changes, and it will
+still be reported on the commit that is archived. Whoever cuts that release makes the call from
+options 1 to 3 above and records which, on the release commit, before the DOI is minted.
 
 ## What is not guarded
 

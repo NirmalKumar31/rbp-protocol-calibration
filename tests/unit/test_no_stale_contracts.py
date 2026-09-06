@@ -262,3 +262,43 @@ def test_both_model_loading_paths_honour_a_pinned_revision():
         assert "revision" in src, f"{rel} does not pass a revision to from_pretrained"
         assert re.search(r'"revision":\s*(?:rev|spec\["revision"\])', src), (
             f"{rel} mentions revision but does not put it in the from_pretrained kwargs")
+
+
+def test_the_open_release_decisions_are_still_recorded():
+    """P0.6 and P1.14. Both are the author's to make, and both are easy to lose quietly.
+
+    They are deferred, not resolved. The failure mode for a deferred item is that it stops
+    being mentioned and then stops being remembered, which is indistinguishable from having
+    decided it. This fails if either disappears from the submission checklist.
+    """
+    sub = _read("SUBMISSION.md")
+    assert "AI-use disclosure needs an author decision" in sub, (
+        "the AI-use disclosure decision has dropped out of the pre-submission checklist")
+    assert "billing-account ID needs an explicit decision" in sub, (
+        "the historical billing-account decision has dropped out of the checklist")
+    paper = ROOT / "manuscript" / "paper.tex"
+    if paper.exists():
+        assert "OPEN ITEM, TO BE SETTLED BEFORE SUBMISSION" in paper.read_text(), (
+            "the marker above the AI-use paragraph is gone; either the decision was made and "
+            "this test should be retired, or it was lost")
+
+
+def test_the_history_scan_counts_are_generated_not_typed():
+    """P1.14 and the standing rule: no hand-maintained count anywhere."""
+    sec = _read("SECURITY.md")
+    assert not re.search(r"\((\d{3}) at the time of writing\)", sec), (
+        "SECURITY.md is hand-maintaining a commit count again; it belongs in "
+        "results/tables/history_scan.csv")
+    f = ROOT / "results" / "tables" / "history_scan.csv"
+    if not f.exists():
+        pytest.skip("history_scan.csv not in this checkout")
+    rows = {r["check"]: int(r["value"]) for r in csv.DictReader(f.open())}
+    assert rows["commits containing credential material of any kind"] == 0, (
+        "credential material in the history: stop and rotate")
+    # The three counts SECURITY.md quotes must be the ones the scan produced.
+    for k in ("commits containing a GCP billing account ID",
+              "commit-and-file pairs containing a GCP billing account ID",
+              "diff lines containing a GCP billing account ID"):
+        assert k in rows, f"{k} is missing from the scan"
+        assert f"**{rows[k]} " in sec or f"**{rows[k]}**" in sec, (
+            f"SECURITY.md does not state the scanned value for {k} ({rows[k]})")
