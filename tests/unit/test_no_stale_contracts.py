@@ -320,3 +320,45 @@ def test_the_history_scan_degrades_honestly_without_git():
     assert "no .git and no committed history_scan.csv" in src, (
         "with neither git nor the committed table, nothing establishes what the history "
         "contains, and that must fail rather than pass quietly")
+
+
+def test_the_shouty_header_habit_does_not_come_back():
+    """605 docstring sections opened with the same ALL-CAPS device across 121 files.
+
+    Used once it is emphasis. Used 605 times in one uniform pattern it is a tic, and a
+    repository where every module shouts in the same voice reads as though one process wrote
+    all of it rather than as though people worked on it. The content was worth keeping and is
+    unchanged; only the shouting went.
+
+    A ceiling rather than zero, because genuine emphasis is legitimate and this should not
+    become a rule that forbids it. Counted over comments and docstrings only.
+    """
+    import ast
+    import io
+    import tokenize
+    head = re.compile(r"^\s*#?\s*[A-Z][A-Z0-9 ,'()./\"-]{14,}[.,:]")
+    hits = []
+    for f in sorted((ROOT / "scripts").glob("*.py")) + sorted((ROOT / "src").rglob("*.py")) \
+            + sorted((ROOT / "cloud").rglob("*.py")) + sorted((ROOT / "tests").rglob("*.py")):
+        text = f.read_text(errors="ignore")
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            continue
+        ok = set()
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef,
+                                 ast.ClassDef)):
+                b = getattr(node, "body", [])
+                if (b and isinstance(b[0], ast.Expr) and isinstance(b[0].value, ast.Constant)
+                        and isinstance(b[0].value.value, str)):
+                    ok.update(range(b[0].lineno, b[0].end_lineno + 1))
+        for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+            if tok.type == tokenize.COMMENT:
+                ok.add(tok.start[0])
+        for i, ln in enumerate(text.split("\n"), 1):
+            if i in ok and head.match(ln):
+                hits.append(f"{f.relative_to(ROOT)}:{i}")
+    assert len(hits) <= 60, (
+        f"{len(hits)} ALL-CAPS docstring headers, up from 21. The device is back:\n  "
+        + "\n  ".join(hits[:15]))
