@@ -114,3 +114,33 @@ the data-availability statements of the RBP prediction methods published since 2
 survey names; and any benchmark suite advertising multiple negative constructions. Everything
 found is recorded in `results/tables/external_search.csv` with its disqualifying criterion,
 including the candidates that fail on criterion 1 or 2 immediately.
+
+
+---
+
+# Addendum, written after the search. The protocol above is unedited.
+
+Recorded here rather than folded into the text, because a prospective protocol whose errors are
+corrected in place afterwards is not a prospective protocol.
+
+**A premise above is wrong.** The protocol states that the Horlacher benchmark "releases one"
+negative-set construction and therefore cannot test Claim A. It releases **two**, per fold, over
+the same positives: `negative-1.fold-N.bed` and `negative-2.fold-N.bed` beside
+`positive.fold-N.bed`, for all 223 ENCODE datasets in the deposit. The error was in this
+repository's own reading of a benchmark it already had on disk, and it meant the paper had been
+treating an available external test of its central claim as unavailable.
+
+**Nothing else in the protocol changes.** The eligibility criteria, the estimand, the
+uncertainty procedure and the falsification thresholds are as committed at `e76a80c` and were
+applied without modification. In particular criterion 1 was applied strictly, which is what
+sends the analysis to the 135 datasets our panel does not contain rather than to the 45-dataset
+intersection that `horlacher_arm.py` already publishes.
+
+**The search itself is in `results/tables/external_search.csv`**, with every candidate and the
+criterion each failed on. The strongest remaining candidate is the Mukherjee PAR-CLIP subset of
+the same deposit, which would widen scope beyond eCLIP; it is not analysed, because a different
+crosslinking chemistry has different positional bias and the protocol fixes the estimand as
+transported unchanged. It is recorded as the next experiment rather than as a result.
+
+**The result is in `results/tables/external_replication.csv`** and was produced by applying the
+thresholds above mechanically in code rather than in prose.
