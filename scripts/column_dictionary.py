@@ -177,6 +177,17 @@ def profile(values):
 
 
 def producers():
+    """table -> producing script, read from PROVENANCE.csv.
+
+    THIS MAKES THE TWO GENERATORS CIRCULAR, so they need two passes. provenance.py hashes
+    COLUMNS.csv, and this reads provenance.py's output, so a newly committed table comes out
+    with an empty producing_script on the first pass and provenance.py then records the hash of
+    that incomplete file. Run column_dictionary, provenance, column_dictionary, provenance: the
+    producer map is fixed after the first provenance run, so the second pass converges.
+
+    Adding ten draw tables at once is what surfaced it. CI catches the half-done state, which is
+    the right place for it, but it costs a red build to find out.
+    """
     if not PROVENANCE.exists():
         return {}
     with PROVENANCE.open(newline="") as fh:
