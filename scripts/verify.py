@@ -2141,6 +2141,59 @@ def verify_negative_draws(T, g):
                int(nb), spec["n_draws_below_gc"])
 
 
+def verify_class_ratio(T, g):
+    """Does the arm ordering survive a change in class balance?
+
+    Specified in docs/SENSITIVITY_SPEC.md and committed before the run. The 1:1 row is a
+    control: it recomputes the published two-stage span from the same windows through an
+    independent code path, so if it does not land on 5.41729 the other three rows mean nothing.
+    """
+    print("\nclass ratio  (the ordering under a genome-realistic positive fraction)")
+    d = T.get("class_ratio.csv")
+    if d is None:
+        return record(False, "class_ratio.csv present", "MISSING",
+                      "run scripts/class_ratio.py --store ../rbp-store")
+    spec = g["class_ratio"]
+    q = d.set_index("check")
+
+    def val(k):
+        return float(q.loc[k, "value"]) if k in q.index else None
+
+    n = val("datasets")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
+
+    # The control, and it is the load-bearing check in this block.
+    ctrl = val("span at the published 1:1 balance")
+    pub = T.get("cross_fitting.csv")
+    if ctrl is not None:
+        near("the 1:1 control span", ctrl, spec["control_span"])
+        if pub is not None:
+            pq = pub.set_index("check")
+            k = "4-mer three-arm span, as published"
+            if k in pq.index:
+                gap = abs(ctrl - float(pq.loc[k, "value"]))
+                at_most("the control reproduces the published two-stage span, independently",
+                        gap, spec["max_control_gap"])
+
+    holds = 0
+    for lab in ("1:1", "1:2", "1:4", "2:1"):
+        sp = val(f"span, {lab}")
+        if sp is not None:
+            at_least(f"span survives at {lab}", sp, spec["min_span"])
+            at_most(f"span does not explode at {lab}", sp, spec["max_span"])
+        o = val(f"ordering dn > gc > neg2 holds, {lab}")
+        if o is not None:
+            holds += int(o)
+    record(holds == spec["orderings_that_hold"],
+           "the arm ordering holds at every class ratio tested",
+           f"{holds} of 4", f"{spec['orderings_that_hold']} of 4")
+
+    worst = max((val(f"dataset-arms excluded, {lab}") or 0)
+                for lab in ("1:1", "1:2", "1:4", "2:1"))
+    at_most("dataset-arms lost at the sparsest ratio", worst, spec["max_excluded"])
+
+
 def verify_redraw_composition(T, g):
     """The composition-matched arms redrawn, which verify_negative_draws could not do.
 
@@ -5349,7 +5402,7 @@ def main():
              verify_cross_fitting, verify_positive_set_overlap, verify_common_positives,
              verify_protocol_transport, verify_negative_draws, verify_homology_folds,
              verify_sensitivity_suite, verify_external_replication,
-             verify_redraw_composition,
+             verify_redraw_composition, verify_class_ratio,
              verify_cache_evidence, verify_cross_tables, verify_integrity)
     n_paper = None
     for fn in (PAPER + LEGACY):

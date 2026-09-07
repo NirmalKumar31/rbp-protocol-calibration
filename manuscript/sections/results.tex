@@ -1207,9 +1207,23 @@ network, and $0.21$ for the 4-mer.
 Four sensitivities predate this table and are not rerun in it: the ordering holds on an unbounded
 estimand (Section~\ref{sec:estimands}), it survives raising the composition baseline to order three
 (Section~\ref{sec:orderthree}), it is not explained by dataset size, and the contrast replicates
-across cell lines on the 15 proteins measured in both. Two further sensitivities are not here
-because they need the window sequences rather than the released per-dataset tables: varying the
-class ratio away from 1:1, and the k-mer capacity ladder. Both are specified but unrun.
+across cell lines on the 15 proteins measured in both. Two further sensitivities need the window sequences
+rather than the released per-dataset tables, and were specified in
+\texttt{docs/SENSITIVITY\_SPEC.md} before being run.
+
+The first varies the class ratio. Every nested fit here is estimated at one negative per
+positive, and a genome-wide screen faces a far smaller positive fraction; AUROC is invariant to
+prevalence but the fitted logistic is not, and the estimand is a difference between two fits.
+Subsampling within fold to 1:2, 1:4 and 2:1 leaves the arm ordering intact in all four
+conditions including the control, and the span is $5.42$, $5.70$, $6.45$ and $5.79$
+respectively. The 1:1 condition recomputes the published two-stage span through an independent
+code path and lands within $2\times10^{-4}$ of it, which is what makes the other three readable.
+The span therefore widens rather than collapses as the positive fraction falls. Two
+qualifications: the sparser ratios are reached by cutting positives, so they also shrink the
+dataset and this design cannot separate the two, and 15 of 376 dataset-arms are dropped at 1:4
+because a fold would hold fewer than 20 rows of a class. No interval is quoted for the
+subsampled conditions, because the subsample adds a variance component a one-draw
+protein-clustered bootstrap does not represent.
 
 \subsection{The estimator has a positive floor where the true contribution is zero}
 \label{sec:floor}

@@ -138,7 +138,7 @@ exactly, because five figures were orphaned once before when a section was cut.
 python scripts/verify.py --local results/tables
 ```
 
-1086 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+1099 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 

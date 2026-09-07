@@ -85,6 +85,51 @@ candidate_sizes.csv,protein,string,,yes,189,0,132,,,AATF,"ENCODE target. NOT uni
 candidate_sizes.csv,cell,string,,yes,189,0,2,,,K562,K562 or HepG2,scripts/cloud_analysis.py
 candidate_sizes.csv,pairs,int,count,,189,0,186,406,32387,1081,Matched positive/negative pairs; rows are twice this,scripts/cloud_analysis.py
 candidate_sizes.csv,dataset,string,,yes,189,0,189,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/cloud_analysis.py
+class_ratio.csv,check,string,,yes,26,0,26,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/class_ratio.py
+class_ratio.csv,value,float,,,26,0,20,0,94,94.0,The asserted quantity,scripts/class_ratio.py
+class_ratio.csv,ci_low,empty,,,26,26,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/class_ratio.py
+class_ratio.csv,ci_high,empty,,,26,26,0,,,,Upper bound of the same interval as ci_low,scripts/class_ratio.py
+class_ratio.csv,n,int,count,,26,0,2,89,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/class_ratio.py
+class_ratio.csv,note,string,,,26,12,5,,,"the study panel, all three arms present","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/class_ratio.py
+class_ratio_per_dataset.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/class_ratio.py
+class_ratio_per_dataset.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/class_ratio.py
+class_ratio_per_dataset.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_dn_1:1,float,AUROC,,94,0,94,-0.00360316,0.24737,0.0473171704344062,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_dn_1:1,float,AUROC,,94,0,94,0.525558,0.85047,0.6370929716120938,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_dn_1:1,int,,,94,0,94,860,64774,2162,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_dn_1:2,float,AUROC,,94,0,94,-0.00295576,0.245925,0.034892727860319606,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_dn_1:2,float,AUROC,,94,0,94,0.524348,0.853052,0.6384551854328077,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_dn_1:2,int,,,94,0,94,645,48581,1622,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_dn_1:4,float,AUROC,,94,5,89,-0.00430341,0.248738,0.0184365303412517,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_dn_1:4,float,AUROC,,94,5,89,0.51067,0.843875,0.6219162931684821,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_dn_1:4,float,,,94,5,89,617,40484,1352.0,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_dn_2:1,float,AUROC,,94,0,94,-0.0049578,0.247351,0.04026189210031783,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_dn_2:1,float,AUROC,,94,0,94,0.517912,0.848747,0.6440654490861307,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_dn_2:1,int,,,94,0,94,645,48581,1622,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_gc_1:1,float,AUROC,,94,0,94,-0.00739423,0.115115,0.016446216340686992,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_gc_1:1,float,AUROC,,94,0,94,0.639428,0.966476,0.843218130457444,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_gc_1:1,int,,,94,0,93,860,64768,2086,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_gc_1:2,float,AUROC,,94,0,94,-0.0118291,0.116298,0.015014051612406654,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_gc_1:2,float,AUROC,,94,0,94,0.636416,0.967534,0.8335365149434727,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_gc_1:2,int,,,94,0,94,645,48576,1566,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_gc_1:4,float,AUROC,,94,5,89,-0.00288384,0.1079,0.010111027350640067,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_gc_1:4,float,AUROC,,94,5,89,0.624922,0.963776,0.8355594914844876,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_gc_1:4,float,,,94,5,89,612,40480,1305.0,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_gc_2:1,float,AUROC,,94,0,94,-0.00241211,0.114811,0.013908621438745605,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_gc_2:1,float,AUROC,,94,0,94,0.634494,0.965887,0.8321047720485657,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_gc_2:1,int,,,94,0,94,645,48576,1566,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_neg2_1:1,float,AUROC,,94,0,94,-0.00987378,0.0544948,0.05085080741904435,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_neg2_1:1,float,AUROC,,94,0,94,0.662467,0.973278,0.7559330385007478,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_neg2_1:1,int,,,94,0,93,860,64768,2086,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_neg2_1:2,float,AUROC,,94,0,94,-0.0145971,0.0528879,0.036273875366872654,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_neg2_1:2,float,AUROC,,94,0,94,0.659028,0.972905,0.7485485500165907,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_neg2_1:2,int,,,94,0,94,645,48576,1566,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_neg2_1:4,float,AUROC,,94,5,89,-0.0100249,0.0390379,0.033110595536949394,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_neg2_1:4,float,AUROC,,94,5,89,0.65174,0.973951,0.75890524251096,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_neg2_1:4,float,,,94,5,89,612,40480,1305.0,,scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_neg2_2:1,float,AUROC,,94,0,94,-0.0121985,0.0552504,0.04232349323267737,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_neg2_2:1,float,AUROC,,94,0,94,0.655639,0.972899,0.7587834035150114,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,rows_neg2_2:1,int,,,94,0,94,645,48576,1566,,scripts/class_ratio.py
 cluster_intervals.csv,check,string,,yes,18,0,18,,,within_protein_correlation_kmer,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/cluster_intervals.py
 cluster_intervals.csv,quantity,string,,,18,0,5,,,correlation,,scripts/cluster_intervals.py
 cluster_intervals.csv,value,float,,,18,0,18,0,82,0.9239061157462863,The asserted quantity,scripts/cluster_intervals.py

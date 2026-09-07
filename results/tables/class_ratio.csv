@@ -1,0 +1,27 @@
+check,value,ci_low,ci_high,n,note
+datasets,94.0,,,94,"the study panel, all three arms present"
+"panel-mean contribution, dn arm, 1:1",0.06626649987231827,,,94,
+"panel-mean contribution, gc arm, 1:1",0.02651309834062755,,,94,
+"panel-mean contribution, neg2 arm, 1:1",0.012231944163197693,,,94,
+"span, 1:1",5.4174952884182215,,,94,"max over min of the three panel means, as in the paper"
+"ordering dn > gc > neg2 holds, 1:1",1.0,,,94,the claim under test; reported whichever way it comes out
+"panel-mean contribution, dn arm, 1:2",0.059857197217198024,,,94,
+"panel-mean contribution, gc arm, 1:2",0.023703743652112794,,,94,
+"panel-mean contribution, neg2 arm, 1:2",0.010509556876074837,,,94,
+"span, 1:2",5.695501525232127,,,94,"max over min of the three panel means, as in the paper"
+"ordering dn > gc > neg2 holds, 1:2",1.0,,,94,the claim under test; reported whichever way it comes out
+"panel-mean contribution, dn arm, 1:4",0.05511790344746425,,,89,
+"panel-mean contribution, gc arm, 1:4",0.02153645030368216,,,89,
+"panel-mean contribution, neg2 arm, 1:4",0.008545292833737147,,,89,
+"span, 1:4",6.450089484336527,,,94,"max over min of the three panel means, as in the paper"
+"ordering dn > gc > neg2 holds, 1:4",1.0,,,94,the claim under test; reported whichever way it comes out
+"panel-mean contribution, dn arm, 2:1",0.06173436245103664,,,94,
+"panel-mean contribution, gc arm, 2:1",0.024245546824809634,,,94,
+"panel-mean contribution, neg2 arm, 2:1",0.01067118637011343,,,94,
+"span, 2:1",5.785145185350223,,,94,"max over min of the three panel means, as in the paper"
+"ordering dn > gc > neg2 holds, 2:1",1.0,,,94,the claim under test; reported whichever way it comes out
+span at the published 1:1 balance,5.4174952884182215,,,94,the control: this is the arm ordering and span the paper reports
+"dataset-arms excluded, 1:1",0.0,,,94,a fold would hold under 20 rows of one class
+"dataset-arms excluded, 1:2",0.0,,,94,a fold would hold under 20 rows of one class
+"dataset-arms excluded, 1:4",15.0,,,94,a fold would hold under 20 rows of one class
+"dataset-arms excluded, 2:1",0.0,,,94,a fold would hold under 20 rows of one class

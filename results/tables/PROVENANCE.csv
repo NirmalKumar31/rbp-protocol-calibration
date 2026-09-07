@@ -7,6 +7,8 @@ baseline_order_models.csv,scripts/baseline_order_models.py,s13b_local_analysis,e
 baseline_order_models_per_dataset.csv,scripts/baseline_order_models.py,s13b_local_analysis,frozen-cache,f86769073e216597,64417,"""$PY"" scripts/baseline_order_models.py --from-cache || die ""baseline order, model classes"""
 baseline_order_per_dataset.csv,scripts/baseline_order.py,s13b_local_analysis,frozen-cache,788447fb2806a009,9786,"""$PY"" scripts/baseline_order.py --from-cache || die ""baseline order"""
 candidate_sizes.csv,scripts/cloud_analysis.py,,frozen-only,79cd9551dbf92127,5316,not invoked by run.sh
+class_ratio.csv,scripts/class_ratio.py,s13b_local_analysis,evidence-recomputable,b82a001a10a49d6c,2130,"""$PY"" scripts/class_ratio.py --from-cache || die ""class ratio"""
+class_ratio_per_dataset.csv,scripts/class_ratio.py,s13b_local_analysis,frozen-cache,4e3b34eac62a1dbc,53131,"""$PY"" scripts/class_ratio.py --from-cache || die ""class ratio"""
 cluster_intervals.csv,scripts/cluster_intervals.py,s13b_local_analysis,raw-reproducible,da1da712f1237a9c,1904,"""$PY"" scripts/cluster_intervals.py || die ""clustered intervals"""
 cobinding_noise.csv,scripts/cobinding_noise.py,,frozen-only,b9a9789a4537b65a,791,not invoked by run.sh
 cobinding_noise_per_dataset.csv,scripts/cobinding_noise.py,,frozen-only,7e9b44f5a564a61a,10690,not invoked by run.sh

@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 1011
+  min_domain_checks: 1024
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2563,6 +2563,20 @@ negative_draws:
   max_widening: 1.15          # combined / published interval width must stay below this
   max_median_range: 0.006     # per-dataset range across draws
   n_draws_below_gc: 5         # the ordering must survive every draw
+
+# CLASS-RATIO SENSITIVITY. Every nested fit in this paper is estimated at roughly 1:1, and a
+# genome-wide screen faces a far smaller positive fraction. AUROC is prevalence-invariant; the
+# fitted logistic is not, and the estimand here is a DIFFERENCE between two fits. Specified in
+# docs/SENSITIVITY_SPEC.md before it was run. The 1:1 row is the control and must reproduce the
+# published two-stage span, which is the only thing that makes the other three rows readable.
+class_ratio:
+  n_datasets: 94
+  control_span: {value: 5.4175, tol: 0.01}    # against the published 5.41729
+  max_control_gap: 0.002                      # |control - published|, the implementation check
+  min_span: 5.0                               # no ratio may collapse the span
+  max_span: 7.5
+  orderings_that_hold: 4                      # of four ratios; the claim under test
+  max_excluded: 20                            # dataset-arms lost at the sparsest ratio
 
 # THE COMPOSITION-MATCHED ARMS, REDRAWN. `negative_draws` above measures draw-to-draw
 # variability on the bias-aware arm only, on the stated ground that the other two arms need a

@@ -77,9 +77,16 @@ def sample_datasets(store, budget=BUDGET_SECONDS):
     covers the cheap and the expensive end rather than one of them. Nothing about a
     CONTRIBUTION value enters the choice of m; only wall-clock seconds do.
     """
+    # Ordered by DINUCLEOTIDE PAIR COUNT, which is the variable select_panel.py ordered the
+    # panel on, so "every m-th by pair rank" means the same thing here as it does there.
+    # three_arm_per_dataset.csv carries n_gc, n_dn and n_neg2 rather than a `pairs` column, and
+    # a first version of this sorted on a column called "n" that does not exist.
     pub = pd.read_csv(TABLES / "three_arm_per_dataset.csv")
-    col = "pairs" if "pairs" in pub.columns else "n"
-    order = pub.sort_values([col, "dataset"], kind="mergesort").reset_index(drop=True)
+    sizes = pd.read_csv(TABLES / "rehearsal_binding_dinuc.csv")[["dataset", "pairs"]]
+    order = (pub.merge(sizes, on="dataset", how="left")
+                .sort_values(["pairs", "dataset"], kind="mergesort")
+                .reset_index(drop=True))
+    assert order.pairs.notna().all(), "a panel dataset has no dinucleotide pair count"
     have = [ds for ds in order.dataset
             if all((Path(store) / "processed" / s / ds.split(":")[1] / ds.split(":")[0]
                     / "dataset.tsv").exists() for s in ARMS.values())]
