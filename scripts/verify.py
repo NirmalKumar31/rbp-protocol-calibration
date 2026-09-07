@@ -2228,18 +2228,48 @@ def verify_redraw_composition(T, g):
         at_most("dinuc arm, worst per-dataset gap at the published seed",
                 get("published seed reproduces the published contribution, dinuc arm"),
                 spec["dinuc_max_reproduction_gap"])
+        seed_mean = get("panel mean at the published seed, dinuc arm")
+        near("dinuc arm, panel mean at the published seed", seed_mean,
+             spec["dinuc_published_seed_panel_mean"])
+        if seed_mean is not None:
+            at_most("dinuc arm, published seed agrees with the published build at panel level",
+                    abs(seed_mean - spec["dinuc_published_panel_mean"]),
+                    spec["dinuc_max_seed_gap"])
         near("dinuc arm, panel mean over the draws",
              get("panel-mean contribution across draws, dinuc arm"), spec["dinuc_panel_mean"])
+        for col, lab in (("ci_low", "weakest"), ("ci_high", "strongest")):
+            v = get("panel-mean contribution across draws, dinuc arm", col)
+            if v is not None:
+                at_most(f"dinuc arm, {lab} draw's distance from the published panel mean",
+                        abs(v - spec["dinuc_published_panel_mean"]),
+                        spec["dinuc_max_draw_excursion"])
         at_most("dinuc arm, between-draw SE of the panel mean",
                 get("between-draw SE of the panel mean, dinuc arm"), spec["dinuc_max_se_draw"])
+        near("dinuc arm, between-protein SE of the panel mean",
+             get("between-protein SE of the panel mean, dinuc arm"), spec["dinuc_se_protein"])
         sp = get("between-protein SE of the panel mean, dinuc arm")
         sd = get("between-draw SE of the panel mean, dinuc arm")
         if sp is not None and sd:
             at_least("dinuc arm, between-protein SE dominates the between-draw SE", sp / sd,
                      spec["dinuc_min_se_ratio"])
-        at_most("dinuc arm, propagating the draw barely widens the interval",
-                get("widening from propagating the draw, dinuc arm"),
-                spec["dinuc_max_widening"])
+        w = get("widening from propagating the draw, dinuc arm")
+        if w is not None:
+            at_most("dinuc arm, propagating the draw barely widens the interval", w,
+                    spec["dinuc_max_widening"])
+            record(w >= 0.0, "dinuc arm, and it widens rather than shrinks it",
+                   f"{w:.5f}", ">= 0")
+        at_most("dinuc arm, median per-dataset spread across draws",
+                get("median per-dataset spread across draws, dinuc arm"),
+                spec["dinuc_max_median_spread"])
+    # BOTH composition-matched arms now carry a draw estimate, which is what makes the
+    # limitation retired rather than narrowed. Asserted jointly so that dropping one arm's
+    # rows cannot leave the manuscript's "two of the three protocols" standing alone.
+    if "dinuc_draws" in spec:
+        record(get("draws, gc arm") == spec["gc_draws"]
+               and get("draws, dinuc arm") == spec["dinuc_draws"],
+               "both composition-matched arms carry a full draw set",
+               f"gc {get('draws, gc arm')}, dinuc {get('draws, dinuc arm')}",
+               f"gc {spec['gc_draws']}, dinuc {spec['dinuc_draws']}")
 
 
 def verify_protocol_transport(T, g):

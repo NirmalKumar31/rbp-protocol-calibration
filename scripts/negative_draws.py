@@ -19,7 +19,8 @@ obstacle was compute, and scripts/redraw_composition.py bought it. What survives
 part: the bias-aware arm's negatives ARE other proteins' binding sites, every one of which is
 already in the window store, so it can be redrawn exactly -- same procedure, same pool,
 different seed -- for nothing but local CPU. What is measured HERE is draw variability for one
-of three protocols; the other two are in results/tables/redraw_composition.csv.
+of three protocols; the other two got ten draws each on rented CPU and are in
+results/tables/redraw_composition.csv.
 
 The arm chosen is also the informative one for this question. It has the smallest contribution
 of the three, so a draw effect of a given absolute size matters most there, and the Results

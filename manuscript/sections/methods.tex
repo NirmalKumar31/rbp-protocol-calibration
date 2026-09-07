@@ -423,12 +423,12 @@ What that bootstrap resamples is proteins, and nothing else, so every interval i
 conditional on the rest of the design being held at the value it took. Six things are held
 fixed and are therefore absent from the stated widths, each quantified where it is discussed:
 the deterministic selection of 95 of 189 candidate datasets, which is a systematic subset by pair rank and not a probability sample; one
-negative draw per protocol, now redrawn on two of the three arms, which widens the panel-mean
-standard error by 3.6\% on the bias-aware arm and by 0.08\% on the GC arm; one
-chromosome-to-fold partition; unseeded neural initialisation, worth about 0.001 on a panel
-mean; the choice of model and hyperparameters; and the small difference in retained positives
-between arms. The negative draw is the only one of the six measured on more than one arm, and a
-design that propagated all six would give wider intervals than any stated below. We report the conditional interval because repeating the
+negative draw per protocol, now redrawn on all three arms, which widens the panel-mean standard
+error by 3.6\% on the bias-aware arm, 0.08\% on the GC arm and 0.05\% on the dinucleotide
+arm; one chromosome-to-fold partition; unseeded neural initialisation, worth about 0.001 on a
+panel mean; the choice of model and hyperparameters; and the small difference in retained
+positives between arms. The negative draw is the only one of the six measured on every arm, and
+a design that propagated all six would give wider intervals than any stated below. We report the conditional interval because repeating the
 stochastic stages enough times to integrate over them was not affordable, not because the
 conditioning is negligible.
 
@@ -468,7 +468,7 @@ genomic coordinates that the published per-window score files do not carry.
 
 Every published value is regression-checked offline by a single command against committed
 evidence, which is a different and weaker claim than rebuilding it from raw inputs. The
-harness runs 1059 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 1073 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

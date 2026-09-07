@@ -8,3 +8,12 @@ check,value,ci_low,ci_high,n,note
 "widening from propagating the draw, gc arm",0.0008081995473616654,,,10,combined SE 0.003241 against 0.003238; the two are independent so they add in quadrature
 "largest per-dataset spread across draws, gc arm",0.0283959496656913,,,94,"max minus min over draws, worst dataset"
 "median per-dataset spread across draws, gc arm",0.007908989669837701,,,94,
+"published seed reproduces the published contribution, dinuc arm",0.030862506073256697,,,94,maximum absolute per-dataset difference; if this is not small the redraw is not redrawing the published construction
+"panel mean at the published seed, dinuc arm",0.06627712237803902,0.06626403675115053,,94,"ci_low is the published panel mean, not a bound"
+"draws, dinuc arm",10.0,,,940,"seeds [np.int64(7), np.int64(1007), np.int64(2007), np.int64(3007), np.int64(4007), np.int64(5007), np.int64(6007), np.int64(7007), np.int64(8007), np.int64(9007)]"
+"panel-mean contribution across draws, dinuc arm",0.06608089465895126,0.06543072195260416,0.06760623325973594,10,"bounds are the min and max draw, not an interval"
+"between-draw SE of the panel mean, dinuc arm",0.00020468792442871508,,,10,SD across draws 0.000647 over sqrt(10)
+"between-protein SE of the panel mean, dinuc arm",0.0065107102553486175,,,79,the component the published interval already carries
+"widening from propagating the draw, dinuc arm",0.0004940722233597317,,,10,combined SE 0.006514 against 0.006511; the two are independent so they add in quadrature
+"largest per-dataset spread across draws, dinuc arm",0.0678622285510856,,,94,"max minus min over draws, worst dataset"
+"median per-dataset spread across draws, dinuc arm",0.013914079630578453,,,94,

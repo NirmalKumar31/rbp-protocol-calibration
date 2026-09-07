@@ -2588,6 +2588,23 @@ redraw_composition:
   gc_min_se_ratio: 10.0                  # observed 24.9; below 10 the draw stops being noise
   gc_max_widening: 0.01                  # observed 0.0008. This is the whole point.
   gc_max_median_spread: 0.015
+  # The dinucleotide arm, which the same run reached: it took about 10 minutes a draw rather
+  # than the 113 the plan projected from a two-dataset smoke test, so it got ten draws too and
+  # the instance finished two hours inside its deadline. Its published seed lands on the
+  # published panel mean to 0.000013, which is closer than the GC arm manages and is what a
+  # larger candidate pool per positive should give.
+  dinuc_draws: 10
+  dinuc_published_panel_mean: 0.066264   # three_arm_models_per_dataset.csv, kmer_gain_dn
+  dinuc_published_seed_panel_mean: {value: 0.066277, tol: 0.0005}
+  dinuc_max_seed_gap: 0.002
+  dinuc_max_reproduction_gap: 0.040      # worst per-dataset gap; larger arm, larger gap
+  dinuc_max_draw_excursion: 0.003
+  dinuc_panel_mean: {value: 0.066081, tol: 0.0010}
+  dinuc_se_protein: {value: 0.006511, tol: 0.0005}
+  dinuc_max_se_draw: 0.0008
+  dinuc_min_se_ratio: 10.0               # observed 31.8
+  dinuc_max_widening: 0.01               # observed 0.0005
+  dinuc_max_median_spread: 0.025
 
 # TRAIN-PROTOCOL BY EVALUATION-PROTOCOL. The design changes the negatives in training and in
 # evaluation at once, so the published contrast cannot say which of the two moves the number.

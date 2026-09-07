@@ -47,8 +47,8 @@ throughout for different quantities.
 
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download. 1059 numeric assertions are checked
-against committed tables, of which **921 belong to this paper** and 136 to an earlier
+No cloud account, no credentials, no data download. 1073 numeric assertions are checked
+against committed tables, of which **935 belong to this paper** and 136 to an earlier
 variant-scoring study whose code and evidence are still here and still pass. The verifier prints
 that split on every run, because one total covering two papers is not this paper's evidence. That is a regression gate on the published values, not a proof that
 each is attached to the right claim; the Limitations section says what it does not cover.
@@ -56,7 +56,7 @@ each is attached to the right claim; the Limitations section says what it does n
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e . -c constraints.txt   # no torch: the neural stack is an extra
-PYTHONPATH=src python scripts/verify.py --local results/tables   # 1059/1059
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 1073/1073
 PYTHONPATH=src python -m pytest tests -q \
   --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
 

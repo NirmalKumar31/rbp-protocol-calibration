@@ -4,5 +4,5 @@ pages,57,,derived from the built release by scripts/release_consistency.py
 references,26,,derived from the built release by scripts/release_consistency.py
 figure environments,7,,derived from the built release by scripts/release_consistency.py
 table environments,16,,derived from the built release by scripts/release_consistency.py
-verify checks,1059,,derived from the built release by scripts/release_consistency.py
+verify checks,1073,,derived from the built release by scripts/release_consistency.py
 abstract words,440,,derived from the built release by scripts/release_consistency.py

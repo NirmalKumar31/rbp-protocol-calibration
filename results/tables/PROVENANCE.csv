@@ -24,6 +24,16 @@ device_portability_per_fold.csv,scripts/device_portability.py,s13b_local_analysi
 donor_overlap.csv,scripts/cloud_analysis.py,,frozen-only,43b141aab1a48869,7243,not invoked by run.sh
 donor_overlap_strata.csv,scripts/cloud_analysis.py,,frozen-only,d4e8d187148fd4dd,456,not invoked by run.sh
 donor_tasks.tsv,scripts/donor_draw.py,,frozen-only,9f93d41b7b7e5c0a,42638,not invoked by run.sh
+draws/dinuc_seed1007.csv,scripts/redraw_composition.py,,cloud-produced,488629e161b5449b,10380,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed2007.csv,scripts/redraw_composition.py,,cloud-produced,f515b67313f3db5d,10384,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed3007.csv,scripts/redraw_composition.py,,cloud-produced,3db70833571fc22b,10372,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed4007.csv,scripts/redraw_composition.py,,cloud-produced,6c49db5530f1b86f,10364,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed5007.csv,scripts/redraw_composition.py,,cloud-produced,b4783a7a7bb517b6,10381,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed6007.csv,scripts/redraw_composition.py,,cloud-produced,15f8c5ed9cdfd870,10388,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed7.csv,scripts/redraw_composition.py,,cloud-produced,7e1d2ae749909cfc,10098,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed7007.csv,scripts/redraw_composition.py,,cloud-produced,2deffb4d0bfe0ac2,10387,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed8007.csv,scripts/redraw_composition.py,,cloud-produced,4bf5b579ddc9335b,10385,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
+draws/dinuc_seed9007.csv,scripts/redraw_composition.py,,cloud-produced,ead0272965f254c9,10383,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
 draws/gc_seed1007.csv,scripts/redraw_composition.py,,cloud-produced,0a3d2a12d80267bb,10440,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
 draws/gc_seed2007.csv,scripts/redraw_composition.py,,cloud-produced,b425804849357dd1,10427,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
 draws/gc_seed3007.csv,scripts/redraw_composition.py,,cloud-produced,8e31c0747fa029a4,10425,"one seed of `redraw_composition.py --arm ...`, run on a rented 8-vCPU instance; --summarise reads them back"
@@ -94,7 +104,7 @@ r1_robustness.csv,scripts/r1_robustness.py,s13b_local_analysis,raw-reproducible,
 raw_inputs.csv,scripts/raw_inputs.py,,cloud-produced,5f76cbab059b5b2a,71954,"written by raw_inputs, a cloud stage"
 recommendation_works.csv,scripts/recommendation_works.py,s13b_local_analysis,raw-reproducible,af573ac92beec95d,1536,"""$PY"" scripts/recommendation_works.py || die ""recommendation test"""
 recompute.csv,scripts/recompute.py,s13b_local_analysis,raw-reproducible,256d120f4a783475,21350,"""$PY"" scripts/recompute.py         || die ""recompute from per-example evidence"""
-redraw_composition.csv,scripts/redraw_composition.py,s13b_local_analysis,evidence-recomputable,36977e564a5bd690,1324,"""$PY"" scripts/redraw_composition.py --summarise || die ""redraw composition"""
+redraw_composition.csv,scripts/redraw_composition.py,s13b_local_analysis,evidence-recomputable,5c7a3624e25889fb,2639,"""$PY"" scripts/redraw_composition.py --summarise || die ""redraw composition"""
 region_annotation.csv,scripts/region_annotation.py,s13b_local_analysis,evidence-recomputable,cfa48d368037beb8,3827,"""$PY"" scripts/region_annotation.py --from-cache || die ""region annotation rules"""
 region_annotation_per_dataset.csv,scripts/region_annotation.py,s13b_local_analysis,frozen-cache,b6b4a33271853e41,109306,"""$PY"" scripts/region_annotation.py --from-cache || die ""region annotation rules"""
 region_asymmetry.csv,scripts/region_asymmetry.py,s13b_local_analysis,evidence-recomputable,2044c9bfd9dfad1c,1740,"""$PY"" scripts/region_asymmetry.py --from-cache || die ""region asymmetry"""
