@@ -124,7 +124,14 @@ def abstract_words():
                   (MANUSCRIPT / "paper.tex").read_text(), re.S)
     if not m:
         return None
-    body = re.sub(r"\$[^$]*\$", " X ", m.group(1))      # one token per maths span
+    # AN ESCAPED DOLLAR IS NOT A MATHS DELIMITER, and this treated it as one. Writing a cost
+    # of "\\$115" in the abstract made the regex below open a maths span at that dollar and close
+    # it at the next real one, swallowing 165 words of prose as a single token: the count went
+    # from 465 to 300 and the release check reported a stale claim in SUBMISSION.md that was not
+    # stale. Escaped dollars are taken out of play first.
+    body = m.group(1).replace(r"\$", "\x00")
+    body = re.sub(r"\$[^$]*\$", " X ", body)            # one token per maths span
+    body = body.replace("\x00", " $ ")                  # and a literal dollar is one word
     body = re.sub(r"\\[a-zA-Z]+\*?", " ", body)         # control sequences are not words
     body = re.sub(r"[{}~\\]", " ", body)
     return len([w for w in body.split() if re.search(r"[A-Za-z0-9]", w)])

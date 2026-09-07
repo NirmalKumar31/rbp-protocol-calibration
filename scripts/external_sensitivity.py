@@ -4,7 +4,7 @@
     python scripts/external_sensitivity.py --n 4            # smoke test, writes .partial.csv
     python scripts/external_sensitivity.py --from-cache     # summary only
 
-WHAT THIS ANSWERS. `docs/EXTERNAL_BENCHMARK_AMENDMENT.md`, committed at 02a2bac BEFORE this
+What this answers. `docs/EXTERNAL_BENCHMARK_AMENDMENT.md`, committed at 02a2bac BEFORE this
 script was run, records three defects an external audit found in the external-benchmark claim
 and fixes the first by specification:
 
@@ -30,7 +30,7 @@ lower bound >= 1.2; fails = the interval contains 1.0 or the point is below 1.0;
 indeterminate = the denominator arm's panel mean is not positive, or under 20 datasets survive.
 Every cell's verdict is emitted whatever it says.
 
-WHY IT COSTS NOTHING. A 4-mer logistic fit on one of these datasets is milliseconds.
+Why it costs nothing. A 4-mer logistic fit on one of these datasets is milliseconds.
 Cross-fitting adds ten complement fits per dataset per arm. The whole run is one laptop core for
 well under an hour, with no GPU and no cloud.
 """

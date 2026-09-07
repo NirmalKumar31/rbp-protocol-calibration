@@ -16,7 +16,7 @@ and the tracked source disagreed, and the source was the wrong half.
 Either direction of that disagreement is a research-object integrity failure, and nothing in
 this repository could see it. This script is the check that can.
 
-HOW IT COMPARES, and why not bytes. pdflatex embeds a build timestamp and a document ID, so two
+How it compares, and why not bytes. pdflatex embeds a build timestamp and a document ID, so two
 builds of identical sources differ in bytes. Demanding byte identity would produce a gate that
 fails for a reason nobody should act on. Instead the PDF is compared on what a reader actually
 reads:

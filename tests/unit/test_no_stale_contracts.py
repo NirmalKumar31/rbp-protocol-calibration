@@ -173,6 +173,67 @@ def test_the_neural_stack_is_an_extra_not_a_base_dependency():
     assert "<" in rp, f"requires-python {rp!r} has no upper bound"
 
 
+def test_an_escaped_dollar_is_not_a_maths_delimiter():
+    """release_consistency.abstract_words() read `\\$115` as an opening maths delimiter.
+
+    It then closed the span at the next real `$` and swallowed 165 words of prose as one token,
+    so the abstract counted 300 instead of 465 and the release check reported a stale claim in
+    SUBMISSION.md that was not stale. A measurement tool returning a confident wrong number is
+    worse than one that fails, because the wrong number gets acted on.
+    """
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    rc = pytest.importorskip("release_consistency")
+
+    plain = r"\begin{abstract} one two three four five. \end{abstract}"
+    with_cost = r"\begin{abstract} one two costs \$115 three four five. \end{abstract}"
+    with_maths = r"\begin{abstract} one two $x + y$ three four five. \end{abstract}"
+
+    def count(tex, tmp=ROOT / "manuscript" / "paper.tex"):
+        keep = tmp.read_text()
+        try:
+            tmp.write_text(tex)
+            return rc.abstract_words()
+        finally:
+            tmp.write_text(keep)
+
+    assert count(plain) == 5
+    # "costs", "$", "115" and the five: the dollar amount adds words, it does not delete a span
+    assert count(with_cost) >= 7, "an escaped dollar swallowed the rest of the abstract"
+    assert count(with_maths) == 6, "a real maths span should count as one token"
+
+
+def test_the_declared_version_is_one_number_everywhere():
+    """P0-5. pyproject.toml, CITATION.cff and any git tag must agree, or the release has no
+    single identity and a version DOI cannot point at a definite snapshot.
+
+    They agree today at 0.9.0 and nothing enforced it. The tag does not exist yet; when it
+    does, this fails unless it matches, which is the point: the tag is the thing a DOI is
+    minted against.
+    """
+    import subprocess
+
+    tomllib = pytest.importorskip("tomllib")
+    pyproject = tomllib.loads(_read("pyproject.toml"))["project"]["version"]
+    cff = None
+    for line in _read("CITATION.cff").splitlines():
+        if line.startswith("version:"):
+            cff = line.split(":", 1)[1].strip().strip('"\'')
+    assert cff is not None, "CITATION.cff has no version: key"
+    assert pyproject == cff, (
+        f"pyproject.toml says {pyproject}, CITATION.cff says {cff}")
+
+    r = subprocess.run(["git", "tag", "--points-at", "HEAD"],
+                       capture_output=True, text=True, cwd=str(ROOT))
+    if r.returncode != 0:
+        return                      # not a git repo: an unpacked archive, nothing to check
+    tags = [t for t in r.stdout.split() if t.startswith("v")]
+    for t in tags:
+        assert t.lstrip("v") == pyproject, (
+            f"tag {t} does not match the declared version {pyproject}. A version DOI minted "
+            "against this tag would name a different release from the one the code declares")
+
+
 def test_every_repository_path_the_manuscript_names_exists():
     """A paper that tells a reader to look at a file must name a file that is there.
 

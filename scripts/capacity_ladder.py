@@ -5,7 +5,7 @@
 
 Specified in `docs/SENSITIVITY_SPEC.md` section C, committed before this was run.
 
-WHAT IS BEING MEASURED. The paper reports the outer-fold channel at two points, k = 4 and
+What is being measured. The paper reports the outer-fold channel at two points, k = 4 and
 k = 2, and asserts a DIRECTION for how it scales with capacity: a higher-capacity base model has
 more scope to encode the withheld fold, so the channel should grow. That assertion carries real
 weight, because it is the argument for why the unmeasured neural channel is unlikely to be
@@ -15,7 +15,7 @@ The channel at each rung is `two-stage minus cross-fitted`, both computed by
 `scripts/cross_fitting.py` unmodified: ten complement fits per dataset per arm, one per
 unordered fold pair.
 
-WHY A SUBSAMPLE OF DATASETS, and the rule was fixed before the count. A k = 6 design has 4096
+Why a subsample of datasets, and the rule was fixed before the count. A k = 6 design has 4096
 columns against a few thousand rows, so one rung costs far more than k = 4 and the full panel at
 five rungs does not fit a sensible local budget. The rule in the specification is systematic
 sampling by pair rank, every m-th dataset from the panel ordered by pair count, with m the

@@ -185,9 +185,9 @@ GC arm is region mix and the rest is not. The ordering is unchanged: the region-
 still carries the highest composition baseline of the three and still yields the lowest
 contribution.
 
-That repair was available for the 4-mer alone until now, which left the obvious objection open:
-a convolutional network or a pretrained language model might depend on transcript region in a
-way a bag of 4-mer counts does not, and the arm whose position the design does not imply was
+That repair was available for the 4-mer alone until now, which left the obvious objection open.
+A convolutional network or a pretrained language model might depend on transcript region in a
+way a bag of 4-mer counts does not. So the arm whose position the design does not imply had been
 corrected for only one model class of three. We therefore trained both neural models on the
 region-matched arm across all 94 datasets and five folds, on the same code path and hardware as
 the published sweeps, 940 fold-runs in total. The 4-mer column recomputed here reproduces the
@@ -484,12 +484,12 @@ abolished where the baseline falls.}
 \label{sec:shuffled}
 
 Before adding a fourth arm it is worth asking what this literature actually does, because we
-assumed an answer and it was wrong. Across a targeted, non-systematic sample of seven methods and benchmarks
-(Table~\ref{tab:survey}; selection rule in Methods), five construct negatives by relocating genomic intervals: GraphProt
-shuffles the coordinates of bound sites within genes carrying at least one site, the RBP-24
-dataset behind several later models does the same with BedTools, DeepCLIP and RNAProt sample
-unbound regions of the same gene or transcript, and RBPsuite 2.0 shuffles to non-peak regions of
-the same transcript. Two draw negatives from other proteins' binding sites. None of the seven
+assumed an answer and it was wrong. We read a targeted, non-systematic sample of seven methods and benchmarks
+(Table~\ref{tab:survey}; the selection rule is in Methods). Five of them construct negatives by
+relocating genomic intervals. GraphProt shuffles the coordinates of bound sites within genes
+carrying at least one site, and the RBP-24 dataset behind several later models does the same with
+BedTools. DeepCLIP and RNAProt sample unbound regions of the same gene or transcript, and
+RBPsuite 2.0 shuffles to non-peak regions of the same transcript. Two draw negatives from other proteins' binding sites. None of the seven
 permutes the positive's own sequence as its primary construction; sequence shuffling appears
 only as an option for FASTA input in RNAProt and as an alternative in DeepCLIP. The dominant
 construction is therefore positional, and it leaves composition entirely unconstrained, which is
@@ -1310,10 +1310,10 @@ Section~\ref{sec:orderthree} was wrong about the mechanism while right that the 
 
 For the 4-mer the route is small and runs the other way. Cross-fitting \emph{raises} the
 contribution, by $0.0017$, $0.0008$ and $0.0016$ in the three arms, lowering it on only 4, 14
-and 2 of the 94 datasets. We had argued the bias could only help the score column; that is true
-of a model the baseline spans, where the route is the only thing the covariate can add, and
-false of one carrying real information, where the published fit pairs a training covariate and a
-test covariate from equally sized training sets and the cross-fitted fit does not. The
+and 2 of the 94 datasets. We had argued the bias could only help the score column. That is true of a
+model the baseline spans, where the route is the only thing the covariate can add. It is false
+of one carrying real information: there the published fit pairs a training covariate and a test
+covariate from equally sized training sets, and the cross-fitted fit does not. The
 directional claim is withdrawn: the sign depends on the model, and the honest statement is that
 we measured it rather than that we can predict it.
 

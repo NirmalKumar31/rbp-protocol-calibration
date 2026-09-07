@@ -132,8 +132,8 @@ intersection moves the contrast by 0.0003.
 For a 4-mer the measured contribution moves 4.84-fold across three protocols (95\% CI 3.98 to
 5.81) under the cross-fitted estimator we take as primary, and 5.42-fold (4.43 to 6.58) under
 the two-stage estimator this literature computes, reported for comparability. The two-stage span
-is 3.7 to 7.4-fold across three model classes; both neural spans are exploratory, since
-cross-fitting them was not affordable. A model's
+is 3.7 to 7.4-fold across three model classes; both neural spans are exploratory, because
+cross-fitting them was not run; it would cost about \$115. A model's
 apparent AUROC moves the opposite way: replacing GC-matched with dinucleotide-matched negatives
 lowers the 4-mer's own AUROC from 0.798 to 0.688 in all 94 datasets while raising its measured
 contribution from 0.027 to 0.066 in 88. Fitting on one protocol and scoring another attributes
@@ -157,7 +157,7 @@ two-stage and not cross-fitted, so it is comparable with our 5.42 and not with o
 4.84. The directional relation between apparent
 difficulty and measured contribution does not replicate there, and we report it as failing.
 
-In a targeted survey of seven widely used methods and benchmarks, none reports a
+In a targeted, non-systematic sample of seven methods and benchmarks, none reports a
 composition-only AUROC beside its headline. We recommend cross-fitting the score covariate,
 reporting that baseline under the same protocol, and not comparing contributions measured under
 different protocols.

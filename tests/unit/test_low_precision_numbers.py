@@ -1,6 +1,6 @@
 """Manuscript numbers written to fewer than three decimals, traced to their evidence row.
 
-WHY THIS EXISTS, and it closes the hole that let fourteen wrong numbers into the paper.
+Why this exists, and it closes the hole that let fourteen wrong numbers into the paper.
 
 `scripts/audit_manuscript.py` checks every manuscript number with **three or more decimal
 places** against a haystack of table cells, and reports its own false-negative rate honestly:

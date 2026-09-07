@@ -34,7 +34,7 @@ stronger claim and a review was right to object.
 absent; it depends only on nothing being misdescribed.
 
 What that does NOT settle: a journal submission afterwards will impose its own limits, and the
-ones that would bite are the abstract (461 words against a typical 250) and the main text (60
+ones that would bite are the abstract (465 words against a typical 250) and the main text (60
 pages, 16 table environments). The long-form abstract and the guidance for cutting are kept
 where they can be found again -- see the note above `\begin{abstract}` in `paper.tex` -- and
 `results/tables/PROVENANCE.csv` already identifies which tables are secondary and would move to

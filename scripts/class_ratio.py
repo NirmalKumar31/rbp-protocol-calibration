@@ -13,14 +13,14 @@ coefficient shifts with the number of rows. The composition block and the model 
 have to absorb that shift equally, and the whole quantity here is a DIFFERENCE between two fits.
 So the question is whether the arm ordering and the span survive, not whether AUROC does.
 
-HOW THE RATIO IS REACHED, and it can only be one way. The committed windows are already about
+How the ratio is reached, and it can only be one way. The committed windows are already about
 1:1, so no ratio is reachable by adding rows. Rows are subsampled WITHIN FOLD, so the fold
 partition and its blocking are untouched: for 1:2 and 1:4 every negative is kept and the
 positives are cut, for 2:1 every positive is kept and the negatives are cut. That means the
 smaller ratios also shrink the dataset, which is a confound this design cannot separate from
 balance itself, and it is reported rather than hidden: the row count at each ratio is a column.
 
-NO INTERVAL IS COMPUTED FOR THE SUBSAMPLED RATIOS. The subsample introduces a variance
+No interval is computed for the subsampled ratios. The subsample introduces a variance
 component that a protein-clustered bootstrap over one draw does not represent, and reporting a
 protein-clustered interval as though it covered both would be the same error this project made
 once already with SD versus SD/sqrt(n). Point estimates and the ordering are what the analysis

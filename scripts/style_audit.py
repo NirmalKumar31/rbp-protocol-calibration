@@ -120,8 +120,14 @@ def main():
         n = body.count(ch)
         print(f"\n  {name}s: {n}, one per {words / max(n, 1):.0f} words"
               + ("   FLAG: stacking clauses" if n and words / n < lim else ""))
-    dash = body.count("—") + body.count("--")
-    print(f"  em-dashes: {dash}" + ("   FLAG: one crept back in" if dash else "  (deliberate)"))
+    # An EN-dash, "--" in LaTeX, is the correct glyph for a numeric range and is not the
+    # device being counted. This counted it, so `4.43--6.58` and a page range in the
+    # bibliography read as em-dashes and the flag fired on correct typesetting. A flag that
+    # fires on the right answer is a flag that gets ignored.
+    dash = body.count("—") + body.count("---")
+    endash = body.count("--") - 2 * body.count("---")
+    print(f"  em-dashes: {dash}" + ("   FLAG: one crept back in" if dash else "  (deliberate)")
+          + f"    en-dashes (numeric ranges, expected): {max(endash, 0)}")
 
     # 6. HEDGE DENSITY.
     hh = Counter()
