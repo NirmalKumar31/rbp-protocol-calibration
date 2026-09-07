@@ -75,9 +75,14 @@ step "ruff" "$PY" -m ruff check .
 step "shell syntax" bash -c 'for f in $(git ls-files "*.sh"); do bash -n "$f" || exit 1; done'
 
 # 7. the manuscript, and whether the tracked PDF is the output of the tracked source
+# pdf_freshness.py runs build.sh inside a TEMPORARY COPY, so every gate build.sh carries
+# (undefined references, over- and underfull boxes) runs there and a failure propagates. It is
+# therefore strictly stronger than an in-place build, and it does not rewrite the tracked PDFs.
+# An in-place build here would dirty the tree on every check run, because pdflatex embeds a
+# timestamp, and a "check" command that leaves the tree dirty is how timestamp churn gets
+# committed by accident.
 if command -v pdflatex >/dev/null 2>&1; then
-  step "paper builds, no undefined refs, no boxes" bash -c 'cd manuscript && ./build.sh'
-  step "tracked PDFs match a clean build" "$PY" scripts/pdf_freshness.py
+  step "tracked PDFs match a clean build (builds in a temp copy)" "$PY" scripts/pdf_freshness.py
 else
   printf '\n=== tracked PDFs match a clean build\n    SKIPPED: no pdflatex here.\n' >&2
   printf '    The CI manuscript job is then the ONLY thing checking this. That is a gap in\n' >&2
