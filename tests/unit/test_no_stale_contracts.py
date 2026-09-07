@@ -173,6 +173,51 @@ def test_the_neural_stack_is_an_extra_not_a_base_dependency():
     assert "<" in rp, f"requires-python {rp!r} has no upper bound"
 
 
+# Entries that legitimately have no DOI. Both are the canonical software citations their
+# projects ask to be cited by, and neither publisher minted one.
+NO_DOI_BY_DESIGN = {"sklearn", "pytorch"}
+
+
+def test_every_bibliography_entry_carries_a_resolvable_identifier():
+    """P1-1. Five of the seven surveyed methods were discussed with no citation at all.
+
+    Checked OFFLINE, on purpose: a CI job that queries Crossref fails when Crossref is slow,
+    and a gate that fails for a reason nobody should act on gets disabled. What this asserts is
+    that every entry carries a DOI or is a named exception, so a new entry cannot be added
+    without a resolvable identifier and nobody noticing.
+
+    All 29 DOIs were resolved against Crossref by hand on 2026-09-07 and every normalised title
+    matched at 0.92 or better. That is a dated manual check, recorded here, and it is not what
+    this test does.
+    """
+    text = _read("manuscript/sections/bibliography.tex")
+    entries = re.split(r"\\bibitem", text)[1:]
+    assert len(entries) >= 25, (
+        f"only {len(entries)} bibitems parsed; the pattern stopped matching rather than the "
+        "bibliography having shrunk")
+    missing = []
+    for e in entries:
+        key = re.search(r"\]\{([^}]+)\}", e)
+        assert key, "a bibitem has no citation key"
+        if r"\doi{" not in e and key.group(1) not in NO_DOI_BY_DESIGN:
+            missing.append(key.group(1))
+    assert not missing, (
+        f"bibliography entries with neither a DOI nor an exemption: {missing}. Add the DOI, or "
+        "add the key to NO_DOI_BY_DESIGN with the reason")
+
+
+def test_every_survey_row_is_cited():
+    """The seven-method table discussed methods the bibliography did not contain."""
+    results = _read("manuscript/sections/results.tex")
+    block = re.search(r"\\label\{tab:survey\}(.*?)\\end\{tabular\}", results, re.S)
+    assert block, "the survey table no longer matches; the citation check covers nothing"
+    rows = [ln for ln in block.group(1).splitlines()
+            if "&" in ln and "\\toprule" not in ln and "source &" not in ln]
+    assert len(rows) >= 7, f"only {len(rows)} survey rows found"
+    uncited = [ln.split("&")[0].strip() for ln in rows if r"\citep{" not in ln]
+    assert not uncited, f"survey rows with no citation: {uncited}"
+
+
 def test_an_escaped_dollar_is_not_a_maths_delimiter():
     """release_consistency.abstract_words() read `\\$115` as an opening maths delimiter.
 
