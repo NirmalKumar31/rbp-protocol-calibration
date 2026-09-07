@@ -75,8 +75,20 @@ Zenodo gives you **two** DOIs and the difference matters:
 
 | DOI | resolves to | use it for |
 |---|---|---|
-| **concept DOI** | always the latest version | **cite this one in the paper** |
+| **concept DOI** | always the latest version | give for discovery, alongside the version DOI |
 | version DOI | exactly `v1.0.0` | cite when a specific version matters |
+
+**CITE THE VERSION DOI FOR THE ANALYSED SNAPSHOT.** An audit was right that earlier guidance
+here had this backwards. A concept DOI resolves to whatever the latest version happens to be, so
+it cannot identify the exact research object the paper's numbers came from; that is the whole
+property a reproducibility citation needs. Give both: the version DOI and its tag for the
+snapshot the analysis ran on, and the concept DOI beside it so a reader finds later versions.
+
+**THE TAG MUST MATCH THE DECLARED VERSION.** `pyproject.toml` and `CITATION.cff` are the source
+of truth for the version string; tag whatever they say rather than the `v1.0.0` used as an
+example below. They currently read 0.9.0, deliberately, because no tagged release exists and
+`SECURITY.md` makes no support promise. Raising it to 1.0.0 is a decision about support, not a
+formatting step, and both files must move together.
 
 The concept DOI is the one shown as "Cite all versions" on the record page. Use it in the
 manuscript, so that later releases do not leave the paper pointing at a superseded snapshot.

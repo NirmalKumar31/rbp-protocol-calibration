@@ -3,9 +3,13 @@
 A calibration study across 94 paired ENCODE eCLIP datasets. We hold the model class and its
 hyperparameters, the peak set, the chromosome-to-fold map and the estimator implementation
 fixed, change how negative windows are constructed, and measure each model's **nested
-contribution**: the out-of-fold AUROC of a
-logistic model on 19 composition features plus the model's score, minus the AUROC of those
-features alone.
+contribution**: the out-of-fold AUROC of a logistic model on 19 composition features plus the
+model's score, minus the AUROC of those features alone.
+
+Two things are not held fixed and the abstract says so: model and baseline are **refitted per
+protocol**, and because each matcher rejects the positives it cannot pair, the retained
+positives differ very slightly between arms. Restricting to their intersection drops 0.23% of
+positives and moves the contrast +0.0398 to +0.0401.
 
 The number moves **4.84-fold** (95% CI 3.98 to 5.81) for a 4-mer logistic regression under the
 cross-fitted estimator this paper recommends, and **5.42-fold** (4.43 to 6.58) under the
