@@ -22,7 +22,7 @@ a forecast.
 | **Real money out of pocket** | **~$20** | the rest was trial and platform credit |
 
 The two GPU rates the forecast used, back-solved from recorded A10G seconds in `metrics.json`
-across the bias-aware arm's 940 runs: **$14.59 per million pairs for the CNN** and **$27.25 per
+across the bias-aware arm's 940 runs: **$14.58 per million pairs for the CNN** and **$27.25 per
 million pairs for SpliceBERT**, both at the A10G list price of **$1.10/GPU-hour**. Those are the
 numbers `cloud/modal/modal_gc_sweep.py` prices a manifest with, and the $18.97 against $18.91
 above is how well they held.

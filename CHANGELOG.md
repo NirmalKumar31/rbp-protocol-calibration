@@ -5,7 +5,7 @@
 Not tagged. `1.0.0` is reserved for the commit that is archived and given a DOI.
 
 The state the manuscript describes. 1086 numeric assertions pass offline against committed
-tables; 817 collected tests; the paper builds from a clean export with zero LaTeX warnings, zero undefined references and zero over- or underfull boxes. "Warning-clean" used to be the phrasing and an audit objected, correctly, because a fresh log then carried one underfull \hbox: a typesetting diagnostic rather than a LaTeX Warning, but not nothing. That box was in methods.tex, where an unbreakable \texttt path forced TeX to stretch the line before it; the path now carries the same \allowbreak the manuscript already used in three other places, and both logs are at zero. Both counts are stated rather than one being folded into the other.
+tables; 835 collected tests; the paper builds from a clean export with zero LaTeX warnings, zero undefined references and zero over- or underfull boxes. "Warning-clean" used to be the phrasing and an audit objected, correctly, because a fresh log then carried one underfull \hbox: a typesetting diagnostic rather than a LaTeX Warning, but not nothing. That box was in methods.tex, where an unbreakable \texttt path forced TeX to stretch the line before it; the path now carries the same \allowbreak the manuscript already used in three other places, and both logs are at zero. Both counts are stated rather than one being folded into the other.
 
 ### The finding
 

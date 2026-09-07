@@ -12,7 +12,7 @@ positives differ very slightly between arms. Restricting to their intersection d
 positives and moves the contrast +0.0398 to +0.0401.
 
 The number moves **4.84-fold** (95% CI 3.98 to 5.81) for a 4-mer logistic regression under the
-cross-fitted estimator this paper recommends, and **5.42-fold** (4.43 to 6.59) under the
+cross-fitted estimator this paper recommends, and **5.42-fold** (4.43 to 6.58) under the
 two-stage estimator the literature actually computes. Both are reported throughout; the
 cross-fitted one is primary. Across three model classes the two-stage span runs 3.7 to 7.4-fold,
 on identical rows within each arm. A model's apparent AUROC moves the opposite way.
@@ -34,7 +34,7 @@ protocols for a 4-mer, 5.42-fold under the estimator the literature uses, while 
 AUROC moves the opposite way. A two-way decomposition of the nine
 train-by-evaluate combinations attributes most of the movement to the **evaluation** protocol
 rather than the fitted model. Two decompositions, which are different estimands and not two
-weightings of one: averaging each dataset's own normalised shares gives 63% (CI 59 to 68)
+weightings of one: averaging each dataset's own normalised shares gives 63% (CI 57 to 68)
 against 15% for training, and decomposing the matrix of panel means gives 81% (73 to 87)
 against 9%. Leave-one-protein-out moves the larger share by at most 3.0 points, so no one
 protein carries it. Most of what the protocol moves is the measurement (`sec:transport`).
@@ -86,9 +86,9 @@ headline contrast recomputed from raw sequence.
 | **It is not an AUROC artefact** | The ordering holds on five estimands including unbounded deviance. The magnitude is scale-specific: 5.42-fold in AUROC, about 2.1-fold on unbounded scales |
 | **Shuffling removes the baseline entirely** | Dinucleotide-shuffled negatives pin the composition baseline at exactly **0.5000** on all 94 datasets, so the contribution becomes the model's own AUROC less a half. Across four constructions the span is 20.62-fold |
 | **The estimator has a floor** | Applied to a model whose information the baseline already contains, so the truth is zero, it returns **+0.0119 / +0.0137 / +0.0111**. Nearly flat across arms, so the span survives; but 90.4% of the bias-aware arm's value, so that level does not |
-| **The floor is removable** | It is the outer-fold route, not conditioning. Cross-fitting the covariate cuts it by **at least 95%** and lands within 5e-4 of the known zero. The span goes 5.42 to **4.84**. Measured for the k-mer classes; the CNN and SpliceBERT would need four times the GPU sweep |
+| **The floor is removable** | It is the outer-fold route, not conditioning. Cross-fitting the covariate cuts it by **at least 95%** and lands within 5e-4 of the known zero. The span goes 5.42 to **4.84**. Measured for the k-mer classes; the CNN and SpliceBERT would need about $115, twice one sweep of both models across the three arms |
 | **The baseline's order matters too** | Raising it to order three removes most of a 4-mer's contribution and a third of SpliceBERT's; at order four the baseline overfits and the estimator's error exceeds most published increments |
-| **None of seven surveyed reports the baseline** | Of seven widely used methods and benchmarks selected by hand rather than by a systematic search, five build negatives by relocating genomic intervals, which leaves composition unconstrained, and **none** reports a composition-only AUROC. Seven hand-picked sources are not a systematic review, and the survey's selection rule is stated in `scripts/negative_set_survey.py` |
+| **None of seven surveyed reports the baseline** | Of a targeted, non-systematic sample of seven methods and benchmarks, five build negatives by relocating genomic intervals, which leaves composition unconstrained, and **none** reports a composition-only AUROC. Seven hand-picked sources are not a systematic review, and the survey's selection rule is stated in `scripts/negative_set_survey.py` |
 
 ## Rebuild it from raw data
 
@@ -117,7 +117,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          817 tests, no network or cloud; 2 modules need torch
+tests/          835 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes

@@ -224,8 +224,21 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended \
             texlive-science lmodern
-      # build.sh fails rather than warns on an undefined reference or citation, which is the
-      # property being gated: a paper that builds with a dangling \ref renders "??" and nobody
-      # notices until it is a preprint.
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5
+        with:
+          python-version: "3.13"
+      - name: install pypdf
+        run: pip install pypdf==6.1.3
+      # THE TRACKED PDF MUST BE THE OUTPUT OF THE TRACKED SOURCE, which is a different claim
+      # from "LaTeX can build". They came apart on 2026-09-07: two blind page-count
+      # substitutions moved fourteen scientific numbers in the .tex while the committed PDF
+      # still held the correct ones, and nothing here could see it. This builds in a temporary
+      # copy and compares every numeric token, so it runs BEFORE build.sh overwrites the
+      # tracked files in the workspace.
+      - name: tracked PDFs are the output of the tracked sources
+        run: python scripts/pdf_freshness.py
+      # build.sh fails rather than warns on an undefined reference, an over/underfull box, or
+      # an undefined citation, which is the property being gated: a paper that builds with a
+      # dangling \ref renders "??" and nobody notices until it is a preprint.
       - name: paper builds
         run: cd manuscript && ./build.sh

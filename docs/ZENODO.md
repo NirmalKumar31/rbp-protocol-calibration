@@ -37,9 +37,14 @@ Zenodo will use. Set at least:
   do not, get one first at <https://orcid.org/register>, it takes two minutes and it is what
   makes the deposit findable under your name.
 - **Title:** the paper's title, so the software record and the preprint match.
-- **Licence:** MIT for the code. Zenodo asks for one licence for the whole deposit; the
-  repository's `LICENSE` records that `results/` and `data/evidence/` are CC BY 4.0, and that
-  distinction is stated in the paper.
+- **Licence:** **both**, not MIT alone. Zenodo supports mixed-license uploads and documents
+  the case directly: "files you upload are under different licenses (e.g. software under the
+  MIT license, but documentation under CC-BY license). In such cases you can declare all the
+  licenses". So record **MIT for the code** and **CC BY 4.0 for `results/` and
+  `data/evidence/`**, which is what the repository's own `LICENSE`, `results/LICENSE` and
+  `data/evidence/LICENSE` say. This file used to instruct MIT for the whole deposit on the
+  ground that Zenodo asks for one licence, which flattened a distinction the paper states.
+  See <https://help.zenodo.org/docs/deposit/describe-records/licenses/>.
 - **Type:** Software.
 
 If you skip this, Zenodo will guess the author from your GitHub profile name, and the deposit

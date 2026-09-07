@@ -1,7 +1,7 @@
 check,value,n,note
-tests collected,817,,derived from the built release by scripts/release_consistency.py
-pages,59,,derived from the built release by scripts/release_consistency.py
-references,26,,derived from the built release by scripts/release_consistency.py
+tests collected,835,,derived from the built release by scripts/release_consistency.py
+pages,60,,derived from the built release by scripts/release_consistency.py
+references,31,,derived from the built release by scripts/release_consistency.py
 figure environments,7,,derived from the built release by scripts/release_consistency.py
 table environments,16,,derived from the built release by scripts/release_consistency.py
 verify checks,1086,,derived from the built release by scripts/release_consistency.py

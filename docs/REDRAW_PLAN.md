@@ -166,5 +166,7 @@ nothing about it can change a published number: the redraws are a variance compo
 beside the existing estimate, not a replacement for it. The risk is that it produces a wider
 interval, which is the point of running it.
 
-The thing it cannot fix, and which no affordable experiment can, is neural cross-fitting at about
-$570. That stays undone and disclosed.
+The thing it cannot fix is neural cross-fitting, at about $115: ten extra base fits per dataset
+where a sweep does five, so twice the roughly $57 one sweep of both models over three arms costs.
+That stays undone and disclosed. This paragraph said $570 until 2026-09-07, which came from
+reading "ten times" off the sweep rather than the fit count; the arithmetic is in Methods.

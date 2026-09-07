@@ -173,6 +173,55 @@ def test_the_neural_stack_is_an_extra_not_a_base_dependency():
     assert "<" in rp, f"requires-python {rp!r} has no upper bound"
 
 
+def test_every_repository_path_the_manuscript_names_exists():
+    """A paper that tells a reader to look at a file must name a file that is there.
+
+    Added because writing the Methods paragraph for the negative-set survey, I pointed at
+    `results/tables/negative_set_survey_sources.csv`, which does not exist; the committed table
+    is `negative_set_survey_per_method.csv`. Nothing would have caught it. `verify.py` checks
+    values in tables, `audit_manuscript.py` checks numbers, and neither reads a path.
+
+    A reader who follows a dead path in the Methods concludes the evidence is missing.
+    """
+    paths = []
+    for f in sorted(ROOT.glob("manuscript/*.tex")) + sorted(ROOT.glob("manuscript/sections/*.tex")):
+        for m in re.finditer(
+                r"\\texttt\{((?:scripts|src|tests|config|docs|cloud|docker|results|data|"
+                r"manuscript)/[A-Za-z0-9_.\\/-]+)\}", f.read_text()):
+            rel = m.group(1).replace("\\_", "_").replace("\\", "")
+            paths.append((f.relative_to(ROOT), rel))
+
+    assert len(paths) >= 10, (
+        f"only {len(paths)} repository paths found in the manuscript; the pattern stopped "
+        "matching rather than the paper having stopped citing files")
+    missing = sorted({f"{src}: {rel}" for src, rel in paths if not (ROOT / rel).exists()})
+    assert not missing, "the manuscript names paths that do not exist:\n  " + "\n  ".join(missing)
+
+
+def test_every_licence_cross_reference_resolves_from_its_own_directory():
+    """P1-2. `data/evidence/LICENSE` pointed at `../LICENSE`, which is `data/LICENSE`.
+
+    The sentence is correct in `results/LICENSE`, where `../LICENSE` IS the repository root, and
+    it was copied verbatim one level deeper. So the CC BY 4.0 file that tells a reader where to
+    find the code licence pointed at nothing, in the directory whose licensing the paper makes a
+    point of separating. Relative paths are only correct relative to something, and nothing here
+    had ever resolved one.
+    """
+    root = ROOT
+    seen = 0
+    for rel in ("LICENSE", "results/LICENSE", "data/evidence/LICENSE"):
+        f = root / rel
+        if not f.exists():
+            continue
+        for ref in re.findall(r"\.\./[./]*LICENSE", f.read_text()):
+            seen += 1
+            target = (f.parent / ref).resolve()
+            assert target.exists(), f"{rel} points at {ref}, which resolves to a missing {target}"
+    assert seen >= 2, (
+        f"only {seen} licence cross-references found; the pattern stopped matching rather than "
+        "the files having stopped cross-referencing")
+
+
 def test_the_readers_pins_and_the_ci_pins_are_the_same_environment():
     """Two hand-kept pin files, and nothing compared them.
 

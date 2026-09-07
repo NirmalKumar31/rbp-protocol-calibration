@@ -86,6 +86,16 @@ step "the column dictionary is current"
 step "every committed table has a producing script"
 "$PY" scripts/provenance.py --check || fail "provenance.py"
 
+# The tracked PDFs against a clean build. Guarded because this needs a TeX toolchain, and
+# SKIPPED IS REPORTED, not silently passed: "could not look" is not "found nothing", which is
+# the bug class that has bitten this repository four times.
+if command -v pdflatex >/dev/null 2>&1; then
+  "$PY" scripts/pdf_freshness.py || fail "pdf_freshness.py"
+else
+  echo "  SKIPPED pdf_freshness.py: no pdflatex here, so the CI manuscript job is the only" >&2
+  echo "  thing checking that the committed PDF matches the committed source" >&2
+fi
+
 step "regenerated artefacts match what is committed"
 git diff --exit-code -- results/tables/ >/dev/null || fail "a generated table changed; commit it"
 echo "  clean"

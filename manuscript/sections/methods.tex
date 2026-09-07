@@ -298,7 +298,7 @@ that integrated over them would be a different quantity, would be wider, and is 
 reported anywhere here.
 
 \paragraph{The hierarchy.} $S^{\mathrm{CF}}_{4\text{-mer}}$ is the \textbf{primary} estimand:
-$4.84$ (95\% CI $3.98$ to $5.81$). $S^{\mathrm{2S}}_{4\text{-mer}} = 5.42$ ($4.43$ to $6.59$) is
+$4.84$ (95\% CI $3.98$ to $5.81$). $S^{\mathrm{2S}}_{4\text{-mer}} = 5.42$ ($4.43$ to $6.58$) is
 retained as a \textbf{comparability analysis}, because it is the quantity a reader
 recomputing our panel with the standard recipe would obtain, and withdrawing it would make this
 work harder rather than easier to check against the literature it calibrates. The primary
@@ -308,9 +308,9 @@ other is the estimate. Both are reported wherever the distinction changes a numb
 
 For the convolutional network and SpliceBERT only $\widehat{\Delta}^{\,\mathrm{2S}}$ exists.
 Cross-fitting them requires ten additional base fits per dataset per arm, which we did not run.
-At the rates this study measured over 940 recorded runs, \$14.59 per million pairs for the
+At the rates this study measured over 940 recorded runs, \$14.58 per million pairs for the
 convolutional network and \$27.25 for SpliceBERT, one sweep of both models across all three
-arms is about \$59 and cross-fitting them is about ten times that. Every span reported for those two model
+arms is about \$57, and cross-fitting them is about twice that. Every span reported for those two model
 classes is therefore \textbf{exploratory}: it is computed with an estimator this paper
 demonstrates is biased upward for a model the baseline spans, the size of that bias is measured
 only for the k-mer classes, and a higher-capacity base model has more scope to encode the
@@ -332,7 +332,7 @@ under $0.0017$ and in the opposite direction. We had expected the bias to be one
 the grounds that it can only help the score column. That holds for a model the baseline spans
 and fails for one carrying information of its own, so the sign is a measurement here and not a
 prediction. Neither figure bounds the route for the convolutional network or SpliceBERT, which
-would need about \$115: ten extra base fits per dataset against the five a sweep already does, so twice the base cost on each of three arms, priced from the \$6.66 and \$12.44 per arm measured over the bias-aware sweep's 940 recorded runs, and has not been run.
+would need about \$115: ten extra base fits per dataset where a sweep already does five, so twice the base cost on each of three arms, at the \$6.66 (convolutional network) and \$12.44 (SpliceBERT) per arm those rates imply. It has not been run.
 
 The composition-only and composition-plus-score predictors were compared by DeLong's paired
 estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired
@@ -463,6 +463,32 @@ valid against a strictly nested null does not make the resulting count a test. T
 statements in the Results are sign counts, which need no null. This block bootstrap remains the
 one quantity the verification harness cannot check from released evidence, because it needs
 genomic coordinates that the published per-window score files do not carry.
+
+\subsection{The negative-set survey}
+
+Table~\ref{tab:survey} is a \textbf{targeted, non-systematic sample} and is reported as one.
+It was assembled by hand on 2026-09-05, not by a database query, and it makes no claim to
+completeness or to representativeness of the field.
+
+Selection. Starting from the methods this paper already cited or benchmarked against, we
+followed the negative-construction description of each to the dataset or predictor it inherited
+from, and added the two RBP benchmarks we had already used as external comparators. The
+resulting seven span 2014 to 2025 and cover both constructions this paper contrasts. Sources
+were read as primary publications; where a paper offered several negative constructions, the one
+used for its own reported benchmarks was recorded and the alternative noted in the same row.
+Two fields were abstracted per source: the construction of the negative set, and whether a
+composition-only AUROC is reported beside the headline AUROC. Ambiguous cases were resolved by
+recording the verbatim sentence the classification was read from, and every such sentence is
+committed in \texttt{results/tables/negative\_set\_survey\_per\_method.csv} beside a resolvable
+link, so a reader can check the classification rather than take it.
+
+What this design does and does not support. It supports the descriptive statement that among
+these seven, five construct negatives positionally and none reports a composition-only baseline.
+It does not support any statement about prevalence in the literature as a whole, and the paper
+makes none: a hand-assembled sample of seven cannot estimate a field-level rate, and the
+recommendation in the Discussion does not depend on one. The survey corrected a claim this paper
+had previously made from assumption rather than from reading, which is recorded in
+\texttt{scripts/negative\_set\_survey.py}.
 
 \subsection{Reproducibility}
 
