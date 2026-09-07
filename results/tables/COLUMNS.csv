@@ -1736,3 +1736,16 @@ window_centring_per_dataset.csv,seconds,float,,,60,0,58,2.5,196.4,2.5,Standard e
 window_centring_per_dataset.csv,pairs,int,count,,60,0,43,426,32387,430,Matched positive/negative pairs; rows are twice this,scripts/window_centring.py
 window_centring_per_dataset.csv,comp,float,,,60,0,60,0.538908,0.924604,0.7424391563007031,,scripts/window_centring.py
 window_centring_per_dataset.csv,gain,float,AUROC,,60,0,60,-0.00511501,0.157915,0.0023958896700920773,"Nested contribution: AUROC(composition features + model score) minus AUROC(composition alone), both pooled out of fold",scripts/window_centring.py
+window_duplication.csv,check,string,,yes,9,0,9,,,"duplicate window rows, gc arm","The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/window_duplication.py
+window_duplication.csv,value,float,,,9,0,5,0,300,0.0,The asserted quantity,scripts/window_duplication.py
+window_duplication.csv,ci_low,empty,,,9,9,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/window_duplication.py
+window_duplication.csv,ci_high,empty,,,9,9,0,,,,Upper bound of the same interval as ci_low,scripts/window_duplication.py
+window_duplication.csv,n,int,count,,9,0,4,913468,4502564,1792050,"Datasets, or rows, behind the value. Usually 94",scripts/window_duplication.py
+window_duplication.csv,note,string,,,9,0,7,,,0 of 187 datasets affected,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/window_duplication.py
+window_duplication_per_arm.csv,arm,string,,yes,3,0,3,,,gc,Negative-set protocol; see the arm suffixes in SCHEMA.md,scripts/window_duplication.py
+window_duplication_per_arm.csv,datasets,int,,,3,0,2,94,187,187,,scripts/window_duplication.py
+window_duplication_per_arm.csv,rows,int,,,3,0,3,913468,1797046,1792050,,scripts/window_duplication.py
+window_duplication_per_arm.csv,duplicate_rows,int,,,3,0,3,0,300,0,,scripts/window_duplication.py
+window_duplication_per_arm.csv,datasets_affected,int,,,3,0,3,0,46,0,,scripts/window_duplication.py
+window_duplication_per_arm.csv,cross_fold,int,,,3,0,1,0,0,0,,scripts/window_duplication.py
+window_duplication_per_arm.csv,mixed_label,int,,,3,0,1,0,0,0,,scripts/window_duplication.py

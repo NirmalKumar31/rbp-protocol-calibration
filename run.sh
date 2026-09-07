@@ -349,6 +349,7 @@ s13b_local_analysis() {
   "$PY" scripts/external_sensitivity.py --from-cache || die "external sensitivity"
   "$PY" scripts/class_ratio.py --from-cache || die "class ratio"
   "$PY" scripts/capacity_ladder.py --from-cache || die "capacity ladder"
+  "$PY" scripts/window_duplication.py --from-cache || die "window duplication"
   "$PY" scripts/column_dictionary.py || die "column dictionary"
   # OFFLINE audit of the raw-input manifest: structure, coverage against the study panel, and
   # no credential-shaped string. Rebuilding it needs bucket access (--from-gcs); checking what

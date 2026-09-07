@@ -23,7 +23,7 @@ An assistant cannot attest to it, and this file does not.**
 
 **Roles that assistance actually took, all evidenced in the repository:**
 
-1. **Coding and debugging.** The pipeline, the 1135-assertion verification harness, the gates.
+1. **Coding and debugging.** The pipeline, the 1141-assertion verification harness, the gates.
 2. **Drafting and revision.** The manuscript source, the README, the documentation.
 3. **Analysis implementation and correction.** Including changes that moved published numbers:
    the cross-fitted estimator becoming primary, the SD-versus-SD/sqrt(n) variance fix, the

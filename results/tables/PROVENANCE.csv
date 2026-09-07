@@ -163,3 +163,5 @@ variant_tasks.tsv,scripts/variant_splicebert.py,,cloud-produced,e09699b1bb536269
 variant_threshold_curve.csv,scripts/cloud_analysis.py,,frozen-only,dc487df8279213cd,1918,not invoked by run.sh
 window_centring.csv,scripts/window_centring.py,s13b_local_analysis,evidence-recomputable,6c25a33a921bdfe4,2624,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""
 window_centring_per_dataset.csv,scripts/window_centring.py,s13b_local_analysis,frozen-cache,6250e080d134fda7,6496,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""
+window_duplication.csv,scripts/window_duplication.py,s13b_local_analysis,evidence-recomputable,17c9697faf7a9b7b,1001,"""$PY"" scripts/window_duplication.py --from-cache || die ""window duplication"""
+window_duplication_per_arm.csv,scripts/window_duplication.py,s13b_local_analysis,frozen-cache,1e6d5c71a1c7ea66,151,"""$PY"" scripts/window_duplication.py --from-cache || die ""window duplication"""

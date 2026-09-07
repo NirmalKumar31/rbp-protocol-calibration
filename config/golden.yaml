@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 1060
+  min_domain_checks: 1066
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2563,6 +2563,20 @@ negative_draws:
   max_widening: 1.15          # combined / published interval width must stay below this
   max_median_range: 0.006     # per-dataset range across draws
   n_draws_below_gc: 5         # the ordering must survive every draw
+
+# WINDOW DUPLICATION WITHIN A DATASET. Found by running scripts/validate.py, a stage-3 gate
+# from the earlier train/test/val pipeline that nothing had run. Most of what it reported was
+# the wrong gate for the arm; one check was not. A paper about negative-set construction should
+# know whether its own negative sets repeat a window, and they do, at a rate that differs by
+# construction because the bias-aware arm draws from a FINITE pool of other proteins' sites.
+# The counts are reported; the two kinds that would matter are asserted to be zero.
+window_duplication:
+  gc_duplicate_rows: 0                  # the composition-matched arm never repeats
+  dinuc_duplicate_rows: 14
+  neg2_duplicate_rows: 300
+  max_rate: 0.0005                      # observed 3.28e-04, the bias-aware arm
+  cross_fold: 0                         # a window in two folds is leakage. MUST be zero
+  mixed_label: 0                        # the same window positive and negative. MUST be zero
 
 # THE EXTERNAL SENSITIVITIES, SPECIFIED IN docs/EXTERNAL_BENCHMARK_AMENDMENT.md AT 02a2bac
 # BEFORE THE RUN. An audit found three defects in the external claim as applied: the prewritten

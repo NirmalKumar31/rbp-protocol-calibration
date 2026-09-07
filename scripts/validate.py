@@ -5,6 +5,22 @@ ignored, and a silently corrupted dataset costs far more GPU time than a failed 
 
     python scripts/validate.py                 # whole panel
     python scripts/validate.py --protein PUM2
+
+Legacy, and read this before believing its output. This gate belongs to the earlier
+train/test/val pipeline and its criteria are that pipeline's, not the published study's. It is
+deliberately not in `run.sh`, `preflight.sh` or CI. Pointed at this study's window store it
+reports "GATE CLOSED" for reasons that are mostly not defects:
+
+  * it applies `negatives.gc_tolerance` to whichever arm you name, so the DINUCLEOTIDE arm
+    fails "GC gap never extreme" by construction: that arm matches dinucleotide composition and
+    a GC gap is expected. The GC arm has zero such failures, which is how you can tell.
+  * it requires `panel.min_test_pairs` in the `split` column. The published study replaced
+    train/test/val with 5-fold `fold` and a `min_pairs` floor of 400 over the whole dataset, so
+    a dataset with 860 positives can still have only 170 in the legacy test split.
+
+One of its checks was neither stale nor misapplied, the duplicate-window one, and it is now run
+properly and gated by `scripts/window_duplication.py`. Everything else here is kept because it
+documents what the earlier build stage enforced.
 """
 
 import argparse

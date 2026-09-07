@@ -2142,6 +2142,45 @@ def verify_negative_draws(T, g):
                int(nb), spec["n_draws_below_gc"])
 
 
+def verify_window_duplication(T, g):
+    """No window appears twice across a fold boundary, or with two different labels."""
+    print("\nwindow duplication  (does a dataset contain the same window twice?)")
+    d = T.get("window_duplication.csv")
+    if d is None:
+        return record(False, "window_duplication.csv present", "MISSING",
+                      "run scripts/window_duplication.py --store ../rbp-store")
+    spec = g["window_duplication"]
+    q = d.set_index("check")
+
+    def val(k):
+        return float(q.loc[k, "value"]) if k in q.index else None
+
+    # Keys named LITERALLY, not built with an f-string. tests/unit/test_golden_keys_are_read.py
+    # scans this file's source for each key, and a dynamically composed name reads to it as an
+    # unwired golden entry. That test is right to insist: a golden value nothing reads is a
+    # number that cannot fail.
+    for arm, want in (("gc", spec["gc_duplicate_rows"]),
+                      ("dinuc", spec["dinuc_duplicate_rows"]),
+                      ("neg2", spec["neg2_duplicate_rows"])):
+        v = val(f"duplicate window rows, {arm} arm")
+        if v is not None:
+            record(int(v) == want, f"duplicate rows, {arm} arm", int(v), want)
+    r = val("worst duplicate rate across arms")
+    if r is not None:
+        at_most("worst duplicate rate across arms", r, spec["max_rate"])
+
+    # The two that would actually invalidate something.
+    cf = val("duplicate windows that straddle a fold boundary")
+    if cf is not None:
+        record(int(cf) == spec["cross_fold"],
+               "NO duplicate window straddles a fold, so none reaches held-out evaluation",
+               int(cf), spec["cross_fold"])
+    ml = val("duplicate windows carrying conflicting labels")
+    if ml is not None:
+        record(int(ml) == spec["mixed_label"],
+               "NO window is both a positive and a negative", int(ml), spec["mixed_label"])
+
+
 def verify_external_sensitivity(T, g):
     """The external claim under the primary estimator and under chromosome-blocked folds.
 
@@ -5587,6 +5626,7 @@ def main():
              verify_sensitivity_suite, verify_external_replication,
              verify_redraw_composition, verify_class_ratio,
              verify_capacity_ladder, verify_external_sensitivity,
+             verify_window_duplication,
              verify_cache_evidence, verify_cross_tables, verify_integrity)
     n_paper = None
     for fn in (PAPER + LEGACY):

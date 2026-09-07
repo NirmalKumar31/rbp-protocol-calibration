@@ -472,6 +472,20 @@ statements in the Results are sign counts, which need no null. This block bootst
 one quantity the verification harness cannot check from released evidence, because it needs
 genomic coordinates that the published per-window score files do not carry.
 
+A paper about how negative sets are built should say whether its own repeat a window, and
+ours do, rarely. Scanning every committed window table, no window appears twice in the
+GC-matched arm; fourteen rows out of $1{,}797{,}046$ do in the dinucleotide arm, across eleven
+datasets, and three hundred out of $913{,}468$ do in the bias-aware arm, across forty-six. The
+forty-fold difference is mechanical rather than a fault in one arm: bias-aware negatives are
+drawn from a finite pool of other proteins' binding sites, so the same window can be selected
+twice for one dataset, while the composition-matched arms sample free genomic intervals. What
+matters is the kind rather than the count, and both dangerous kinds are absent. \textbf{No
+duplicated window straddles a fold boundary in any arm}, so none reaches held-out evaluation
+through a training copy, and no duplicated window carries conflicting labels. The effect is that
+one negative is double-weighted within one fold of one dataset, at a worst-arm rate of
+$3.3\times10^{-4}$. We report it rather than remove it: the correction is far below the
+precision anything here is quoted to, and removing it would alter committed evidence.
+
 \subsection{The negative-set survey}
 
 Table~\ref{tab:survey} is a \textbf{targeted, non-systematic sample} and is reported as one.
@@ -502,7 +516,7 @@ had previously made from assumption rather than from reading, which is recorded 
 
 Every published value is regression-checked offline by a single command against committed
 evidence, which is a different and weaker claim than rebuilding it from raw inputs. The
-harness runs 1135 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 1141 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

@@ -59,6 +59,17 @@ if [ "$FIX" = 1 ]; then
 fi
 step "release documents are consistent" "$PY" scripts/release_consistency.py --require-all
 
+# TWICE, IN --fix, AND THE SECOND ONE IS STILL LAST. refresh_manifests.sh must run after every
+# generator, which is why it is at the bottom. But tests/unit/test_provenance.py CHECKS those
+# manifests and runs in the unit suite, well before it. So on any run where a table changed,
+# --fix used to fail the provenance tests and pass on a second invocation, which trains you to
+# run it twice and ignore the first result. Refreshing here as well means the suite sees fresh
+# manifests; the pass at the bottom still catches anything the later steps regenerate.
+if [ "$FIX" = 1 ]; then
+  step "refresh manifests (early pass, so the suite sees them fresh)" \
+       env PY="$PY" ./scripts/refresh_manifests.sh
+fi
+
 # 3. the published values
 step "published values verify offline" "$PY" scripts/verify.py --local results/tables
 
