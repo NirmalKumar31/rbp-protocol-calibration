@@ -9,4 +9,4 @@ change from placebo,-0.0039766735618952526,-0.007043908112841456,-0.001933318701
 STRAND-SPECIFIC EXCESS (stratified),-0.0055342678636445715,-0.008944547670051548,-0.0022303298719315435,40,"THE ANSWER, pre-committed as primary"
 locus-mix component,0.0004033641984235387,-0.0009754324904115239,0.001933398990469207,40,stratified placebo minus unstratified
 strand-CORRECTED contrast,0.0322310082058186,0.023671004235105132,0.042122544380526664,40,full contrast with only the strand-specific part removed
-fraction of the contrast surviving,0.8534561788065531,,,40,"floor was 0.60, pre-registered; panel's own contrast is +0.0378, not the n=94 +0.0397"
+fraction of the contrast surviving,0.8534561788065531,,,40,"floor was 0.60, pre-specified; panel's own contrast is +0.0378, not the n=94 +0.0397"

@@ -186,20 +186,27 @@ def main():
     # nothing. Read from the unpacked deposit when it is present; omitted rather than guessed
     # when it is not, because a hardcoded 223 here is the hand-maintained count this repository
     # keeps getting wrong.
-    # IDEMPOTENT IN CACHE MODE. This row used to be emitted only when the unpacked deposit was
-    # present, so `--from-cache` on a clean clone silently DROPPED it, changed the committed
-    # table and staled the provenance manifest. An audit found exactly that. Counted from the
-    # deposit when it is there; otherwise carried forward from the committed table, which is
-    # released evidence, rather than omitted or hardcoded.
-    n_dep = None
-    if DATA.exists():
-        n_dep = sum(1 for q in DATA.iterdir() if q.is_dir())
-        src = "counted from the unpacked deposit; the rest overlap our panel"
-    elif OUT.exists():
+    # THE COMMITTED VALUE WINS, AND THAT IS WHAT MAKES THIS IDEMPOTENT. This row was first
+    # emitted only when the unpacked deposit was present, so `--from-cache` on a clean clone
+    # silently DROPPED it and staled the provenance manifest. My first repair carried the value
+    # forward but wrote a DIFFERENT note and turned `n` into a float, so the table still failed
+    # to reproduce byte for byte: one dropped row traded for a changed row. Both were found by
+    # running the documented command in a clean export, which is the only environment that can
+    # see either.
+    #
+    # So the deposit is counted ONCE, when there is no committed value to carry, and every run
+    # afterwards reproduces the committed row exactly, in any environment. The deposit is a
+    # fixed Zenodo record with a verified MD5, so its size is not a quantity that should move;
+    # if it ever does, `--check` on this table is where that belongs, not a silent rewrite.
+    n_dep, src = None, ""
+    if OUT.exists():
         prev = pd.read_csv(OUT).set_index("check")
         if DEPOSIT_ROW in prev.index:
-            n_dep = float(prev.loc[DEPOSIT_ROW, "value"])
-            src = "carried forward from the committed table; the deposit is not unpacked here"
+            n_dep = int(prev.loc[DEPOSIT_ROW, "value"])
+            src = str(prev.loc[DEPOSIT_ROW, "note"])
+    if n_dep is None and DATA.exists():
+        n_dep = sum(1 for q in DATA.iterdir() if q.is_dir())
+        src = "counted from the unpacked deposit; the rest overlap our panel"
     if n_dep is not None:
         out.append({"check": DEPOSIT_ROW, "value": n_dep, "ci_low": "", "ci_high": "",
                     "n": n_dep, "note": src})

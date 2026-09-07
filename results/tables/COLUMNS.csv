@@ -1589,6 +1589,8 @@ variant_threshold_curve.csv,p,float,,,21,0,16,1.02445e-07,0.870963,0.87096276143
 window_centring.csv,check,string,,yes,38,0,38,,,datasets rebuilt under every centring,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/window_centring.py
 window_centring.csv,value,float,,,38,0,32,0,6464.3,10.0,The asserted quantity,scripts/window_centring.py
 window_centring.csv,n,int,count,,38,0,2,10,60,60,"Datasets, or rows, behind the value. Usually 94",scripts/window_centring.py
+window_centring.csv,ci_low,empty,,,38,38,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/window_centring.py
+window_centring.csv,ci_high,empty,,,38,38,0,,,,Upper bound of the same interval as ci_low,scripts/window_centring.py
 window_centring.csv,note,string,,,38,35,3,,,"-1 everywhere, so no summit-centred arm ","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/window_centring.py
 window_centring_per_dataset.csv,dataset,string,,yes,60,0,10,,,LARP4:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/window_centring.py
 window_centring_per_dataset.csv,protein,string,,yes,60,0,10,,,LARP4,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/window_centring.py

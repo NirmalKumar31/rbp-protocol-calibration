@@ -347,6 +347,11 @@ s13b_local_analysis() {
   # no credential-shaped string. Rebuilding it needs bucket access (--from-gcs); checking what
   # is committed does not, which is the half a reader can run.
   "$PY" scripts/raw_inputs.py --check || die "raw input manifest"
+  # EVERY --from-cache ENTRY POINT MUST RETURN THE TABLE IT IS DOCUMENTED TO. Running all
+  # 33 in a clean export found two scripts that overwrote committed tables with degraded
+  # versions when their optional inputs were absent, which took a passing repository to
+  # four verifier failures by following the documented instructions.
+  "$PY" scripts/cache_idempotence.py || die "cache idempotence"
   # The history secret scan, as a gate rather than a paragraph with a date on it. Non-zero if
   # credential material appears anywhere in the history, or if a documented finding changes.
   "$PY" scripts/history_scan.py --check || die "history secret scan"

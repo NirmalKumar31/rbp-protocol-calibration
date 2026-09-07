@@ -55,7 +55,7 @@ external_replication_per_dataset.csv,scripts/external_replication.py,s13b_local_
 external_search.csv,scripts/external_search.py,s13b_local_analysis,raw-reproducible,006a700c05f068bc,2809,"""$PY"" scripts/external_search.py || die ""external search record"""
 fold_integrity.csv,scripts/fold_integrity.py,s13b_local_analysis,evidence-recomputable,56c39db13feffa0b,1620,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
 fold_integrity_per_dataset.csv,scripts/fold_integrity.py,s13b_local_analysis,frozen-cache,1fe9ddecccfa97d8,31402,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
-gene_clustered_cv.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,evidence-recomputable,97f8085027ebb5a1,2028,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
+gene_clustered_cv.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,evidence-recomputable,7ee1886c62381f38,2015,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
 gene_clustered_cv_per_dataset.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,frozen-cache,01a9bfcb8ed368ce,26619,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
 history_scan.csv,scripts/history_scan.py,s13b_local_analysis,raw-reproducible,00903cf1fa3094a6,3295,"""$PY"" scripts/history_scan.py --check || die ""history secret scan"""
 homology_folds.csv,scripts/homology_folds.py,s13b_local_analysis,evidence-recomputable,976b5276b0e98fe4,2464,"""$PY"" scripts/homology_folds.py --from-cache || die ""homology folds"""
@@ -131,7 +131,7 @@ strand_asymmetry_per_dataset.csv,scripts/strand_asymmetry.py,s13b_local_analysis
 strand_audit.csv,scripts/strand_audit.py,,frozen-only,b895957bcdcd8572,2612,not invoked by run.sh
 strand_audit_summary.csv,scripts/strand_audit.py,,frozen-only,d3d5f3e68a599276,461,not invoked by run.sh
 strand_contrast.csv,scripts/strand_contrast.py,s13b_local_analysis,raw-reproducible,a90d19743109a522,1730,"""$PY"" scripts/strand_contrast.py    || die ""strand contrast"""
-strand_placebo.csv,scripts/strand_placebo.py,s13b_local_analysis,evidence-recomputable,11916f378dd8b965,1551,"""$PY"" scripts/strand_placebo.py --from-cache || die ""strand placebo"""
+strand_placebo.csv,scripts/strand_placebo.py,s13b_local_analysis,evidence-recomputable,775447d39b2d96a5,1550,"""$PY"" scripts/strand_placebo.py --from-cache || die ""strand placebo"""
 strand_placebo_per_dataset.csv,scripts/strand_placebo.py,s13b_local_analysis,frozen-cache,4c606c60f75eb013,18105,"""$PY"" scripts/strand_placebo.py --from-cache || die ""strand placebo"""
 supplementary_table_s1.csv,scripts/table_s1.py,s13b_local_analysis,raw-reproducible,50466a81cf617c5f,16391,"""$PY"" scripts/table_s1.py || die ""supplementary table s1"""
 sweep_dinuc.csv,scripts/cloud_train.py,,cloud-produced,65b6a2c6a289a04f,37706,"written by cloud_train, a cloud stage"
@@ -155,5 +155,5 @@ variant_specificity_controls.csv,scripts/cloud_analysis.py,,frozen-only,ffc38140
 variant_specificity_refit.csv,scripts/cloud_analysis.py,,frozen-only,9df71aab8a08bf05,410,not invoked by run.sh
 variant_tasks.tsv,scripts/variant_splicebert.py,,cloud-produced,e09699b1bb536269,2160,"written by variant_splicebert, a cloud stage"
 variant_threshold_curve.csv,scripts/cloud_analysis.py,,frozen-only,dc487df8279213cd,1918,not invoked by run.sh
-window_centring.csv,scripts/window_centring.py,s13b_local_analysis,evidence-recomputable,be5fbf88ceaa1f94,2533,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""
+window_centring.csv,scripts/window_centring.py,s13b_local_analysis,evidence-recomputable,6c25a33a921bdfe4,2624,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""
 window_centring_per_dataset.csv,scripts/window_centring.py,s13b_local_analysis,frozen-cache,6250e080d134fda7,6496,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""

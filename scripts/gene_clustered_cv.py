@@ -43,6 +43,7 @@ from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores, composition_features  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
+from rbp.utils.carry import emit  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
@@ -256,8 +257,13 @@ def main():
     # measurement and not a plausible story. Two distinct causes and they are worth
     # separating: the pseudo-autosomal region puts one name on chrX and chrY, and multi-copy
     # small-RNA families put one name on up to two dozen chromosomes.
+    # CARRIED FORWARD WHERE THE GENE INDEX IS ABSENT, which is the released tree. These three
+    # rows used to appear only when the cache existed, so the documented --from-cache command
+    # dropped them from the committed table and verify.py's presence assertions then failed on
+    # a repository that had been passing. See rbp.utils.carry.
     cache = Path(a.gene_cache)
-    if cache.exists():
+    multi, xy, widest, ok = {}, 0, 0, cache.exists()
+    if ok:
         gidx = pickle.loads(cache.read_bytes())
         where = defaultdict(set)
         for chrom, (_s, _e, names) in gidx.items():
@@ -265,15 +271,17 @@ def main():
                 where[nm].add(chrom)
         multi = {nm: c for nm, c in where.items() if len(c) > 1}
         xy = sum(1 for c in multi.values() if c == {"chrX", "chrY"})
-        out.append({"check": "gene names appearing on more than one chromosome",
-                    "value": len(multi), "n": len(t)})
-        out.append({"check": "of those, pseudo-autosomal chrX/chrY name pairs", "value": xy,
-                    "n": len(t)})
-        out.append({"check": "largest number of chromosomes sharing one gene name",
-                    "value": max((len(c) for c in multi.values()), default=0), "n": len(t)})
+        widest = max((len(c) for c in multi.values()), default=0)
+    dest = TABLES / "gene_clustered_cv.csv"
+    emit(out, dest, "gene names appearing on more than one chromosome", len(multi),
+         n=len(t), recomputed=ok)
+    emit(out, dest, "of those, pseudo-autosomal chrX/chrY name pairs", xy,
+         n=len(t), recomputed=ok)
+    emit(out, dest, "largest number of chromosomes sharing one gene name", widest,
+         n=len(t), recomputed=ok)
+    if ok:
         log(f"  {len(multi)} gene names sit on more than one chromosome: {xy} are chrX/chrY "
-            f"pseudo-autosomal pairs and the widest spans "
-            f"{max((len(c) for c in multi.values()), default=0)} chromosomes")
+            f"pseudo-autosomal pairs and the widest spans {widest} chromosomes")
 
     # How much finer the gene grouping is. Without this the agreement below could mean the
     # two designs are nearly the same design, which would make it uninformative.

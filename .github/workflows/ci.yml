@@ -129,13 +129,32 @@ jobs:
           PYTHONPATH: src
         run: python scripts/column_dictionary.py --check
 
-      # Regenerating the checked-in artefacts must not change them. Without this the two steps
-      # above can rewrite a table, pass on the value they just wrote, and leave the repository
-      # holding a report nobody committed.
+      # THIS STEP COVERS THREE TABLES, NOT ALL OF THEM, and its comment used to imply otherwise.
+      # It runs after audit_manuscript, verify and release_consistency, so the only artefacts it
+      # can see change are the three THOSE write: manuscript_orphans.csv, verify_summary.csv and
+      # release_facts.csv. That is worth having -- without it those steps can rewrite a table,
+      # pass on the value they just wrote and leave a report nobody committed -- but it certified
+      # 3 of 158 tables while reading as though it certified every one.
+      #
+      # The 33 offline entry points are checked by the step below instead, which regenerates each
+      # and compares structurally. A byte diff is the wrong tool there: seven of those tables
+      # differ by floating-point summation order at 1e-14 and always will.
       - name: regenerated artefacts match what is committed
         run: git diff --exit-code -- results/tables/ || {
             echo "::error::A generated table changed. Commit the regenerated file.";
             exit 1; }
+
+      # EVERY DOCUMENTED OFFLINE ENTRY POINT REPRODUCES ITS COMMITTED TABLE. Nothing checked
+      # this, and running all 33 in a clean export found window_centring.py rewriting a summit
+      # census from 10 files to 0 and gene_clustered_cv.py dropping three rows, both because an
+      # optional input is absent from the release, and both then FAILING verify.py. A reader
+      # following the documented instructions took the repository from 1083/1083 to four
+      # failures. Structural comparison plus a numeric tolerance; see the script's docstring for
+      # why not a byte diff.
+      - name: every --from-cache entry point reproduces its committed table
+        env:
+          PYTHONPATH: src
+        run: python scripts/cache_idempotence.py
 
   # THE FULL SUITE, WITH THE DEPENDENCIES NEEDED TO COLLECT IT. The job above installs
   # requirements-cpu.txt, which has no torch on purpose, so it cannot collect

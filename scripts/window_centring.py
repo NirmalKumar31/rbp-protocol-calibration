@@ -59,6 +59,7 @@ from rbp.eval.delong import delong_test  # noqa: E402
 from rbp.eval.nested import _oof_scores, composition_features  # noqa: E402
 from rbp.stats import standardise  # noqa: E402
 from rbp.utils import config as cfgmod  # noqa: E402
+from rbp.utils.carry import emit  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
@@ -242,10 +243,16 @@ def main():
                 f = line.rstrip("\n").split("\t")
                 if len(f) >= 10 and f[9].strip() not in ("-1", ""):
                     n_summits += 1
-    out.append({"check": "narrowPeak files checked for a point-source summit",
-                "value": n_files, "n": len(t)})
-    out.append({"check": "peaks carrying a summit in column 10", "value": n_summits,
-                "n": len(t), "note": "-1 everywhere, so no summit-centred arm is possible"})
+    # CARRIED FORWARD WHERE THE PEAK FILES ARE ABSENT, which is the released tree. Emitting
+    # n_files=0 here overwrote the committed 10 and then FAILED verify.py, whose gate requires
+    # zero summits AND at least ten files checked -- correctly, because "no summit in nothing
+    # checked" is vacuous. So running the documented offline pipeline in a clean export took
+    # the repository from passing to failing. See rbp.utils.carry.
+    ok = n_files > 0
+    emit(out, TABLES / "window_centring.csv",
+         "narrowPeak files checked for a point-source summit", n_files, n=len(t), recomputed=ok)
+    emit(out, TABLES / "window_centring.csv", "peaks carrying a summit in column 10", n_summits,
+         note="-1 everywhere, so no summit-centred arm is possible", n=len(t), recomputed=ok)
     log(f"  {n_summits} of the peaks in {n_files} narrowPeak files carry a column-10 summit, "
         f"so a summit-centred arm cannot be built from this data")
 
