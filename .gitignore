@@ -27,6 +27,13 @@ __pycache__/
 !/results/figures/
 !/data/evidence/
 /logs/
+# EXTERNAL AUDIT REPORTS ARE WORKING NOTES AND DO NOT SHIP. One was dropped into this directory
+# while a session was running and `git add -A` swept it into a public commit. The repository
+# deliberately keeps the development record on the `working-notes` branch; an auditor's report
+# is not release material and is not the author's to publish either. Keep them beside the repo,
+# not in it.
+audit*.md
+*audit*.md
 /.preflight-ok
 /.preflight-modal-ok
 cloud/terraform/.terraform/
