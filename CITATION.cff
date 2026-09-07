@@ -37,6 +37,14 @@ keywords:
   - negative sets
   - benchmark calibration
   - sequence models
+# MIT ALONE, DELIBERATELY, AND NOT BECAUSE THE REPOSITORY IS SINGLE-LICENSED. Code is MIT;
+# `results/` and `data/evidence/` are CC BY 4.0, which their own LICENSE files record and
+# docs/ZENODO.md now instructs the depositor to preserve. The CFF schema does permit a list
+# here, but it defines the relationship as OR: "When there are multiple licenses, it is assumed
+# their relationship is OR, not AND". Ours is AND, one licence per part of the tree, so
+# `[MIT, CC-BY-4.0]` would tell a reader they may take the code under CC BY or the evidence
+# under MIT. That is a broader grant than is offered. This record is `type: software`, so it
+# names the software licence and points at the others rather than misstating the relationship.
 license: MIT
 # 0.9.0 until a tag exists. A version number in a citation file is a claim that something
 # immutable is named by it, and nothing is until the release is cut.
