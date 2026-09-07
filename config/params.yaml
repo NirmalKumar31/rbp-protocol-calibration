@@ -1,4 +1,17 @@
-# Single source of truth for the pipeline. Nothing hard-codes these values.
+# The pipeline's configured parameters. NOT a single source of truth for every value, which is
+# what this line used to claim and an audit was right to call false.
+#
+# What lives elsewhere, and the most important one is the reason this matters. The k-mer ORDER
+# is not here: it is an env var KMER_K defaulting to 4 in cloud_rehearsal.py and submit_prep.sh,
+# and a `k=4` default in four signatures in rbp.eval.baseline. That is the parameter the
+# manuscript described as 5 in four places for a fortnight, because someone read `cv: k: 5`
+# below, which is the FOLD COUNT. So the file that claimed nothing was hard-coded was
+# simultaneously hiding the study's most consequential parameter and offering a decoy for it.
+#
+# The order is not moved here, because the value is already gated where it can actually be
+# checked: scale_check.py emits k as a column and verify.py asserts it equals 4 at zero
+# tolerance, which catches a mismatch between config and what ran. A second copy in this file
+# would be a third place for it to disagree. What is fixed is the false claim.
 
 project: rna-binding-proteins
 

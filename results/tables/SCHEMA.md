@@ -85,3 +85,33 @@ Every table names its producing script in the `run.sh` stage that writes it, and
 rebuilt end to end rather than compared against a record: `recompute.py` rebuilds 285 AUROCs
 from committed per-window scores, and `k_sweep.py` rebuilds the headline contrast from raw
 sequence.
+
+## Schema versioning, declined with reasons
+
+Two audits asked for explicit schema or version fields on the result tables (P2.21 and P3.5).
+Declined, and the reasoning belongs here rather than in a commit message nobody reads at the
+point of asking again.
+
+What the request is for is a reader who finds a column and cannot tell what it means or whether
+it moved. Three artefacts already answer that, and they are generated rather than maintained:
+
+- `COLUMNS.csv` profiles every column of every committed table: dtype over the whole column,
+  unit, key flag, row count, missingness, distinct count, numeric range, an example, a
+  definition from the release's controlled vocabulary, and the producing script.
+- `PROVENANCE.csv` gives every table a producing script and a regeneration status derived from
+  how `run.sh` invokes it.
+- `scripts/cache_idempotence.py` asserts that every documented offline command reproduces its
+  committed table, column set included, so a schema change cannot land silently.
+
+A `schema_version` field on every committed table would be one more thing to keep in step, and
+this repository's recorded failure mode is not missing metadata but metadata that drifts from
+what it describes. The counts in this very document went stale once and were replaced by
+`COLUMNS_SUMMARY.csv` for that reason.
+
+Which a test caught in the very paragraph above: the first draft of this section stated the
+table count as a literal while arguing that literals here go stale, and
+`test_schema_md_does_not_hand_maintain_counts` failed on it. That is the argument, demonstrated
+on itself.
+
+What would change the decision: a second consumer of these tables outside this repository, at
+which point a declared version stops being bookkeeping and starts being an interface.
