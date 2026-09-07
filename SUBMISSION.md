@@ -115,11 +115,22 @@ oversight; a hand-written sentence for each is how this document's counts went s
 | Supplementary figures S1 to S10 | `results/figures/f0,f1,f2,f3,f4,f5,f6,f7,f8,f13*` (every PDF in `results/figures/` that is not one of the main figures listed above) |
 | Legends for the MAIN display items | typeset in `manuscript/paper.pdf` as figure and table captions |
 
-**The supplementary figures are loose PDFs and are not yet a packaged supplement.** They are
-named `f0` to `f8` and `f13` rather than S1 to S10, they carry no separate legends, and the
-captions in `paper.pdf` cover the seven main figures only. bioRxiv accepts supplementary
-material as separate files, so this is postable as it stands; it is not what a journal will
-ask for, and it is listed here rather than described as finished.
+| Supplementary figures S1 to S10, with legends | `manuscript/supplementary.pdf` |
+| Supplementary Table S1 | `manuscript/supplementary_table_s1.csv` |
+
+**The supplement is one document.** `manuscript/supplementary.tex` builds
+`manuscript/supplementary.pdf`: ten figures numbered S1 to S10, each with a legend giving the
+panels, the sample size, the uncertainty definition and the committed table its values come
+from, plus a mapping from S-number to the repository build name and a note on Table S1's one
+blank row. It is built by `manuscript/build.sh` alongside the paper, so it cannot go stale
+against a regenerated figure.
+
+Earlier releases shipped those ten as loose PDFs named `f0` to `f8` and `f13`, with no
+S-numbering and no legends, and said so accurately. An audit was right that accuracy about an
+unpublishable supplement is not a supplement. `tests/unit/test_supplement.py` now requires the
+mapping to match the tree, the S-numbers to be contiguous, every legend to state its sample
+size, uncertainty and source, and the main and supplementary figures to partition the built set
+exactly, because five figures were orphaned once before when a section was cut.
 
 ## Reproducing the numbers
 

@@ -13,7 +13,10 @@ mkdir -p figures
 # f16 to the text without adding it here would have shipped an upload referencing a figure the
 # tree does not contain -- which LaTeX reports as a missing-file warning that is easy to miss in
 # a long log. Now the list cannot drift from what the sections actually cite.
-FIGS=$(grep -ho 'figures/f[0-9_a-z]*' sections/*.tex | sed 's|figures/||' | sort -u)
+# supplementary.tex is included, so the ten supplementary figures are staged by the same rule
+# as the seven main ones and cannot drift from what the legends cite either.
+FIGS=$(grep -ho 'figures/f[0-9_a-z]*' sections/*.tex supplementary.tex | sed 's|figures/||' \
+       | sort -u)
 for f in $FIGS; do
   [ -f "../results/figures/$f.pdf" ] || { echo "missing ../results/figures/$f.pdf" >&2; exit 1; }
   cp "../results/figures/$f.pdf" "figures/$f.pdf"
@@ -67,3 +70,22 @@ if grep -qE "LaTeX Warning: (Citation|Reference).*undefined" paper.log; then
   exit 1
 fi
 echo "no undefined citations or references"
+
+# THE SUPPLEMENT IS A DOCUMENT, NOT A DIRECTORY OF LOOSE PDFS. Ten figures shipped as f0 to f8
+# and f13 with no S-numbering and no legends, and "bioRxiv accepts separate files" does not make
+# a captionless figure self-interpreting. Built here so it cannot go stale against a regenerated
+# figure, and gated by tests/unit/test_supplement.py so the S-number mapping cannot drift.
+sup_rerun() { grep -qE "Rerun to get|Label\(s\) may have changed" supplementary.log; }
+for pass in 1 2 3; do
+  pdflatex -interaction=nonstopmode -halt-on-error supplementary.tex >/dev/null || {
+    echo "pdflatex FAILED on supplementary.tex pass $pass. From supplementary.log:" >&2
+    grep -nE "^!|^l\.[0-9]+|Emergency stop|Fatal error" supplementary.log | head -20 >&2
+    exit 1; }
+  sup_rerun || break
+done
+if grep -qE "LaTeX Warning: (Citation|Reference).*undefined" supplementary.log; then
+  echo "UNDEFINED references in the supplement:" >&2
+  grep -E "LaTeX Warning: (Citation|Reference).*undefined" supplementary.log >&2
+  exit 1
+fi
+echo "wrote supplementary.pdf ($(wc -c < supplementary.pdf) bytes)"
