@@ -298,7 +298,7 @@ that integrated over them would be a different quantity, would be wider, and is 
 reported anywhere here.
 
 \paragraph{The hierarchy.} $S^{\mathrm{CF}}_{4\text{-mer}}$ is the \textbf{primary} estimand:
-$4.84$ (95\% CI $3.98$ to $5.81$). $S^{\mathrm{2S}}_{4\text{-mer}} = 5.42$ ($4.43$ to $6.58$) is
+$4.84$ (95\% CI $3.98$ to $5.81$). $S^{\mathrm{2S}}_{4\text{-mer}} = 5.42$ ($4.43$ to $6.59$) is
 retained as a \textbf{comparability analysis}, because it is the quantity a reader
 recomputing our panel with the standard recipe would obtain, and withdrawing it would make this
 work harder rather than easier to check against the literature it calibrates. The primary
@@ -308,9 +308,9 @@ other is the estimate. Both are reported wherever the distinction changes a numb
 
 For the convolutional network and SpliceBERT only $\widehat{\Delta}^{\,\mathrm{2S}}$ exists.
 Cross-fitting them requires ten additional base fits per dataset per arm, which we did not run.
-At the rates this study measured over 940 recorded runs, \$14.58 per million pairs for the
+At the rates this study measured over 940 recorded runs, \$14.59 per million pairs for the
 convolutional network and \$27.25 for SpliceBERT, one sweep of both models across all three
-arms is about \$58 and cross-fitting them is about ten times that. Every span reported for those two model
+arms is about \$59 and cross-fitting them is about ten times that. Every span reported for those two model
 classes is therefore \textbf{exploratory}: it is computed with an estimator this paper
 demonstrates is biased upward for a model the baseline spans, the size of that bias is measured
 only for the k-mer classes, and a higher-capacity base model has more scope to encode the
@@ -332,7 +332,7 @@ under $0.0017$ and in the opposite direction. We had expected the bias to be one
 the grounds that it can only help the score column. That holds for a model the baseline spans
 and fails for one carrying information of its own, so the sign is a measurement here and not a
 prediction. Neither figure bounds the route for the convolutional network or SpliceBERT, which
-would need four times the GPU sweep and has not been run.
+would need about \$115: ten extra base fits per dataset against the five a sweep already does, so twice the base cost on each of three arms, priced from the \$6.66 and \$12.44 per arm measured over the bias-aware sweep's 940 recorded runs, and has not been run.
 
 The composition-only and composition-plus-score predictors were compared by DeLong's paired
 estimator \citep{delong1988}, in the $O(n\log n)$ midrank form of \citet{sun2014}. The paired

@@ -14,7 +14,7 @@ first. Nothing here is a summary of the science, which is in `manuscript/paper.p
 
 | bioRxiv asks for | file |
 |---|---|
-| Manuscript PDF | `manuscript/paper.pdf` (58 pages) |
+| Manuscript PDF | `manuscript/paper.pdf` (59 pages) |
 | Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 461 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
@@ -34,7 +34,7 @@ stronger claim and a review was right to object.
 absent; it depends only on nothing being misdescribed.
 
 What that does NOT settle: a journal submission afterwards will impose its own limits, and the
-ones that would bite are the abstract (461 words against a typical 250) and the main text (58
+ones that would bite are the abstract (461 words against a typical 250) and the main text (59
 pages, 16 table environments). The long-form abstract and the guidance for cutting are kept
 where they can be found again -- see the note above `\begin{abstract}` in `paper.tex` -- and
 `results/tables/PROVENANCE.csv` already identifies which tables are secondary and would move to

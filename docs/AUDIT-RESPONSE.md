@@ -105,14 +105,40 @@ it would rewrite the expectations file the checks are made of.
 Everything here needs new computation or a decision, and none of it is a defect in what is
 released.
 
+**Two rows of this table were stale and are corrected below.** A later audit prompted a reread,
+and the list still called open two things the repository had since done. That is the same defect
+as a disclosure outliving its own fix, in the document whose job is to say what is outstanding.
+
 | | what | why it is open |
 |---|---|---|
-| P0.1 | Cross-fitting for the CNN and SpliceBERT | four times the GPU sweep, about $76. Stated in the text as not done |
-| P1.2 | Multiple negative draws | variability is quantified in the Limitations and not propagated into the intervals |
+| P0.1 | Cross-fitting for the CNN and SpliceBERT | about $115: ten extra base fits per dataset against the five a sweep does, so twice the base cost on each of three arms, at the $6.66 (CNN) and $12.44 (SpliceBERT) per arm measured over the bias-aware sweep's 940 recorded runs. Stated in the text as not done |
 | P1.3 | Seeded, repeated neural initialisation | needs the GPU sweep rerun |
-| P1.4 | Sequence-identity-clustered folds | exact 32-mer sharing and gene-clustered CV are reported; identity clustering is a rebuild |
+| P1.4 | Sequence-identity-clustered folds | exact 32-mer sharing and gene-clustered CV are reported; identity clustering is a rebuild. And no chromosome-respecting homology repartition EXISTS: the largest joint component holds 97.6% of a median dataset's windows |
 | P1.5 | Train-fold-only standardisation as primary | measured at `4e-5`; making it primary is a full rerun |
-| P1.14 | A 2x2 train-protocol by evaluation-protocol factorial | a separate experiment, and the mechanism claim it would support is not made |
+
+**P1.2, multiple negative draws: DONE, and this row said otherwise.** It read "variability is
+quantified in the Limitations and not propagated into the intervals". All three arms now carry
+ten independent draws each for the composition-matched pair and five for the bias-aware one,
+with the between-draw SD propagated in quadrature: the interval widens by 0.81% (GC), 0.49%
+(dinucleotide) and 3.6% (bias-aware). `results/tables/redraw_composition.csv` and
+`negative_draws.csv`, gated by `verify_redraw_composition` and `verify_negative_draws`. What
+remains conditional is the reported interval itself, which is stated as conditioning rather than
+omission.
+
+**P1.14, the train-protocol by evaluation-protocol factorial: DONE, and this row said it was a
+separate experiment whose claim the paper does not make.** Both halves were false by the time
+they were read. `scripts/protocol_transport.py` runs the full 3x3, the diagonal reproduces the
+published within-arm contributions exactly, and the paper's central mechanism claim rests on it:
+varying the training arm moves the contribution 0.0141 and varying the evaluation arm moves it
+0.0438, so the evaluation side carries 76%.
+
+**The $76 in the P0.1 row was wrong too, and so was a figure quoted in conversation.** The
+repository said "four times the GPU sweep", which does not name which sweep; $76 is four times
+ONE arm. The arithmetic that follows from the measured rates is twice the base cost on each of
+three arms, about $115. A figure of "$573" was also quoted while this work was in progress and
+appears nowhere in this repository; it is roughly thirty times one arm and was not derived from
+anything. Neither error changes the decision, since both are far above the run's $10 ceiling,
+but a cost used to justify not doing an experiment has to be a measurement.
 | P1.16–17 | Input checksum manifest and cache lineage hashes | the download code records URL, size and MD5 at fetch time; those records were not committed for the published run, and claiming input integrity now would claim something not held |
 | P2.12, P2.15 | main text length and table count | superseded: bioRxiv sets no limits; a journal split is still needed | a main/supplement split needs the venue's limits |
 | P0.6 | Tag and Zenodo DOI | the author's action, after the content is frozen |

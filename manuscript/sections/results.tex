@@ -383,7 +383,7 @@ datasets, so between three and six correlated cells share a protein.
 Regressing contribution on a quadratic in the composition baseline over all 282 cells and then
 adding protocol indicators, the protocol label contributed 1.0\% of variance given the baseline
 and the baseline contributed 11.0\% given the label. Neither increment is corrupted by
-collinearity, since the baseline recovers the arm with only 58.5\% accuracy against a chance
+collinearity, since the baseline recovers the arm with only 59.5\% accuracy against a chance
 rate of 33.3\% and the protocol dummies regressed on the baseline curve give variance inflation
 factors of 1.11 and 1.32. The two increments answer different questions, though, and their ratio
 is not a decomposition of one variance into two competing causes: the first is a protocol-
@@ -606,7 +606,7 @@ construction. Spans are ratios of panel means with protein-clustered percentile 
 \toprule
 model & dinucleotide & GC & bias-aware & span \\
 \midrule
-4-mer & $+0.0663$ & $+0.0265$ & $+0.0122$ & 5.42 (4.43--6.58) \\
+4-mer & $+0.0663$ & $+0.0265$ & $+0.0122$ & 5.42 (4.43--6.59) \\
 CNN & $+0.0837$ & $+0.0330$ & $+0.0113$ & 7.42 (6.07--9.31) \\
 SpliceBERT & $+0.1735$ & $+0.0890$ & $+0.0466$ & 3.72 (3.23--4.30) \\
 \midrule
@@ -675,7 +675,7 @@ residual. These shares are not directly comparable, and with type-II sums of squ
 sum to one: a 79-level factor absorbs 29.7\% of the variance of relabelled data whereas a
 three-level factor absorbs 0.8\%. Against a stricter null that permutes protein labels between
 datasets while preserving
-dataset-by-model blocks, and which therefore absorbs 58.4\% by itself, the excess attributable
+dataset-by-model blocks, and which therefore absorbs 59.4\% by itself, the excess attributable
 to protein identity was $+7.3$ points ($p=0.003$).
 
 That excess and the direct test below are one line of evidence and not two, because the
@@ -816,7 +816,7 @@ above.
 
 One diagnostic is not an increment and answers a sharper question. Regressing each model's score
 on the composition block and taking the AUROC of the residual asks whether the part of the score
-orthogonal to composition discriminates at all. It does, in every arm: 0.63, 0.60 and 0.58 for
+orthogonal to composition discriminates at all. It does, in every arm: 0.63, 0.60 and 0.59 for
 the 4-mer under dinucleotide, GC and bias-aware negatives, 0.67, 0.66 and 0.63 for the
 convolutional network and 0.77, 0.76 and 0.72 for SpliceBERT. So a small increment is not the
 same as an absent signal, and the same ordering appears here too.
@@ -1193,7 +1193,7 @@ Under the median the 4-mer's span is $5.09$ against the published $5.42$, and un
 trimmed mean it is $5.81$; the convolutional network's is $10.50$ under the median against
 $7.42$ published, so the mean is not systematically the flattering choice. Split by cell line
 the 4-mer's span is $6.46$ in HepG2 ($n=45$) and $4.82$ in K562 ($n=49$), and no model's span
-falls below $3.58$ in either.
+falls below $3.59$ in either.
 
 Size does not carry it. The largest ten datasets hold $39\%$ of all pairs, but dropping the
 largest quartile leaves the 4-mer at $5.24$ and keeping only that quartile gives $5.78$.
@@ -1323,7 +1323,7 @@ eight-ninths was not. That is the quantity a bias common to all three arms canno
 it does not become one when the bias is removed.
 
 Two limits. This is the k-mer classes only: closing the route for the convolutional network and
-SpliceBERT means four times the GPU sweep, and we have not run it, so nothing here bounds the
+SpliceBERT means about \$115: ten extra base fits per dataset against the five a sweep already does, so twice the base cost on each of three arms, priced from the \$6.66 and \$12.44 per arm measured over the bias-aware sweep's 940 recorded runs, and we have not run it, so nothing here bounds the
 route for a fine-tuned transformer. And cross-fitting trades one asymmetry for another, since
 the outer-training covariate now comes from a model fitted on one fewer fold than the
 outer-test covariate; the 2-mer result bounds what that trade costs, because a covariate-strength
@@ -1413,7 +1413,7 @@ datasets, and it also yields the smaller contribution, so the two move together.
 picture is not a reversed relation but no relation: the change in the model's own AUROC and the
 change in contribution point in opposite directions in only 11 of 45 datasets, at Spearman
 $-0.005$ ($p=0.97$). In our own data the same two quantities point oppositely in 88 of 94
-datasets for the GC-to-dinucleotide step and 58 of 94 for GC-to-bias-aware. So the inversion is
+datasets for the GC-to-dinucleotide step and 59 of 94 for GC-to-bias-aware. So the inversion is
 a strong per-dataset regularity within this panel and is absent on the one benchmark we did not
 build.
 
@@ -1451,7 +1451,7 @@ different protocols and wishing to compare what the models contributed
 (Figure~\ref{fig:recommendation}).
 
 On our data, normalising by headroom improved cross-protocol rank agreement in 3 of 3 protocol
-pairs and reduced disagreement on a common scale in 3 of 3, by 58\%, 10\% and 48\%. Rank
+pairs and reduced disagreement on a common scale in 3 of 3, by 59\%, 10\% and 48\%. Rank
 agreement is scale-free and cannot be flattered by normalisation. This held for all three model
 classes, with mean changes in rank agreement of $+0.041$ (4-mer), $+0.101$ (convolutional
 network) and $+0.059$ (SpliceBERT).

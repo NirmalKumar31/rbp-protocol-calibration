@@ -30,12 +30,16 @@ With five folds that is ten extra base fits per dataset, one per unordered pair 
 on top of the five the published run already does.
 
 WHY THE k-MER CLASSES AND NOT ALL THREE. A base fit here is a penalised logistic regression and
-costs milliseconds, so the full panel runs on a laptop. Doing the same for the CNN and
-SpliceBERT means four times the GPU sweep, and the honest statement is that it has not been
-done; what the k-mer classes establish is the SIGN and the SCALE of the channel where it can be
-measured exactly, and whether the published claim -- that the channel is one-directional --
-survives contact with an exact computation. It bounds nothing for a fine-tuned transformer, by
-the same argument the Methods already make in the other direction.
+costs milliseconds, so the full panel runs on a laptop. Doing the same for the CNN and SpliceBERT
+means ten extra fits per dataset where a sweep does five, so twice the base cost on each of three
+arms: about $115 at the $6.66 (CNN) and $12.44 (SpliceBERT) per arm measured over the bias-aware
+sweep's 940 recorded runs. "Four times the GPU sweep" is what this said, which does not name WHICH
+sweep and was converted to $76 in docs/AUDIT-RESPONSE.md on one reading of it; the arithmetic
+above is the one that follows from the measured rates. The honest statement is still that it has
+not been done; what the k-mer classes establish is the SIGN and the SCALE of the channel where it
+can be measured exactly, and whether the published claim, that the channel is one-directional,
+survives contact with an exact computation. It bounds nothing for a fine-tuned transformer, by the
+same argument the Methods already make in the other direction.
 
 Two models, because they ask different questions. The 4-mer is the published headline model, so
 its cross-fitted contribution is directly comparable to a number in the paper. The 2-mer is the

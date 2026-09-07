@@ -12,7 +12,7 @@ positives differ very slightly between arms. Restricting to their intersection d
 positives and moves the contrast +0.0398 to +0.0401.
 
 The number moves **4.84-fold** (95% CI 3.98 to 5.81) for a 4-mer logistic regression under the
-cross-fitted estimator this paper recommends, and **5.42-fold** (4.43 to 6.58) under the
+cross-fitted estimator this paper recommends, and **5.42-fold** (4.43 to 6.59) under the
 two-stage estimator the literature actually computes. Both are reported throughout; the
 cross-fitted one is primary. Across three model classes the two-stage span runs 3.7 to 7.4-fold,
 on identical rows within each arm. A model's apparent AUROC moves the opposite way.
@@ -34,7 +34,7 @@ protocols for a 4-mer, 5.42-fold under the estimator the literature uses, while 
 AUROC moves the opposite way. A two-way decomposition of the nine
 train-by-evaluate combinations attributes most of the movement to the **evaluation** protocol
 rather than the fitted model. Two decompositions, which are different estimands and not two
-weightings of one: averaging each dataset's own normalised shares gives 63% (CI 58 to 68)
+weightings of one: averaging each dataset's own normalised shares gives 63% (CI 59 to 68)
 against 15% for training, and decomposing the matrix of panel means gives 81% (73 to 87)
 against 9%. Leave-one-protein-out moves the larger share by at most 3.0 points, so no one
 protein carries it. Most of what the protocol moves is the measurement (`sec:transport`).
