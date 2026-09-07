@@ -140,14 +140,24 @@ class TestTheDifferenceHasTheDocumentedCause:
         """A size-thresholded subset would confound the panel with dataset size, which
         correlates with AUROC at r = +0.53 to +0.67. Systematic sampling by pair rank does
         not, so the study panel must span essentially the whole size range it was drawn
-        from. scripts/select_panel.py asserts this at selection time; this is the check on
-        the committed result."""
-        sweep = _load("sweep_dinuc.csv")
+        from. scripts/select_panel.py asserts this at selection time; this is the same
+        check on the committed result.
+
+        THE POPULATION HAS TO BE ON THE OTHER SIDE OF THE COMPARISON, and for as long as
+        this test has existed it was not. It read sweep_dinuc.csv, which holds the 95
+        SELECTED datasets and has never carried a `pairs` column in any commit, so the
+        guard below fired on every checkout that has ever existed and the assertions never
+        ran once. Had the column been there the test would have compared the panel against
+        its own quantiles, and min <= q05 is true of any set whatsoever, so it would have
+        passed while certifying nothing. candidate_sizes.csv is the 189-dataset pool the
+        panel was drawn from, it is committed, and it is exactly what select_panel.py calls
+        `full` when it makes this decision.
+        """
+        pool = _load("candidate_sizes.csv")
         study_d = _load("rehearsal_binding_dinuc.csv")
-        if "pairs" not in sweep.columns:
-            pytest.skip("sweep_dinuc.csv carries no pairs column in this checkout")
-        assert study_d.pairs.min() <= sweep.pairs.quantile(0.05)
-        assert study_d.pairs.max() >= sweep.pairs.quantile(0.95)
+        assert set(study_d.dataset) < set(pool.dataset), "the panel is a strict subset"
+        assert study_d.pairs.min() <= pool.pairs.quantile(0.05)
+        assert study_d.pairs.max() >= pool.pairs.quantile(0.95)
 
 
 class TestClaimsUseTheRightPanel:

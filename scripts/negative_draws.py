@@ -152,10 +152,19 @@ def main():
     boot = np.array([M[i, 0].mean() for i in draws])
     se_protein = float(boot.std(ddof=1))
     se_draw = float(per_draw.std(ddof=1))
+    # THE TWO ARE NOT THE SAME KIND OF QUANTITY AND THIS FILE USED TO CALL THEM BOTH A
+    # STANDARD ERROR. The between-protein term is a bootstrap standard error. The draw term
+    # is the SD of the one-draw panel means, which is the right thing to propagate for a
+    # published figure computed from ONE draw, and is what redraw_composition.py calls
+    # sd_draw. That file reserves "SE" for SD/sqrt(n), the standard error of the mean over
+    # draws, and it does so because propagating SD/sqrt(n) here was a real bug that
+    # understated the widening tenfold. Two released tables using "standard error" for two
+    # different quantities is how that bug gets made a second time, so this one now uses the
+    # same words as the other.
     add("between-protein standard error, the published draw", se_protein,
         note="what the protein-clustered bootstrap already carries")
-    add("between-draw standard error of the panel mean", se_draw,
-        note="what it holds fixed, and therefore omits")
+    add("between-draw SD of the panel mean", se_draw,
+        note="what it holds fixed, and therefore omits; the SD, not SD over sqrt(n)")
     combined = float(np.hypot(se_protein, se_draw))
     add("combined standard error", combined, note="the two added in quadrature")
     add("ratio of combined to published interval width", combined / se_protein if se_protein else 0,

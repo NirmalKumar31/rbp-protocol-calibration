@@ -2119,11 +2119,11 @@ def verify_negative_draws(T, g):
         if v is not None:
             record(int(v) == spec[key], k, int(v), spec[key])
     sp = get("between-protein standard error, the published draw")
-    sd = get("between-draw standard error of the panel mean")
+    sd = get("between-draw SD of the panel mean")
     if sp is not None:
         near("between-protein standard error", sp, spec["se_protein"])
     if sd is not None:
-        near("between-draw standard error", sd, spec["se_draw"])
+        near("between-draw SD of the panel mean", sd, spec["se_draw"])
     # The point of the exercise. If this were large the published intervals would be wrong;
     # it is small, and asserting a ceiling is what stops that quietly changing.
     w = get("ratio of combined to published interval width")

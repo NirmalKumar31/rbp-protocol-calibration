@@ -63,13 +63,26 @@ else
 fi
 echo "wrote paper.pdf ($(wc -c < paper.pdf) bytes, $pages)"
 
+# BOXES ARE A CLAIM AND THEREFORE A GATE. CHANGELOG.md asserts zero over- and underfull boxes
+# in both documents. It previously asserted the weaker "zero LaTeX warnings" and disclosed one
+# surviving underfull \hbox in prose, which is how that kind of statement goes stale: the box
+# was fixed and the sentence describing it was not. Nothing here checked either way.
+boxes() {
+  if grep -qE "^(Overfull|Underfull) \\\\(hbox|vbox)" "$1"; then
+    echo "OVER/UNDERFULL BOXES in $1:" >&2
+    grep -E "^(Overfull|Underfull) \\\\(hbox|vbox)" "$1" >&2
+    exit 1
+  fi
+}
+
 # Undefined references are silent in a nonstopmode build and fatal in a preprint.
 if grep -qE "LaTeX Warning: (Citation|Reference).*undefined" paper.log; then
   echo "UNDEFINED references or citations:" >&2
   grep -E "LaTeX Warning: (Citation|Reference).*undefined" paper.log >&2
   exit 1
 fi
-echo "no undefined citations or references"
+boxes paper.log
+echo "no undefined citations or references, no over- or underfull boxes"
 
 # THE SUPPLEMENT IS A DOCUMENT, NOT A DIRECTORY OF LOOSE PDFS. Ten figures shipped as f0 to f8
 # and f13 with no S-numbering and no legends, and "bioRxiv accepts separate files" does not make
@@ -88,4 +101,5 @@ if grep -qE "LaTeX Warning: (Citation|Reference).*undefined" supplementary.log; 
   grep -E "LaTeX Warning: (Citation|Reference).*undefined" supplementary.log >&2
   exit 1
 fi
+boxes supplementary.log
 echo "wrote supplementary.pdf ($(wc -c < supplementary.pdf) bytes)"

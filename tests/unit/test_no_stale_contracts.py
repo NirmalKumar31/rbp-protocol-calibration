@@ -173,6 +173,40 @@ def test_the_neural_stack_is_an_extra_not_a_base_dependency():
     assert "<" in rp, f"requires-python {rp!r} has no upper bound"
 
 
+def test_the_readers_pins_and_the_ci_pins_are_the_same_environment():
+    """Two hand-kept pin files, and nothing compared them.
+
+    README tells a reader `pip install -e . -c constraints.txt`. CI installs
+    docker/requirements-cpu.txt instead, so the environment every published number is
+    verified in is NOT the one the README hands out, and the only thing that had ever made
+    the two agree was that the same person edited both. They do agree today, exactly, on
+    all twelve shared packages. A single bump to one file would end that silently, and the
+    symptom would be a reader getting a numeric difference nobody can reproduce.
+
+    requirements-cpu.txt is allowed to pin MORE, because CI reads the rendered PDF and a
+    reader verifying tables does not need pypdf. It is not allowed to pin the same package
+    differently.
+    """
+    def pins(text):
+        out = {}
+        for line in text.splitlines():
+            m = re.match(r"^([A-Za-z0-9_.-]+)==([^\s;#]+)", line.split("#")[0].strip())
+            if m:
+                out[m.group(1).lower().replace("_", "-")] = m.group(2)
+        return out
+
+    reader = pins(_read("constraints.txt"))
+    ci = pins(_read("docker/requirements-cpu.txt"))
+    assert reader, "constraints.txt stopped parsing as pins"
+    assert ci, "docker/requirements-cpu.txt stopped parsing as pins"
+    disagree = {k: (reader[k], ci[k]) for k in reader.keys() & ci.keys() if reader[k] != ci[k]}
+    assert not disagree, f"the reader's environment differs from the verified one: {disagree}"
+    missing = sorted(reader.keys() - ci.keys())
+    assert not missing, (
+        f"constraints.txt pins {missing}, which CI never installs, so those pins are "
+        "unexercised")
+
+
 def test_the_column_dictionary_is_a_dictionary_and_is_current():
     """P0.3. It carried four fields, no definitions, and a dtype from the first row alone."""
     cols = ROOT / "results" / "tables" / "COLUMNS.csv"
