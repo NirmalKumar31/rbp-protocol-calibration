@@ -19,6 +19,7 @@ claim broke.
 
 import argparse
 import io
+import math
 import re
 import sys
 from pathlib import Path
@@ -2139,6 +2140,188 @@ def verify_negative_draws(T, g):
         record(int(nb) == spec["n_draws_below_gc"],
                "the arm ordering survives every draw, not only the published one",
                int(nb), spec["n_draws_below_gc"])
+
+
+def verify_external_sensitivity(T, g):
+    """The external claim under the primary estimator and under chromosome-blocked folds.
+
+    Specified in docs/EXTERNAL_BENCHMARK_AMENDMENT.md and committed at 02a2bac before the run,
+    with the failure conditions written down. These assertions exist so that the thresholds, the
+    estimator, the fold criterion and the dataset count cannot be relaxed after the fact: each
+    is checked against the value the amendment fixed, not against whatever the table now says.
+    """
+    print("\nexternal sensitivity  (cross-fitted, and chromosome-blocked as the protocol asked)")
+    d = T.get("external_sensitivity.csv")
+    if d is None:
+        return record(False, "external_sensitivity.csv present", "MISSING",
+                      "run scripts/external_sensitivity.py")
+    spec = g["external_sensitivity"]
+    q = d.set_index("check")
+
+    def find(sub, col="value"):
+        hit = [k for k in q.index if sub in k]
+        if len(hit) != 1:
+            return None
+        v = q.loc[hit[0], col]
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return str(v)
+
+    n = find("datasets analysed")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "external datasets analysed", int(n),
+               spec["n_datasets"])
+
+    CELLS = (("supplied folds, two-stage", "supplied_2s", "supplied_2s_R"),
+             ("supplied folds, CROSS-FITTED", "supplied_cf", "supplied_cf_R"),
+             ("chromosome-blocked folds, two-stage", "chrom_2s", "chrom_2s_R"),
+             ("chromosome-blocked folds, cross-fitted", "chrom_cf", "chrom_cf_R"))
+    supporting = 0
+    for label, tag, key in CELLS:
+        r = find(f"directional R, {label}")
+        lo = find(f"directional R, {label}", "ci_low")
+        v = find(f"verdict, {tag}")
+        if r is not None:
+            near(f"R, {label}", r, spec[key])
+            at_least(f"R clears the protocol threshold, {label}", r, spec["min_point"])
+        if lo is not None:
+            at_least(f"lower bound clears the protocol threshold, {label}", lo,
+                     spec["min_lower_bound"])
+        if v is not None:
+            supporting += int(v == "supports")
+    record(supporting == spec["cells_supporting"],
+           "every cell reaches the verdict the amendment defined",
+           f"{supporting} of 4 support", f"{spec['cells_supporting']} of 4")
+
+    # The control. If the supplied-fold two-stage cell does not reproduce the published span,
+    # nothing else in this table is readable.
+    pub = T.get("external_replication.csv")
+    r0 = find("directional R, supplied folds, two-stage")
+    if pub is not None and r0 is not None:
+        pq = pub.set_index("check")
+        # The EXACT row. A substring match on "span" also caught "their datasets whose
+        # chromosomes span more than one fold", which is a count of 135, and the control then
+        # reported a gap of 133 against a quantity near 1.7.
+        k = "SPAN across their two negative-set constructions"
+        if k in pq.index:
+            gap = abs(r0 - float(pq.loc[k, "value"]))
+            at_most("the supplied-fold cell reproduces the published external span", gap,
+                    spec["max_control_gap"])
+
+    # D2's own verification: the refold delivered the property and closed the channel.
+    cb = find("every chromosome falls in exactly one fold")
+    if cb is not None:
+        record(int(cb) == spec["chrom_blocked_datasets"],
+               "every chromosome falls in exactly one fold, on every dataset", int(cb),
+               spec["chrom_blocked_datasets"])
+    ch = find("cross-fold near-neighbour fraction, chromosome-blocked folds")
+    su = find("cross-fold near-neighbour fraction, their supplied folds")
+    if ch is not None:
+        at_most("the refold leaves no cross-fold near neighbour", ch, spec["max_chrom_leakage"])
+    if su is not None:
+        near("cross-fold near-neighbour fraction on their supplied folds", su,
+             spec["supplied_leakage"])
+    if ch is not None and su is not None:
+        record(ch <= su, "the refold does not INCREASE the channel it replaces",
+               f"{ch:.5f} vs {su:.5f}", "no larger")
+
+    worst = max((find(f"datasets excluded, {r}") or 0)
+                for r in ("no_chrom_folds", "fold_class", "no_build"))
+    at_most("datasets excluded for any reason", worst, spec["max_excluded"])
+
+
+def verify_capacity_ladder(T, g):
+    """The outer-fold channel at five k-mer orders, and it is not monotone in capacity.
+
+    This block exists to keep a WITHDRAWAL from silently reverting. The Methods used to argue
+    that the channel grows with capacity, from two points. If a future edit reinstates that
+    claim, the monotone_arms assertion below still says zero and the manuscript will contradict
+    a gated number.
+    """
+    print("\nk-mer capacity ladder  (does the outer-fold channel grow with capacity?)")
+    d = T.get("capacity_ladder.csv")
+    if d is None:
+        return record(False, "capacity_ladder.csv present", "MISSING",
+                      "run scripts/capacity_ladder.py --store ../rbp-store")
+    spec = g["capacity_ladder"]
+    q = d.set_index("check")
+
+    def val(k):
+        if k not in q.index:
+            return None
+        v = q.loc[k, "value"]
+        try:
+            return float(v)
+        except (TypeError, ValueError):
+            return None
+
+    n = val("datasets on the ladder")
+    if n is not None:
+        record(int(n) == spec["n_datasets"], "datasets on the ladder", int(n),
+               spec["n_datasets"])
+    m = val("systematic sampling interval m")
+    if m is not None:
+        record(int(m) == spec["sampling_interval"], "systematic sampling interval",
+               int(m), spec["sampling_interval"])
+
+    arms = ("dn", "gc", "neg2")
+
+    def rung_mean(k):
+        v = [val(f"panel-mean outer-fold channel, k={k}, {a} arm") for a in arms]
+        return sum(v) / len(v) if all(x is not None for x in v) else None
+
+    k2, k4 = rung_mean(2), rung_mean(4)
+    if k2 is not None:
+        near("channel averaged over arms, k=2", k2, spec["k2_channel_mean"])
+        at_least("the k=2 channel is unambiguously large", k2, spec["min_k2_channel"])
+    if k4 is not None:
+        near("channel averaged over arms, k=4", k4, spec["k4_channel_mean"])
+
+    # The finding, gated so a reinstated claim collides with it.
+    mono = sum(int(val(f"channel is monotone non-decreasing in k, {a} arm") or 0) for a in arms)
+    record(mono == spec["monotone_arms"],
+           "the channel is NOT monotone in capacity, in any arm",
+           f"{mono} of 3 monotone", f"{spec['monotone_arms']} of 3")
+
+    worst = 0.0
+    for k in (4, 5, 6):
+        for a in arms:
+            v = val(f"panel-mean outer-fold channel, k={k}, {a} arm")
+            if v is not None:
+                worst = max(worst, abs(v))
+    at_most("the channel above k=3 is negligible in every arm", worst,
+            spec["max_channel_above_k3"])
+
+    # The headline must not depend on the k-mer order.
+    for k in (3, 4, 5, 6):
+        sp = val(f"three-arm span, k={k}, cross-fitted")
+        if sp is not None:
+            at_least(f"cross-fitted span at k={k}", sp, spec["min_span_k3_to_k6"])
+            at_most(f"cross-fitted span at k={k} stays bounded", sp, spec["max_span_k3_to_k6"])
+
+    # A ratio of near-zero panel means is not a span and must stay unreported.
+    # An EMPTY cell is not a missing row. val() returns nan for a committed row whose value
+    # is blank, and `is None` was therefore false for exactly the state being asserted.
+    k2span = val("three-arm span, k=2, cross-fitted")
+    record(k2span is None or math.isnan(k2span),
+           "no span is claimed for the cross-fitted 2-mer, whose truth is zero",
+           "unreported" if (k2span is None or math.isnan(k2span)) else f"{k2span:.1f}",
+           "unreported")
+
+    # And the rung that overlaps the published panel is the control.
+    cf = T.get("cross_fitting.csv")
+    if cf is not None:
+        pq = cf.set_index("check")
+        gaps = []
+        for a in arms:
+            lad = val(f"panel-mean outer-fold channel, k=4, {a} arm")
+            key = f"4-mer outer-fold channel, {a} arm"
+            if lad is not None and key in pq.index:
+                gaps.append(abs(lad - float(pq.loc[key, "value"])))
+        if gaps:
+            at_most("the k=4 rung reproduces the full-panel channel on a 24-dataset subsample",
+                    max(gaps), spec["max_k4_control_gap"])
 
 
 def verify_class_ratio(T, g):
@@ -5403,6 +5586,7 @@ def main():
              verify_protocol_transport, verify_negative_draws, verify_homology_folds,
              verify_sensitivity_suite, verify_external_replication,
              verify_redraw_composition, verify_class_ratio,
+             verify_capacity_ladder, verify_external_sensitivity,
              verify_cache_evidence, verify_cross_tables, verify_integrity)
     n_paper = None
     for fn in (PAPER + LEGACY):

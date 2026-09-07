@@ -1368,7 +1368,7 @@ integrity:
   # both this check itself and the manuscript-coverage check appended after it, so the floor
   # sits two below the "N/N checks passed" line. Pasting 859 for a run that printed 860 made the
   # count check fail, which then read as an artefact discrepancy that did not exist.
-  min_domain_checks: 1024
+  min_domain_checks: 1060
   # A RATCHET ON UNSOURCED NUMBERS. scripts/audit_manuscript.py extracts every value quoted to
   # >= 3 decimals in the manuscript and reports the ones traceable to no committed table and no
   # key here. It has already paid for itself twice: it found six cells of R1's OWN headline
@@ -2563,6 +2563,57 @@ negative_draws:
   max_widening: 1.15          # combined / published interval width must stay below this
   max_median_range: 0.006     # per-dataset range across draws
   n_draws_below_gc: 5         # the ordering must survive every draw
+
+# THE EXTERNAL SENSITIVITIES, SPECIFIED IN docs/EXTERNAL_BENCHMARK_AMENDMENT.md AT 02a2bac
+# BEFORE THE RUN. An audit found three defects in the external claim as applied: the prewritten
+# estimand max/min is bounded below by 1 so its "interval contains 1.0" failure rule was close
+# to unsatisfiable; the protocol's chromosome-blocked fold criterion was never checked and was
+# then satisfied by a different instrument; and the external analysis used the two-stage
+# estimator while the internal primary is cross-fitted. The amendment fixed a DIRECTIONAL
+# estimand R = M(negative-1)/M(negative-2), which can fall below 1, and its four verdicts.
+#
+# All four cells support. The thresholds (point >= 1.5, lower bound >= 1.2) are the ORIGINAL
+# protocol's, carried over unchanged; only the quantity they apply to changed.
+external_sensitivity:
+  n_datasets: 135
+  # The control: the supplied-fold two-stage cell must reproduce the published 1.69 span.
+  supplied_2s_R: {value: 1.6912, tol: 0.01}
+  max_control_gap: 0.01                 # against external_replication.csv's published span
+  # D3: like-for-like with the internal primary 4.84.
+  supplied_cf_R: {value: 1.6640, tol: 0.01}
+  # D2: the literal criterion the protocol asked for.
+  chrom_2s_R: {value: 1.7428, tol: 0.01}
+  chrom_cf_R: {value: 1.6822, tol: 0.01}
+  # Every cell must clear the protocol's own thresholds, and every verdict must be `supports`.
+  min_point: 1.5
+  min_lower_bound: 1.2
+  cells_supporting: 4
+  # The refold must actually deliver the property, on every dataset, and must not INCREASE the
+  # channel chromosome blocking is a proxy for.
+  chrom_blocked_datasets: 135
+  max_chrom_leakage: 0.0                # observed exactly zero of 1,623,101
+  supplied_leakage: {value: 0.003558, tol: 0.0005}
+  max_excluded: 0                       # no dataset was dropped for any reason
+
+# THE k-MER CAPACITY LADDER, WHICH FALSIFIED A CLAIM THIS PAPER MADE. The Methods argued from
+# two points, k=2 and k=4, that the outer-fold channel grows with base-model capacity, and used
+# that to say the unmeasured neural channel should be at least as large as the k-mer one. Five
+# rungs say otherwise: the channel is large only where the composition baseline SPANS the base
+# model, flips sign at k=3, and is within 0.001 of zero above that. Not monotone in any arm.
+# The claim is withdrawn in the manuscript. Specified in docs/SENSITIVITY_SPEC.md before the run.
+capacity_ladder:
+  n_datasets: 24                    # systematic every-4th by pair rank; the rule, not the count
+  sampling_interval: 4
+  k2_channel_mean: {value: 0.0142, tol: 0.002}     # averaged over the three arms
+  k4_channel_mean: {value: -0.0016, tol: 0.001}
+  max_channel_above_k3: 0.003       # observed 0.00235, the bias-aware arm at k=4
+  min_k2_channel: 0.010             # the one rung where the channel is unambiguously large
+  monotone_arms: 0                  # of three. THE POINT: it is not monotone anywhere
+  # The headline must not depend on the k-mer order. Cross-fitted spans for k = 3 to 6.
+  min_span_k3_to_k6: 4.0
+  max_span_k3_to_k6: 5.5
+  # The k=4 rung on this subsample against the full-panel value in cross_fitting.csv.
+  max_k4_control_gap: 0.001
 
 # CLASS-RATIO SENSITIVITY. Every nested fit in this paper is estimated at roughly 1:1, and a
 # genome-wide screen faces a far smaller positive fraction. AUROC is prevalence-invariant; the

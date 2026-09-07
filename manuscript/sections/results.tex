@@ -1124,7 +1124,7 @@ our 4-mer, transported unchanged.
 
 Two properties of that transport are load-bearing and neither was stated before an audit asked.
 The estimator transported is the \emph{two-stage} one, so the external span is comparable with
-the 5.42-fold two-stage figure and not with the 4.84-fold cross-fitted primary; cross-fitting
+the 5.42-fold two-stage figure and, since the amendment, also with the 4.84-fold cross-fitted primary; cross-fitting
 the external arms is affordable and simply has not been run. And their fold partition is not
 chromosome-blocked: every chromosome appears in every fold, in all 135 datasets. Chromosome
 grouping is a coarse instrument for one channel, a held-out window sharing sequence with a
@@ -1149,6 +1149,66 @@ leave it to be reconstructed. This benchmark was already known to us: we had sco
 rule applied to the previously unscored 135-dataset complement. That is a pre-specified analysis
 of a held-out subset of an already-known external construction, and it is weaker than a
 prospective benchmark search would have been.
+
+\subsubsection*{Two amendments, and what they close}
+
+An external audit identified three defects in that analysis as applied, all three real. First,
+the prewritten estimand is $\max(\text{arm mean}) / \min(\text{arm mean})$, which is bounded
+below by one by construction, so the stated failure rule, that the interval contains $1.0$, was
+close to unsatisfiable. Second, eligibility required a chromosome-blocked partition or
+coordinates sufficient to build one, and their supplied folds are not chromosome-blocked; they
+were accepted on a near-neighbour diagnostic computed afterwards, which is a finer instrument
+than the criterion but not the criterion. Third, the external analysis used the two-stage
+estimator while our primary estimator is cross-fitted.
+
+The first is a specification error and was fixed by specification, in
+\texttt{docs/\allowbreak EXTERNAL\_\allowbreak BENCHMARK\_\allowbreak AMENDMENT.md}, committed before either analysis below was
+run. The estimand is now directional, $R = M(\texttt{negative-1}) / M(\texttt{negative-2})$,
+with numerator and denominator fixed by the deposit's own labels, so $R < 1$ is attainable and
+means the ordering is the reverse of ours. The thresholds are the original protocol's, carried
+over unchanged: support requires $R \geq 1.5$ with a lower bound $\geq 1.2$. The other two
+defects were addressed by running the analyses they ask for.
+
+\begin{table}[htbp]
+\centering
+\caption{The external analysis under both estimators and both fold partitions. All four cells
+meet thresholds fixed before any of them was computed. The first row is the published analysis
+recomputed, and reproduces it to $2\times10^{-16}$, which is what makes the other three
+readable. Intervals are 95\% protein-clustered percentile bootstraps over 4000 draws, seed
+fixed in the amendment.}
+\label{tab:extsens}
+\begin{tabular}{llcc}
+\toprule
+folds & estimator & $R$ (95\% CI) & verdict \\
+\midrule
+supplied & two-stage & 1.69 (1.41--2.03) & supports \\
+supplied & cross-fitted & 1.66 (1.40--1.98) & supports \\
+chromosome-blocked & two-stage & 1.74 (1.44--2.12) & supports \\
+chromosome-blocked & cross-fitted & 1.68 (1.41--2.02) & supports \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Cross-fitting the external covariate makes the comparison like-for-like with our primary
+estimand. It gives $1.66$ against the two-stage $1.69$, a $1.6\%$ reduction, where the same
+change internally moved the 4-mer span from $5.42$ to $4.84$, a $10.6\%$ reduction. So the
+external figure is now comparable with our $4.84$ as well as with our $5.42$, and the choice of
+estimator does not carry it.
+
+The chromosome-blocked refold answers the literal criterion. Their coordinates were repartitioned
+into five folds by assigning whole chromosomes largest-first to the emptiest fold, a
+deterministic rule that never splits a chromosome, applied to positives and negatives together.
+It succeeded on all 135 datasets with no exclusions, every chromosome falls in exactly one fold,
+and the fraction of windows whose nearest same-strand neighbour within 1~kb sits in a different
+fold falls from $0.0036$ to \textbf{exactly zero} of 1{,}623{,}101. The result is $1.74$
+two-stage and $1.68$ cross-fitted, slightly larger than under their own folds rather than
+smaller, so closing the channel does not remove the effect.
+
+What the amendments do not buy is prospectiveness. The benchmark was known and its intersection
+with our panel had been scored before the original protocol was written, and these two analyses
+were specified after that protocol and after the first result. They are pre-specified
+sensitivity analyses on an already-analysed external dataset, and the strongest honest
+description of the whole external component remains the one given above.
 
 Three things this does and does not establish, because the distinctions are load-bearing.
 
@@ -1224,6 +1284,30 @@ dataset and this design cannot separate the two, and 15 of 376 dataset-arms are 
 because a fold would hold fewer than 20 rows of a class. No interval is quoted for the
 subsampled conditions, because the subsample adds a variance component a one-draw
 protein-clustered bootstrap does not represent.
+
+The second is the capacity ladder, and it \textbf{falsifies a directional claim this paper
+previously made}. The outer-fold channel was measured at two orders, $k=2$ and $k=4$, and the
+Methods argued from that pair that a higher-capacity base model has more scope to encode the
+withheld fold, so a neural channel should be at least as large as the k-mer one. Measuring the
+channel at $k = 2, 3, 4, 5, 6$ in all three arms, on a systematic every-fourth subsample of 24
+datasets by pair rank, shows the relationship is not monotone in any arm. Averaged over the
+three arms the channel is $+0.0142$ at $k=2$, $-0.0039$ at $k=3$, $-0.0016$ at $k=4$, $-0.0004$
+at $k=5$ and $-0.0006$ at $k=6$. It is large and positive exactly where the composition
+baseline spans the base model, changes sign once the model carries information the baseline does
+not, and above that reaches at most $0.0024$ in any single arm against $0.0125$ to $0.0169$ at
+$k=2$. The $k=4$ channel on this subsample is $-0.0018$, $-0.0007$
+and $-0.0024$ in the GC, dinucleotide and bias-aware arms against $-0.0017$, $-0.0008$ and
+$-0.0016$ on the full panel, which is the control that makes the rest of the rung readable.
+
+Two consequences. The channel is a property of the overlap between base model and baseline
+rather than of capacity, which is what the floor experiment already implied and what this
+measures. And the neural channel is therefore \emph{unknown in sign as well as in size}: the
+Methods statement that it should be at least as large has been withdrawn. The three-arm span
+itself is stable across the ladder under the primary estimator, at $4.33$, $4.19$, $4.76$ and
+$4.80$ for $k = 3$ to $6$, so the headline does not depend on the k-mer order chosen. No span
+is quoted for the cross-fitted $k=2$ rung: its panel means are a few times $10^{-6}$, since its
+true contribution is zero, and a ratio of two such numbers is arithmetic rather than a
+magnitude.
 
 \subsection{The estimator has a positive floor where the true contribution is zero}
 \label{sec:floor}

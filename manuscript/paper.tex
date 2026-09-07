@@ -152,9 +152,12 @@ $5\times10^{-4}$.
 It is not a property of our own construction. On 135 datasets from \citet{horlacher2023} that
 our panel does not contain, using their windows, negatives and folds, the two-stage estimator
 gives a 1.69-fold span (95\% CI 1.41 to 2.03) across their two negative-set constructions,
-meeting criteria committed before that disjoint subset was scored. That external figure is
-two-stage and not cross-fitted, so it is comparable with our 5.42 and not with our primary
-4.84. The directional relation between apparent
+meeting criteria committed before that disjoint subset was scored. Two analyses fixed in a
+dated amendment before either was run close the gaps in that comparison: cross-fitting the
+external covariate, so like-for-like with our primary, gives $1.66$ ($1.40$ to $1.98$), and
+rebuilding their folds so no chromosome is split gives $1.68$ ($1.41$ to $2.02$) cross-fitted on
+all 135 datasets, with the cross-fold near-neighbour fraction falling from $0.0036$ to zero. All
+four analyses meet the same pre-fixed thresholds. The directional relation between apparent
 difficulty and measured contribution does not replicate there, and we report it as failing.
 
 In a targeted, non-systematic sample of seven methods and benchmarks, none reports a
@@ -189,7 +192,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 regression-checked offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 1099 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 1135 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. That is a check against committed evidence and not a rebuild from raw inputs: two of the
 assertions are genuine end-to-end rebuilds, 285 AUROCs from committed per-window scores and the

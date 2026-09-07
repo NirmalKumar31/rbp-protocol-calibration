@@ -1,0 +1,21 @@
+check,value,ci_low,ci_high,n,note
+datasets analysed,135,,,135,Horlacher ENCODE datasets absent from our 95-dataset panel
+"directional R, supplied folds, two-stage (the published analysis, recomputed)",1.6911878750894382,1.4121465313386727,2.0263515105020926,135,point >= 1.5 and lower bound >= 1.2
+"verdict, supplied_2s",supports,,,135,amendment decision rule: supports/weak/fails/indeterminate
+"panel mean negative-1, supplied_2s",0.03594893812470927,,,135,
+"panel mean negative-2, supplied_2s",0.021256620068192077,,,135,
+"directional R, supplied folds, CROSS-FITTED (D3: like-for-like with our primary)",1.663961447452119,1.3993344251035527,1.9837136770301067,135,point >= 1.5 and lower bound >= 1.2
+"verdict, supplied_cf",supports,,,135,amendment decision rule: supports/weak/fails/indeterminate
+"panel mean negative-1, supplied_cf",0.03707263425070986,,,135,
+"panel mean negative-2, supplied_cf",0.022279743504560155,,,135,
+"directional R, chromosome-blocked folds, two-stage (D2: the literal criterion)",1.742792505081801,1.4412312844501334,2.121767717451795,135,point >= 1.5 and lower bound >= 1.2
+"verdict, chrom_2s",supports,,,135,amendment decision rule: supports/weak/fails/indeterminate
+"panel mean negative-1, chrom_2s",0.035476401008907435,,,135,
+"panel mean negative-2, chrom_2s",0.020356067004799454,,,135,
+"directional R, chromosome-blocked folds, cross-fitted (D2 and D3 together)",1.6821838181281092,1.4086837272420223,2.0199904399228368,135,point >= 1.5 and lower bound >= 1.2
+"verdict, chrom_cf",supports,,,135,amendment decision rule: supports/weak/fails/indeterminate
+"panel mean negative-1, chrom_cf",0.03717995700195622,,,135,
+"panel mean negative-2, chrom_cf",0.0221021963243762,,,135,
+datasets whose every chromosome falls in exactly one fold,135,,,135,"must equal the count with a chromosome partition, or the refold is broken"
+"cross-fold near-neighbour fraction, chromosome-blocked folds",0.0,,,1623101,"0 of 1623101 WINDOWS, positives and negatives together, with a same-strand neighbour within 1 kb sit in a different fold from it. NOT the same measure as external_replication.fold_blocking, which counts positives only and reports 199 of 1,323,516 on the supplied folds; this one has a larger population and a larger denominator, and the two are not interchangeable"
+"cross-fold near-neighbour fraction, their supplied folds",0.0035580040921667846,,,1623101,"5775 of 1623101 WINDOWS, positives and negatives together, with a same-strand neighbour within 1 kb sit in a different fold from it. NOT the same measure as external_replication.fold_blocking, which counts positives only and reports 199 of 1,323,516 on the supplied folds; this one has a larger population and a larger denominator, and the two are not interchangeable"

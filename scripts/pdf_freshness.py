@@ -2,7 +2,7 @@
 
     python scripts/pdf_freshness.py
 
-WHY THIS EXISTS. CI proves that LaTeX can build the sources. It has never proved that the
+Why this exists. CI proves that LaTeX can build the sources. It has never proved that the
 binary a reader downloads is what those sources produce. Those are different claims, and on
 2026-09-07 they came apart: an external audit built the audited commit from scratch and found
 the fresh text differing from `manuscript/paper.pdf` on nine pages.
@@ -55,11 +55,28 @@ def text_of(pdf):
 
 
 def norm(t):
-    return re.sub(r"\s+", " ", t).strip()
+    """All whitespace REMOVED, not collapsed, and here is why that is not overzealous.
+
+    The tracked PDF is built by whatever TeX Live the author has; CI rebuilds with Ubuntu's.
+    The two emit different inter-character positioning, and pypdf turns that into different
+    spacing: the same document yields "9.2" from one and "9 . 2" from the other, and
+    "15.2% for training" against "15.2%for training". Collapsing runs of whitespace does not
+    fix that, because one side has a space where the other has none.
+
+    Removing whitespace entirely does, and it costs almost nothing: word boundaries are not
+    what this gate is for. It compares the numbers and the character content of the document,
+    which are exactly the things a stale PDF gets wrong.
+
+    What survives this normalisation and would still fail across toolchains is a HYPHENATION
+    difference, since TeX's patterns are version-dependent. That has not been observed here and
+    would be a real, if annoying, signal rather than noise.
+    """
+    return re.sub(r"\s+", "", t)
 
 
 def numbers(t):
-    return re.findall(r"\d+(?:\.\d+)?", t)
+    """Numeric tokens, taken AFTER whitespace removal for the reason norm() gives."""
+    return re.findall(r"\d+(?:\.\d+)?", re.sub(r"\s+", "", t))
 
 
 def main():
@@ -97,7 +114,7 @@ def main():
             if n_have != n_fresh:
                 bad.append(f"{d}: tracked has {n_have} pages, a clean build gives {n_fresh}")
 
-            a, b = numbers(t_have), numbers(t_fresh)
+            a, b = numbers(t_have), numbers(t_fresh)   # whitespace-stripped, see norm()
             if a != b:
                 sm = difflib.SequenceMatcher(None, a, b)
                 shown = 0
@@ -113,7 +130,8 @@ def main():
                 ratio = difflib.SequenceMatcher(None, ha, hb).quick_ratio()
                 i = next((k for k in range(min(len(ha), len(hb))) if ha[k] != hb[k]),
                          min(len(ha), len(hb)))
-                bad.append(f"{d}: TEXT differs (similarity {ratio:.4f}); first at char {i}: "
+                bad.append(f"{d}: TEXT differs after whitespace removal "
+                           f"(similarity {ratio:.4f}); first at char {i}: "
                            f"{ha[i:i + 60]!r} -> {hb[i:i + 60]!r}")
             else:
                 log(f"  {d}: {n_have} pages, {len(a)} numeric tokens, identical to a clean build")

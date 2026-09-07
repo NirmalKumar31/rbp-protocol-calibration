@@ -312,10 +312,15 @@ At the rates this study measured over 940 recorded runs, \$14.58 per million pai
 convolutional network and \$27.25 for SpliceBERT, one sweep of both models across all three
 arms is about \$57, and cross-fitting them is about twice that. Every span reported for those two model
 classes is therefore \textbf{exploratory}: it is computed with an estimator this paper
-demonstrates is biased upward for a model the baseline spans, the size of that bias is measured
-only for the k-mer classes, and a higher-capacity base model has more scope to encode the
-withheld fold, not less. We do not extrapolate the k-mer correction to them, and no conclusion
-in this paper rests on the neural spans alone.
+demonstrates is biased upward for a model the baseline spans, and the size of that bias is
+measured only for the k-mer classes. An earlier version of this paragraph added that a
+higher-capacity base model has more scope to encode the withheld fold, not less, which would
+make the neural channel at least as large as the k-mer one. \textbf{We withdraw that}: the
+capacity ladder in Section~\ref{sec:sensitivity} measures the channel at five k-mer orders and
+it is not monotone in capacity. It is large where the composition baseline spans the base model
+and negligible everywhere above that. We therefore do not know the sign or the size of the
+neural channel, and we do not extrapolate the k-mer correction to them. No conclusion in this
+paper rests on the neural spans alone.
 
 One channel inside the estimator remains open and is worth naming, separately from the
 sequence homology discussed above, because it is not removed by scoring out of fold.
@@ -497,7 +502,7 @@ had previously made from assumption rather than from reading, which is recorded 
 
 Every published value is regression-checked offline by a single command against committed
 evidence, which is a different and weaker claim than rebuilding it from raw inputs. The
-harness runs 1099 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 1135 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

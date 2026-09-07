@@ -5,11 +5,17 @@
 
 Specified in `docs/SENSITIVITY_SPEC.md` section C, committed before this was run.
 
-What is being measured. The paper reports the outer-fold channel at two points, k = 4 and
-k = 2, and asserts a DIRECTION for how it scales with capacity: a higher-capacity base model has
-more scope to encode the withheld fold, so the channel should grow. That assertion carries real
-weight, because it is the argument for why the unmeasured neural channel is unlikely to be
+What is being measured. The paper reported the outer-fold channel at two points, k = 4 and
+k = 2, and asserted a DIRECTION for how it scales with capacity: a higher-capacity base model has
+more scope to encode the withheld fold, so the channel should grow. That assertion carried real
+weight, because it was the argument for why the unmeasured neural channel is unlikely to be
 smaller than the k-mer one. Two points do not establish a direction. This measures five.
+
+The answer is that the direction is wrong. The channel is +0.0142 averaged over arms at k = 2,
+turns negative at k = 3, and above that reaches at most 0.0024 in any arm. It is not monotone in
+any arm. What it tracks is whether the composition baseline SPANS the base model, which is
+large at k = 2 because the baseline contains all sixteen dinucleotide frequencies, and not
+capacity. The Methods claim is withdrawn in the manuscript rather than quietly dropped.
 
 The channel at each rung is `two-stage minus cross-fitted`, both computed by
 `scripts/cross_fitting.py` unmodified: ten complement fits per dataset per arm, one per
@@ -55,6 +61,9 @@ PER = TABLES / "capacity_ladder_per_dataset.csv"
 ARMS = {"dn": "dinuc", "gc": "gc", "neg2": "neg2"}
 LADDER = (2, 3, 4, 5, 6)
 BUDGET_SECONDS = 90 * 60          # the specification's cap on the whole run
+# Below this a panel mean is indistinguishable from the zero the 2-mer's truth is,
+# and a ratio of two such numbers is not a span. See the comment at its use.
+SPAN_FLOOR = 1e-3
 
 
 def rung(seqs, y, folds, k):
@@ -219,9 +228,21 @@ def main():
                 col = f"k{k}_{kind}_{arm}"
                 if col in t.columns and t[col].notna().any():
                     means[arm] = float(t[col].dropna().mean())
-            if len(means) == 3 and min(means.values()) > 0:
+            # A ratio of near-zero panel means is not a span. Cross-fitted, the 2-mer's
+            # contribution is a few times 1e-5 in every arm, because its true contribution is
+            # zero by construction, and dividing one of those by another returned 295.9. That
+            # is arithmetic, not a magnitude, and printing it beside the 4-mer's 4.2 would
+            # invite exactly the wrong reading. cross_fitting.py refuses a span when the arms
+            # do not share a sign; this is the same defect one step further out, where they do
+            # share a sign and the denominator is negligible.
+            if len(means) == 3 and min(means.values()) > SPAN_FLOOR:
                 add(f"three-arm span, k={k}, {lab}",
                     max(means.values()) / min(means.values()), n=len(t))
+            elif len(means) == 3:
+                add(f"three-arm span, k={k}, {lab}", "",
+                    n=len(t), note=f"undefined: the smallest panel mean is "
+                                   f"{min(means.values()):.2e}, below the {SPAN_FLOOR:g} floor, "
+                                   "so the ratio is arithmetic rather than a magnitude")
 
     pd.DataFrame(out).to_csv(OUT, index=False)
     log(f"\n  wrote {OUT.name} and {PER.name}")

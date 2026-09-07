@@ -186,3 +186,24 @@ transported unchanged. It is recorded as the next experiment rather than as a re
 
 **The result is in `results/tables/external_replication.csv`** and was produced by applying the
 thresholds above mechanically in code rather than in prose.
+
+---
+
+**SUPERSEDED IN THREE RESPECTS BY `EXTERNAL_BENCHMARK_AMENDMENT.md`, 2026-09-07.** This document
+is still not edited, for the reason given at the top of this addendum. But three of its
+provisions were found defective by a later audit and the amendment replaces them. Read the
+amendment alongside this file:
+
+1. **The estimand's failure rule was ill-posed.** `max/min` is bounded below by one, so "fails
+   if the interval contains 1.0" was close to unsatisfiable. The amendment fixes a directional
+   `negative-1 / negative-2` ratio instead, which can fall below one.
+2. **Eligibility criterion 4 was never checked before the benchmark was accepted**, and was
+   then satisfied by a post-hoc near-neighbour diagnostic rather than by the chromosome-blocked
+   partition the criterion names. The amendment builds that partition. It succeeds on all 135
+   datasets and the result holds.
+3. **The estimator here is two-stage**, while the paper's primary estimator is cross-fitted.
+   The amendment runs the cross-fitted external analysis, so the comparison is like-for-like.
+
+The amendment was committed at `02a2bac` before either analysis it specifies was run. Its
+results are in `results/tables/external_sensitivity.csv` and all four cells meet the thresholds
+this document fixed.

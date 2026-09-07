@@ -342,8 +342,12 @@ def main():
             cross = float(c[f"{tag}_cross_fold"].sum())
             add(f"cross-fold near-neighbour fraction, {lab} folds",
                 cross / have if have else np.nan, n=int(have),
-                note=f"{int(cross)} of {int(have)} positives with a same-strand neighbour "
-                     "within 1 kb sit in a different fold from it")
+                note=f"{int(cross)} of {int(have)} WINDOWS, positives and negatives together, "
+                     "with a same-strand neighbour within 1 kb sit in a different fold from it. "
+                     "NOT the same measure as external_replication.fold_blocking, which counts "
+                     "positives only and reports 199 of 1,323,516 on the supplied folds; this "
+                     "one has a larger population and a larger denominator, and the two are not "
+                     "interchangeable")
         log(f"\n  chromosome-blocked on {int(c.chrom_blocked.sum())}/{len(c)} datasets")
 
     if excluded is not None:

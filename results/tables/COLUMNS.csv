@@ -85,12 +85,69 @@ candidate_sizes.csv,protein,string,,yes,189,0,132,,,AATF,"ENCODE target. NOT uni
 candidate_sizes.csv,cell,string,,yes,189,0,2,,,K562,K562 or HepG2,scripts/cloud_analysis.py
 candidate_sizes.csv,pairs,int,count,,189,0,186,406,32387,1081,Matched positive/negative pairs; rows are twice this,scripts/cloud_analysis.py
 candidate_sizes.csv,dataset,string,,yes,189,0,189,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/cloud_analysis.py
-class_ratio.csv,check,string,,yes,26,0,26,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/class_ratio.py
-class_ratio.csv,value,float,,,26,0,20,0,94,94.0,The asserted quantity,scripts/class_ratio.py
-class_ratio.csv,ci_low,empty,,,26,26,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/class_ratio.py
-class_ratio.csv,ci_high,empty,,,26,26,0,,,,Upper bound of the same interval as ci_low,scripts/class_ratio.py
-class_ratio.csv,n,int,count,,26,0,2,89,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/class_ratio.py
-class_ratio.csv,note,string,,,26,12,5,,,"the study panel, all three arms present","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/class_ratio.py
+capacity_ladder.csv,check,string,,yes,62,0,62,,,datasets on the ladder,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/capacity_ladder.py
+capacity_ladder.csv,value,float,,,62,1,59,-0.0905944,24,24,The asserted quantity,scripts/capacity_ladder.py
+capacity_ladder.csv,ci_low,empty,,,62,62,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/capacity_ladder.py
+capacity_ladder.csv,ci_high,empty,,,62,62,0,,,,Upper bound of the same interval as ci_low,scripts/capacity_ladder.py
+capacity_ladder.csv,n,int,count,,62,0,1,24,24,24,"Datasets, or rows, behind the value. Usually 94",scripts/capacity_ladder.py
+capacity_ladder.csv,note,string,,,62,54,4,,,systematic every-m-th by pair rank; a su,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,dataset,string,,yes,24,0,24,,,LARP4:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,protein,string,,yes,24,0,23,,,LARP4,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,cell,string,,yes,24,0,2,,,K562,K562 or HepG2,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,rows_dn,int,,,24,0,24,860,46384,860,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_2s_dn,float,,,24,0,24,0.000701838,0.0632839,0.03978366684694423,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_cf_dn,float,,,24,0,24,-0.0092728,0.00537393,-0.0008815575987021207,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_channel_dn,float,,,24,0,24,0.000130815,0.0725567,0.04066522444564635,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_2s_dn,float,,,24,0,24,-0.00627244,0.103475,-0.004002163331530584,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_cf_dn,float,,,24,0,24,-0.0101248,0.10715,-0.0058896700919416345,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_channel_dn,float,,,24,0,24,-0.015552,0.00385234,0.0018875067604110507,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_2s_dn,float,,,24,0,24,0.00104802,0.160876,0.009507842076798223,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_cf_dn,float,,,24,0,24,0.00140197,0.161396,0.0071660356949700965,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_channel_dn,float,,,24,0,24,-0.00372179,0.0171203,0.0023418063818281265,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_2s_dn,float,,,24,0,24,0.00999209,0.181288,0.018290968090859838,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_cf_dn,float,,,24,0,24,0.00948958,0.181816,0.01836668469442926,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_channel_dn,float,,,24,0,24,-0.00260149,0.00438978,-7.571660356942012e-05,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_2s_dn,float,,,24,0,24,0.00959195,0.168253,0.03144402379664668,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_cf_dn,float,,,24,0,24,0.0102313,0.168394,0.031038399134667327,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_channel_dn,float,,,24,0,24,-0.00409478,0.00541973,0.00040562466197935354,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,rows_gc,int,,,24,0,24,860,46396,860,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_2s_gc,float,,,24,0,24,-0.00122814,0.0692205,0.03121146565711186,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_cf_gc,float,,,24,0,24,-0.00215792,0.0109652,-0.0021579232017306937,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_channel_gc,float,,,24,0,24,-0.010319,0.067389,0.03336938885884255,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_2s_gc,float,,,24,0,24,-0.0148627,0.0509269,0.0038885884261763426,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_cf_gc,float,,,24,0,24,-0.00280162,0.0528442,0.009616008653326125,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_channel_gc,float,,,24,0,24,-0.0248139,-0.00033573,-0.005727420227149782,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_2s_gc,float,,,24,0,24,-0.00739423,0.104118,0.0023904813412654047,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_cf_gc,float,,,24,0,24,0.000267921,0.105505,0.0019956733369388413,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_channel_gc,float,,,24,0,24,-0.00855202,0.000394808,0.0003948080043265634,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_2s_gc,float,,,24,0,24,-0.00605824,0.132146,0.00046511627906975495,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_cf_gc,float,,,24,0,24,-0.00582266,0.13319,-0.003499188750676119,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_channel_gc,float,,,24,0,24,-0.00517202,0.00396431,0.003964305029745874,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_2s_gc,float,,,24,0,24,-0.00918783,0.117247,0.0055273120605732196,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_cf_gc,float,,,24,0,24,-0.0119178,0.116852,0.006062736614386166,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_channel_gc,float,,,24,0,24,-0.00412163,0.00273002,-0.0005354245538129465,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,rows_neg2,int,,,24,0,24,860,46396,860,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_2s_neg2,float,,,24,0,24,-0.0020131,0.0504559,0.03218496484586264,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_cf_neg2,float,,,24,0,24,-0.00113493,0.0106199,0.00017306652244453158,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k2_channel_neg2,float,,,24,0,24,-0.00212577,0.0463965,0.03201189832341811,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_2s_neg2,float,,,24,0,24,-0.0203719,0.0358644,-0.0002595997836668529,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_cf_neg2,float,,,24,0,24,-0.00426717,0.0458115,-0.004267171444023776,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k3_channel_neg2,float,,,24,0,24,-0.0197869,0.00400757,0.004007571660356923,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_2s_neg2,float,,,24,0,24,-0.00987378,0.0508508,0.01111411573823684,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_cf_neg2,float,,,24,0,24,0.000662317,0.0548164,0.00915630070308271,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k4_channel_neg2,float,,,24,0,24,-0.0105361,0.00195782,0.0019578150351541312,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_2s_neg2,float,,,24,0,24,-0.0035615,0.0457635,0.003250405624661945,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_cf_neg2,float,,,24,0,24,-0.000559092,0.0462171,0.0023796646836128366,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k5_channel_neg2,float,,,24,0,24,-0.00703754,0.000870741,0.0008707409410491085,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_2s_neg2,float,,,24,0,24,-0.0029887,0.0454328,0.0075283937263385114,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_cf_neg2,float,,,24,0,24,0.000266093,0.05094,0.00919415900486753,,scripts/capacity_ladder.py
+capacity_ladder_per_dataset.csv,k6_channel_neg2,float,,,24,0,24,-0.00585037,0.00130827,-0.001665765278529019,,scripts/capacity_ladder.py
+class_ratio.csv,check,string,,yes,22,0,22,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/class_ratio.py
+class_ratio.csv,value,float,,,22,0,18,0.00854529,94,94.0,The asserted quantity,scripts/class_ratio.py
+class_ratio.csv,ci_low,empty,,,22,22,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/class_ratio.py
+class_ratio.csv,ci_high,empty,,,22,22,0,,,,Upper bound of the same interval as ci_low,scripts/class_ratio.py
+class_ratio.csv,n,int,count,,22,0,2,89,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/class_ratio.py
+class_ratio.csv,note,string,,,22,12,4,,,"the study panel, all three arms present","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/class_ratio.py
 class_ratio_per_dataset.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/class_ratio.py
 class_ratio_per_dataset.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/class_ratio.py
 class_ratio_per_dataset.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/class_ratio.py
@@ -632,6 +689,34 @@ external_search.csv,datasets,string,,,7,0,6,,,"223 ENCODE eCLIP, of which 135 ar
 external_search.csv,outcome,string,,,7,0,3,,,QUALIFIES on the disjoint subset,,scripts/external_search.py
 external_search.csv,failed_criterion,string,,,7,2,5,,,"1, independence",,scripts/external_search.py
 external_search.csv,note,string,,,7,0,7,,,The protocol asserted this benchmark rel,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/external_search.py
+external_sensitivity.csv,check,string,,yes,20,0,20,,,datasets analysed,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/external_sensitivity.py
+external_sensitivity.csv,value,string,,,20,0,16,,,135,The asserted quantity,scripts/external_sensitivity.py
+external_sensitivity.csv,ci_low,float,,,20,16,4,1.39933,1.44123,1.4121465313386727,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/external_sensitivity.py
+external_sensitivity.csv,ci_high,float,,,20,16,4,1.98371,2.12177,2.0263515105020926,Upper bound of the same interval as ci_low,scripts/external_sensitivity.py
+external_sensitivity.csv,n,int,count,,20,0,2,135,1623101,135,"Datasets, or rows, behind the value. Usually 94",scripts/external_sensitivity.py
+external_sensitivity.csv,note,string,,,20,8,6,,,Horlacher ENCODE datasets absent from ou,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,dataset,string,,yes,135,0,135,,,AARS:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,protein,string,,yes,135,0,108,,,AARS,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,cell,string,,yes,135,0,2,,,K562,K562 or HepG2,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_2s_n1,float,,,135,0,135,-0.00143876,0.174411,0.014942857607361915,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_cf_n1,float,,,135,0,135,-0.00136147,0.17525,0.01630775876034407,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,comp_n1,float,AUROC,,135,0,135,0.654903,0.976102,0.803130236030766,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,n_n1,int,count,,135,0,133,852,39978,6962,"Row count for that arm, which is twice the pair count",scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_2s_n2,float,,,135,0,135,-0.00311877,0.169559,0.0002215003745453803,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_cf_n2,float,,,135,0,135,-0.00609744,0.170741,0.0003905965993750149,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,comp_n2,float,AUROC,,135,0,135,0.548133,0.972589,0.6847884617781049,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,n_n2,int,count,,135,0,135,852,39990,6962,"Row count for that arm, which is twice the pair count",scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_2s_n1,float,,,135,0,135,-0.00394471,0.175513,0.017004857740889334,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_cf_n1,float,,,135,0,135,-0.00448573,0.176705,0.018945544330980946,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_comp_n1,float,,,135,0,135,0.58361,0.97597,0.8020578903277702,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_2s_n2,float,,,135,0,135,-0.000888119,0.17042,-0.0006275293770647838,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_cf_n2,float,,,135,0,135,-0.00298662,0.171797,-0.0008374760808066428,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_comp_n2,float,,,135,0,135,0.531942,0.972406,0.6826403867970922,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_blocked,int,,,135,0,1,1,1,1,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_neighbours,int,,,135,0,135,340,26206,3062,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_cross_fold,int,,,135,0,1,0,0,0,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_neighbours,int,,,135,0,135,340,26206,3062,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_cross_fold,int,,,135,0,62,0,516,2,,scripts/external_sensitivity.py
 fold_integrity.csv,check,string,,yes,29,0,29,,,"score sets audited, gc arm","The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/fold_integrity.py
 fold_integrity.csv,value,float,,,29,0,7,0,188,188.0,The asserted quantity,scripts/fold_integrity.py
 fold_integrity.csv,n,int,count,,29,0,2,0,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/fold_integrity.py
