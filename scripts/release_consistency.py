@@ -1,4 +1,20 @@
-"""Counts a release document states about the release must be derived from the release.
+"""FIXING, and why it is positional.
+
+`--fix` rewrites every stale claim in place. It does NOT search for the number: the scan above
+already recorded the exact character offset of each stale value, and the rewrite uses that
+offset, right to left within a line so earlier edits cannot shift later ones. It asserts the
+bytes at that offset are still the digits it found.
+
+That distinction is the reason this mode exists. Syncing these counts by hand meant editing
+about twenty places per change, and doing it with a regex over the digits is what rewrote
+fourteen unrelated scientific numbers across the manuscript on 2026-09-06 and 2026-09-07: in a
+regex `\\b58\\b` matches the `58` inside `6.58`, because `.` is not a word character. A
+positional rewrite cannot make that mistake, because it only ever touches a span the scanner
+itself identified as an instance of the fact being synced.
+
+A partial run refuses to fix, for the same reason it refuses to rewrite release_facts.csv.
+
+Counts a release document states about the release must be derived from the release.
 
     python scripts/release_consistency.py
 
@@ -274,8 +290,14 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--require-all", action="store_true",
                     help="fail when any fact in REQUIRED cannot be derived here")
-    require_all = ap.parse_args(argv).require_all
+    ap.add_argument("--fix", action="store_true",
+                    help="rewrite every stale claim in place, positionally; see FIXING below")
+    a = ap.parse_args(argv)
+    require_all, fixing = a.require_all, a.fix
+    if fixing and (a.require_all is False):
+        pass                                   # --fix is usable with or without --require-all
     problems, unstated, facts, skipped_required, broken = [], [], [], [], []
+    edits = {}                                 # doc -> {line index: [(start, old_len, new)]}
     for name, (derive, patterns) in FACTS.items():
         try:
             truth = derive()
@@ -307,6 +329,13 @@ def main(argv=None):
                         problems.append(
                             f"{doc.relative_to(ROOT)}:{i} says {name} = {got}, "
                             f"derived from the release: {truth}\n      {line.strip()[:110]}")
+                        # Recorded by POSITION, which is the whole point of --fix. The scanner
+                        # already knows the exact offset of this number, so rewriting it cannot
+                        # touch any other number in the file. Doing the same job with a regex
+                        # over the digits is what rewrote fourteen unrelated scientific values
+                        # on 2026-09-06 and 09-07: `\b58\b` matches inside `6.58`.
+                        edits.setdefault(doc, {}).setdefault(i - 1, []).append(
+                            (start, len(str(got)), str(truth)))
         log(f"  {name:22} {truth:<8} stated in {seen} place(s)")
         if not seen:
             unstated.append(name)
@@ -363,6 +392,27 @@ def main(argv=None):
         log("  TITLE MISMATCH between artefacts a citation importer reads:")
         for x in titles:
             log(f"    {x}")
+
+    if fixing and edits:
+        if skipped_required or broken:
+            log("\n  NOT fixing: this environment could not derive every fact, so a rewrite "
+                "would encode a partial run's numbers into the documents")
+        else:
+            n = 0
+            for doc, by_line in edits.items():
+                lines = doc.read_text().splitlines(keepends=True)
+                for idx, spans in by_line.items():
+                    # Right to left, so an earlier edit cannot shift a later offset.
+                    for start, old_len, new_text in sorted(spans, reverse=True):
+                        ln = lines[idx]
+                        assert ln[start:start + old_len].isdigit(), (
+                            f"{doc}:{idx + 1} offset {start} is not the number it was found at")
+                        lines[idx] = ln[:start] + new_text + ln[start + old_len:]
+                        n += 1
+                doc.write_text("".join(lines))
+            log(f"\n  --fix rewrote {n} stale claim(s) in {len(edits)} file(s), by position")
+            log("  Re-run without --fix to confirm, and rebuild the PDFs if a .tex changed.")
+            problems = []
 
     log("")
     if problems or broken or titles or (skipped_required and require_all):

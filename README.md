@@ -64,6 +64,10 @@ each is attached to the right claim; the Limitations section says what it does n
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e . -c constraints.txt   # no torch: the neural stack is an extra
+
+# Before pushing, run what CI runs, in the order that works:
+./scripts/preflight.sh          # check only
+./scripts/preflight.sh --fix    # also sync derived counts and refresh the manifests
 PYTHONPATH=src python scripts/verify.py --local results/tables   # 1135/1135
 PYTHONPATH=src python -m pytest tests -q \
   --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
@@ -118,7 +122,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          842 tests, no network or cloud; 2 modules need torch
+tests/          843 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes
