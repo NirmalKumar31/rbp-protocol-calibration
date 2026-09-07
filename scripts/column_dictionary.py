@@ -186,7 +186,8 @@ def producers():
     producer map is fixed after the first provenance run, so the second pass converges.
 
     Adding ten draw tables at once is what surfaced it. CI catches the half-done state, which is
-    the right place for it, but it costs a red build to find out.
+    the right place for it, but it costs a red build to find out. Run
+    `scripts/refresh_manifests.sh` rather than calling either generator by hand.
     """
     if not PROVENANCE.exists():
         return {}

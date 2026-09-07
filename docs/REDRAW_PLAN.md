@@ -1,7 +1,36 @@
 # Costed plan: redrawing the composition-matched negatives
 
-**Status: NOT RUN. Awaiting the author's explicit approval.** Nothing in this document has been
-executed, no VM has been created, and no spend has occurred against it.
+**Status: A ran on 2026-09-06. B and C did not.** Approved by the author, executed on one VM,
+about $2. The plan below is left as it was written, because the differences between what was
+proposed and what happened are the useful part of the record. They are set out here first.
+
+| | proposed | actual |
+|---|---|---|
+| machine | `c2d-standard-16` | `c2d-standard-8`; the binding quota is the GLOBAL `CPUS-ALL-REGIONS` limit of 12, not the regional 32 this document cites |
+| analyses | A, B and C bundled | **A only.** B and C were dropped when the machine halved and are still unrun |
+| dinucleotide draw | ~113 min | **~10 min.** The estimate came from a smoke test on two datasets at the bottom of the panel's size distribution, and work scales with pairs |
+| wall clock | 6.0 h | 4 h 51 m, both arms at ten draws, self-deleted two hours inside its deadline |
+| cost | $4.51 | about $2 |
+
+**Result.** Both composition-matched arms carry ten draws. Between-draw SE 0.00013 (GC) and
+0.00021 (dinucleotide) against between-protein SE 0.00324 and 0.00651, so propagating the draw
+widens the panel-mean interval by 0.08% and 0.05%, against 3.6% on the bias-aware arm. All three
+protocols now have a draw estimate. Tables: `results/tables/redraw_composition.csv` and the
+per-draw files under `results/tables/draws/`. Gated by `verify_redraw_composition`.
+
+**What this does NOT do**, and the reason is a design property rather than a defect: the
+committed window tables hold RETAINED pairs, so a redraw starts from positives the matcher had
+already filtered. It measures draw variability conditional on those positives. At the published
+seed the panel means agree to 0.000569 (GC) and 0.000013 (dinucleotide) while individual
+datasets differ by up to 0.0213 and 0.0309.
+
+**Five launches, four of them operator error**, all now gated in the startup script: an
+unpushed commit left the clone silently on `main`; a missing dependency found after staging
+4 GB; the GC arm computing its region pools twice; `OMP_NUM_THREADS=1` making `$(nproc)` return
+1 so the parallelism silently switched off; and a hardcoded `--zone` in the self-delete that a
+capacity shortfall in that zone exposed.
+
+---
 
 This is the largest remaining gap in the paper's uncertainty statement. Methods discloses that
 every interval is conditional on one negative draw per protocol, and that the redraw is the

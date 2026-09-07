@@ -35,10 +35,11 @@ summary and the cache it reads the same status, which told a reader the input re
 itself. And it attributed a table to any script whose text mentioned the filename, which is
 whichever script READS it. Fixing all three moved 52 raw-reproducible down to 21.
 
-RUN THIS LAST, AND THEN RUN column_dictionary.py AND THIS AGAIN. Two orderings bite here. Any
-table regenerated after this one leaves the manifest holding a stale digest, so this goes last.
-And column_dictionary.py reads the producing_script column below, so a newly committed table
-needs a second pass through both before either settles.
+RUN scripts/refresh_manifests.sh RATHER THAN THIS SCRIPT BY HAND. Two orderings bite here. Any
+table regenerated after this one leaves the manifest holding a stale digest, so this goes last
+of all the generators. And column_dictionary.py reads the producing_script column below, so a
+newly committed table needs a second pass through both before either settles. That script does
+both passes and then checks itself.
 
 The status is derived, not declared. It is read from how run.sh invokes the script: a
 `--from-cache` invocation recomputes a summary from a committed per-dataset table and is
