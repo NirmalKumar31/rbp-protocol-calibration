@@ -74,6 +74,15 @@ step "unit suite" "$PY" -m pytest tests
 step "ruff" "$PY" -m ruff check .
 step "shell syntax" bash -c 'for f in $(git ls-files "*.sh"); do bash -n "$f" || exit 1; done'
 
+# 6b. THE CONTAINER'S FILE SET, which is smaller than this one and which nothing was running.
+# docker/Dockerfile.cpu copies src, scripts, config, tests and pyproject.toml. Any test needing
+# manuscript/ or results/ therefore FAILS inside the image, the image build fails, and the
+# published image silently stays stale. check_image_tree.sh has existed to catch that since the
+# image was unbuildable for weeks; it was in no pipeline, and by 2026-09-07 it was failing again
+# on nine supplement tests added the day before. A gate nothing runs is not a gate.
+step "the suite passes against the container's file set" \
+     env PY="$PY" bash scripts/check_image_tree.sh
+
 # 7. the manuscript, and whether the tracked PDF is the output of the tracked source
 # pdf_freshness.py runs build.sh inside a TEMPORARY COPY, so every gate build.sh carries
 # (undefined references, over- and underfull boxes) runs there and a failure propagates. It is

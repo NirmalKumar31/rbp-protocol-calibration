@@ -26,6 +26,19 @@ MAN = ROOT / "manuscript"
 SUP = MAN / "supplementary.tex"
 FIGDIR = ROOT / "results" / "figures"
 
+# THE CONTAINER DOES NOT CARRY manuscript/ OR results/, and this file did not know that.
+# docker/Dockerfile.cpu copies src, scripts, config, tests and pyproject.toml, and nothing else.
+# So every test here failed inside the image from the day the supplement landed, which made the
+# image unbuildable and left the published one silently stale. scripts/check_image_tree.sh
+# exists precisely to catch that and was not being run by anything.
+#
+# Skipping is the right degradation and not a weakening: a test that needs a file absent by
+# design must say so, rather than fail and be deleted. Outside the container these all run.
+pytestmark = pytest.mark.skipif(
+    not SUP.exists() or not FIGDIR.exists(),
+    reason="no manuscript/ or results/figures/ here: this is the container file set, which "
+           "carries src, scripts, config and tests only")
+
 
 def _mapping():
     """S-number -> filename stem, parsed from the mapping table in supplementary.tex."""
