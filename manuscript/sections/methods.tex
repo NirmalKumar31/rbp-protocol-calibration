@@ -249,9 +249,9 @@ Both terms were fitted by $L_2$-penalised logistic regression ($C=1$, lbfgs, at 
 iterations), once per fold on that fold's training rows, and evaluated as pooled out-of-fold
 linear predictors on identical rows and folds. The model-score column is the out-of-fold score
 for every row, training rows included, so the nested model is never fitted on an in-sample
-score; had it been, the fitted and evaluated covariate would sit on different scales and the
-mismatch would grow with how much the underlying model overfits, which differs sharply between
-a 256-column penalised logistic and a fully fine-tuned transformer. 
+score. Had it been, the fitted and the evaluated covariate would sit on different scales, and
+the mismatch would grow with how much the underlying model overfits. That differs sharply
+between a 256-column penalised logistic and a fully fine-tuned transformer. 
 
 \subsubsection*{The estimands, stated}
 
@@ -421,16 +421,19 @@ headline values.
 
 What that bootstrap resamples is proteins, and nothing else, so every interval in this paper is
 conditional on the rest of the design being held at the value it took. Six things are held
-fixed and are therefore absent from the stated widths, each quantified where it is discussed:
-the deterministic selection of 95 of 189 candidate datasets, which is a systematic subset by pair rank and not a probability sample; one
+fixed and are therefore absent from the stated widths, each quantified where it is discussed.
+Three are design choices: the deterministic selection of 95 of 189 candidate datasets, which is
+a systematic subset by pair rank and not a probability sample; one chromosome-to-fold partition;
+and the choice of model and hyperparameters. Two are stochastic stages that were run once: one
 negative draw per protocol, now redrawn on all three arms, which widens the panel-mean standard
-error by 3.6\% on the bias-aware arm, 0.81\% on the GC arm and 0.49\% on the dinucleotide
-arm; one chromosome-to-fold partition; unseeded neural initialisation, worth about 0.001 on a
-panel mean; the choice of model and hyperparameters; and the small difference in retained
-positives between arms. The negative draw is the only one of the six measured on every arm, and
-a design that propagated all six would give wider intervals than any stated below. We report the conditional interval because repeating the
-stochastic stages enough times to integrate over them was not affordable, not because the
-conditioning is negligible.
+error by 3.6\% on the bias-aware arm, 0.81\% on the GC arm and 0.49\% on the dinucleotide arm;
+and unseeded neural initialisation, worth about 0.001 on a panel mean. The sixth is the small
+difference in retained positives between arms.
+
+The negative draw is the only one of the six measured on every arm, and a design that propagated
+all six would give wider intervals than any stated below. We report the conditional interval
+because repeating the stochastic stages enough times to integrate over them was not affordable,
+not because the conditioning is negligible.
 
 Two analyses are primary and are the only ones we adjust. \textbf{This study was not formally
 preregistered}: there is no public registration, locked protocol or independent timestamp for

@@ -342,6 +342,13 @@ s13b_local_analysis() {
   # not contain. --from-cache because rebuilding needs the genome and the Horlacher deposit.
   "$PY" scripts/external_search.py || die "external search record"
   "$PY" scripts/external_replication.py --from-cache || die "external replication"
+  # The two sensitivities Amendment 1 specifies, and the two REDRAW_PLAN sections B and C
+  # specified and never ran. All four are laptop CPU work at zero cost; --from-cache and
+  # --summarise rebuild the summaries from the committed per-dataset tables, which is the half
+  # a reader without the genome or the window store can run.
+  "$PY" scripts/external_sensitivity.py --from-cache || die "external sensitivity"
+  "$PY" scripts/class_ratio.py --from-cache || die "class ratio"
+  "$PY" scripts/capacity_ladder.py --from-cache || die "capacity ladder"
   "$PY" scripts/column_dictionary.py || die "column dictionary"
   # OFFLINE audit of the raw-input manifest: structure, coverage against the study panel, and
   # no credential-shaped string. Rebuilding it needs bucket access (--from-gcs); checking what

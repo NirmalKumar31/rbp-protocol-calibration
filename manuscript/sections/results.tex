@@ -1282,9 +1282,9 @@ Table~\ref{tab:survey} reports a calibration that would reveal it either way.
 \subsection{The floor is the estimator's own cross-fitting, and closing it recovers the zero}
 \label{sec:crossfit}
 
-Section~\ref{sec:models} names an information route that scoring out of fold does not close.
-For outer test fold $i$ the nested model is fitted on the other folds, and those rows carry base
-scores from models whose training sets included fold $i$. We attributed the floor above to a
+Section~\ref{sec:models} names an information route that scoring out of fold does not close,
+and defines it: the nested model's training rows carry base scores from models that saw the
+outer test fold. We attributed the floor above to a
 different cause, conditioning: a pre-fitted one-column summary is better conditioned than the
 penalised nineteen-column block and improves the fit without adding information. Both mechanisms
 predict a positive floor, both predict it shrinking with sample size, and both predict it
