@@ -20,22 +20,33 @@ WHY CARRY FORWARD RATHER THAN REFUSE. Refusing is right for a script whose whole
 the missing input, which is what baseline_order.py does. It is wrong here: these scripts
 legitimately recompute everything else from committed evidence, and killing the documented
 pipeline over one optional row trades a silent corruption for a loud one. The committed value IS
-released evidence. So it is carried forward with its provenance stated in the note, and the note
-says the row was not recomputed, because a value that silently changes meaning is what this
-whole module is about.
+released evidence, so it is carried forward exactly as committed, and the fact that this run did
+not recompute it is reported to the log.
 
 WHAT THIS IS NOT. It is not a cache that can invent a value. If there is no committed table and
 no input, the row is absent and `verify.py`'s presence assertion fails, which is correct: that
 is a genuinely unanswerable state and it should be loud.
+
+A CARRIED ROW GOES BACK BYTE-IDENTICAL, and the first version of this module got that wrong.
+It appended "not recomputed here; the input is absent" to the note, which seemed like honest
+provenance and was in fact two defects. The carried table then differed from the committed one
+in exactly the environment where carrying happens, so scripts/cache_idempotence.py failed in
+CI; and because the suffix was appended to whatever note it read, a second run would append it
+again, growing the note without bound. The whole purpose here is that the table does not
+change, so the note cannot either. That the row was not recomputed is reported to the LOG, and
+the log is not a released artefact.
 """
 
 import pandas as pd
 
+from .log import log
 
-def carried(out_path, check, note_suffix="not recomputed here; the input is absent"):
+
+def carried(out_path, check):
     """Return the committed row for `check` as a dict, or None if there is nothing to carry.
 
-    `out_path` is the summary table the caller is about to overwrite. Read before writing.
+    `out_path` is the summary table the caller is about to overwrite. Read before writing. The
+    row is returned UNMODIFIED, for the reason the module docstring gives.
     """
     if not out_path.exists():
         return None
@@ -49,8 +60,6 @@ def carried(out_path, check, note_suffix="not recomputed here; the input is abse
     if hit.empty:
         return None
     row = hit.iloc[0].to_dict()
-    old = str(row.get("note") or "").strip()
-    row["note"] = f"{old}; {note_suffix}" if old else note_suffix
     return {k: ("" if pd.isna(v) else v) for k, v in row.items()}
 
 
@@ -68,4 +77,5 @@ def emit(out, out_path, check, value, note="", n="", recomputed=True, **extra):
     if row is None:
         return False
     out.append(row)
+    log(f"  carried forward {check!r}: not recomputed here, the input is absent")
     return True
