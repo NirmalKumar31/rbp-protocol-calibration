@@ -3,10 +3,17 @@
     python scripts/external_replication.py            # the disjoint datasets
     python scripts/external_replication.py --from-cache
 
-The protocol for this analysis was fixed first, in docs/EXTERNAL_BENCHMARK_PROTOCOL.md,
-committed at e76a80c before any candidate benchmark was searched for or opened. The eligibility
-criteria, the estimand, the uncertainty procedure and the falsification thresholds below are
-quoted from it and were not chosen after seeing this output.
+The protocol for this analysis was committed first, in docs/EXTERNAL_BENCHMARK_PROTOCOL.md at
+e76a80c, BEFORE THE 135-DATASET DISJOINT SUBSET BELOW WAS SCORED. The eligibility criteria, the
+estimand, the uncertainty procedure and the falsification thresholds are quoted from it and
+were not chosen after seeing this output.
+
+THAT IS NARROWER THAN A PROSPECTIVE SEARCH, and an external audit was right to say the earlier
+wording overstated it. This benchmark was not unknown: 3f96e8e and 2b5843a scored its
+45-dataset intersection with our panel on 2026-08-31, six days before the protocol was written,
+and 28a5a1f analysed it further. What was genuinely fixed in advance is the rule applied to the
+previously unscored complement. Call it a pre-specified held-out-subset analysis of an
+already-known external construction, which is what it is.
 
 What the search found, including that the protocol's own premise was wrong. The protocol
 asserted that the Horlacher et al. 2023 benchmark could not test Claim A "because testing Claim
@@ -25,11 +32,14 @@ peak calls and folds over largely the same experiments. This script takes the co
 Horlacher ENCODE datasets that our panel does not contain, which is the sample criterion 1
 asks for.
 
-What this still does not establish. The complement is still ENCODE eCLIP in K562 and HepG2. It
-is an independent sample of PROTEINS analysed by an independent pipeline, and it is not an
-independent assay, organism or cell type. Claim A's scope after this remains eCLIP-derived
-panels. Nothing here bears on Claim B, the directional relation, which does not replicate on
-this benchmark and stays labelled that way.
+What this still does not establish. The complement is still ENCODE eCLIP in K562 and HepG2, and
+it is NOT an independent sample of proteins: 31 of its 108 proteins also appear among our 79,
+in other cell lines or other experiments. It is disjoint in DATASETS and in processing, not in
+biology. The no-shared-protein sensitivity below removes all 31 and the verdict survives, so
+the replication is not carried by the overlap; but "independent sample of proteins", which an
+earlier version of this docstring said, is false and the audit that caught it was right.
+Claim A's scope after this remains eCLIP-derived panels. Nothing here bears on Claim B, the
+directional relation, which does not replicate on this benchmark and stays labelled that way.
 """
 
 import argparse
@@ -57,6 +67,7 @@ PER = TABLES / "external_replication_per_dataset.csv"
 OUT = TABLES / "external_replication.csv"
 
 # Quoted from docs/EXTERNAL_BENCHMARK_PROTOCOL.md. Do not edit these to match an outcome.
+DEPOSIT_ROW = "datasets in the Horlacher ENCODE deposit"
 MIN_DATASETS = 20
 SUPPORT_SPAN = 1.5
 SUPPORT_CI_LOW = 1.2
@@ -112,9 +123,24 @@ def build(limit=0):
 
 
 def span(d):
+    """Descriptive magnitude: how far apart the two arms are, direction discarded."""
     a, b = d.gain_n1.mean(), d.gain_n2.mean()
     lo, hi = min(a, b), max(a, b)
     return float(hi / lo) if lo > 0 else float("nan")
+
+
+def ratio(d):
+    """PRE-LABELLED ratio, negative-1 over negative-2, which is the one the rule needs.
+
+    max/min is bounded below by 1 by construction, so the protocol's "fails to replicate if the
+    interval contains 1.0" clause is close to unsatisfiable on it: an external audit was right
+    to call the rule ill-posed. Fixing the numerator and denominator in advance lets the
+    interval fall below 1 if the arms swap, which is what "no replication" would look like.
+    Both are reported; the verdict is computed on this one. In this sample the ordering never
+    swaps in 4000 draws, so the two agree and nothing about the published number moves.
+    """
+    a, b = d.gain_n1.mean(), d.gain_n2.mean()
+    return float(a / b) if b > 0 else float("nan")
 
 
 def main():
@@ -160,19 +186,41 @@ def main():
     # nothing. Read from the unpacked deposit when it is present; omitted rather than guessed
     # when it is not, because a hardcoded 223 here is the hand-maintained count this repository
     # keeps getting wrong.
+    # IDEMPOTENT IN CACHE MODE. This row used to be emitted only when the unpacked deposit was
+    # present, so `--from-cache` on a clean clone silently DROPPED it, changed the committed
+    # table and staled the provenance manifest. An audit found exactly that. Counted from the
+    # deposit when it is there; otherwise carried forward from the committed table, which is
+    # released evidence, rather than omitted or hardcoded.
+    n_dep = None
     if DATA.exists():
         n_dep = sum(1 for q in DATA.iterdir() if q.is_dir())
-        out.append({"check": "datasets in the Horlacher ENCODE deposit", "value": n_dep,
-                    "ci_low": "", "ci_high": "", "n": n_dep,
-                    "note": "counted from the unpacked deposit; the rest overlap our panel"})
+        src = "counted from the unpacked deposit; the rest overlap our panel"
+    elif OUT.exists():
+        prev = pd.read_csv(OUT).set_index("check")
+        if DEPOSIT_ROW in prev.index:
+            n_dep = float(prev.loc[DEPOSIT_ROW, "value"])
+            src = "carried forward from the committed table; the deposit is not unpacked here"
+    if n_dep is not None:
+        out.append({"check": DEPOSIT_ROW, "value": n_dep, "ci_low": "", "ci_high": "",
+                    "n": n_dep, "note": src})
     out.append({"check": "datasets", "value": len(t), "ci_low": "", "ci_high": "", "n": len(t),
                 "note": "Horlacher ENCODE datasets outside our 94-dataset study panel"})
     out.append({"check": "proteins", "value": len(uniq), "ci_low": "", "ci_high": "",
                 "n": len(t), "note": "the resampled unit"})
-    out.append({"check": "overlap with our study panel", "value": 0, "ci_low": "",
+    out.append({"check": "dataset overlap with our study panel", "value": 0, "ci_low": "",
                 "ci_high": "", "n": len(t),
-                "note": "zero by construction; this is what criterion 1 of the protocol asks "
-                        "for and what horlacher_arm.py's 45-dataset intersection does not have"})
+                "note": "zero by construction against the 94-dataset three-arm panel; this is "
+                        "what criterion 1 asks for and what the 45-dataset intersection lacks"})
+
+    # PROTEIN OVERLAP IS NOT ZERO, and an earlier version of this file called the complement an
+    # independent sample of proteins. Read from the released panel table rather than a literal.
+    ours = pd.read_csv(S1)
+    ours = set(ours[ours.in_three_arm_panel].protein) if "in_three_arm_panel" in ours else set()
+    shared = sorted(ours & set(uniq))
+    out.append({"check": "protein overlap with our study panel", "value": len(shared),
+                "ci_low": "", "ci_high": "", "n": len(uniq),
+                "note": "the two panels share biology even where they share no dataset, so "
+                        "this is disjoint in datasets and processing, not in proteins"})
 
     g1 = add("nested contribution, negative-1 (bias-agnostic)", t.gain_n1)
     g2 = add("nested contribution, negative-2 (bias-aware)", t.gain_n2)
@@ -192,8 +240,22 @@ def main():
     # The pre-fixed decision, applied mechanically. The thresholds are quoted from the protocol
     # and are not adjustable here; writing the comparison as code rather than as prose is the
     # point, because prose can be softened after the fact and an assertion cannot.
-    supported = (pt > SUPPORT_SPAN and isinstance(lo, float) and lo > SUPPORT_CI_LOW)
-    failed = isinstance(lo, float) and lo < 1.0 < hi
+    rpt = ratio(t)
+    rb = np.array([ratio(t.iloc[i]) for i in draws])
+    rb = rb[np.isfinite(rb)]
+    rlo, rhi = ((float(np.percentile(rb, 2.5)), float(np.percentile(rb, 97.5)))
+                if len(rb) else ("", ""))
+    out.append({"check": "PRE-LABELLED RATIO, negative-1 over negative-2", "value": rpt,
+                "ci_low": rlo, "ci_high": rhi, "n": len(t),
+                "note": "the quantity the falsification rule is evaluated on, because max/min "
+                        "is bounded below by 1 and so cannot straddle it"})
+    out.append({"check": "the arm ordering never swaps under resampling", "value":
+                float((rb > 1.0).mean()), "ci_low": "", "ci_high": "", "n": len(rb),
+                "note": "fraction of draws with negative-1 above negative-2; at 1.0 the "
+                        "pre-labelled ratio and the max/min span agree exactly"})
+
+    supported = (rpt > SUPPORT_SPAN and isinstance(rlo, float) and rlo > SUPPORT_CI_LOW)
+    failed = isinstance(rlo, float) and rlo < 1.0 < rhi
     powered = len(t) >= MIN_DATASETS
     verdict = ("supported" if (supported and powered)
                else "fails to replicate" if (failed and powered)
@@ -204,6 +266,35 @@ def main():
                         f"commit e76a80c: supported if span > {SUPPORT_SPAN} and CI low > "
                         f"{SUPPORT_CI_LOW}, fails if the interval contains 1.0, indeterminate "
                         f"otherwise or if fewer than {MIN_DATASETS} datasets qualify"})
+
+    # THE NO-SHARED-PROTEIN SENSITIVITY. Gated rather than quoted from a report, because a
+    # number copied out of an audit by hand is the class of unsourced value this repository
+    # spent a fortnight removing.
+    k = t[~t.protein.isin(shared)]
+    if len(k) >= MIN_DATASETS:
+        kp = k.protein.to_numpy()
+        ku = np.unique(kp)
+        km = [np.flatnonzero(kp == q) for q in ku]
+        krng = np.random.default_rng(0)
+        kd = [np.concatenate([km[j] for j in krng.integers(0, len(ku), len(ku))])
+              for _ in range(4000)]
+        kpt = span(k)
+        kb = np.array([span(k.iloc[i]) for i in kd])
+        kb = kb[np.isfinite(kb)]
+        klo, khi = float(np.percentile(kb, 2.5)), float(np.percentile(kb, 97.5))
+        for lab, v in (("negative-1", k.gain_n1), ("negative-2", k.gain_n2)):
+            out.append({"check": f"no-shared-protein contribution, {lab}",
+                        "value": float(v.mean()), "ci_low": "", "ci_high": "", "n": len(k),
+                        "note": f"the {len(shared)} proteins shared with our panel removed"})
+        out.append({"check": "SPAN excluding every protein shared with our panel",
+                    "value": kpt, "ci_low": klo, "ci_high": khi, "n": len(k),
+                    "note": f"{len(k)} datasets over {len(ku)} proteins; the replication must "
+                            "not depend on the shared biology"})
+        out.append({"check": "no-shared-protein span still meets the pre-fixed criteria",
+                    "value": 1.0 if (kpt > SUPPORT_SPAN and klo > SUPPORT_CI_LOW) else 0.0,
+                    "ci_low": "", "ci_high": "", "n": len(k),
+                    "note": f"same thresholds as the primary verdict: span > {SUPPORT_SPAN} "
+                            f"and CI low > {SUPPORT_CI_LOW}"})
 
     r = pd.DataFrame(out)
     r.to_csv(OUT, index=False)

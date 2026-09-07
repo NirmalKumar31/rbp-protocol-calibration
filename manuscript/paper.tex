@@ -152,7 +152,7 @@ $5\times10^{-4}$.
 It is not a property of our own construction. On 135 datasets from \citet{horlacher2023} that
 our panel does not contain, using their windows, negatives and folds, the same estimator gives a
 1.69-fold span (95\% CI 1.41 to 2.03) across their two negative-set constructions, meeting
-criteria fixed before that benchmark was searched for. The directional relation between apparent
+criteria committed before that disjoint subset was scored. The directional relation between apparent
 difficulty and measured contribution does not replicate there, and we report it as failing.
 
 In a targeted survey of seven widely used methods and benchmarks, none reports a
@@ -187,7 +187,7 @@ All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 regression-checked offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 1073 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 1083 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. That is a check against committed evidence and not a rebuild from raw inputs: two of the
 assertions are genuine end-to-end rebuilds, 285 AUROCs from committed per-window scores and the

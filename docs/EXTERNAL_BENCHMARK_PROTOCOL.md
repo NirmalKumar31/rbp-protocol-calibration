@@ -123,7 +123,24 @@ including the candidates that fail on criterion 1 or 2 immediately.
 Recorded here rather than folded into the text, because a prospective protocol whose errors are
 corrected in place afterwards is not a prospective protocol.
 
-**A premise above is wrong.** The protocol states that the Horlacher benchmark "releases one"
+**The title and opening claim of this document are too strong, and an external audit was right
+to say so.** "Before any candidate benchmark was searched for, opened, downloaded or scored" is
+false of the benchmark this search actually landed on. The Horlacher deposit had been downloaded
+and MD5-verified on 2026-08-31 (`0a79763`), its 45-dataset intersection with our panel had been
+scored the same day (`3f96e8e`, `2b5843a`), and it was analysed further on 2026-09-04
+(`28a5a1f`), all before this file was written on 2026-09-06.
+
+What is true, and is what the manuscript now says, is narrower: **the criteria below were
+committed before the 135-dataset disjoint complement was scored.** That complement had never
+been touched, so the rule applied to it was genuinely fixed in advance. Call this a
+pre-specified analysis of a held-out subset of an already-known external construction. It is
+weaker than a prospective benchmark search and it is not nothing.
+
+The opening paragraph is left standing rather than rewritten, for the same reason the rest of
+the protocol is: this document's only value is as a record of what was committed at `e76a80c`,
+and a record that gets corrected in place is not a record. **Read it with this addendum.**
+
+**A premise above is also wrong.** The protocol states that the Horlacher benchmark "releases one"
 negative-set construction and therefore cannot test Claim A. It releases **two**, per fold, over
 the same positives: `negative-1.fold-N.bed` and `negative-2.fold-N.bed` beside
 `positive.fold-N.bed`, for all 223 ENCODE datasets in the deposit. The error was in this

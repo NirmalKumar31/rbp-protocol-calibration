@@ -566,12 +566,12 @@ expression_control_per_dataset.csv,excess,float,,,84,0,84,-0.0391599,0.0278389,-
 expression_control_per_dataset.csv,excess_strat,float,,,84,0,84,-0.0410712,0.035104,-0.0165756614934003,,scripts/expression_control.py
 expression_control_per_dataset.csv,locus_mix,float,,,84,0,84,-0.0110826,0.0127094,-0.0044934824064342994,,scripts/expression_control.py
 expression_control_per_dataset.csv,corrected,float,,,84,0,84,-0.0105247,0.170741,0.0150552015823914,Correlation coefficient,scripts/expression_control.py
-external_replication.csv,check,string,,yes,11,0,11,,,datasets in the Horlacher ENCODE deposit,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/external_replication.py
-external_replication.csv,value,float,,,11,0,11,0,223,223.0,The asserted quantity,scripts/external_replication.py
-external_replication.csv,ci_low,float,,,11,5,6,0.0102554,1.4111,0.030707892522477652,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/external_replication.py
-external_replication.csv,ci_high,float,,,11,5,6,0.0190565,2.03188,0.041965439226109666,Upper bound of the same interval as ci_low,scripts/external_replication.py
-external_replication.csv,n,int,count,,11,0,2,135,223,223,"Datasets, or rows, behind the value. Usually 94",scripts/external_replication.py
-external_replication.csv,note,string,,,11,5,6,,,counted from the unpacked deposit; the r,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/external_replication.py
+external_replication.csv,check,string,,yes,18,0,18,,,datasets in the Horlacher ENCODE deposit,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/external_replication.py
+external_replication.csv,value,float,,,18,0,15,0,223,223.0,The asserted quantity,scripts/external_replication.py
+external_replication.csv,ci_low,float,,,18,10,7,0.0102554,1.4111,0.030707892522477652,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/external_replication.py
+external_replication.csv,ci_high,float,,,18,10,7,0.0190565,2.08898,0.041965439226109666,Upper bound of the same interval as ci_low,scripts/external_replication.py
+external_replication.csv,n,int,count,,18,0,5,104,4000,223,"Datasets, or rows, behind the value. Usually 94",scripts/external_replication.py
+external_replication.csv,note,string,,,18,5,12,,,counted from the unpacked deposit; the r,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/external_replication.py
 external_replication_per_dataset.csv,dataset,string,,yes,135,0,135,,,AARS:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/external_replication.py
 external_replication_per_dataset.csv,protein,string,,yes,135,0,108,,,AARS,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/external_replication.py
 external_replication_per_dataset.csv,cell,string,,yes,135,0,2,,,K562,K562 or HepG2,scripts/external_replication.py
@@ -632,8 +632,8 @@ gene_clustered_cv_per_dataset.csv,gain_gene_dn,float,AUROC,,94,0,94,-0.00642902,
 gene_clustered_cv_per_dataset.csv,published_gain_gc,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/gene_clustered_cv.py
 gene_clustered_cv_per_dataset.csv,published_gain_dn,float,,,94,0,94,-0.00360316,0.24737,0.0480770794164786,,scripts/gene_clustered_cv.py
 history_scan.csv,check,string,,yes,28,0,28,,,commits on HEAD,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/history_scan.py
-history_scan.csv,value,int,,,28,0,7,0,233,223,The asserted quantity,scripts/history_scan.py
-history_scan.csv,note,string,,,28,1,6,,,the scan covers this set,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/history_scan.py
+history_scan.csv,value,int,,,28,0,7,0,240,230,The asserted quantity,scripts/history_scan.py
+history_scan.csv,note,string,,,28,0,7,,,"as of df7bcf4, which is the commit BEFOR","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/history_scan.py
 homology_folds.csv,check,string,,yes,22,0,22,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/homology_folds.py
 homology_folds.csv,value,float,,,22,0,22,0.00393975,94,94.0,The asserted quantity,scripts/homology_folds.py
 homology_folds.csv,ci_low,float,,,22,7,15,0.00269807,94,94.0,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/homology_folds.py
@@ -1055,12 +1055,12 @@ recompute.csv,published,float,,,285,0,285,0.518821,0.9487,0.7553366918800132,,sc
 recompute.csv,recomputed,float,,,285,0,285,0.518821,0.9487,0.7553366918800132,,scripts/recompute.py
 recompute.csv,abs_diff,float,,,285,0,4,0,3.33067e-16,0.0,,scripts/recompute.py
 recompute.csv,note,empty,,,285,285,0,,,,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/recompute.py
-redraw_composition.csv,check,string,,yes,18,0,18,,,published seed reproduces the published ,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/redraw_composition.py
-redraw_composition.csv,value,float,,,18,0,17,0.000130227,10,0.0213494504259926,The asserted quantity,scripts/redraw_composition.py
-redraw_composition.csv,ci_low,float,,,18,14,4,0.0261533,0.066264,0.026513098340627504,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/redraw_composition.py
-redraw_composition.csv,ci_high,float,,,18,16,2,0.0272676,0.0676062,0.027267598719946613,Upper bound of the same interval as ci_low,scripts/redraw_composition.py
-redraw_composition.csv,n,int,count,,18,0,4,10,940,94,"Datasets, or rows, behind the value. Usually 94",scripts/redraw_composition.py
-redraw_composition.csv,note,string,,,18,2,10,,,maximum absolute per-dataset difference;,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/redraw_composition.py
+redraw_composition.csv,check,string,,yes,28,0,28,,,worst per-dataset gap at the published s,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/redraw_composition.py
+redraw_composition.csv,value,float,,,28,0,27,0.000130227,10.0586,0.0213494504259926,The asserted quantity,scripts/redraw_composition.py
+redraw_composition.csv,ci_low,empty,,,28,28,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/redraw_composition.py
+redraw_composition.csv,ci_high,empty,,,28,28,0,,,,Upper bound of the same interval as ci_low,scripts/redraw_composition.py
+redraw_composition.csv,n,int,count,,28,0,4,10,940,94,"Datasets, or rows, behind the value. Usually 94",scripts/redraw_composition.py
+redraw_composition.csv,note,string,,,28,2,14,,,maximum absolute per-dataset difference ,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/redraw_composition.py
 region_annotation.csv,check,string,,yes,48,0,48,,,positives where the recomputed published,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/region_annotation.py
 region_annotation.csv,value,float,,,48,0,38,0,2.25128e+06,0.0,The asserted quantity,scripts/region_annotation.py
 region_annotation.csv,n,int,count,,48,0,4,5,468,468,"Datasets, or rows, behind the value. Usually 94",scripts/region_annotation.py

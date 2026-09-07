@@ -1,19 +1,29 @@
 check,value,ci_low,ci_high,n,note
-"published seed reproduces the published contribution, gc arm",0.0213494504259926,,,94,maximum absolute per-dataset difference; if this is not small the redraw is not redrawing the published construction
-"panel mean at the published seed, gc arm",0.027081786921708807,0.026513098340627504,,94,"ci_low is the published panel mean, not a bound"
+"worst per-dataset gap at the published seed, gc arm",0.0213494504259926,,,94,maximum absolute per-dataset difference between the redraw at the published seed and the published value; large because the redraw conditions on the retained positives
+"panel mean at the published seed, gc arm",0.027081786921708807,,,94,the redrawn panel mean at the published seed
+"published panel mean, gc arm",0.026513098340627504,,,94,the committed value the row above is compared to
 "draws, gc arm",10.0,,,940,"seeds [np.int64(7), np.int64(1007), np.int64(2007), np.int64(3007), np.int64(4007), np.int64(5007), np.int64(6007), np.int64(7007), np.int64(8007), np.int64(9007)]"
-"panel-mean contribution across draws, gc arm",0.026773219688069377,0.02615334978751374,0.027267598719946613,10,"bounds are the min and max draw, not an interval"
-"between-draw SE of the panel mean, gc arm",0.00013022698232469722,,,10,SD across draws 0.000412 over sqrt(10)
+"panel-mean contribution across draws, gc arm",0.026773219688069377,,,10,mean over draws; the extremes are their own rows
+"weakest draw's panel mean, gc arm",0.02615334978751374,,,10,minimum over draws
+"strongest draw's panel mean, gc arm",0.027267598719946613,,,10,maximum over draws
+"between-draw SD of the panel mean, gc arm",0.0004118138769565325,,,10,the spread of one-draw panel means; this is the component the published one-draw estimate omits
+"between-draw SE of the mean over draws, gc arm",0.00013022698232469722,,,10,"SD over sqrt(10). Reported for completeness and NOT propagated: it bounds a mean over draws, which nothing reports"
 "between-protein SE of the panel mean, gc arm",0.0032384630506511474,,,79,the component the published interval already carries
-"widening from propagating the draw, gc arm",0.0008081995473616654,,,10,combined SE 0.003241 against 0.003238; the two are independent so they add in quadrature
+"widening from propagating the draw, gc arm",0.008052837311772088,,,10,combined SE 0.003265 against 0.003238; the two are independent so they add in quadrature
+"between-protein SD over between-draw SD, gc arm",7.863899766041569,,,10,how far the protein term dominates the draw term
 "largest per-dataset spread across draws, gc arm",0.0283959496656913,,,94,"max minus min over draws, worst dataset"
 "median per-dataset spread across draws, gc arm",0.007908989669837701,,,94,
-"published seed reproduces the published contribution, dinuc arm",0.030862506073256697,,,94,maximum absolute per-dataset difference; if this is not small the redraw is not redrawing the published construction
-"panel mean at the published seed, dinuc arm",0.06627712237803902,0.06626403675115053,,94,"ci_low is the published panel mean, not a bound"
+"worst per-dataset gap at the published seed, dinuc arm",0.030862506073256697,,,94,maximum absolute per-dataset difference between the redraw at the published seed and the published value; large because the redraw conditions on the retained positives
+"panel mean at the published seed, dinuc arm",0.06627712237803902,,,94,the redrawn panel mean at the published seed
+"published panel mean, dinuc arm",0.06626403675115053,,,94,the committed value the row above is compared to
 "draws, dinuc arm",10.0,,,940,"seeds [np.int64(7), np.int64(1007), np.int64(2007), np.int64(3007), np.int64(4007), np.int64(5007), np.int64(6007), np.int64(7007), np.int64(8007), np.int64(9007)]"
-"panel-mean contribution across draws, dinuc arm",0.06608089465895126,0.06543072195260416,0.06760623325973594,10,"bounds are the min and max draw, not an interval"
-"between-draw SE of the panel mean, dinuc arm",0.00020468792442871508,,,10,SD across draws 0.000647 over sqrt(10)
+"panel-mean contribution across draws, dinuc arm",0.06608089465895126,,,10,mean over draws; the extremes are their own rows
+"weakest draw's panel mean, dinuc arm",0.06543072195260416,,,10,minimum over draws
+"strongest draw's panel mean, dinuc arm",0.06760623325973594,,,10,maximum over draws
+"between-draw SD of the panel mean, dinuc arm",0.0006472800507271592,,,10,the spread of one-draw panel means; this is the component the published one-draw estimate omits
+"between-draw SE of the mean over draws, dinuc arm",0.00020468792442871508,,,10,"SD over sqrt(10). Reported for completeness and NOT propagated: it bounds a mean over draws, which nothing reports"
 "between-protein SE of the panel mean, dinuc arm",0.0065107102553486175,,,79,the component the published interval already carries
-"widening from propagating the draw, dinuc arm",0.0004940722233597317,,,10,combined SE 0.006514 against 0.006511; the two are independent so they add in quadrature
+"widening from propagating the draw, dinuc arm",0.004929791349034263,,,10,combined SE 0.006543 against 0.006511; the two are independent so they add in quadrature
+"between-protein SD over between-draw SD, dinuc arm",10.058567768363071,,,10,how far the protein term dominates the draw term
 "largest per-dataset spread across draws, dinuc arm",0.0678622285510856,,,94,"max minus min over draws, worst dataset"
 "median per-dataset spread across draws, dinuc arm",0.013914079630578453,,,94,

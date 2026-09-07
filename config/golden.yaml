@@ -2576,34 +2576,38 @@ negative_draws:
 # RETAINED pairs, so a redraw starts from positives the original matcher already filtered.
 # Agreement is asserted at the panel level; the per-dataset row is a ceiling on disagreement.
 redraw_composition:
+  # THE PROPAGATED COMPONENT IS THE SD ACROSS DRAWS, NOT SD/sqrt(n). An external audit found
+  # redraw_composition.py propagating the standard error of the mean over ten draws. The
+  # published estimate comes from ONE draw, so the omitted uncertainty is the spread of
+  # one-draw estimates. The error understated the widening by a factor of ten (0.08% against
+  # 0.81% on the GC arm) and made these two arms disagree with negative_draws.py, which had
+  # used the SD directly for the bias-aware arm since it was written. Both quantities are in
+  # the table; only the SD is propagated, and a gate asserts the SE is the smaller of the two.
   gc_draws: 10
-  gc_published_panel_mean: 0.026513      # three_arm_models_per_dataset.csv, kmer_gain_gc
-  gc_max_reproduction_gap: 0.030         # worst per-dataset gap at the published seed
+  gc_published_panel_mean: {value: 0.026513, tol: 0.0005}   # kmer_gain_gc, three_arm_models
   gc_published_seed_panel_mean: {value: 0.027082, tol: 0.0005}
-  gc_max_seed_gap: 0.002                 # and its distance from the published build
+  gc_max_seed_gap: 0.002                 # panel-level agreement at the published seed
+  gc_max_reproduction_gap: 0.030         # worst per-dataset gap; the size of the conditioning
   gc_max_draw_excursion: 0.002           # no single draw's panel mean may stray further
   gc_panel_mean: {value: 0.026773, tol: 0.0005}
   gc_se_protein: {value: 0.003238, tol: 0.0003}
-  gc_max_se_draw: 0.0005
-  gc_min_se_ratio: 10.0                  # observed 24.9; below 10 the draw stops being noise
-  gc_max_widening: 0.01                  # observed 0.0008. This is the whole point.
+  gc_max_sd_draw: 0.0010                 # observed 0.000412
+  gc_min_se_ratio: 4.0                   # observed 7.86. Was 10.0 against the WRONG component.
+  gc_max_widening: 0.02                  # observed 0.0081. This is the whole point.
   gc_max_median_spread: 0.015
-  # The dinucleotide arm, which the same run reached: it took about 10 minutes a draw rather
-  # than the 113 the plan projected from a two-dataset smoke test, so it got ten draws too and
-  # the instance finished two hours inside its deadline. Its published seed lands on the
-  # published panel mean to 0.000013, which is closer than the GC arm manages and is what a
-  # larger candidate pool per positive should give.
+  # The dinucleotide arm, which the same run reached: about 10 minutes a draw rather than the
+  # 113 the plan projected from a two-dataset smoke test, so it got ten draws too.
   dinuc_draws: 10
-  dinuc_published_panel_mean: 0.066264   # three_arm_models_per_dataset.csv, kmer_gain_dn
+  dinuc_published_panel_mean: {value: 0.066264, tol: 0.0005}   # kmer_gain_dn
   dinuc_published_seed_panel_mean: {value: 0.066277, tol: 0.0005}
   dinuc_max_seed_gap: 0.002
-  dinuc_max_reproduction_gap: 0.040      # worst per-dataset gap; larger arm, larger gap
+  dinuc_max_reproduction_gap: 0.040      # larger arm, larger gap
   dinuc_max_draw_excursion: 0.003
   dinuc_panel_mean: {value: 0.066081, tol: 0.0010}
   dinuc_se_protein: {value: 0.006511, tol: 0.0005}
-  dinuc_max_se_draw: 0.0008
-  dinuc_min_se_ratio: 10.0               # observed 31.8
-  dinuc_max_widening: 0.01               # observed 0.0005
+  dinuc_max_sd_draw: 0.0015              # observed 0.000647
+  dinuc_min_se_ratio: 4.0                # observed 10.06
+  dinuc_max_widening: 0.02               # observed 0.0049
   dinuc_max_median_spread: 0.025
 
 # TRAIN-PROTOCOL BY EVALUATION-PROTOCOL. The design changes the negatives in training and in
@@ -2670,6 +2674,18 @@ external_replication:
   support_span_floor: 1.5
   support_ci_low_floor: 1.2
   min_datasets: 20
+  # NOT AN INDEPENDENT SAMPLE OF PROTEINS. An external audit found 31 of the external
+  # complement's 108 proteins also among our 79, in other cell lines or other experiments, while
+  # the code and the Results called it an independent sample of proteins. It is disjoint in
+  # DATASETS and in processing, not in biology. Removing all 31 leaves 104 datasets over 77
+  # proteins and the verdict survives, so the replication is not carried by the overlap. Gated,
+  # rather than quoted from the audit, because a number copied by hand is an unsourced number.
+  protein_overlap_with_our_panel: 31
+  span_no_shared_protein: {value: 1.660, tol: 0.06}
+  # The falsification rule needs a signed quantity: max/min cannot straddle 1. Both are
+  # reported and they agree exactly while the ordering holds, which is asserted.
+  max_ratio_span_gap: 1.0e-9
+  min_ordering_stability: 1.0
 
 # THE SENSITIVITY SUITE. Every aggregation and subset choice behind the headline that was made
 # once and never argued for: the mean rather than the median, both cell lines pooled, all 94

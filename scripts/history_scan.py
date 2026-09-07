@@ -90,9 +90,18 @@ def scan():
                 places[kind].add((commit, path))
                 lines[kind] += 1
 
-    rows = [{"check": "commits on HEAD", "value": n_head, "note": ""},
+    # THE COUNTS ARE PINNED TO THE COMMIT THEY WERE TAKEN AT. They cannot be current: writing
+    # this table makes a commit, which increments them. An audit found the committed 223/233
+    # against a live 230/240 and was right that a bare total in a released table reads as a
+    # claim about the repository rather than about a moment. Naming the scanned HEAD makes the
+    # number self-describing, and --check gates the FINDINGS rather than these totals for the
+    # same reason: a total that must change on every commit is not an integrity property.
+    at = _git("rev-parse", "--short", "HEAD").strip() or "unknown"
+    rows = [{"check": "commits on HEAD", "value": n_head,
+             "note": f"as of {at}, which is the commit BEFORE the one recording this; the "
+                     "count necessarily excludes that commit and every later one"},
             {"check": "commits on all refs", "value": n_all,
-             "note": "the scan covers this set"}]
+             "note": f"the scan covers this set, as of {at}"}]
     for kind in PATTERNS:
         rows.append({"check": f"commits containing a {kind}", "value": len(hits[kind]),
                      "note": "the matched strings are deliberately not printed here"})

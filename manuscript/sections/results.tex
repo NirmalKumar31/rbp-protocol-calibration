@@ -675,7 +675,7 @@ residual. These shares are not directly comparable, and with type-II sums of squ
 sum to one: a 79-level factor absorbs 29.7\% of the variance of relabelled data whereas a
 three-level factor absorbs 0.8\%. Against a stricter null that permutes protein labels between
 datasets while preserving
-dataset-by-model blocks, and which therefore absorbs 57.4\% by itself, the excess attributable
+dataset-by-model blocks, and which therefore absorbs 58.4\% by itself, the excess attributable
 to protein identity was $+7.3$ points ($p=0.003$).
 
 That excess and the direct test below are one line of evidence and not two, because the
@@ -1127,15 +1127,30 @@ contribution is $+0.0359$ (95\% CI $+0.0307$ to $+0.0420$) under \texttt{negativ
 $+0.0213$ ($+0.0167$ to $+0.0272$) under \texttt{negative-2}, a span of $\mathbf{1.69}$-fold
 (95\% CI $1.41$ to $2.03$), with the composition baseline moving $0.8095$ to $0.7586$ in the
 same direction as ours. The criteria for calling that a replication were fixed in
-\texttt{docs/EXTERNAL\_BENCHMARK\_PROTOCOL.md} and committed before the benchmark was searched
-for: a span above $1.5$ with a lower interval bound above $1.2$. Both hold.
+\texttt{docs/EXTERNAL\_BENCHMARK\_PROTOCOL.md} and committed before this disjoint subset was
+scored: a span above $1.5$ with a lower interval bound above $1.2$. Both hold.
+
+The chronology admits a narrower reading than a prospective search, and we state it rather than
+leave it to be reconstructed. This benchmark was already known to us: we had scored the
+45-dataset intersection with our own panel six days earlier. What was fixed in advance is the
+rule applied to the previously unscored 135-dataset complement. That is a pre-specified analysis
+of a held-out subset of an already-known external construction, and it is weaker than a
+prospective benchmark search would have been.
 
 Three things this does and does not establish, because the distinctions are load-bearing.
 
-It is an independent \emph{sample of proteins} analysed by an independent pipeline, which the
+It is disjoint in \emph{datasets} and analysed by an independent pipeline, which the
 45-dataset comparison we report elsewhere is not: that one is restricted to the intersection
 with our panel by design, so it is an independent \emph{construction} on the same proteins.
 Both are useful and they answer different questions.
+
+It is not, however, an independent sample of \emph{proteins}. Thirty-one of the 108 proteins in
+the external complement also appear among our 79, in different cell lines or different
+experiments, so the two panels share biology even where they share no dataset. Excluding every
+shared protein leaves 104 datasets over 77 proteins and gives contributions of $+0.0350$ and
+$+0.0211$, a span of $1.66$-fold (95\% CI $1.35$ to $2.09$), which still meets both
+pre-specified criteria. The replication is therefore not carried by the overlap, and the claim
+it supports is disjointness of datasets and of processing, not independence of biology.
 
 The magnitude is much smaller than ours, $1.69$ against $5.42$, and should be. Their two
 constructions are closer together than our three: both are transcript-resident, neither is
@@ -1383,7 +1398,7 @@ datasets, and it also yields the smaller contribution, so the two move together.
 picture is not a reversed relation but no relation: the change in the model's own AUROC and the
 change in contribution point in opposite directions in only 11 of 45 datasets, at Spearman
 $-0.005$ ($p=0.97$). In our own data the same two quantities point oppositely in 88 of 94
-datasets for the GC-to-dinucleotide step and 57 of 94 for GC-to-bias-aware. So the inversion is
+datasets for the GC-to-dinucleotide step and 58 of 94 for GC-to-bias-aware. So the inversion is
 a strong per-dataset regularity within this panel and is absent on the one benchmark we did not
 build.
 

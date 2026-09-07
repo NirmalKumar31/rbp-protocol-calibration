@@ -7,14 +7,17 @@ contribution**: the out-of-fold AUROC of a
 logistic model on 19 composition features plus the model's score, minus the AUROC of those
 features alone.
 
-The number moves **5.42-fold** (95% CI 4.43 to 6.58) for a 4-mer logistic regression, and 3.7 to
-7.4-fold across three model classes scored on identical rows within each arm. A model's apparent AUROC moves the
-opposite way. And the estimator itself returns **+0.011 to +0.014** when the true contribution is
-zero by construction, which is 90.4% of the smallest arm's reported value.
+The number moves **4.84-fold** (95% CI 3.98 to 5.81) for a 4-mer logistic regression under the
+cross-fitted estimator this paper recommends, and **5.42-fold** (4.43 to 6.58) under the
+two-stage estimator the literature actually computes. Both are reported throughout; the
+cross-fitted one is primary. Across three model classes the two-stage span runs 3.7 to 7.4-fold,
+on identical rows within each arm. A model's apparent AUROC moves the opposite way.
 
-Those are the two-stage estimator this literature uses. Cross-fitting the score covariate — the
-fix — cuts that floor by at least 95% and returns the zero the construction requires; the 4-mer's
-protocol span is then **4.84-fold**, so the effect survives the correction.
+Why there are two. The two-stage estimator returns **+0.011 to +0.014** when the true
+contribution is zero by construction, which is 90.4% of the smallest arm's reported value.
+Cross-fitting the score covariate cuts that floor by at least 95% and returns the zero the
+construction requires. The effect survives the correction, and the neural spans are two-stage
+only, so they stay exploratory.
 
 > **Report the composition-only AUROC obtained under the same protocol alongside every headline
 > AUROC. Do not compare contributions measured under different protocols.**
@@ -22,11 +25,12 @@ protocol span is then **4.84-fold**, so the effect survives the correction.
 ## If you are reviewing this
 
 The primary claim is that a model's **measured** contribution over a composition baseline
-depends strongly on how the negative windows were built: 5.42-fold across three protocols for a
-4-mer, while its apparent AUROC moves the opposite way. A two-way decomposition of the nine
+depends strongly on how the negative windows were built: 4.84-fold cross-fitted across three
+protocols for a 4-mer, 5.42-fold under the estimator the literature uses, while its apparent
+AUROC moves the opposite way. A two-way decomposition of the nine
 train-by-evaluate combinations attributes most of the movement to the **evaluation** protocol
 rather than the fitted model. Two decompositions, which are different estimands and not two
-weightings of one: averaging each dataset's own normalised shares gives 63% (CI 57 to 68)
+weightings of one: averaging each dataset's own normalised shares gives 63% (CI 58 to 68)
 against 15% for training, and decomposing the matrix of panel means gives 81% (73 to 87)
 against 9%. Leave-one-protein-out moves the larger share by at most 3.0 points, so no one
 protein carries it. Most of what the protocol moves is the measurement (`sec:transport`).
@@ -47,8 +51,8 @@ throughout for different quantities.
 
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download. 1073 numeric assertions are checked
-against committed tables, of which **935 belong to this paper** and 136 to an earlier
+No cloud account, no credentials, no data download. 1083 numeric assertions are checked
+against committed tables, of which **945 belong to this paper** and 136 to an earlier
 variant-scoring study whose code and evidence are still here and still pass. The verifier prints
 that split on every run, because one total covering two papers is not this paper's evidence. That is a regression gate on the published values, not a proof that
 each is attached to the right claim; the Limitations section says what it does not cover.
@@ -56,7 +60,7 @@ each is attached to the right claim; the Limitations section says what it does n
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e . -c constraints.txt   # no torch: the neural stack is an extra
-PYTHONPATH=src python scripts/verify.py --local results/tables   # 1073/1073
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 1083/1083
 PYTHONPATH=src python -m pytest tests -q \
   --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
 

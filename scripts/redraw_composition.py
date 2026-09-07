@@ -207,31 +207,48 @@ def summarise(arms):
         if pub_seed in seeds:
             p = t[t.seed == pub_seed]
             d = (p["gain"] - p["published"]).abs()
-            out.append({"check": f"published seed reproduces the published contribution, "
-                                 f"{arm} arm",
+            # NAMED FOR WHAT IT IS. This row used to be called "published seed reproduces the
+            # published contribution", which reads as a boolean and is a distance.
+            out.append({"check": f"worst per-dataset gap at the published seed, {arm} arm",
                         "value": float(d.max()), "ci_low": "", "ci_high": "", "n": len(p),
-                        "note": "maximum absolute per-dataset difference; if this is not "
-                                "small the redraw is not redrawing the published construction"})
+                        "note": "maximum absolute per-dataset difference between the redraw at "
+                                "the published seed and the published value; large because the "
+                                "redraw conditions on the retained positives"})
             # The panel-level version of the same check. Per dataset the two constructions
             # differ because the redraw conditions on the retained positives; the panel mean
             # is where they are supposed to agree, and it is the number the paper quotes.
             out.append({"check": f"panel mean at the published seed, {arm} arm",
-                        "value": float(p["gain"].mean()),
-                        "ci_low": float(p["published"].mean()), "ci_high": "", "n": len(p),
-                        "note": "ci_low is the published panel mean, not a bound"})
+                        "value": float(p["gain"].mean()), "ci_low": "", "ci_high": "",
+                        "n": len(p), "note": "the redrawn panel mean at the published seed"})
+            # ITS OWN ROW, not smuggled into ci_low. Overloading an interval column with a
+            # point value is misleading to anything that reads the schema rather than the note.
+            out.append({"check": f"published panel mean, {arm} arm",
+                        "value": float(p["published"].mean()), "ci_low": "", "ci_high": "",
+                        "n": len(p), "note": "the committed value the row above is compared to"})
 
         per_seed = t.groupby("seed")["gain"].mean()
         out.append({"check": f"draws, {arm} arm", "value": len(seeds), "ci_low": "",
                     "ci_high": "", "n": len(t), "note": f"seeds {seeds}"})
         out.append({"check": f"panel-mean contribution across draws, {arm} arm",
-                    "value": float(per_seed.mean()),
-                    "ci_low": float(per_seed.min()), "ci_high": float(per_seed.max()),
-                    "n": len(seeds),
-                    "note": "bounds are the min and max draw, not an interval"})
+                    "value": float(per_seed.mean()), "ci_low": "", "ci_high": "",
+                    "n": len(seeds), "note": "mean over draws; the extremes are their own rows"})
+        for lab, v in (("weakest", per_seed.min()), ("strongest", per_seed.max())):
+            out.append({"check": f"{lab} draw's panel mean, {arm} arm", "value": float(v),
+                        "ci_low": "", "ci_high": "", "n": len(seeds),
+                        "note": f"{'minimum' if lab == 'weakest' else 'maximum'} over draws"})
 
         # Between-draw and between-protein, the two components the paper needs separated.
+        #
+        # THE PROPAGATED COMPONENT IS THE SD ACROSS DRAWS, NOT SD/sqrt(n). An earlier version of
+        # this file divided by sqrt(n) and propagated that. The two answer different questions.
+        # SD/sqrt(n) is the standard error of the MEAN OVER TEN DRAWS, a quantity nothing in this
+        # paper reports. What the paper reports is a value computed from ONE draw, so the omitted
+        # uncertainty is the spread of one-draw estimates, which is the SD itself. Dividing by
+        # sqrt(10) understated the interval widening by a factor of ten, and it also disagreed
+        # with negative_draws.py, which had used the SD directly for the bias-aware arm since it
+        # was written. Both quantities are emitted below so the distinction is explicit.
         sd_draw = float(per_seed.std(ddof=1))
-        se_draw = sd_draw / np.sqrt(len(seeds))
+        sem_draw = sd_draw / np.sqrt(len(seeds))
         wide = pd.pivot_table(t, index="dataset", columns="seed", values="gain")
         one = t[t.seed == seeds[0]]
         rng = np.random.default_rng(0)
@@ -249,17 +266,26 @@ def summarise(arms):
         df_note = ("" if len(seeds) >= 5 else
                    f"; only {len(seeds) - 1} degrees of freedom, so read the min-max range "
                    f"on the panel-mean row instead")
-        out.append({"check": f"between-draw SE of the panel mean, {arm} arm", "value": se_draw,
+        out.append({"check": f"between-draw SD of the panel mean, {arm} arm", "value": sd_draw,
                     "ci_low": "", "ci_high": "", "n": len(seeds),
-                    "note": f"SD across draws {sd_draw:.6f} over sqrt({len(seeds)}){df_note}"})
+                    "note": "the spread of one-draw panel means; this is the component the "
+                            f"published one-draw estimate omits{df_note}"})
+        out.append({"check": f"between-draw SE of the mean over draws, {arm} arm",
+                    "value": sem_draw, "ci_low": "", "ci_high": "", "n": len(seeds),
+                    "note": f"SD over sqrt({len(seeds)}). Reported for completeness and NOT "
+                            "propagated: it bounds a mean over draws, which nothing reports"})
         out.append({"check": f"between-protein SE of the panel mean, {arm} arm",
                     "value": se_prot, "ci_low": "", "ci_high": "", "n": len(uniq),
                     "note": "the component the published interval already carries"})
-        comb = float(np.hypot(se_prot, se_draw))
+        comb = float(np.hypot(se_prot, sd_draw))
         out.append({"check": f"widening from propagating the draw, {arm} arm",
                     "value": comb / se_prot - 1.0, "ci_low": "", "ci_high": "", "n": len(seeds),
                     "note": f"combined SE {comb:.6f} against {se_prot:.6f}; the two are "
                             "independent so they add in quadrature"})
+        out.append({"check": f"between-protein SD over between-draw SD, {arm} arm",
+                    "value": se_prot / sd_draw if sd_draw else float("nan"),
+                    "ci_low": "", "ci_high": "", "n": len(seeds),
+                    "note": "how far the protein term dominates the draw term"})
         out.append({"check": f"largest per-dataset spread across draws, {arm} arm",
                     "value": float((wide.max(axis=1) - wide.min(axis=1)).max()),
                     "ci_low": "", "ci_high": "",

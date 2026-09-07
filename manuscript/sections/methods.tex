@@ -310,7 +310,7 @@ For the convolutional network and SpliceBERT only $\widehat{\Delta}^{\,\mathrm{2
 Cross-fitting them requires ten additional base fits per dataset per arm, which we did not run.
 At the rates this study measured over 940 recorded runs, \$14.58 per million pairs for the
 convolutional network and \$27.25 for SpliceBERT, one sweep of both models across all three
-arms is about \$57 and cross-fitting them is about ten times that. Every span reported for those two model
+arms is about \$58 and cross-fitting them is about ten times that. Every span reported for those two model
 classes is therefore \textbf{exploratory}: it is computed with an estimator this paper
 demonstrates is biased upward for a model the baseline spans, the size of that bias is measured
 only for the k-mer classes, and a higher-capacity base model has more scope to encode the
@@ -424,7 +424,7 @@ conditional on the rest of the design being held at the value it took. Six thing
 fixed and are therefore absent from the stated widths, each quantified where it is discussed:
 the deterministic selection of 95 of 189 candidate datasets, which is a systematic subset by pair rank and not a probability sample; one
 negative draw per protocol, now redrawn on all three arms, which widens the panel-mean standard
-error by 3.6\% on the bias-aware arm, 0.08\% on the GC arm and 0.05\% on the dinucleotide
+error by 3.6\% on the bias-aware arm, 0.81\% on the GC arm and 0.49\% on the dinucleotide
 arm; one chromosome-to-fold partition; unseeded neural initialisation, worth about 0.001 on a
 panel mean; the choice of model and hyperparameters; and the small difference in retained
 positives between arms. The negative draw is the only one of the six measured on every arm, and
@@ -468,7 +468,7 @@ genomic coordinates that the published per-window score files do not carry.
 
 Every published value is regression-checked offline by a single command against committed
 evidence, which is a different and weaker claim than rebuilding it from raw inputs. The
-harness runs 1073 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 1083 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

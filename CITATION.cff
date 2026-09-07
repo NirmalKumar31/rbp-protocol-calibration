@@ -23,9 +23,10 @@ abstract: >-
   folds and the estimator fixed, refitting model and baseline
   within each protocol, and varying how negative windows
   are constructed moves a model's measured nested contribution
-  5.42-fold under the two-stage estimator this literature uses,
-  and 4.84-fold under the cross-fitted estimator the paper
-  recommends, while its apparent AUROC moves the opposite way.
+  4.84-fold under the cross-fitted estimator the paper recommends
+  and reports as primary, and 5.42-fold under the two-stage one
+  this literature uses, while its apparent AUROC moves the
+  opposite way.
   The two-stage estimator also returns a positive increment for a
   model whose information the composition baseline already
   contains, where the true contribution is zero by construction;

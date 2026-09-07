@@ -153,8 +153,8 @@ dependence is not so indexed.
 The two claims this paper makes travel differently, and separating them is the honest summary
 of the external evidence. That measured contribution is protocol-indexed replicates on 135
 \citet{horlacher2023} datasets our panel does not contain, at $1.69$-fold (95\% CI $1.41$ to
-$2.03$) against their two constructions, under criteria fixed before the benchmark was
-searched for (Section~\ref{sec:external}). The directional relation does not.
+$2.03$) against their two constructions, under criteria committed before that disjoint subset
+was scored (Section~\ref{sec:external}). The directional relation does not.
 
 The relation in the title holds throughout our own data, across three arms and three model
 classes, and does not hold on the one externally constructed benchmark we tested. On
@@ -299,11 +299,16 @@ windows cut from the genome rather than existing windows reassigned. That costs 
 than access: the assembly is a public GENCODE release and is listed in the input manifest with
 its checksum. Ten independent draws of each were made. The GC arm gives panel means from
 $+0.0262$ to $+0.0273$ about a published $+0.0265$, and the dinucleotide arm from $+0.0654$ to
-$+0.0676$ about a published $+0.0663$. The between-draw standard error of the panel mean is
-0.00013 against a between-protein standard error of 0.00324 in the first and 0.00021 against
-0.00651 in the second, so adding the two in quadrature widens the interval by 0.08\% and
-0.05\% respectively, against 3.6\% on the bias-aware arm. Per dataset the spread across draws
-has median 0.0079 and 0.0139.
+$+0.0676$ about a published $+0.0663$.
+
+The quantity to propagate is the standard deviation of the one-draw panel means, not its
+standard error. A published figure is computed from a single draw, so what a reader needs is
+the spread of the estimates a different draw would have produced; the standard error of the
+mean over ten draws bounds a quantity this study does not report. That standard deviation is
+0.00041 against a between-protein standard error of 0.00324 in the GC arm and 0.00065 against
+0.00651 in the dinucleotide arm, so adding the two in quadrature widens the interval by
+0.81\% and 0.49\% respectively, against 3.6\% on the bias-aware arm. Per dataset the spread
+across draws has median 0.0079 and 0.0139.
 
 One qualification applies to the composition-matched redraws and not to the bias-aware one. The
 committed window tables hold the pairs the matcher retained, so a redraw starts from a positive
@@ -314,9 +319,9 @@ arm, while individual datasets differ by up to 0.0213 and 0.0309. Those per-data
 the size of the conditioning and are reported rather than smoothed away.
 
 All three protocols therefore carry a draw estimate, and in each of them the between-protein
-term dominates the between-draw term by more than an order of magnitude. The negative draw is a
-quantified and small omission from every interval in this paper, rather than one measured on a
-single arm and assumed comparable elsewhere.
+term is the larger by a factor of between four and ten. The negative draw is a quantified and
+small omission from every interval in this paper, rather than one measured on a single arm and
+assumed comparable elsewhere.
 
 One limitation concerns the provenance of the neural scores. Initialisation was unseeded across
 all 2830 committed fold-runs, at the cost quantified in Methods. A second, that 20 of the 94
@@ -374,7 +379,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 1073 assertions compare each published value against a frozen
+credit than it earns. Its 1083 assertions compare each published value against a frozen
 expectations file generated from the same run those values come from, so they are regression
 coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
 original run was correct. Two assertions do more, and they are the reproducibility claim worth
@@ -386,7 +391,7 @@ Everything downstream of the neural scores is bit-reproducible; the scores thems
 because initialisation was unseeded, so a rerun gives slightly different scores and then
 identical numbers from every step after them. The harness asserts values, not the provenance of
 the code producing them, and the fold-partition defect above is exactly the class that
-distinction permits: it was found by inspection and by none of the 1073 assertions, as was the
+distinction permits: it was found by inspection and by none of the 1083 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces the numbers in this text, decimals and bare counts alike, to a

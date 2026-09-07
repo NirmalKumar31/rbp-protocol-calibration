@@ -12,10 +12,17 @@ proposed and what happened are the useful part of the record. They are set out h
 | wall clock | 6.0 h | 4 h 51 m, both arms at ten draws, self-deleted two hours inside its deadline |
 | cost | $4.51 | about $2 |
 
-**Result.** Both composition-matched arms carry ten draws. Between-draw SE 0.00013 (GC) and
-0.00021 (dinucleotide) against between-protein SE 0.00324 and 0.00651, so propagating the draw
-widens the panel-mean interval by 0.08% and 0.05%, against 3.6% on the bias-aware arm. All three
-protocols now have a draw estimate. Tables: `results/tables/redraw_composition.csv` and the
+**Result.** Both composition-matched arms carry ten draws. Between-draw SD 0.00041 (GC) and
+0.00065 (dinucleotide) against between-protein SE 0.00324 and 0.00651, so propagating the draw
+widens the panel-mean interval by 0.81% and 0.49%, against 3.6% on the bias-aware arm. All three
+protocols now have a draw estimate.
+
+**Corrected after an external audit.** The first version of this section reported 0.08% and
+0.05%, because the summariser propagated SD/sqrt(10), the standard error of the mean over ten
+draws. The published estimate uses ONE draw, so the omitted component is the SD across draws.
+The error understated the widening tenfold and disagreed with `negative_draws.py`, which had
+used the SD directly for the bias-aware arm all along. The conclusion is unchanged: the draw
+remains the smaller term by a factor of 8 (GC) and 10 (dinucleotide). Tables: `results/tables/redraw_composition.csv` and the
 per-draw files under `results/tables/draws/`. Gated by `verify_redraw_composition`.
 
 **What this does NOT do**, and the reason is a design property rather than a defect: the
