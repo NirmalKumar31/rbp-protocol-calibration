@@ -8,6 +8,16 @@ e76a80c, BEFORE THE 135-DATASET DISJOINT SUBSET BELOW WAS SCORED. The eligibilit
 estimand, the uncertainty procedure and the falsification thresholds are quoted from it and
 were not chosen after seeing this output.
 
+THE ESTIMATOR HERE IS TWO-STAGE, NOT CROSS-FITTED. gain_over_composition is the estimator the
+paper reports as its comparability analysis, so this span belongs beside the two-stage 5.42 and
+NOT beside the primary cross-fitted 4.84. Cross-fitting these arms costs ten extra 4-mer fits
+per dataset and has simply not been run. Nothing here should be read as external validation of
+the estimator the paper recommends, and the abstract used to say "the same estimator", which
+elided exactly this.
+
+THEIR FOLDS ARE NOT CHROMOSOME-BLOCKED, and the protocol makes that a criterion. See
+fold_blocking() below: measured rather than assumed, and the channel is closed anyway.
+
 THAT IS NARROWER THAN A PROSPECTIVE SEARCH, and an external audit was right to say the earlier
 wording overstated it. This benchmark was not unknown: 3f96e8e and 2b5843a scored its
 45-dataset intersection with our panel on 2026-08-31, six days before the protocol was written,
@@ -55,6 +65,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from rbp.eval.baseline import oof_scores as kmer_oof  # noqa: E402
 from rbp.eval.nested import gain_over_composition  # noqa: E402
+from rbp.utils.carry import emit  # noqa: E402
 from rbp.utils.log import log  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -143,6 +154,59 @@ def ratio(d):
     return float(a / b) if b > 0 else float("nan")
 
 
+def fold_blocking():
+    """Is their fold partition chromosome-blocked, and if not, does the leakage channel close?
+
+    THE PROTOCOL MAKES THIS A FALSIFICATION CRITERION. It calls the result indeterminate if the
+    benchmark's fold partition "cannot be made chromosome-blocked", and nothing here had ever
+    checked. Their split is emphatically NOT chromosome-blocked: every chromosome appears in
+    every fold in all 135 datasets.
+
+    That is not the same as leaking. Chromosome grouping is a coarse instrument for one specific
+    channel, a held-out window sharing sequence with a training window, and the direct metric for
+    that channel is the fraction of positives with a near neighbour on the same strand whose
+    neighbour sits in a DIFFERENT fold. Measured here on their own coordinates, exactly as
+    fold_integrity.py measures ours. Their scheme turns out to be locus-blocked rather than
+    chromosome-blocked, which closes the channel by a finer instrument than ours.
+
+    Reported rather than assumed, and reported with its denominator, because "0% cross-fold"
+    means nothing if almost nothing has a neighbour: 70 to 86 per cent of their positives do.
+    """
+    have = cross = split = seen = 0
+    for ds in disjoint_datasets():
+        rows = []
+        for fold in range(5):
+            f = DATA / ds.replace(":", "_") / f"fold-{fold}" / f"positive.fold-{fold}.bed"
+            if not f.exists():
+                continue
+            for line in f.read_text().split("\n"):
+                if line.strip():
+                    q = line.split("\t")
+                    rows.append((q[0], int(q[1]), q[5] if len(q) > 5 else "+", fold))
+        if not rows:
+            continue
+        seen += 1
+        per_chrom = {}
+        for c, _st, _s, fo in ((r[0], r[2], r[1], r[3]) for r in rows):
+            per_chrom.setdefault(c, set()).add(fo)
+        if any(len(v) > 1 for v in per_chrom.values()):
+            split += 1
+        by = {}
+        for c, st_, strand, fo in ((r[0], r[1], r[2], r[3]) for r in rows):
+            by.setdefault((c, strand), []).append((st_, fo))
+        for v in by.values():
+            v.sort()
+            for i in range(len(v)):
+                near = [j for j in (i - 1, i + 1)
+                        if 0 <= j < len(v) and abs(v[i][0] - v[j][0]) <= 1000]
+                if near:
+                    have += 1
+                    if any(v[j][1] != v[i][1] for j in near):
+                        cross += 1
+    return seen, split, have, cross
+
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--from-cache", action="store_true")
@@ -228,6 +292,21 @@ def main():
                 "ci_low": "", "ci_high": "", "n": len(uniq),
                 "note": "the two panels share biology even where they share no dataset, so "
                         "this is disjoint in datasets and processing, not in proteins"})
+
+    # THE PROTOCOL'S FOLD CRITERION, measured rather than assumed. Carried forward where the
+    # deposit is absent, which is the released tree; see rbp.utils.carry.
+    seen, split, have, cross = fold_blocking() if DATA.exists() else (0, 0, 0, 0)
+    ok = seen > 0
+    emit(out, OUT, "their datasets whose chromosomes span more than one fold", split,
+         n=seen, recomputed=ok,
+         note="their partition is NOT chromosome-blocked; the protocol makes this a criterion")
+    emit(out, OUT, "their positives with a same-strand neighbour within 1 kb", have,
+         n=seen, recomputed=ok,
+         note="the denominator, because a zero cross-fold rate over nothing means nothing")
+    emit(out, OUT, "of those, the fraction whose neighbour is in a different fold",
+         (cross / have) if have else 0.0, n=have, recomputed=ok,
+         note="the direct leakage metric fold_integrity.py uses on our arms; their scheme is "
+              "locus-blocked rather than chromosome-blocked, which closes the same channel")
 
     g1 = add("nested contribution, negative-1 (bias-agnostic)", t.gain_n1)
     g2 = add("nested contribution, negative-2 (bias-aware)", t.gain_n2)

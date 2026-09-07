@@ -1122,6 +1122,19 @@ release two negative-set constructions over the same positives for 223 ENCODE eC
 negatives and their five-fold partition; our estimator, our 19-column composition baseline and
 our 4-mer, transported unchanged.
 
+Two properties of that transport are load-bearing and neither was stated before an audit asked.
+The estimator transported is the \emph{two-stage} one, so the external span is comparable with
+the 5.42-fold two-stage figure and not with the 4.84-fold cross-fitted primary; cross-fitting
+the external arms is affordable and simply has not been run. And their fold partition is not
+chromosome-blocked: every chromosome appears in every fold, in all 135 datasets. Chromosome
+grouping is a coarse instrument for one channel, a held-out window sharing sequence with a
+training window, and the direct metric for that channel is the fraction of positives whose
+same-strand neighbour within 1 kb sits in a different fold. On their coordinates that is
+$1.5\times 10^{-4}$ over 1.32 million such positives, so their scheme is locus-blocked rather
+than chromosome-blocked and closes the channel more finely than ours does. The protocol makes an
+unblockable partition grounds for calling the result indeterminate; on this measurement it is
+not.
+
 135 of their datasets, covering 108 proteins, are not in our panel. On those, the nested
 contribution is $+0.0359$ (95\% CI $+0.0307$ to $+0.0420$) under \texttt{negative-1} and
 $+0.0213$ ($+0.0167$ to $+0.0272$) under \texttt{negative-2}, a span of $\mathbf{1.69}$-fold
@@ -1353,14 +1366,16 @@ datasets shared with our panel (Table~\ref{tab:external}, Figure~\ref{fig:extern
 benchmark is external in its construction and not in its biology: the underlying experiments
 overlap ours, so this tests whether the same measurement behaves the same way when somebody
 else builds the negatives, not whether it behaves the same way on new proteins. Their released
-sets also carry no model-only AUROC, so difficulty there can only be read from the composition
-baseline, which is a weaker proxy than the one we use internally.
+sets are released without a model-only AUROC, so difficulty there is read from the composition
+baseline unless one computes it, which is a weaker proxy than the one we use internally. We
+compute it below.
 
 \begin{table}[htbp]
 \centering
 \caption{The same decomposition applied to the released negative sets of
-\citet{horlacher2023}, $n=45$ datasets. The 4-mer's own AUROC is not available for their
-negative sets, so difficulty on their benchmark is read from the composition baseline.}
+\citet{horlacher2023}, $n=45$ datasets. Their release does not supply a model-only AUROC, so
+difficulty in this table is read from the composition baseline; the 4-mer's own AUROC on their
+negative sets is computed by this study and reported in the text below.}
 \label{tab:external}
 \begin{tabular}{lccc}
 \toprule
@@ -1391,8 +1406,8 @@ that and a single-family headroom relation is not, but the ordering was not pred
 and we do not present it as a confirmation.
 
 That second failure was previously read off the composition baseline, which is not the quantity
-the relation in the title is defined on, so we also measured the 4-mer's own AUROC on their
-negative sets. It confirms the failure on the correct axis and sharpens it. Their negative-2 is
+the directional relation is defined on, so we computed the 4-mer's own AUROC on their negative
+sets ourselves, their release not supplying one. It confirms the failure on the correct axis and sharpens it. Their negative-2 is
 harder for the 4-mer than their negative-1, 0.7647 against 0.8594 and harder in 41 of 45
 datasets, and it also yields the smaller contribution, so the two move together. Per dataset the
 picture is not a reversed relation but no relation: the change in the model's own AUROC and the

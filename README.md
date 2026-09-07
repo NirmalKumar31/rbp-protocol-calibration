@@ -55,8 +55,8 @@ throughout for different quantities.
 
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download. 1083 numeric assertions are checked
-against committed tables, of which **945 belong to this paper** and 136 to an earlier
+No cloud account, no credentials, no data download. 1086 numeric assertions are checked
+against committed tables, of which **948 belong to this paper** and 136 to an earlier
 variant-scoring study whose code and evidence are still here and still pass. The verifier prints
 that split on every run, because one total covering two papers is not this paper's evidence. That is a regression gate on the published values, not a proof that
 each is attached to the right claim; the Limitations section says what it does not cover.
@@ -64,7 +64,7 @@ each is attached to the right claim; the Limitations section says what it does n
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e . -c constraints.txt   # no torch: the neural stack is an extra
-PYTHONPATH=src python scripts/verify.py --local results/tables   # 1083/1083
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 1086/1086
 PYTHONPATH=src python -m pytest tests -q \
   --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
 
@@ -117,7 +117,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          796 tests, no network or cloud; 2 modules need torch
+tests/          816 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes

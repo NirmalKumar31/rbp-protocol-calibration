@@ -147,8 +147,12 @@ estimand in one assay, with the arithmetic part separated from the part that is 
 
 \subsection*{Limitations}
 
-Every magnitude reported here is indexed to a mono- and dinucleotide baseline. The protocol
-dependence is not so indexed.
+Every magnitude reported here, including the spans, is indexed to a mono- and dinucleotide
+baseline: raise the baseline to order three and every contribution shrinks. What survives that
+change is the qualitative finding, that the measured contribution is protocol-dependent at all,
+which holds at every baseline order we tested and on four estimands besides AUROC. The size of
+the dependence is a joint property of the protocol and the analyst's choice of baseline; its
+existence is not.
 
 The two claims this paper makes travel differently, and separating them is the honest summary
 of the external evidence. That measured contribution is protocol-indexed replicates on 135
@@ -156,8 +160,10 @@ of the external evidence. That measured contribution is protocol-indexed replica
 $2.03$) against their two constructions, under criteria committed before that disjoint subset
 was scored (Section~\ref{sec:external}). The directional relation does not.
 
-The relation in the title holds throughout our own data, across three arms and three model
-classes, and does not hold on the one externally constructed benchmark we tested. On
+The protocol dependence in the title holds throughout our own data, across three arms and three
+model classes, and replicates on the one externally constructed benchmark we tested. What does
+not replicate there is the inverse direction: the finding that a protocol which makes the
+discrimination harder yields a larger measured contribution. On
 \citet{horlacher2023}'s two negative sets the arm that is harder for the 4-mer by its own AUROC
 also yields the smaller contribution, so difficulty and contribution move together there. Per
 dataset there is no relation at all rather than a reversed one, at Spearman $-0.005$, against
@@ -379,7 +385,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 1083 assertions compare each published value against a frozen
+credit than it earns. Its 1086 assertions compare each published value against a frozen
 expectations file generated from the same run those values come from, so they are regression
 coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
 original run was correct. Two assertions do more, and they are the reproducibility claim worth
@@ -391,7 +397,7 @@ Everything downstream of the neural scores is bit-reproducible; the scores thems
 because initialisation was unseeded, so a rerun gives slightly different scores and then
 identical numbers from every step after them. The harness asserts values, not the provenance of
 the code producing them, and the fold-partition defect above is exactly the class that
-distinction permits: it was found by inspection and by none of the 1083 assertions, as was the
+distinction permits: it was found by inspection and by none of the 1086 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces the numbers in this text, decimals and bare counts alike, to a

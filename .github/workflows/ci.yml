@@ -11,12 +11,12 @@
 # This deliberately does NOT run the pipeline. The pipeline needs GCP credentials, a genome
 # and roughly $60 of compute (docs/COST.md), which is why it is not gated here. What CI proves on a clean
 # clone is that the code imports, the tests pass, the ruff rules the project selects hold, the
-# 1083 published assertions reproduce offline, the release documents still agree with the
+# 1086 published assertions reproduce offline, the release documents still agree with the
 # artefacts they describe, the paper builds with no dangling reference, and the numbers nobody
 # is allowed to edit silently have not been edited silently.
 #
 # The last four of those were added after an external review pointed out that CI ran none of
-# them, so README's headline instruction -- one command, 1083 checks -- was verified nowhere
+# them, so README's headline instruction -- one command, 1086 checks -- was verified nowhere
 # but on the author's laptop.
 
 # THIRD-PARTY ACTIONS ARE PINNED BY COMMIT SHA, not by the moving v4/v5 tags. A tag is
@@ -94,7 +94,7 @@ jobs:
         run: python scripts/audit_manuscript.py
 
       # THE VERIFIER, WHICH CI DID NOT RUN. README tells a reader to check the paper with this
-      # one command and CI never executed it, so the claim that 1083 assertions pass on a clean
+      # one command and CI never executed it, so the claim that 1086 assertions pass on a clean
       # clone was tested only on the author's laptop -- which is precisely the thing this file's
       # first line says a test suite must not be. It needs no credentials and no data: the
       # committed result tables are the input.
@@ -148,7 +148,7 @@ jobs:
       # this, and running all 33 in a clean export found window_centring.py rewriting a summit
       # census from 10 files to 0 and gene_clustered_cv.py dropping three rows, both because an
       # optional input is absent from the release, and both then FAILING verify.py. A reader
-      # following the documented instructions took the repository from 1083/1083 to four
+      # following the documented instructions took the repository from 1086/1086 to four
       # failures. Structural comparison plus a numeric tolerance; see the script's docstring for
       # why not a byte diff.
       - name: every --from-cache entry point reproduces its committed table

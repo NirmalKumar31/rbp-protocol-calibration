@@ -49,6 +49,7 @@ matters because the thing it is checking is whether these commands damage commit
 """
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -84,37 +85,92 @@ def entry_points():
 
 
 def compare(before, after, tol):
-    """Structural differences first, then numeric. Returns a list of complaint strings."""
+    """Every column, every field, and the row keys must be unique. Returns complaint strings.
+
+    An earlier version compared the SET of `check` rows, the `note` column and `value`, and its
+    docstring called that structural and numeric comparison. It was neither complete: `n`,
+    `ci_low`, `ci_high` and every analysis-specific column went unchecked, so a run could move
+    a confidence bound or a sample size and pass. An audit was right to call that a false-pass
+    path in a gate whose whole purpose is to have none.
+    """
     bad = []
     a = pd.read_csv(before)
     b = pd.read_csv(after)
-    if "check" not in a.columns or "check" not in b.columns:
+
+    if list(a.columns) != list(b.columns):
+        bad.append(f"COLUMNS changed: {list(a.columns)} -> {list(b.columns)}")
+        return bad                      # nothing below is meaningful across different schemas
+
+    key = "check" if "check" in a.columns else None
+    if key is None:
         if len(a) != len(b):
-            bad.append(f"row count {len(a)} -> {len(b)}")
-        return bad
-    ia, ib = set(a["check"]), set(b["check"])
-    for k in sorted(ia - ib):
-        bad.append(f"DROPPED row: {k!r}")
-    for k in sorted(ib - ia):
-        bad.append(f"ADDED row: {k!r}")
-    common = sorted(ia & ib)
-    ai = a.drop_duplicates("check").set_index("check")
-    bi = b.drop_duplicates("check").set_index("check")
-    if "note" in a.columns and "note" in b.columns:
-        for k in common:
-            na = str(ai.loc[k, "note"] if pd.notna(ai.loc[k, "note"]) else "")
-            nb = str(bi.loc[k, "note"] if pd.notna(bi.loc[k, "note"]) else "")
-            if na != nb:
-                bad.append(f"NOTE changed on {k!r}: the table is stale against its script")
-    for k in common:
-        va, vb = ai.loc[k, "value"], bi.loc[k, "value"]
-        fa, fb = pd.to_numeric(va, errors="coerce"), pd.to_numeric(vb, errors="coerce")
-        if pd.notna(fa) and pd.notna(fb):
-            if abs(fa - fb) > tol:
-                bad.append(f"VALUE moved on {k!r}: {fa!r} -> {fb!r}")
-        elif str(va) != str(vb):
-            bad.append(f"VALUE changed on {k!r}: {va!r} -> {vb!r}")
+            bad.append(f"ROW COUNT {len(a)} -> {len(b)} in a table with no `check` column")
+            return bad
+        ia = ib = range(len(a))
+        ai, bi = a, b
+    else:
+        for lab, frame in (("committed", a), ("regenerated", b)):
+            dup = frame[key][frame[key].duplicated()].tolist()
+            if dup:
+                bad.append(f"DUPLICATE keys in the {lab} table: {sorted(set(dup))[:3]}")
+        if bad:
+            return bad
+        ia, ib = set(a[key]), set(b[key])
+        for k in sorted(ia - ib):
+            bad.append(f"DROPPED row: {k!r}")
+        for k in sorted(ib - ia):
+            bad.append(f"ADDED row: {k!r}")
+        ai, bi = a.set_index(key), b.set_index(key)
+        ia = ib = sorted(ia & ib)
+
+    fields = [c for c in a.columns if c != key]
+    for k in ia:
+        for col in fields:
+            va, vb = ai.loc[k, col], bi.loc[k, col]
+            fa = pd.to_numeric(va, errors="coerce")
+            fb = pd.to_numeric(vb, errors="coerce")
+            if pd.notna(fa) and pd.notna(fb):
+                if abs(fa - fb) > tol:                       # numeric, tolerance applies
+                    bad.append(f"{col} moved on {k!r}: {fa!r} -> {fb!r}")
+                continue
+            # Text, or one side blank. Blank and NaN are the same absence in a CSV round trip.
+            sa = "" if pd.isna(va) else str(va)
+            sb = "" if pd.isna(vb) else str(vb)
+            if sa != sb:
+                what = "NOTE" if col == "note" else col.upper()
+                extra = "; the table is stale against its script" if col == "note" else ""
+                bad.append(f"{what} changed on {k!r}: {sa[:40]!r} -> {sb[:40]!r}{extra}")
     return bad
+
+
+def snapshot_of(root):
+    """Relative path -> bytes, over every table the release ships, not just top-level CSVs."""
+    out = {}
+    for f in sorted(root.rglob("*")):
+        if f.is_file() and f.suffix in (".csv", ".tsv"):
+            out[str(f.relative_to(root))] = f.read_bytes()
+    return out
+
+
+def restore(snap_dir, dest):
+    """Put `dest` back exactly as `snap_dir`, including REMOVING files the run added.
+
+    Copying the snapshot back leaves any new file in place, so it could contaminate the next
+    entry point and survive the gate. The comment "restores what it touched" was therefore too
+    strong, which an audit caught.
+    """
+    keep = set()
+    for f in snap_dir.rglob("*"):
+        if f.is_file():
+            rel = f.relative_to(snap_dir)
+            keep.add(rel)
+            target = dest / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if not target.exists() or target.read_bytes() != f.read_bytes():
+                shutil.copy2(f, target)
+    for f in sorted(dest.rglob("*"), reverse=True):
+        if f.is_file() and f.relative_to(dest) not in keep:
+            f.unlink()
 
 
 def main():
@@ -132,42 +188,40 @@ def main():
 
     snap = Path(tempfile.mkdtemp(prefix="cache-idem-"))
     shutil.copytree(TABLES, snap / "tables")
-    failures, ran, skipped = {}, 0, []
+    before = snapshot_of(snap / "tables")
+    failures, ran = {}, 0
     try:
         for stem, flag in points:
             script = ROOT / "scripts" / f"{stem}.py"
-            env = {"PYTHONPATH": str(ROOT / "src")}
             r = subprocess.run([sys.executable, str(script), flag], capture_output=True,
                                text=True, cwd=str(ROOT),
-                               env={**dict(__import__("os").environ), **env})
+                               env={**os.environ, "PYTHONPATH": str(ROOT / "src")})
+            # A NON-ZERO EXIT IS A FAILURE, NOT A SKIP. This reported them as skipped, so a
+            # broken entry point dropped out of the evidence and the gate still passed: a
+            # false-pass path in the one script written to have none.
             if r.returncode != 0:
-                skipped.append(f"{stem} exited {r.returncode}: "
-                               f"{(r.stderr or r.stdout).strip().splitlines()[-1][:70]}")
-                continue
-            ran += 1
-            for after in sorted(TABLES.glob("*.csv")):
-                before = snap / "tables" / after.name
-                if not before.exists():
-                    failures.setdefault(stem, []).append(f"NEW table {after.name}")
-                    continue
-                if before.read_bytes() == after.read_bytes():
-                    continue
-                for msg in compare(before, after, a.tol):
-                    failures.setdefault(stem, []).append(f"{after.name}: {msg}")
-            # Restore between entry points so one script's drift is not attributed to the next.
-            for f in snap.joinpath("tables").glob("*.csv"):
-                shutil.copy2(f, TABLES / f.name)
+                tail = (r.stderr or r.stdout).strip().splitlines()
+                failures.setdefault(stem, []).append(
+                    f"EXITED {r.returncode}: {tail[-1][:80] if tail else 'no output'}")
+            else:
+                ran += 1
+            # Compared over the whole tree, so a NEW or DELETED table is caught too, and nested
+            # paths and .tsv files are covered rather than top-level *.csv only.
+            after = snapshot_of(TABLES)
+            for rel in sorted(set(before) | set(after)):
+                if rel not in after:
+                    failures.setdefault(stem, []).append(f"DELETED table {rel}")
+                elif rel not in before:
+                    failures.setdefault(stem, []).append(f"NEW table {rel}")
+                elif before[rel] != after[rel]:
+                    for msg in compare(snap / "tables" / rel, TABLES / rel, a.tol):
+                        failures.setdefault(stem, []).append(f"{rel}: {msg}")
+            restore(snap / "tables", TABLES)
     finally:
-        for f in snap.joinpath("tables").rglob("*"):
-            if f.is_file():
-                dest = TABLES / f.relative_to(snap / "tables")
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(f, dest)
+        restore(snap / "tables", TABLES)
         shutil.rmtree(snap, ignore_errors=True)
 
-    log(f"\n  {ran} of {len(points)} entry points ran, tolerance {a.tol:g}")
-    for s in skipped:
-        log(f"    skipped: {s}")
+    log(f"\n  {ran} of {len(points)} entry points ran clean, tolerance {a.tol:g}")
     if failures:
         log(f"\n  {len(failures)} ENTRY POINT(S) DO NOT REPRODUCE THEIR COMMITTED TABLE:\n")
         for stem, msgs in sorted(failures.items()):

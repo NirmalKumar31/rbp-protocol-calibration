@@ -4,6 +4,9 @@ datasets,135.0,,,135,Horlacher ENCODE datasets outside our 94-dataset study pane
 proteins,108.0,,,135,the resampled unit
 dataset overlap with our study panel,0.0,,,135,zero by construction against the 94-dataset three-arm panel; this is what criterion 1 asks for and what the 45-dataset intersection lacks
 protein overlap with our study panel,31.0,,,108,"the two panels share biology even where they share no dataset, so this is disjoint in datasets and processing, not in proteins"
+their datasets whose chromosomes span more than one fold,135.0,,,135,their partition is NOT chromosome-blocked; the protocol makes this a criterion
+their positives with a same-strand neighbour within 1 kb,1323516.0,,,135,"the denominator, because a zero cross-fold rate over nothing means nothing"
+"of those, the fraction whose neighbour is in a different fold",0.00015035707917395786,,,1323516,"the direct leakage metric fold_integrity.py uses on our arms; their scheme is locus-blocked rather than chromosome-blocked, which closes the same channel"
 "nested contribution, negative-1 (bias-agnostic)",0.03594893812470928,0.030707892522477652,0.041965439226109666,135,
 "nested contribution, negative-2 (bias-aware)",0.021256620068192084,0.01667856349916528,0.027155805623039188,135,
 "composition baseline, negative-1",0.8094555140214018,0.7949698283648691,0.8234474530397529,135,

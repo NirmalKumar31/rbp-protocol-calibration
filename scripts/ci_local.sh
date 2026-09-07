@@ -76,8 +76,12 @@ step "release documents are consistent with the artefacts (full-suite job: --req
 echo "  NOTE: run with torch present, so this mirrors the full-suite job and not the"
 echo "        torch-free 'test' job. Check the Actions log for that one."
 
+# --check, NOT a bare run. This script called column_dictionary.py without it, which REWRITES
+# the dictionary instead of detecting a stale committed one, while GitHub CI uses --check. So
+# the mirror could not fail on the defect the real job fails on, which is the one thing a mirror
+# must not do.
 step "the column dictionary is current"
-"$PY" scripts/column_dictionary.py || fail "column_dictionary.py"
+"$PY" scripts/column_dictionary.py --check || fail "column_dictionary.py --check"
 
 step "every committed table has a producing script"
 "$PY" scripts/provenance.py --check || fail "provenance.py"
@@ -85,6 +89,14 @@ step "every committed table has a producing script"
 step "regenerated artefacts match what is committed"
 git diff --exit-code -- results/tables/ >/dev/null || fail "a generated table changed; commit it"
 echo "  clean"
+
+# ADDED BECAUSE THE MIRROR DRIFTED THE DAY THE GATE WAS WRITTEN. The workflow gained
+# cache_idempotence.py and this file did not, so `ci_local.sh` reported green while the CI run
+# for that very commit was failing on it. The rule this file exists to encode is that a change
+# to the workflow is a change to this script in the same commit, and I broke it in the commit
+# that added the gate.
+step "every --from-cache entry point reproduces its committed table"
+"$PY" scripts/cache_idempotence.py || fail "cache_idempotence.py"
 
 step "ruff"
 if "$PY" -m ruff --version >/dev/null 2>&1; then

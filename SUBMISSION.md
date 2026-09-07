@@ -15,7 +15,7 @@ first. Nothing here is a summary of the science, which is in `manuscript/paper.p
 | bioRxiv asks for | file |
 |---|---|
 | Manuscript PDF | `manuscript/paper.pdf` (58 pages) |
-| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 440 words, no markup |
+| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 461 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 
@@ -34,7 +34,7 @@ stronger claim and a review was right to object.
 absent; it depends only on nothing being misdescribed.
 
 What that does NOT settle: a journal submission afterwards will impose its own limits, and the
-ones that would bite are the abstract (440 words against a typical 250) and the main text (58
+ones that would bite are the abstract (461 words against a typical 250) and the main text (58
 pages, 16 table environments). The long-form abstract and the guidance for cutting are kept
 where they can be found again -- see the note above `\begin{abstract}` in `paper.tex` -- and
 `results/tables/PROVENANCE.csv` already identifies which tables are secondary and would move to
@@ -138,7 +138,7 @@ exactly, because five figures were orphaned once before when a section was cut.
 python scripts/verify.py --local results/tables
 ```
 
-1083 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+1086 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 
@@ -155,9 +155,13 @@ dollars of compute at current prices, and is not required to check any published
 ## Still outstanding
 
 1. **Zenodo DOI.** The manuscript currently gives the GitHub URL only. `docs/ZENODO.md` has the
-   procedure. When the DOI exists, uncomment the two-line sentence at the end of
-   `manuscript/sections/data-availability.tex`, insert the **concept** DOI (it resolves to the
-   latest version and survives future releases; the per-version DOI does not), and run
+   procedure, and it is the single source of truth for it: this file used to give a different
+   instruction, `docs/ZENODO.md` gave two different ones in two places, and
+   `data-availability.tex` gave a fourth, so four documents described three workflows.
+   When the DOIs exist, uncomment the sentence at the end of
+   `manuscript/sections/data-availability.tex` and insert **both**: the **version** DOI and its
+   tag, which identify the exact snapshot the reported numbers came from and are what a
+   reproducibility citation needs, and the **concept** DOI beside it for discovery. Then run
    `cd manuscript && ./build.sh`. That is the only manuscript edit required.
 2. **A journal submission after the preprint** will need the abstract cut to about 250 words
    and a main/supplement split. Neither is required by bioRxiv, and both depend on which

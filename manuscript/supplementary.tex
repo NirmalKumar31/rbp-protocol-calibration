@@ -9,9 +9,9 @@
 %
 % Every number in this file is scanned by scripts/audit_manuscript.py exactly as the main text
 % is, so a value here that traces to no committed table fails the build.
-\documentclass[11pt,a4paper]{article}
+\documentclass[11pt]{article}
 
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{booktabs}
@@ -25,13 +25,19 @@
 \setlength{\parindent}{0pt}
 
 \hypersetup{
-  pdftitle={Supplementary material: apparent sequence-model contribution depends on negative-set construction},
+  pdftitle={Supplementary material: Apparent sequence-model contribution depends strongly on
+            negative-set construction: a calibration across 94 ENCODE eCLIP datasets},
   pdfauthor={Nirmalkumar Thirupallikrishnan Kesavan},
   pdfsubject={Supplementary figures and tables},
+  pdfkeywords={negative-set construction, benchmark calibration, RNA-binding protein, eCLIP,
+               nested contribution, cross-fitting},
 }
 
+% THE EXACT ARTICLE TITLE, in the visible title and in the PDF metadata. This carried an
+% earlier title that two reviewers had rejected, and the metadata carried a third shortened
+% form, so a submission system had three strings for one pair of files.
 \title{Supplementary material\\[0.3em]
-\large What a sequence model appears to contribute is set by how its negatives were built:
+\large Apparent sequence-model contribution depends strongly on negative-set construction:
 a calibration across 94 ENCODE eCLIP datasets}
 \author{Nirmalkumar Thirupallikrishnan Kesavan}
 \date{}
@@ -49,9 +55,10 @@ Two conventions hold throughout and are not repeated in every legend.
 
 \textbf{The estimand.} The \emph{nested contribution} of a model under a protocol is the pooled
 out-of-fold AUROC of a logistic model on 19 composition features plus that model's score, minus
-the AUROC of the 19 features alone. Composition is 4 mononucleotide frequencies, 16
-dinucleotide frequencies and Shannon entropy. Higher means the sequence model adds more over
-knowing base composition.
+the AUROC of the 19 features alone. Composition is mononucleotide and dinucleotide frequencies
+plus Shannon entropy, with one level dropped from each frequency family because frequencies sum
+to one and keeping every level makes the design matrix singular: 3 + 15 + 1 = 19 columns.
+Higher means the sequence model adds more over knowing base composition.
 
 \textbf{Uncertainty.} Unless a legend says otherwise, intervals are 95\% percentile intervals
 from a bootstrap that resamples \emph{proteins} and takes all datasets of each sampled protein,
@@ -68,23 +75,23 @@ The repository stores figures under their build names. This mapping is generated
 \texttt{tests/unit/test\_supplement.py}, so it cannot drift from the files.
 
 \begin{table}[h]
-\small
+\footnotesize
 \centering
-\begin{tabular}{llll}
+\begin{tabular}{lllc}
 \toprule
-supplementary & repository file & subject & main-text section \\
+supplementary & repository file (in \texttt{results/figures/}) & subject & section \\
 \midrule
-Figure S1  & \texttt{f0\_panel\_overview.pdf}         & the panel and how it was drawn     & Methods \\
-Figure S2  & \texttt{f1\_cost\_of\_matching.pdf}      & the two-protocol contrast           & Results 3.1 \\
-Figure S3  & \texttt{f2\_four\_models.pdf}            & four model classes, one protocol    & Methods \\
-Figure S4  & \texttt{f3\_strand\_placebo.pdf}         & the strand control                  & Limitations \\
-Figure S5  & \texttt{f4\_replication.pdf}             & cross-cell-line replication         & Results 3.1 \\
-Figure S6  & \texttt{f5\_size\_modification.pdf}      & effect modification by size         & Results 3.1 \\
-Figure S7  & \texttt{f6\_k\_sweep.pdf}                & sensitivity to $k$                  & Methods \\
-Figure S8  & \texttt{f7\_region.pdf}                  & region heterogeneity                & Results 3.1 \\
-Figure S9  & \texttt{f8\_scale\_check.pdf}            & the compression correction          & Results 3.2 \\
-Figure S10 & \texttt{f13\_baseline\_order\_models.pdf} & order-3 baseline by model class    & Results 3.3 \\
-Table S1   & \texttt{supplementary\_table\_s1.csv}    & dataset to ENCODE accession         & Data availability \\
+Figure S1  & \texttt{f0\_panel\_overview}          & the panel and how it was drawn   & Methods \\
+Figure S2  & \texttt{f1\_cost\_of\_matching}       & the two-protocol contrast        & 3.1 \\
+Figure S3  & \texttt{f2\_four\_models}             & four model classes, one protocol & Methods \\
+Figure S4  & \texttt{f3\_strand\_placebo}          & the strand control               & Limitations \\
+Figure S5  & \texttt{f4\_replication}              & cross-cell-line replication      & 3.1 \\
+Figure S6  & \texttt{f5\_size\_modification}       & effect modification by size      & 3.1 \\
+Figure S7  & \texttt{f6\_k\_sweep}                 & sensitivity to $k$               & Methods \\
+Figure S8  & \texttt{f7\_region}                   & region heterogeneity             & 3.1 \\
+Figure S9  & \texttt{f8\_scale\_check}             & the compression correction       & 3.2 \\
+Figure S10 & \texttt{f13\_baseline\_order\_models}  & order-3 baseline by model class  & 3.3 \\
+Table S1   & \texttt{supplementary\_table\_s1.csv} & dataset to ENCODE accession      & Data avail. \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -336,8 +343,9 @@ fragile.
 % ---------------------------------------------------------------------------------------------
 \section*{Table S1. Dataset to ENCODE accession}
 
-\texttt{supplementary\_table\_s1.csv}, shipped with this document and committed under
-\texttt{results/tables/}. One row per dataset in the 95-dataset candidate panel, giving the
+The file \texttt{supplementary\_table\_s1.csv} ships with this document and is committed under
+\texttt{results/}\allowbreak\texttt{tables/}. One row per dataset in the 95-dataset candidate
+panel, giving the
 protein, the cell line, the ENCODE file and experiment accessions, the number of replicates, the
 matched pair count, and a flag for whether the dataset carries all three protocols.
 

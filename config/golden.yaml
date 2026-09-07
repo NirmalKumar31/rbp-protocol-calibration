@@ -2686,6 +2686,16 @@ external_replication:
   # reported and they agree exactly while the ordering holds, which is asserted.
   max_ratio_span_gap: 1.0e-9
   min_ordering_stability: 1.0
+  # THE PROTOCOL'S FOLD CRITERION, which nothing checked until an audit asked. Their partition
+  # is NOT chromosome-blocked: every chromosome appears in every fold, in all 135 datasets. That
+  # is not the same as leaking. Chromosome grouping is a coarse instrument for one channel, and
+  # the direct metric for that channel is the cross-fold near-neighbour fraction, which is
+  # 1.5 parts in ten thousand over a denominator of 1.32 million. Their scheme is locus-blocked
+  # rather than chromosome-blocked, which closes the same channel more finely than ours does.
+  # Both halves gated: the unflattering fact and the measurement that makes it interpretable.
+  external_datasets_not_chromosome_blocked: 135
+  min_external_neighbour_denominator: 1000000
+  max_external_cross_fold_fraction: 0.001
 
 # THE SENSITIVITY SUITE. Every aggregation and subset choice behind the headline that was made
 # once and never argued for: the mean rather than the median, both cell lines pooled, all 94

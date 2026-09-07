@@ -140,6 +140,31 @@ The opening paragraph is left standing rather than rewritten, for the same reaso
 the protocol is: this document's only value is as a record of what was committed at `e76a80c`,
 and a record that gets corrected in place is not a record. **Read it with this addendum.**
 
+**The fold criterion above was never checked until an audit asked, and the answer is two-sided.**
+The protocol calls the result indeterminate if the benchmark's fold partition "cannot be made
+chromosome-blocked". Horlacher's partition is **not** chromosome-blocked: every chromosome
+appears in every fold, in all 135 datasets of the complement.
+
+Measured rather than left there, because chromosome grouping is a coarse instrument for one
+specific channel and the channel is what matters. The direct metric, the one
+`fold_integrity.py` applies to our own arms, is the fraction of positives whose same-strand
+neighbour within 1 kb sits in a different fold. On their coordinates:
+
+    positives with a neighbour within 1 kb      1,323,516
+    of those, neighbour in a different fold           199   = 1.5e-4
+    worst single dataset                                     0.905%
+
+So their scheme is **locus-blocked rather than chromosome-blocked**, and closes the leakage
+channel more finely than ours does. The criterion is satisfied in substance and not in form, and
+both halves are now gated so neither can be quoted without the other.
+
+**The estimator transported here is the two-stage one, not the cross-fitted primary.** The
+protocol says the estimand is "exactly the one defined in Methods, transported unchanged", and
+at the time it was written the paper's headline estimator WAS the two-stage one. The paper has
+since made the cross-fitted estimator primary, which makes the external span comparable with the
+5.42 rather than with the 4.84. The abstract said "the same estimator" and now names it.
+Cross-fitting the external arms is affordable and has not been run.
+
 **A premise above is also wrong.** The protocol states that the Horlacher benchmark "releases one"
 negative-set construction and therefore cannot test Claim A. It releases **two**, per fold, over
 the same positives: `negative-1.fold-N.bed` and `negative-2.fold-N.bed` beside

@@ -17,12 +17,24 @@ __pycache__/
 # tables, no figures, and could not check one of the 696 golden assertions in a repo whose
 # entire pitch is that verification is a stage.
 #
-# data/evidence/ is the per-example model scores (1120 files, 35 MB). It is under /data/,
-# which is ignored, so it needs an explicit un-ignore. It is what makes every deep-model AUROC
-# recomputable offline -- verified: 95/95 datasets reproduce the published SpliceBERT and CNN
-# numbers to 3.33e-16 and 2.22e-16. Without it the whole evidence base lives only in a GCS
-# bucket whose billing credit expires 2026-11-18.
+# data/evidence/ is the per-example model scores: 3,496 tracked files, about 72 MB, having grown
+# as the bias-aware and region-matched arms landed. It is under /data/, which is ignored, so it
+# needs an explicit un-ignore. It is what makes every deep-model AUROC recomputable offline --
+# recompute.py rebuilds 285 published AUROCs from it to 3.33e-16 across the 94-dataset
+# three-arm panel, and fails at 0.4 on zeroed input. Without it the whole evidence base lives
+# only in a GCS bucket whose billing credit expires 2026-11-18.
+#
+# The counts above were 1120 files and 35 MB, and the claim was "95/95 datasets reproduce". Both
+# were true when typed. The panel is 94 datasets with a 95th candidate excluded from three-arm
+# results, so 95/95 was also the wrong denominator. An audit was right that this repository
+# presents its comments as audit history, which makes a stale comment cost more here than it
+# would elsewhere.
 /results/*
+# THE ROOT LICENCE PROMISES THIS FILE AND THE ARCHIVE DID NOT CONTAIN IT. `/results/*`
+# excluded it, so `git archive` shipped a CC-BY-4.0 directory carrying no licence while
+# LICENSE said both results/ and data/evidence/ carry their own, specifically so either
+# stays licensed when extracted alone. data/evidence/LICENSE was committed; this was not.
+!/results/LICENSE
 !/results/tables/
 !/results/figures/
 !/data/evidence/

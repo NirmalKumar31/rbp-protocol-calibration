@@ -54,7 +54,7 @@ In the repository on GitHub:
 3. Target: `main`.
 4. Release title: `v1.0.0` (or the paper title).
 5. Description: one or two lines is enough. For example:
-   > Code, committed evidence and manuscript accompanying the preprint. All 1083 verification
+   > Code, committed evidence and manuscript accompanying the preprint. All 1086 verification
    > assertions pass on a clean clone.
 6. **Publish release**.
 
@@ -90,8 +90,18 @@ example below. They currently read 0.9.0, deliberately, because no tagged releas
 `SECURITY.md` makes no support promise. Raising it to 1.0.0 is a decision about support, not a
 formatting step, and both files must move together.
 
-The concept DOI is the one shown as "Cite all versions" on the record page. Use it in the
-manuscript, so that later releases do not leave the paper pointing at a superseded snapshot.
+The concept DOI is the one shown as "Cite all versions" on the record page. Give it in the
+manuscript **beside** the version DOI, not instead of it. This paragraph used to say "use it in
+the manuscript", which contradicts the table above it by nine lines and was one of three
+different workflows the release described. The version DOI names the snapshot the numbers came
+from and cannot be superseded; the concept DOI is how a reader finds later ones. Both, always.
+
+**The circularity, and how to resolve it.** The DOI does not exist until the release is
+archived, and the manuscript in that release should cite the DOI. There is no way around that
+with a single release. Either reserve a DOI in a manual Zenodo draft before archiving, insert
+it, and then archive; or archive once, insert the minted version DOI, and cut a second release
+whose only change is that insertion. Say in the release notes which of the two was done, because
+otherwise the first archive contains a paper citing nothing and looks like an oversight.
 
 ## 6. Wire it into the manuscript
 

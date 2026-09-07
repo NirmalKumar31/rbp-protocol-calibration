@@ -94,6 +94,10 @@ CLOUD_PRODUCERS = {
 # Tables with more than one real writer. The manifest names the OFFLINE producer as canonical,
 # because the question the manifest answers is what a reader without cloud access can rebuild,
 # and it records the other in the invocation column rather than hiding it.
+# The documented quarantine: two tables from the earlier variant study that no script here
+# produces and nothing in this paper cites. Pinned so a third cannot join them quietly.
+N_QUARANTINED = 2
+
 CANONICAL_WRITER = {
     "matched_four_models.csv": "four_models_table",   # cloud_analysis.py also writes it
 }
@@ -395,7 +399,9 @@ def build():
 def main():
     a = argparse.ArgumentParser()
     a.add_argument("--check", action="store_true",
-                   help="fail if the committed manifest is stale or any table is unattributed")
+                   help="fail if the committed manifest is stale, if a table has no producing "
+                        "script, or if an unattributed table appears outside the documented "
+                        "quarantine under results/tables/unattributed/")
     a = a.parse_args()
 
     rows = build()
@@ -415,7 +421,28 @@ def main():
         for u in unknown:
             log(f"    {u}")
 
+    # THE QUARANTINE IS THE ONLY PLACE AN UNATTRIBUTED TABLE MAY LIVE. --help said --check
+    # fails if "any table is unattributed", and it did not: the two quarantined files carry
+    # status `unattributed` while the failure was wired to UNKNOWN, so the promised failure
+    # could never fire. Rather than weaken the help text to match, the check is made to mean
+    # something stronger: an unattributed table anywhere ELSE fails, and the size of the
+    # quarantine is pinned, so adding a third is a deliberate act visible in a diff.
+    stray = [r["table"] for r in rows
+             if r["status"] == "unattributed" and not r["table"].startswith("unattributed/")]
+    quarantined = [r["table"] for r in rows if r["table"].startswith("unattributed/")]
+
     if a.check:
+        if stray:
+            log("\n  UNATTRIBUTED OUTSIDE THE QUARANTINE, which results/tables/ promises not "
+                "to contain:")
+            for t in stray:
+                log(f"    {t}")
+            sys.exit(1)
+        if len(quarantined) != N_QUARANTINED:
+            log(f"\n  the quarantine holds {len(quarantined)} tables, not {N_QUARANTINED}. "
+                "Adding or removing one is a deliberate act: update N_QUARANTINED and say why "
+                "in results/tables/unattributed/README.md.")
+            sys.exit(1)
         if not OUT.exists():
             log(f"\n  {OUT.name} is not committed; run scripts/provenance.py")
             return 1

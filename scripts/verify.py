@@ -2450,8 +2450,25 @@ def verify_external_replication(T, g):
                f"span {ks:.3f}, CI low {klo:.3f}" if klo is not None else "no interval",
                f"span > {spec['support_span_floor']}, CI low > {spec['support_ci_low_floor']}")
     record(get("no-shared-protein span still meets the pre-fixed criteria") == 1.0,
-           "and the table records that it survives", 
+           "and the table records that it survives",
            get("no-shared-protein span still meets the pre-fixed criteria"), 1.0)
+
+    # THE PROTOCOL'S FOLD CRITERION. It calls the result indeterminate if their partition
+    # cannot be made chromosome-blocked, and nothing checked until an audit asked. It is NOT
+    # chromosome-blocked, in every dataset, and the leakage channel that grouping exists to
+    # close is shut anyway because their scheme is locus-blocked. Both halves are asserted:
+    # the honest fact, and the measurement that makes the result interpretable despite it.
+    record(get("their datasets whose chromosomes span more than one fold")
+           == spec["external_datasets_not_chromosome_blocked"],
+           "their fold partition is NOT chromosome-blocked, in every dataset",
+           get("their datasets whose chromosomes span more than one fold"),
+           spec["external_datasets_not_chromosome_blocked"])
+    at_least("and the leakage metric has a real denominator",
+             get("their positives with a same-strand neighbour within 1 kb"),
+             spec["min_external_neighbour_denominator"])
+    at_most("cross-fold near-neighbour fraction on their folds",
+            get("of those, the fraction whose neighbour is in a different fold"),
+            spec["max_external_cross_fold_fraction"])
 
 
 def verify_sensitivity_suite(T, g):

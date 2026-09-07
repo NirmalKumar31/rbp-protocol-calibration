@@ -15,6 +15,6 @@ These two are the others. Neither is cited in the manuscript, in `SUBMISSION.md`
 | `substitution_baseline.csv` | 84 datasets, `auroc_subtype` and `auroc_kmer_delta`. ClinVar variant scoring, which belongs to the earlier study rather than to this paper |
 
 They are kept because they are evidence of work that was done and deleting evidence is not an
-improvement. They are moved out of `results/tables/` because everything in that directory is
+improvement. They sit in this subdirectory, not beside the release tables, because everything directly under `results/tables/` is
 supposed to be regenerable by a named command, and a reader cannot tell by looking which files
 carry that guarantee. Anything here does not.
