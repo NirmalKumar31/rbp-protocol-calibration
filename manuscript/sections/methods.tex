@@ -322,8 +322,8 @@ sequence homology discussed above and is not removed by scoring out of fold.
 For test fold $i$ the nested model is fitted on the rows of the other folds, and those rows carry
 scores from base models whose own training sets included fold $i$. Information about fold $i$
 therefore reaches the nested fit through the covariate, and the composition columns have no
-analogous route carrying label information; the whole-dataset standardisation described in
-Section~\ref{sec:models} is label-free and moves panel means by at most $4\times10^{-5}$.
+analogous route carrying label information; the whole-dataset standardisation described above
+is label-free and moves panel means by at most $4\times10^{-5}$.
 I measure this channel by rerunning the estimator with
 the route closed. Section~\ref{sec:crossfit} reports that: for a 2-mer, whose true increment is
 zero, closing the route reduces what the estimator returns by at least 95\% in every arm and

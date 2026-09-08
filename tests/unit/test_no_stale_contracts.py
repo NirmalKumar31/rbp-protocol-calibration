@@ -280,9 +280,9 @@ def test_the_declared_version_is_one_number_everywhere():
     """P0-5. pyproject.toml, CITATION.cff and any git tag must agree, or the release has no
     single identity and a version DOI cannot point at a definite snapshot.
 
-    They agree today at 0.9.0 and nothing enforced it. The tag does not exist yet; when it
-    does, this fails unless it matches, which is the point: the tag is the thing a DOI is
-    minted against.
+    They agree at 1.0.0 and nothing enforced it before this test. The tag does not exist yet;
+    when it does, this fails unless it matches, which is the point: the tag is the thing a DOI
+    is minted against.
     """
     import subprocess
 
