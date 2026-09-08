@@ -169,7 +169,7 @@ r1_scale_check:
   # each other was wrong. Worse, the null coef ~ d' is CHOSEN, not derived: under coef ~ d'^0.5
   # the residual is -0.1721 and under d'^1.5 it is +0.5278, so the sign of the "answer" is a
   # free exponent. Both values stay gated so they cannot drift, but nothing is claimed from
-  # them; the load-bearing answer to the reversal is the correlational fingerprint below.
+  # them; the key evidence for the reversal is the correlational fingerprint below.
   logodds_scale_null:    {value: -0.4927, tol: 0.040}
   logodds_residual:      {value: 0.1156, tol: 0.035}
   # The exponent sensitivity that retired the argument, gated so the retraction has a source.

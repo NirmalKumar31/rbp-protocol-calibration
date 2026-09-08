@@ -46,9 +46,8 @@ keywords:
 # under MIT. That is a broader grant than is offered. This record is `type: software`, so it
 # names the software licence and points at the others rather than misstating the relationship.
 license: MIT
-# 1.0.0 at the release. A version number in a citation file is a claim that something
-# immutable is named by it, and from this commit something is: tag v1.0.0 and the Zenodo
-# version DOI that resolves to it. The tag, this file and pyproject.toml must agree, and
+# At release, tag v1.0.0 and the Zenodo version DOI will identify this immutable snapshot.
+# The tag, this file and pyproject.toml must agree, and
 # tests/unit/test_no_stale_contracts.py fails the build if they do not.
 version: 1.0.0
 

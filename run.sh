@@ -37,11 +37,8 @@
 set -uo pipefail
 cd "$(dirname "$0")" || exit 1
 
-# QUOTED AT EVERY CALL SITE, and it has to be. This project lives under a path containing a
-# space ("Deep Learning Project"), and the venv that runs it is inside that path, so the
-# obvious `PY=/path/with space/.venv/bin/python ./run.sh` split on the space and stage 13b died
-# with "/Users/nirmalkumar/Deep: No such file or directory". If you need to pass interpreter
-# flags, wrap them in a script and point PY at that.
+# Quote the interpreter at every call site so paths containing spaces remain valid. If
+# interpreter flags are needed, wrap them in a script and point PY at that script.
 PY="${PY:-python3}"
 export PYTHONPATH="$PWD/src:${PYTHONPATH:-}"
 

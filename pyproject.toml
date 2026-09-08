@@ -35,7 +35,7 @@ classifiers = [
 # WHAT IS ACTUALLY EXERCISED: 3.13, in all four CI jobs and both container images. 3.11 and
 # 3.12 are supported by declaration and by the absence of any newer syntax in src/, not by
 # test. Stated rather than papered over; adding a matrix job is cheap and is the right fix if
-# anyone needs the floor to be load-bearing.
+# anyone relies on the minimum as a compatibility guarantee.
 requires-python = ">=3.11,<3.14"
 # THE NEURAL STACK IS AN EXTRA, NOT A BASE DEPENDENCY, and it used to be a base dependency
 # while constraints.txt said in its own header that it "deliberately does NOT pin torch,

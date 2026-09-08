@@ -1,8 +1,8 @@
 # Apparent sequence-model contribution depends strongly on negative-set construction
 
-A calibration study across 94 paired ENCODE eCLIP datasets. We hold the model class and its
+A calibration study across 94 paired ENCODE eCLIP datasets. The analysis holds the model class and its
 hyperparameters, the peak set, the chromosome-to-fold map and the estimator implementation
-fixed, change how negative windows are constructed, and measure each model's **nested
+fixed, changes how negative windows are constructed, and measures each model's **nested
 contribution**: the out-of-fold AUROC of a logistic model on 19 composition features plus the
 model's score, minus the AUROC of those features alone.
 
@@ -45,9 +45,9 @@ It is descriptive, not causal.
 - **Not regenerable without cloud and raw data:** the neural sweeps for two of three protocols,
   and anything needing the 2.9 GB window store.
   `results/tables/PROVENANCE.csv` says which of the two every released table is.
-- **Known to be incomplete:** the cross-fitted estimator we recommend is computed for the k-mer
-  classes only; the two neural spans come from the estimator we say to replace, and are
-  exploratory. Intervals condition on one negative draw and one fold partition.
+- **Known to be incomplete:** the cross-fitted estimator recommended in the paper is computed
+  for the k-mer classes only; the two neural spans come from the estimator it recommends
+  replacing and are exploratory. Intervals condition on one negative draw and one fold partition.
 
 The panel is 95 datasets; 94 carry all three protocols, and the one that does not
 (NCBP2 in K562) is named in Supplementary Table S1. Both counts are correct and appear
@@ -100,7 +100,7 @@ headline contrast recomputed from raw sequence.
 | **The estimator has a floor** | Applied to a model whose information the baseline already contains, so the truth is zero, it returns **+0.0119 / +0.0137 / +0.0111**. Nearly flat across arms, so the span survives; but 90.4% of the bias-aware arm's value, so that level does not |
 | **The floor is removable** | It is the outer-fold route, not conditioning. Cross-fitting the covariate cuts it by **at least 95%** and lands within 5e-4 of the known zero. The span goes 5.42 to **4.84**. Measured for the k-mer classes; the CNN and SpliceBERT would need about $115, twice one sweep of both models across the three arms |
 | **The baseline's order matters too** | Raising it to order three removes most of a 4-mer's contribution and a third of SpliceBERT's; at order four the baseline overfits and the estimator's error exceeds most published increments |
-| **It holds on someone else's data** | On 135 datasets from Horlacher et al. 2023 that our panel does not contain, 108 proteins, their windows and their negatives: the directional ratio between their two negative-set constructions is **1.69** (95% CI 1.41 to 2.03) two-stage and **1.66** (1.40 to 1.98) cross-fitted, so it is comparable with both our 5.42 and our primary 4.84. Rebuilding their folds so no chromosome is split, which their release does not do, gives 1.73 and 1.67 with cross-fold same-strand neighbour leakage falling to exactly zero. Criteria for all four were committed before each was computed. It is disjoint in datasets and processing, **not** in proteins: 31 of 108 overlap ours, and excluding every shared one still gives 1.66. It is a pre-specified analysis of a held-out subset of an already-known benchmark, not a prospective search |
+| **It holds on independently constructed data** | On 135 datasets from Horlacher et al. 2023 that the study panel does not contain, covering 108 proteins, the directional ratio between their two negative-set constructions is **1.69** (95% CI 1.41 to 2.03) with the two-stage estimator and **1.66** (1.40 to 1.98) with cross-fitting. Rebuilding their folds so no chromosome is split gives 1.73 and 1.67, with cross-fold same-strand neighbour leakage falling to zero. The benchmark is disjoint in datasets and processing, **not** in proteins: 31 of 108 proteins overlap the study panel, and excluding all shared proteins still gives 1.66. This was a pre-specified analysis of a held-out subset of an already-known benchmark, not a prospective search |
 | **None of seven surveyed reports the baseline** | Of a targeted, non-systematic sample of seven methods and benchmarks, five build negatives by relocating genomic intervals, which leaves composition unconstrained, and **none** reports a composition-only AUROC. Seven hand-picked sources are not a systematic review, and the survey's selection rule is stated in `scripts/negative_set_survey.py` |
 
 ## Rebuild it from raw data
@@ -130,7 +130,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          889 tests, no network or cloud; 2 modules need torch
+tests/          892 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes

@@ -24,7 +24,7 @@ Five reporting practices follow from these results.
   relative to the features already represented. Raising the baseline from dinucleotide to
   trinucleotide composition reduced every contribution, although protocol dependence remained.
 \item \textbf{Confirm that the baseline remains estimable as its order increases.} In this panel,
-  out-of-fold baseline performance improved through order two but not at order four. Beyond that
+  out-of-fold baseline performance improved through order three but not at order four. Beyond that
   point, apparent increments can reflect estimation error in the baseline rather than additional
   information in the sequence model.
 \item \textbf{Calibrate the estimator with a null model.} A 2-mer model provides such a control
@@ -43,7 +43,7 @@ bound by other RBPs can reduce broad accessibility and composition artefacts, bu
 a biologically different task from separating bound sites from genomic background. RBPs differ
 in their preferred transcript regions, and transcript regions have characteristic nucleotide
 composition. Stratifying the donor draw by region reduced the bias-aware composition baseline
-by 0.020 AUROC, accounting for 46\% of its excess over the GC arm, and increased its measured
+by 0.020 AUROC, accounting for 46\% of its excess over the GC arm, and decreased its measured
 contribution by approximately one quarter. The arm nevertheless remained the lowest of the
 three in incremental performance. Thus, transcript region explains part, but not all, of the
 bias-aware baseline. This is not an argument against bias-aware negatives; it shows that their
@@ -73,7 +73,7 @@ of protocol-associated variation was comparable to that produced by changing mod
 within-protocol model spans were 2.62- to 4.14-fold, whereas within-model protocol spans were
 3.7- to 7.4-fold. Similar sensitivity has been reported in transcription-factor binding
 prediction \citep{tourne2026}, suggesting that the issue may extend beyond eCLIP, although the
-current study does not test that generalization directly.
+current study does not test that generalisation directly.
 
 \subsection*{Limitations}
 
@@ -147,10 +147,10 @@ ordering of protocols was unchanged. For the composition-matched arms, redraws c
 positive windows retained by the original matching pass and therefore quantify variability in
 negative selection rather than the complete construction process.
 
-Neural-model initialization was not seeded across the 2830 committed fold runs. A repeated CNN
+Neural-model initialisation was not seeded across the 2830 committed fold runs. A repeated CNN
 fit on one dataset, using identical observations and folds on two hardware platforms, produced
 per-window score correlations of 0.9903 and fold-AUROC differences no larger than 0.0007. This
-experiment combines hardware and initialization effects and does not establish complete neural
+experiment combines hardware and initialisation effects and does not establish complete neural
 reproducibility. All downstream analyses are deterministic given the released scores.
 
 The positive sets in the two composition-matched arms were nearly, but not perfectly,

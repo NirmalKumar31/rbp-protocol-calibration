@@ -298,13 +298,15 @@ EXT_CLAIMS = [
      ("value", "ci_low", "ci_high")),
     # README, which a reader meets before the paper.
     ("README.md", "supplied_2s",
-     r"constructions is \*\*([\d.]+)\*\* \(95% CI ([\d.]+) to ([\d.]+)\) two-stage",
+     r"constructions is \*\*([\d.]+)\*\* \(95% CI ([\d.]+) to ([\d.]+)\) with the two-stage",
      ("value", "ci_low", "ci_high")),
     ("README.md", "supplied_cf",
-     r"and \*\*([\d.]+)\*\* \(([\d.]+) to ([\d.]+)\) cross-fitted",
+     r"and \*\*([\d.]+)\*\* \(([\d.]+) to ([\d.]+)\) with cross-fitting",
      ("value", "ci_low", "ci_high")),
-    ("README.md", "chrom_2s", r"does not do, gives ([\d.]+) and [\d.]+ with", ("value",)),
-    ("README.md", "chrom_cf", r"does not do, gives [\d.]+ and ([\d.]+) with", ("value",)),
+    ("README.md", "chrom_2s",
+     r"no chromosome is split gives ([\d.]+) and [\d.]+, with", ("value",)),
+    ("README.md", "chrom_cf",
+     r"no chromosome is split gives [\d.]+ and ([\d.]+), with", ("value",)),
 ]
 
 

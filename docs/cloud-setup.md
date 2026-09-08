@@ -597,7 +597,7 @@ backend "gcs" {
 terraform init -reconfigure -backend-config="bucket=${PROJECT_ID}-tfstate"
 ```
 
-`-reconfigure` is load-bearing: without it, init reuses whatever backend a previous checkout
+`-reconfigure` is required: without it, init reuses whatever backend a previous checkout
 cached in `.terraform/`, which is precisely how another project's state leaks in.
 
 **(b) A destroy guard.** A first apply on an empty project is additive **by definition**. Any

@@ -29,7 +29,7 @@ intervals overlap, so a window drawn from the CDS pool can have a midpoint the p
 assigns to a 3' UTR of another isoform. The bias-aware arm shows 0%, because its negatives are
 other proteins' positives and therefore carry genuine classifications.
 
-That distinction is load-bearing for the region-asymmetry section, which reports region-only
+That distinction is essential for the region-asymmetry section, which reports region-only
 AUROC of exactly 0.5000 in the two composition-matched arms. That is exact for the label the
 matcher enforced and it is the right number for what the matcher did. Re-annotating both classes
 by one rule instead gives 0.545, so the matched arms are not exactly uninformative on region

@@ -79,6 +79,29 @@ def test_the_gc_and_dinucleotide_positives_are_not_called_identical():
     assert sum(x == 1.0 for x in j) == 10, "the count of identical datasets moved"
 
 
+def test_region_matching_direction_agrees_between_results_and_discussion():
+    results = _read("manuscript/sections/results.tex")
+    discussion = _read("manuscript/sections/discussion.tex")
+    assert "contribution from $+0.0122$ to $+0.0092$" in results
+    assert "decreased its measured\ncontribution by approximately one quarter" in discussion
+    assert "increased its measured\ncontribution by approximately one quarter" not in discussion
+
+
+def test_baseline_order_summary_agrees_with_the_reported_profile():
+    discussion = _read("manuscript/sections/discussion.tex")
+    assert "baseline performance improved through order three but not at order four" in discussion
+
+
+def test_strand_control_percentage_uses_the_committed_value():
+    table = ROOT / "results" / "tables" / "strand_placebo.csv"
+    if not table.exists():
+        pytest.skip("strand_placebo.csv not in this checkout")
+    rows = {r["check"]: float(r["value"]) for r in csv.DictReader(table.open())}
+    expected = f"{100 * rows['fraction of the contrast surviving']:.1f}\\%"
+    assert expected in _read("manuscript/sections/results.tex")
+    assert expected in _read("manuscript/supplementary.tex")
+
+
 def test_the_fold_leakage_disclosure_matches_the_fold_integrity_table():
     """P1.13. The disclosure outlived the defect by three release candidates."""
     fi = ROOT / "results" / "tables" / "fold_integrity.csv"

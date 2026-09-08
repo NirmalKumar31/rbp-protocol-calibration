@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
-# Run EXACTLY what .github/workflows/ci.yml runs, locally, before pushing.
-#
-# WHY THIS EXISTS. CI failed four times on pushes that passed locally, and every time the
-# reason was that the two ran different commands. The workflow excludes two test modules
-# (they import torch, which is not in requirements-cpu.txt), which changes the collected
-# count and therefore what tests/unit/test_suite_size.py asserts; it also runs
-# cloud/package_repo.sh, which nothing local exercised. So "the suite passes" locally was
-# never a prediction about CI, and the gap was rediscovered by email each time.
-#
-# The rule this encodes: if a check runs in CI it must be runnable in one command here, and
-# this script is the single place the invocation is written down. When the workflow changes,
-# change it here in the same commit.
+# Mirror the GitHub Actions checks locally before pushing. Keep this file aligned with
+# .github/workflows/ci.yml.
 #
 #   ./scripts/ci_local.sh
 #
@@ -26,8 +16,7 @@ FAST=0
 step() { printf '\n=== %s\n' "$*"; }
 fail() { printf 'CI-LOCAL FAILED: %s\n' "$*" >&2; exit 1; }
 
-# Mirrors the workflow's env block. GOOGLE_CLOUD_PROJECT is resolved at import by
-# rbp.utils.cloud and raises with no default on purpose, so CI supplies a fake one.
+# Mirror the workflow environment without contacting GCP.
 export GOOGLE_CLOUD_PROJECT="ci-no-such-project"
 export PYTHONPATH="src"
 
@@ -51,10 +40,6 @@ if [ "$FAST" = "0" ]; then
   echo "  package verified"
 fi
 
-# THIS IS NOW IN THE WORKFLOW TOO. It used to carry the note "not in the workflow, because it
-# needs the committed tables and takes longer than CI should", which was wrong on both counts:
-# the tables are committed, so a clean clone has them, and the run takes under a minute. The
-# effect of leaving it out was that README's headline instruction was gated nowhere.
 step "manuscript numbers trace to a table (BEFORE the verifier, which reads its output)"
 "$PY" scripts/audit_manuscript.py | tail -3 || fail "audit_manuscript.py"
 
@@ -64,31 +49,17 @@ step "verifier"
 step "release documents are consistent with the artefacts (full-suite job: --require-all)"
 "$PY" scripts/release_consistency.py --require-all || fail "release_consistency.py"
 
-# WHAT THIS SCRIPT STILL CANNOT REPRODUCE, and it cost two red CI runs to learn. The workflow
-# has two python environments: the `test` job installs requirements-cpu.txt with NO torch, and
-# `full-suite` adds a CPU torch wheel. This machine has torch, so running here exercises the
-# second and silently skips the first. That is exactly the drift this file exists to prevent,
-# and the failure mode is one-directional: anything that depends on torch being ABSENT passes
-# here and fails there.
-#
-# Making a torch-free venv on every run costs more than it saves, so the honest thing is to say
-# so. If you change what the `test` job runs, check the Actions log, not this script.
+# This command uses the current environment. Check Actions separately for the torch-free job.
 echo "  NOTE: run with torch present, so this mirrors the full-suite job and not the"
 echo "        torch-free 'test' job. Check the Actions log for that one."
 
-# --check, NOT a bare run. This script called column_dictionary.py without it, which REWRITES
-# the dictionary instead of detecting a stale committed one, while GitHub CI uses --check. So
-# the mirror could not fail on the defect the real job fails on, which is the one thing a mirror
-# must not do.
 step "the column dictionary is current"
 "$PY" scripts/column_dictionary.py --check || fail "column_dictionary.py --check"
 
 step "every committed table has a producing script"
 "$PY" scripts/provenance.py --check || fail "provenance.py"
 
-# The tracked PDFs against a clean build. Guarded because this needs a TeX toolchain, and
-# SKIPPED IS REPORTED, not silently passed: "could not look" is not "found nothing", which is
-# the bug class that has bitten this repository four times.
+# Compare tracked PDFs with a clean build when TeX is available.
 if command -v pdflatex >/dev/null 2>&1; then
   "$PY" scripts/pdf_freshness.py || fail "pdf_freshness.py"
 else
@@ -100,11 +71,6 @@ step "regenerated artefacts match what is committed"
 git diff --exit-code -- results/tables/ >/dev/null || fail "a generated table changed; commit it"
 echo "  clean"
 
-# ADDED BECAUSE THE MIRROR DRIFTED THE DAY THE GATE WAS WRITTEN. The workflow gained
-# cache_idempotence.py and this file did not, so `ci_local.sh` reported green while the CI run
-# for that very commit was failing on it. The rule this file exists to encode is that a change
-# to the workflow is a change to this script in the same commit, and I broke it in the commit
-# that added the gate.
 step "every --from-cache entry point reproduces its committed table"
 "$PY" scripts/cache_idempotence.py || fail "cache_idempotence.py"
 

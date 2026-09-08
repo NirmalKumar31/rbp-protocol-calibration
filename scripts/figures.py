@@ -114,7 +114,7 @@ def clustered_mean_err(frame, col, n_boot=4000, seed=7):
 # with AUROC at r = +0.55 here, so a size-biased panel would inflate every model equally and
 # invisibly.
 #
-# Panel c is therefore load-bearing, not decorative: it shows the study panel spanning the
+# Panel c is evidential rather than decorative: it shows the study panel spanning the
 # candidate pool's whole size range rather than sitting at the top of it.
 
 def f0():

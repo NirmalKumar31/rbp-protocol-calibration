@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # --- dependency layer -----------------------------------------------------------------
-# THREE THINGS IN ONE RUN, AND EACH IS LOAD-BEARING.
+# THREE REQUIRED CHECKS IN ONE RUN.
 #
 # `python -m pip` rather than `pip`: this guarantees the packages land in the SAME
 # interpreter that will run our code, which is the one torch already lives in. A bare `pip`

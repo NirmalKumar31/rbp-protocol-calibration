@@ -1,9 +1,9 @@
 # Changelog
 
-## 1.0.0, the archived preprint release
+## 1.0.0, preprint release
 
-The snapshot the manuscript cites and the one its version DOI resolves to. The version
-identifies the snapshot and makes no support promise; `SECURITY.md` states the scope.
+This version identifies the snapshot prepared for archival and makes no support promise;
+`SECURITY.md` states the scope.
 
 ### The finding
 

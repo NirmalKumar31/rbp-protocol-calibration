@@ -34,7 +34,7 @@ from rbp.utils import config as cfgmod  # noqa: E402
 def _first_weight_sum(model_name, seed):
     trainer.set_seed(seed)
     h = registry.build(model_name, cfgmod.load(ROOT / "config" / "params.yaml"))
-    return float(next(p for p in h.model.parameters() if p.requires_grad).sum())
+    return next(p for p in h.model.parameters() if p.requires_grad).detach().sum().item()
 
 
 def test_same_seed_gives_identical_initial_weights():

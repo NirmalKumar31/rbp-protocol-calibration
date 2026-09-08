@@ -214,6 +214,7 @@ threshold, which would catch diverged homology that exact matching misses and re
 stronger instrument.
 
 \subsection{The composition baseline and the nested contribution}
+\label{sec:nested-estimator}
 
 The composition baseline is a 19-column design matrix: three mononucleotide frequencies, fifteen
 dinucleotide frequencies and the Shannon entropy of the window's base composition. One level is
@@ -328,7 +329,7 @@ the route closed. Section~\ref{sec:crossfit} reports that: for a 2-mer, whose tr
 zero, closing the route reduces what the estimator returns by at least 95\% in every arm and
 lands within $5\times10^{-4}$ of the zero theory requires, while for the 4-mer it moves it by
 under $0.0017$ and in the opposite direction. The direction observed for a model contained in
-the baseline does not generalize to a model carrying additional information, so the channel's
+the baseline does not generalise to a model carrying additional information, so the channel's
 sign must be measured rather than assumed. Neither estimate bounds the route for the
 convolutional network or SpliceBERT, which
 would need about \$115: ten extra base fits per dataset where a sweep already does five, so twice the base cost on each of three arms, at the \$6.66 (convolutional network) and \$12.44 (SpliceBERT) per arm those rates imply. It has not been run.

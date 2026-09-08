@@ -35,7 +35,7 @@ means, or 2.94 as the geometric mean of the 88
 per-dataset ratios in which both arms are positive. Across the three arms the contribution spanned 5.42-fold ($95\%$ CI
 4.43 to 6.58, protein-clustered).
 
-Every span in this section is the two-stage estimator described in Section~\ref{sec:models}:
+Every span in this section is the two-stage estimator described in Section~\ref{sec:nested-estimator}:
 one set of out-of-fold model scores fed into a second cross-validation, which is what this
 literature computes. It is not the primary estimator. Section~\ref{sec:crossfit} shows it
 carries an information route that a fully cross-fitted one does not, and that the route is
@@ -88,9 +88,9 @@ each percentage below is taken against its own subpanel's contrast and not again
 $+0.0398$ headline. Strand misassignment, which arises because a matched negative inherits its
 positive's
 strand label, accounted for $-0.0055$ (CI $-0.0089$ to $-0.0022$) of the $+0.0378$ contrast on
-the 40 datasets where the test is possible, leaving 85.4\%. Negatives drawn from untranscribed
+the 40 datasets where the test is possible, leaving 85.3\%. Negatives drawn from untranscribed
 loci accounted for $-0.0043$ (CI $-0.0069$ to $-0.0018$) of the $+0.0414$ contrast on the 84
-datasets with expression data, leaving 89.7\%. The two mechanisms are correlated, and 0.854 and
+datasets with expression data, leaving 89.7\%. The two mechanisms are correlated, and 0.853 and
 0.897 should not be multiplied. On the transcription control, 40.1\% of negatives lie in
 untranscribed loci and 67.6\% are not transcribed on the strand the window is labelled with, but
 both fractions are balanced between the two arms, the first to within $1.2\times10^{-5}$
@@ -1320,7 +1320,7 @@ Section~\ref{sec:crossfit}. The first is the one Section~\ref{sec:orderthree} id
 supervised, out-of-fold projection of information the baseline already holds is a better
 conditioned summary of that information than the penalised nineteen-column fit achieves on its
 own, so adding it improves the fit without adding anything. The second is the outer-fold
-information route of Section~\ref{sec:models}. Closing the second removes almost all of the
+information route of Section~\ref{sec:nested-estimator}. Closing the second removes almost all of the
 floor, so the floor reported here is that route rather than conditioning; the discussion below
 of what the floor does and does not survive is unaffected, because it concerns the size of the
 number and not its cause.
@@ -1359,19 +1359,19 @@ bias-aware & $+0.0111$ & $+0.0085$ to $+0.0137$ & $+0.0122$ \\
 \end{tabular}
 \end{table}
 
-I interpret this as a property of the two-stage procedure commonly used to compute this quantity rather than
-of this implementation. The quantity is the standard one in this literature: an increment
+I interpret this as a property of the two-stage procedure commonly used to compute this quantity, rather than
+as a peculiarity of this codebase. The quantity is the standard one in this literature: an increment
 in cross-validated AUROC from adding a model's score to a baseline. A study computing it the
 usual way, with one set of out-of-fold scores fed into a second cross-validation, inherits a
 floor of this kind; the next section shows that a study which cross-fits the covariate does not,
-so the floor is a property of the implementation and not of the estimand. Its size and sign in
+so the floor is a property of the procedure and not of the estimand. Its size and sign in
 any particular study are not predictable from the estimates reported here. None of the seven sources in
 Table~\ref{tab:survey} reports a calibration that would reveal it either way.
 
 \subsection{Cross-fitting removes the null floor}
 \label{sec:crossfit}
 
-Section~\ref{sec:models} names an information route that scoring out of fold does not close,
+Section~\ref{sec:nested-estimator} names an information route that scoring out of fold does not close,
 and defines it: the nested model's training rows carry base scores from models that saw the
 outer test fold. I attributed the floor above to a
 different cause, conditioning: a pre-fitted one-column summary is better conditioned than the

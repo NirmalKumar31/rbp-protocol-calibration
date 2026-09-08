@@ -20,5 +20,5 @@ checkable if you can read them.
 |---|---|
 | [EXTERNAL_BENCHMARK_PROTOCOL.md](EXTERNAL_BENCHMARK_PROTOCOL.md) | the eligibility rule and decision thresholds for the external replication, fixed before the held-out subset was scored |
 | [EXTERNAL_BENCHMARK_AMENDMENT.md](EXTERNAL_BENCHMARK_AMENDMENT.md) | the directional estimand and the two fold repairs, committed before either was run |
-| [EXTERNAL_CORRECTION_1.md](EXTERNAL_CORRECTION_1.md) | two implementation defects found after publication, with the withdrawn values preserved |
+| [EXTERNAL_CORRECTION_1.md](EXTERNAL_CORRECTION_1.md) | implementation defects found after the results entered the manuscript, with the withdrawn values preserved |
 | [SENSITIVITY_SPEC.md](SENSITIVITY_SPEC.md) | the class-ratio and capacity-ladder analyses, specified before running |

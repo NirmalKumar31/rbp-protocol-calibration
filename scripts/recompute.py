@@ -60,7 +60,7 @@ N_FOLDS = 5
 # own primary result being deleted.
 #
 # The lesson generalises past this repo: coverage follows attention, and attention had gone to
-# the interesting models rather than the load-bearing ones.
+# the exploratory models rather than the required baseline models.
 REHEARSAL = ROOT / "data" / "evidence" / "rehearsal"
 REHEARSAL_TABLE = "rehearsal_binding_dinuc.csv"
 TOL = 1.0e-9          # sklearn on the same floats; anything above this is drift, not noise

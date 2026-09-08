@@ -103,7 +103,7 @@ pair count.
 15 are assayed in both K562 and HepG2 and therefore contribute two datasets each. This is why
 every interval in the study resamples proteins rather than datasets.
 \textbf{(c)} Composition-only AUROC under each of the three protocols, one point per dataset.
-This is the independent variable of the study: the baseline each protocol leaves for a sequence
+This is a measured property of each protocol: the baseline each protocol leaves for a sequence
 model to improve on.
 \textbf{n}: 94 datasets, 79 proteins, 2 cell lines. \textbf{Uncertainty}: none plotted; panels
 show distributions rather than estimates.
@@ -211,8 +211,9 @@ text; DeLong standard errors for $z$.
 \caption{\textbf{The contrast is larger in larger datasets.}
 Each point is one dataset: matched pairs on a logarithmic axis against the contrast in nested
 contribution between the dinucleotide-matched and GC-matched protocols.
-The contrast is paired within dataset, so both arms have identical $n$ and size affects
-precision rather than bias. It is reported here as effect
+The contrast is paired within dataset, and the horizontal axis uses the GC arm's pair count.
+Arm sizes differ slightly because the two matchers retain different positives; dataset size
+primarily affects precision rather than bias. It is reported here as effect
 modification, which is a different and weaker statement: the protocol matters more where there
 is more data.
 \textbf{n}: 94 datasets. \textbf{Uncertainty}: Spearman correlation, printed in the panel title;
@@ -306,7 +307,8 @@ classes.}
 The composition baseline stops at dinucleotides while the headline model is a 4-mer, so the
 measured quantity is short-range compositional signal one order above wherever the matcher
 stopped. Where the baseline stops is an analyst's choice, and this figure measures what that
-choice costs. The extended baseline adds all 64 trinucleotide frequencies, 82 features in total.
+choice costs. The extended baseline adds 63 non-redundant trinucleotide-frequency columns, for
+82 features in total.
 \textbf{(a)} GC-matched arm and \textbf{(b)} dinucleotide-matched arm: the share of each model's
 contribution that survives an order-3 baseline. For the 4-mer the surviving share on the GC arm
 is $0.2170$, against $0.6049$ for the convolutional network and $0.7504$ for SpliceBERT.

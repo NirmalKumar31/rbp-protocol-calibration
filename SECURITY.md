@@ -62,7 +62,7 @@ The options, in order of cost:
 repository is the repository owner's decision and not an automatic remediation.** It is recorded
 here rather than quietly fixed or quietly ignored.
 
-**DECIDED AT THE v1.0.0 RELEASE: option 1, accept and record.** The owner judged the exposure
+**DECISION FOR v1.0.0: option 1, accept and record.** The owner judged the exposure
 acceptable, and the reasoning is recorded here rather than left implicit.
 
 A billing account ID authenticates nothing. It names an account, which is why this repository
@@ -78,7 +78,7 @@ nothing to begin with.
 
 The finding stays gated rather than closed: `scripts/history_scan.py --check` still fails if the
 count changes, so accepting the exposure does not stop it being reported. It is visible in
-`results/tables/history_scan.csv` on the archived commit, which is the point of recording a
+`results/tables/history_scan.csv` in the release snapshot, which is the point of recording a
 decision instead of quietly resolving one.
 
 ## AI co-author trailers in the commit history

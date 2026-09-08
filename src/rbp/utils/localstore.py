@@ -18,7 +18,7 @@ The read-through root is how a Modal task works: the datasets arrive on a Volume
 read-only, and the run's outputs go to container-local disk to be returned to the driver.
 Nothing writes to shared storage during a sweep, so there is no commit to conflict over.
 
-Writes are atomic, and that is load-bearing rather than tidiness. The sweep's resume rule is
+Writes are atomic because the sweep's resume rule is
 "a run whose metrics.json exists is done". GCS gives that for free because an object appears
 whole or not at all. On a filesystem a task killed mid-write leaves a truncated marker that
 reads as complete, so a lost run would be silently skipped and its dataset would carry four

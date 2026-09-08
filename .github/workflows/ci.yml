@@ -1,32 +1,14 @@
-# CI, because "the tests pass" is a claim until something other than the author runs them.
-#
-# A council reviewer looked for .github/ first, found nothing, and discounted the whole
-# testing story on the spot. That is the correct reaction: a suite nobody runs on a clean
-# checkout is a suite that passes on one laptop.
-#
-# scripts/ci_local.sh runs these same steps on a developer machine. If you change a step
-# here, change it there in the same commit: CI failed four times on pushes that passed
-# locally, and every time the cause was that the two ran different commands.
-#
-# This deliberately does NOT run the pipeline. The pipeline needs GCP credentials, a genome
-# and roughly $60 of compute (docs/COST.md), which is why it is not gated here. What CI proves on a clean
-# clone is that the code imports, the tests pass, the ruff rules the project selects hold, the
-# 1156 published assertions reproduce offline, the release documents still agree with the
-# artefacts they describe, the paper builds with no dangling reference, and the numbers nobody
-# is allowed to edit silently have not been edited silently.
-#
-# The last four of those were added after an external review pointed out that CI ran none of
-# them, so README's headline instruction -- one command, 1156 checks -- was verified nowhere
-# but on the author's laptop.
+# Continuous integration validates the release on a clean Linux runner.
+# scripts/ci_local.sh mirrors these steps for local use and should be updated with this file.
+# The paid cloud pipeline is excluded because it requires GCP credentials, a reference genome,
+# and the compute budget documented in docs/COST.md. CI instead checks imports, tests, lint,
+# offline verification of committed results, release-document consistency, and manuscript
+# build integrity.
 
-# THIRD-PARTY ACTIONS ARE PINNED BY COMMIT SHA, not by the moving v4/v5 tags. A tag is
-# mutable: whoever controls the repository can repoint it, and a workflow that gates a
-# scientific release should not be able to change what it runs without the change appearing in
-# a diff here. The trailing comment records which tag each SHA was, so the pin is legible.
+# Third-party actions are pinned by commit SHA. The comments record the corresponding release.
 name: ci
 
-# READ ONLY, AND EXPLICIT. No job here writes to the repository, so the default write-capable
-# token for push events is more than any step needs.
+# No job writes to the repository.
 permissions:
   contents: read
 
@@ -40,8 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: "3.13"
 
@@ -50,26 +32,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r docker/requirements-cpu.txt
 
-      # GOOGLE_CLOUD_PROJECT is resolved at import by src/rbp/utils/cloud.py and raises with
-      # no default, on purpose. CI supplies an obviously fake one: nothing here touches GCS,
-      # and a real project id in a public workflow would be a leak.
+      # Some modules require a project variable at import time. No step in this job contacts GCS.
       - name: unit tests
         env:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project
           PYTHONPATH: src
-        # THE SAME TWO EXCLUSIONS docker/cloudbuild.cpu.yaml:55-56 has, and for the same
-        # reason: this job installs docker/requirements-cpu.txt, which has no torch by design.
-        # test_models.py imports torch directly; test_train_folds.py reaches it transitively
-        # through rbp.train.data (line 10). Without these flags pytest aborts with 2 collection
-        # errors and exits 2, so this workflow could never have passed -- and since there is no
-        # git remote it had never run, which is how a CI file whose own first line says
-        # whose own first line is about claims nobody checks sat
-        # broken for two days.
+        # This job deliberately omits torch. The full-suite job below covers the two modules
+        # that require it.
         run: pytest tests/unit -q --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
 
-      # The golden values are the published numbers. Changing one must be a deliberate,
-      # reviewable act, not a diff that rides along inside an unrelated commit. The hash is
-      # printed on every run so a change is visible in the log even before the diff is read.
+      # Print the checksum so changes to published reference values are visible in the log.
       - name: golden values checksum
         run: |
           echo "golden.yaml sha256:"
@@ -78,113 +50,66 @@ jobs:
             echo "::warning file=config/golden.yaml::A published number changed. The commit message must say which claim moved and why."
           fi
 
-      # The packaging script proves the archive the driver VM unpacks is importable. It caught
-      # a tar --exclude that silently deleted a source package and killed 188 GPU containers.
+      # Verify that the archive used by the driver VM is importable.
       - name: repo package verifies
         env:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project
         run: PY=python ./cloud/package_repo.sh /tmp/repo.tgz
 
-      # THE ORPHAN AUDIT, BEFORE THE VERIFIER AND NOT AFTER. verify.py's orphan gate READS
-      # results/tables/manuscript_orphans.csv, and that file is an artefact of a previous run.
-      # The committed copy was a bare header, so the gate reported zero orphans and passed while
-      # a fresh audit found four. A checker that reads a stale report of itself always passes.
-      #
-      # Regenerated here first, then verify.py consumes the fresh copy. The git-diff step below
-      # is the other half: a regenerated artefact that differs from the committed one means the
-      # committed one was stale, which is a failure and not a detail.
+      # Regenerate the manuscript-number audit before the verifier reads it.
       - name: manuscript numbers trace to a table
         env:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project
           PYTHONPATH: src
         run: python scripts/audit_manuscript.py
 
-      # THE VERIFIER, WHICH CI DID NOT RUN. README tells a reader to check the paper with this
-      # one command and CI never executed it, so the claim that 1156 assertions pass on a clean
-      # clone was tested only on the author's laptop -- which is precisely the thing this file's
-      # first line says a test suite must not be. It needs no credentials and no data: the
-      # committed result tables are the input.
+      # Verify the committed result tables without credentials or raw data.
       - name: published values verify offline
         env:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project
           PYTHONPATH: src
         run: python scripts/verify.py --local results/tables
 
-      # Counts a release document states about the release, derived from the release. An
-      # external review found eight stale ones -- pages, references, tables, assertion counts --
-      # and every one was in a file no gate read.
+      # Derive release metadata and compare it with the published documentation.
       - name: release documents are consistent with the artefacts
         env:
           PYTHONPATH: src
         run: python scripts/release_consistency.py
 
-      # Every committed table must name the command that produces it. Three did not, and one of
-      # those three was quoted in the Discussion -- the same failure the manuscript audit exists
-      # to catch, one level up: that check closes the manuscript-to-table link and nothing
-      # closed the table-to-script link.
+      # Every committed table must name its producing command.
       - name: every committed table has a producing script
         env:
           PYTHONPATH: src
         run: python scripts/provenance.py --check
 
-      # And the same for the column dictionary. It is generated from the tables, so a table
-      # gaining a column silently makes it incomplete; nothing noticed while its dtypes were
-      # wrong for 87 columns.
+      # The generated column dictionary must match the committed tables.
       - name: the column dictionary matches the tables
         env:
           PYTHONPATH: src
         run: python scripts/column_dictionary.py --check
 
-      # THIS STEP COVERS THREE TABLES, NOT ALL OF THEM, and its comment used to imply otherwise.
-      # It runs after audit_manuscript, verify and release_consistency, so the only artefacts it
-      # can see change are the three THOSE write: manuscript_orphans.csv, verify_summary.csv and
-      # release_facts.csv. That is worth having -- without it those steps can rewrite a table,
-      # pass on the value they just wrote and leave a report nobody committed -- but it certified
-      # 3 of 158 tables while reading as though it certified every one.
-      #
-      # The offline entry points are checked by the step below instead, which regenerates each
-      # and compares structurally. A byte diff is the wrong tool there: seven of those tables
-      # differ by floating-point summation order at 1e-14 and always will.
+      # These audit commands write three report tables; require their committed copies to agree.
       - name: regenerated artefacts match what is committed
         run: git diff --exit-code -- results/tables/ || {
             echo "::error::A generated table changed. Commit the regenerated file.";
             exit 1; }
 
-      # EVERY DOCUMENTED OFFLINE ENTRY POINT REPRODUCES ITS COMMITTED TABLE. Nothing checked
-      # this, and running all 33 in a clean export found window_centring.py rewriting a summit
-      # census from 10 files to 0 and gene_clustered_cv.py dropping three rows, both because an
-      # optional input is absent from the release, and both then FAILING verify.py. A reader
-      # following the documented instructions took the repository from 1141/1141 to four
-      # failures. Structural comparison plus a numeric tolerance; see the script's docstring for
-      # why not a byte diff.
+      # Regenerate each documented offline output and compare it structurally with its table.
       - name: every --from-cache entry point reproduces its committed table
         env:
           PYTHONPATH: src
         run: python scripts/cache_idempotence.py
 
-  # THE FULL SUITE, WITH THE DEPENDENCIES NEEDED TO COLLECT IT. The job above installs
-  # requirements-cpu.txt, which has no torch on purpose, so it cannot collect
-  # tests/unit/test_models.py or test_train_folds.py and its count is a subset by construction.
-  # Two audits asked for this job: one because the full suite was exercised nowhere, the other
-  # because release_consistency.py cannot check a whole-suite count in a subset environment.
-  #
-  # A CPU torch wheel is enough. Nothing here needs an accelerator; the GPU is for the sweeps,
-  # which cost money and are not run in CI.
+  # The full suite installs CPU-only torch so it can collect the model and training tests.
   full-suite:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: "3.13"
-      # PINNED TO THE REPRODUCTION ENVIRONMENT. These two were unpinned, so this job validated
-      # against whatever torch and transformers happened to be current on the day it ran, which
-      # is the opposite of what a release gate is for: a silent upstream change would surface as
-      # a red build on an unrelated commit, or worse, a green build on a stack nobody shipped.
-      # torch 2.13.0 is the version in pytorch/pytorch:2.13.0-cuda12.6-cudnn9-runtime, the GPU
-      # image's base, and transformers 5.15.1 is docker/requirements-gpu.txt's pin. The CPU
-      # wheel of the same torch version is enough here; nothing in the suite needs a device.
+      # Match the pinned GPU environment; the test suite itself needs only the CPU wheel.
       - name: install with torch
         run: |
           python -m pip install --upgrade pip
@@ -196,8 +121,7 @@ jobs:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project
           PYTHONPATH: src
         run: pytest tests -q -rs
-      # --require-all is the point of this job: here every fact IS derivable, so a fact that
-      # cannot be derived means something is broken rather than absent.
+      # Torch is available here, so every release fact must be derivable.
       - name: release documents, every fact required
         env:
           GOOGLE_CLOUD_PROJECT: ci-no-such-project
@@ -208,21 +132,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: "3.13"
       - name: ruff
         run: |
           pip install ruff
           ruff check .
-      # bash -n only. shellcheck is not installed here on purpose: it reports on style as well
-      # as syntax and a first run would fail the build on a hundred pre-existing SC2086s, which
-      # would mean turning it off again the same day. Syntax is the property worth gating.
-      # ZERO FILES IS A FAILURE. `git ls-files` yields nothing outside a checkout or after a
-      # rename the glob stops matching, and the loop then runs no iterations and the step
-      # passes having parsed nothing. scripts/preflight.sh had exactly this and a `git archive`
-      # extraction got a green step that had parsed none of the scripts it contained.
+      # Parse every tracked shell script and fail if the file list is unexpectedly empty.
       - name: shell syntax
         run: |
           files=$(git ls-files '*.sh')
@@ -233,32 +151,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
       - name: texlive
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
             texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended \
             texlive-science lmodern poppler-utils
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: "3.13"
       - name: install pypdf
         run: pip install pypdf==6.1.3
-      # THE TRACKED PDF MUST BE THE OUTPUT OF THE TRACKED SOURCE, which is a different claim
-      # from "LaTeX can build". They came apart on 2026-09-07: two blind page-count
-      # substitutions moved fourteen scientific numbers in the .tex while the committed PDF
-      # still held the correct ones, and nothing here could see it. This builds in a temporary
-      # copy and compares every numeric token, so it runs BEFORE build.sh overwrites the
-      # tracked files in the workspace.
-      # Positions, not text. Extraction returns two overlapping words as two words, so no
-      # text-based gate can see a collision; f10 carried one on page 17 through fourteen audits.
+      # Check figure geometry and compare tracked PDFs with a clean temporary build.
       - name: no figure draws text on top of text
         run: python scripts/figure_overlap.py
       - name: tracked PDFs are the output of the tracked sources
         run: python scripts/pdf_freshness.py
-      # build.sh fails rather than warns on an undefined reference, an over/underfull box, or
-      # an undefined citation, which is the property being gated: a paper that builds with a
-      # dangling \ref renders "??" and nobody notices until it is a preprint.
+      # build.sh treats undefined references, citations, and layout overflow as errors.
       - name: paper builds
         run: cd manuscript && ./build.sh

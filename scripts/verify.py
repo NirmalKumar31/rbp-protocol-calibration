@@ -1121,7 +1121,7 @@ def verify_protocol_identification(T, g):
 def verify_expression_control(T, g):
     """R1j: the expression confound is huge, balanced across arms, and costs 10% of the contrast.
 
-    The balance assertion is the load-bearing one. A confound present equally in both arms
+    The balance assertion is the essential one. A confound present equally in both arms
     inflates both absolute AUROCs and cannot manufacture a difference between them; a
     differential one can. If `arm_difference_must_straddle_zero` ever fails, the contrast is
     contaminated and this control stops being a defence.
@@ -2440,7 +2440,7 @@ def verify_class_ratio(T, g):
     if n is not None:
         record(int(n) == spec["n_datasets"], "datasets", int(n), spec["n_datasets"])
 
-    # The control, and it is the load-bearing check in this block.
+    # This is the essential control in this block.
     ctrl = val("span at the published 1:1 balance")
     pub = T.get("cross_fitting.csv")
     if ctrl is not None:
@@ -4494,7 +4494,7 @@ def verify_nested_scale(T, g):
           if str(k).startswith("contrast shift under the logit scale")]
     if cs:
         at_most("the covariate scale moves the two-arm contrast in the fourth decimal, well "
-                "inside the protein-clustered half-width, so the choice is not load-bearing",
+                "inside the protein-clustered half-width, so the choice is not consequential",
                 max(cs), spec["max_contrast_shift_from_scale"])
 
     # And the standardisation window must stay below the quoted precision.
@@ -5470,7 +5470,7 @@ def verify_cache_evidence(T, g):
 
     This exists because an attack got through, again. run.sh regenerates five summaries with
     --from-cache, which reads a committed *_per_dataset.csv rather than redoing the refits.
-    `grep per_dataset scripts/verify.py` returned nothing, so those tables were load-bearing and
+    `grep per_dataset scripts/verify.py` returned nothing, so those tables were essential and
     unasserted. Zeroing every per-arm gain column in k_sweep_per_dataset.csv and every AUROC
     column in strand_placebo_per_dataset.csv, then rebuilding, reproduced both summaries
     BIT-FOR-BIT and passed. R1e's claim to have rebuilt the headline from raw sequence therefore
