@@ -687,7 +687,13 @@ def f10():
     # NOT "same model, same positives". The model is refitted per protocol and only 10 of 94
     # datasets have identical positive sets; the figure is the most-read place that claim
     # appeared and was the last to be corrected.
-    ax[0].set_title("a  same model class, near-identical positives: 5.4x", loc="left")
+    # An explicit size here, and no ": 5.4x". At the rcParams default of 10.8pt this
+    # string measured 3.85in against a 3.10in axes and overflowed 0.75in to the right, landing
+    # the "b" of panel b's own left-aligned title inside it: page 17 of the built PDF read
+    # "5.4bx above in 88/94". Every other figure in this file passes fontsize=9 explicitly and
+    # this one did not. 9pt alone is not enough, it still runs over by 0.11in, so the span goes
+    # too; the caption states it and the bars carry their own value labels.
+    ax[0].set_title("a  same model class, near-identical positives", loc="left", fontsize=9)
 
     # b. per dataset, so it is not an averaging artefact
     lim = [-0.02, max(d.gain_dn.max(), d.gain_gc.max()) + 0.01]
@@ -703,7 +709,7 @@ def f10():
     ax[1].legend(fontsize=7, frameon=False, loc="upper left")
     up = int((d.gain_dn > d.gain_gc).sum())
     dn_ = int((d.gain_neg2 < d.gain_gc).sum())
-    ax[1].set_title(f"b  above in {up}/94, below in {dn_}/94", loc="left")
+    ax[1].set_title(f"b  above in {up}/94, below in {dn_}/94", loc="left", fontsize=9)
 
     fig.tight_layout()
     save(fig, "f10_three_protocols")

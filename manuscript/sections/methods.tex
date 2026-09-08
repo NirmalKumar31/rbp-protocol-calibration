@@ -1,7 +1,7 @@
 \subsection{Panel selection}
 
 Candidate experiments were every released ENCODE eCLIP experiment in K562 and HepG2 (139 and 105
-respectively). Where a protein had several peak files we took the one with the most biological
+respectively). Where a protein had several peak files I took the one with the most biological
 replicates, breaking ties by ENCODE's \texttt{preferred\_default} flag, and required
 \texttt{output\_type=peaks}, \texttt{assembly=GRCh38}, \texttt{status=released} and
 \texttt{file\_format=bed}. Every candidate was preprocessed under both composition-matching
@@ -12,7 +12,7 @@ the 189 eligible datasets were sorted by pair count with a stable sort and every
 retained, giving 95 datasets over 79 proteins. The set was halved rather than taken whole
 because the sweep trains three model classes over five folds and three protocols, and the full
 eligible set did not fit the compute budget the retained panel already consumes. Given that a
-reduction was necessary, we sampled systematically by rank rather than taking the largest $N$.
+reduction was necessary, I sampled systematically by rank rather than taking the largest $N$.
 AUROC correlates with dataset size in these data: negligibly for the composition baseline
 (Pearson $r$ on $\log_{10} n$ of $-0.04$ in the GC arm) but strongly for the models, reaching
 $0.70$ for SpliceBERT under dinucleotide matching. A size-truncated panel would therefore
@@ -31,8 +31,8 @@ datasets.
 \subsection{Windows}
 
 Positive windows are 101~nt centred on the midpoint of each peak interval. Peak width and the
-significance columns are unused: we applied no further $p$-value, $q$-value or fold-change
-filter, because ENCODE's released \texttt{peaks} files are already thresholded and across our 95
+significance columns are unused: I applied no further $p$-value, $q$-value or fold-change
+filter, because ENCODE's released \texttt{peaks} files are already thresholded and across the 95
 files the minimum log2 fold-enrichment is 3.0000 and the minimum $-\log_{10}p$ is 3.0003, which
 are the criteria of \citet{vannostrand2020}; 91.7\% of the 463{,}091 peaks carry ENCODE's IDR
 label. The positive set is therefore every peak ENCODE called and no weaker ones. Minus-strand
@@ -85,7 +85,7 @@ and a 3$'$UTR and so appear in two region pools. No maximum distance is imposed.
 \paragraph{Bias-aware (other RBPs' sites).} Following \citet{horlacher2023}, negatives for a
 target are the positive windows of the other panel proteins assayed in the same cell line,
 sampled 1:1 without replacement, excluding any donor window within 500~nt of any of the target's
-own positive windows. Our version deviates from \citet{horlacher2023} in two ways: our donor
+own positive windows. This implementation differs from \citet{horlacher2023} in two ways: the donor
 pool is the study panel (40 to 48 donor proteins per dataset, median 45) and not a full
 ENCODE survey, and exclusion is by distance from the target's 101~nt windows, not from its
 full peak intervals. Both the donor pool and the target's positives are read from the GC arm's
@@ -94,7 +94,7 @@ identical to that arm's. Sampling is performed within fold, and every pair stays
 cross-validation fold. These negatives are transcribed, accessible to crosslinking and
 strand-correct by construction, and are not composition-matched in any respect.
 
-\paragraph{What each protocol holds fixed.} The three protocols are not three settings of one
+\paragraph{Protocol-specific constraints.} The three protocols are not three settings of one
 knob, and the difference changes how their results should be read. Both composition-matched
 protocols draw candidates of the same transcript region class as the positive, so the region
 label carries no information about the class. The bias-aware protocol matches fold only, which
@@ -170,9 +170,9 @@ training three times, and no additional data is spent on model selection. The 4-
 nested logistic fits need no validation fold and train on all four non-test folds. The neural
 models therefore see a fifth less training data than the 4-mer in the three-class comparison.
 The asymmetry runs against the result rather than towards it: both neural models are handicapped
-relative to the 4-mer and both still show larger contributions and larger protocol spans. We do
+relative to the 4-mer and both still show larger contributions and larger protocol spans. I do
 not claim equalising it would widen the gap, which would require the contribution to be
-monotone in training-set size and we have not shown that; we claim only that the reported gap
+monotone in training-set size and I have not shown that; I claim only that the reported gap
 is not an artefact of giving the neural models more data, because they were given less.
 
 Every window is scored exactly once out of fold and all AUROCs are computed on the pooled
@@ -183,20 +183,17 @@ across folds, so a fold whose predictor is shifted relative to the others contri
 comparisons that no within-fold analysis makes. Both alternatives, fold-averaging and
 rank-normalisation within fold before pooling, are computed and reported as sensitivities.
 
-Leakage between folds was audited by exact 32-mer sharing. A 101~nt window contains 70 distinct
+Leakage between folds was evaluated by exact 32-mer sharing. A 101~nt window contains 70 distinct
 32-mers, two unrelated sequences share one with negligible probability, and a shared 32-mer
 therefore indicates common origin rather than coincidence. Over all 94 datasets of the
 dinucleotide arm and all five held-out folds, a median of 2.0\% of held-out windows shared any
 32-mer with a training window and at most 29.0\%; at most 6.3\% of a fold's windows shared more
-than half of their 32-mers. An earlier version of this audit held out fold 0 only and reported a
-maximum of 24.3\%, which understated it: the median is unchanged over the full partition and the
-extreme is not.
+than half of their 32-mers. A fold-0-only calculation gave the same median but a lower maximum
+of 24.3\%; all reported summaries therefore use the complete five-fold partition.
 
-Chromosome grouping therefore leaves a residue of homologous sequence across folds, and we
-remove it rather than only measuring it. Both filters delete whole matched PAIRS: negatives are
-matched 1:1 to positives, and deleting a window without its partner would change the class
-balance as well as the sharing, in a direction that differs by dataset. An earlier version
-deleted single windows and the code now asserts exact balance after each filter.
+Chromosome grouping therefore leaves a residue of homologous sequence across folds. Both
+sensitivity filters delete whole matched pairs: because negatives are matched 1:1 to positives,
+deleting a window without its partner would change class balance as well as sequence sharing.
 
 Deleting every held-out window that shares more than half its 32-mers with a training window,
 and its partner, removes 0.44\% of windows and leaves the panel means at $+0.0263$, $+0.0659$
@@ -207,7 +204,7 @@ still crosses a fold. That costs 6.3\% of windows and gives $+0.0240$, $+0.0611$
 a span of 5.25. The contribution falls by about 8\% with the homology gone and the span by 3\%,
 and the effect is plainly still there.
 
-We do not report a homology-aware re-partition, because on these data none exists. Requiring a
+I do not report a homology-aware re-partition, because on these data none exists. Requiring a
 split to respect chromosome blocking and also to place every 32-mer-sharing pair in one fold
 means partitioning the graph whose nodes are chromosomes and whose edges are shared 32-mers,
 and repetitive sequence makes that graph nearly complete: its largest component holds 97.6\% of
@@ -225,7 +222,7 @@ makes the design singular; dropping a level does not change the space the block 
 column is standardised over the whole dataset, not within fold; the transform is
 label-free and identical in both terms of every comparison. It is not inert: at fixed $C$ the
 scale of a column sets its effective penalty, so a transform fitted on rows that include the
-test fold can in principle move the result. Measured, it does not, at the resolution we can
+test fold can in principle move the result. Measured, it does not, at the resolution I can
 measure: refitting every transform inside the outer training rows moves panel means by less
 than $10^{-4}$ in all six model-by-protocol cells of Section~\ref{sec:crossfit}. GC content is not a feature: it is the spanned combination C$+$G, and
 mononucleotide counts are almost, but not exactly, marginals of dinucleotide counts: over a
@@ -253,7 +250,7 @@ score. Had it been, the fitted and the evaluated covariate would sit on differen
 the mismatch would grow with how much the underlying model overfits. That differs sharply
 between a 256-column penalised logistic and a fully fine-tuned transformer.
 
-\subsubsection*{The estimands, stated}
+\subsubsection*{Estimands}
 
 Write a dataset $d$ as rows $(x_r, y_r)_{r \in R_d}$ partitioned into five chromosome-blocked
 folds $F_1, \dots, F_5$, with $j(r)$ the fold containing row $r$. Let $Z_r \in \mathbb{R}^{19}$
@@ -286,9 +283,9 @@ extreme arms,
 S_m = \frac{\max_a \bar{\Delta}_{a,m}}{\min_a \bar{\Delta}_{a,m}},
 \end{equation*}
 with $a$ ranging over the three protocols. $S_m$ is defined only while all three arm means are
-positive; where one is not, we report the arm means and no ratio.
+positive; where one is not, I report the arm means and no ratio.
 
-\paragraph{What these condition on.} The only unit resampled by any interval in this paper is
+\paragraph{Unit of inference.} The only unit resampled by any interval in this paper is
 the protein. Every estimand above is therefore conditional on: the deterministic selection of
 95 of 189 candidate datasets by pair rank; one negative draw per protocol; one
 chromosome-to-fold partition; the model class and its hyperparameters; the neural
@@ -297,46 +294,43 @@ dinucleotide arms. These are properties of the estimand and not omissions from i
 that integrated over them would be a different quantity, would be wider, and is not what is
 reported anywhere here.
 
-\paragraph{The hierarchy.} $S^{\mathrm{CF}}_{4\text{-mer}}$ is the \textbf{primary} estimand:
+\paragraph{Primary and secondary estimands.} $S^{\mathrm{CF}}_{4\text{-mer}}$ is the \textbf{primary} estimand:
 $4.84$ (95\% CI $3.98$ to $5.81$). $S^{\mathrm{2S}}_{4\text{-mer}} = 5.42$ ($4.43$ to $6.58$) is
 retained as a \textbf{comparability analysis}, because it is the quantity a reader
-recomputing our panel with the standard recipe would obtain, and withdrawing it would make this
-work harder rather than easier to check against the literature it calibrates. The primary
+recomputing the study panel with the standard recipe would obtain and permits comparison with the
+literature this study calibrates. The primary
 estimand is the cross-fitted one on the ordinary ground that where two estimators of the same
 quantity are available and one is shown to return a positive value when the truth is zero, the
 other is the estimate. Both are reported wherever the distinction changes a number.
 
 For the convolutional network and SpliceBERT only $\widehat{\Delta}^{\,\mathrm{2S}}$ exists.
-Cross-fitting them requires ten additional base fits per dataset per arm, which we did not run.
+Cross-fitting them requires ten additional base fits per dataset per arm, which I did not run.
 At the rates this study measured over 940 recorded runs, \$14.58 per million pairs for the
 convolutional network and \$27.25 for SpliceBERT, one sweep of both models across all three
 arms is about \$57, and cross-fitting them is about twice that. Every span reported for those two model
 classes is therefore \textbf{exploratory}: it is computed with an estimator this paper
 demonstrates is biased upward for a model the baseline spans, and the size of that bias is
-measured only for the k-mer classes. An earlier version of this paragraph added that a
-higher-capacity base model has more scope to encode the withheld fold, not less, which would
-make the neural channel at least as large as the k-mer one. \textbf{We withdraw that}: the
-capacity ladder in Section~\ref{sec:sensitivity} measures the channel at five k-mer orders and
-it is not monotone in capacity. It is large where the composition baseline spans the base model
-and negligible everywhere above that. We therefore do not know the sign or the size of the
-neural channel, and we do not extrapolate the k-mer correction to them. No conclusion in this
-paper rests on the neural spans alone.
+measured only for the k-mer classes. The capacity ladder in
+Section~\ref{sec:sensitivity} shows that the channel is not monotone in k-mer order: it is large
+where the composition baseline spans the base model and negligible at higher orders. Its sign
+and magnitude are therefore unknown for the neural models, and the k-mer correction is not
+extrapolated to them. No conclusion in this paper rests on the neural spans alone.
 
-One channel inside the estimator remains open and is worth naming, separately from the
-sequence homology discussed above, because it is not removed by scoring out of fold.
+The two-stage estimator contains an additional information route that is distinct from the
+sequence homology discussed above and is not removed by scoring out of fold.
 For test fold $i$ the nested model is fitted on the rows of the other folds, and those rows carry
 scores from base models whose own training sets included fold $i$. Information about fold $i$
 therefore reaches the nested fit through the covariate, and the composition columns have no
 analogous route carrying label information; the whole-dataset standardisation described in
 Section~\ref{sec:models} is label-free and moves panel means by at most $4\times10^{-5}$.
-We do not remove it in the published estimator; we measure it, by rerunning the estimator with
+I measure this channel by rerunning the estimator with
 the route closed. Section~\ref{sec:crossfit} reports that: for a 2-mer, whose true increment is
 zero, closing the route reduces what the estimator returns by at least 95\% in every arm and
 lands within $5\times10^{-4}$ of the zero theory requires, while for the 4-mer it moves it by
-under $0.0017$ and in the opposite direction. We had expected the bias to be one-directional on
-the grounds that it can only help the score column. That holds for a model the baseline spans
-and fails for one carrying information of its own, so the sign is a measurement here and not a
-prediction. Neither figure bounds the route for the convolutional network or SpliceBERT, which
+under $0.0017$ and in the opposite direction. The direction observed for a model contained in
+the baseline does not generalize to a model carrying additional information, so the channel's
+sign must be measured rather than assumed. Neither estimate bounds the route for the
+convolutional network or SpliceBERT, which
 would need about \$115: ten extra base fits per dataset where a sweep already does five, so twice the base cost on each of three arms, at the \$6.66 (convolutional network) and \$12.44 (SpliceBERT) per arm those rates imply. It has not been run.
 
 The composition-only and composition-plus-score predictors were compared by DeLong's paired
@@ -348,10 +342,10 @@ of the difference is 0.26 times what independence gives. Confidence intervals on
 dataset's contribution are Wald intervals on the DeLong standard error.
 
 \citet{demler2012} show that DeLong's test is not valid for strictly nested models, because
-under the null the added predictor's contribution degenerates. Two things bound the exposure
-here. The panel-level intervals, which carry every headline, do not use the DeLong standard
-error at all; they are protein-clustered bootstrap intervals over per-dataset point estimates.
-And where the DeLong standard error is used, for the per-dataset significance counts, it is
+under the null the added predictor's contribution degenerates. This limitation does not affect
+the panel-level intervals, which use a protein-clustered bootstrap over per-dataset point
+estimates rather than the DeLong standard error. Where the DeLong standard error is used for
+per-dataset descriptive summaries, it is
 conservative relative to the recommended alternative: a penalised likelihood-ratio test on the
 same fits calls 89 of 94 datasets significant in the GC arm against DeLong's 80. A third
 feature of the design might have cut the other way and does not: negatives are matched 1:1 to
@@ -359,8 +353,8 @@ positives, so the rows are paired, while DeLong treats the two classes as indepe
 Resampling matched pairs instead reproduces the DeLong standard error to within 1\% (median
 ratio 0.99 over 30 datasets), so the matching needs no correction.
 
-We nonetheless treat every per-dataset DeLong interval and significance count in this paper as
-DESCRIPTIVE uncertainty on an AUROC difference, and not as a test of the nested null. Showing
+I therefore treat every per-dataset DeLong interval and significance count in this paper as
+descriptive uncertainty on an AUROC difference, not as a test of the nested null. Showing
 that a penalised likelihood-ratio test rejects more often bounds the direction of the
 disagreement; it does not establish that either procedure is valid under a covariate that was
 itself fitted out of fold, a penalised baseline, matched rows and proteins contributing two
@@ -377,8 +371,8 @@ individual datasets.
 
 \paragraph{4-mer logistic regression.} Raw 4-mer counts over the RNA sequence (98 per window,
 256 columns) into $L_2$-penalised logistic regression ($C=1$). One model per fold, out-of-fold
-score taken as the linear predictor. The $k$-mer order is 4, and the choice is not
-load-bearing: rebuilding the primary contrast from raw sequence at each order gives $+0.0311$
+score taken as the linear predictor. The result was not sensitive to the selected $k$-mer
+order: rebuilding the primary contrast from raw sequence at each order gives $+0.0311$
 at $k=3$, $+0.0397$ at $k=4$, $+0.0397$ at $k=5$ and $+0.0355$ at $k=6$, every interval
 excluding zero, with the dinucleotide arm larger in 90, 88, 89 and 91 of 94 datasets
 respectively and 82 of 94 datasets positive at every order. The $k=5$ minus $k=4$ difference is
@@ -436,14 +430,13 @@ and unseeded neural initialisation, worth about 0.001 on a panel mean. The sixth
 difference in retained positives between arms.
 
 The negative draw is the only one of the six measured on every arm, and a design that propagated
-all six would give wider intervals than any stated below. We report the conditional interval
+all six would give wider intervals than any stated below. I report the conditional interval
 because repeating the stochastic stages enough times to integrate over them was not affordable,
 not because the conditioning is negligible.
 
-Two analyses are primary and are the only ones we adjust. \textbf{This study was not formally
-preregistered}: there is no public registration, locked protocol or independent timestamp for
-any of it, and an earlier draft of this paragraph called these two analyses confirmatory, which
-overstates what the preserved evidence supports. The first is the primary contrast, the
+Two analyses are primary and are the only ones adjusted for multiplicity. \textbf{This study
+was not formally preregistered}: there is no public registration, locked protocol or independent
+timestamp. The first is the primary contrast, the
 difference in nested contribution between protocols, which the study was built to estimate. The
 second is the recommendation test of Section~\ref{sec:recommendation}, whose two falsifying
 criteria were fixed in the analysis script and committed before the external data were scored,
@@ -452,7 +445,7 @@ only timestamp, it is a repository commit rather than an independent registry, a
 establishes the order of the two events and nothing stronger. Everything else here is
 exploratory. That
 includes the baseline attribution, the family partition, the order-three contrast, the
-within-panel reversal and the caliper-matched nulls, all of which we report as point estimates
+within-panel reversal and the caliper-matched nulls, all of which I report as point estimates
 with intervals rather than as decisions, and none of which is adjusted for the number of
 analyses performed. Readers should treat an exploratory interval that just excludes zero
 accordingly.
@@ -463,17 +456,14 @@ vectors as if fixed and treats spatially clustered windows as independent. Resam
 genomic blocks inflates the standard error of the contribution by a median factor of 1.100,
 insensitive to block length at 1.104 for 100~kb and 1.138 for 1~Mb, and permuting the model
 score within fold and refitting gives 1.048, for a measured product of 1.15 against the 1.35
-fixed in advance. We report those factors because they describe the estimator, and we no longer
-report the per-dataset significance counts they were used to adjust. An earlier draft gave
-counts at each inflation factor and called the measured one primary. That contradicted the
-statistical policy set out above: a variance multiplier applied to an estimator that is not
-valid against a strictly nested null does not make the resulting count a test. The prevalence
-statements in the Results are sign counts, which need no null. This block bootstrap remains the
+fixed in advance. I report those factors because they describe the estimator, but do not use
+them to adjust per-dataset significance counts. A variance multiplier applied to an estimator
+that is not valid against a strictly nested null does not make the resulting count a test. The
+prevalence statements in the Results are sign counts and require no null model. This block bootstrap remains the
 one quantity the verification harness cannot check from released evidence, because it needs
 genomic coordinates that the published per-window score files do not carry.
 
-A paper about how negative sets are built should say whether its own repeat a window, and
-ours do, rarely. Scanning all four committed arms, no window appears twice in the GC-matched
+Duplicate windows were rare. Across all four committed arms, no window appears twice in the GC-matched
 arm; fourteen rows of $1{,}797{,}046$ do in the dinucleotide arm across eleven datasets, three
 hundred of $913{,}468$ in the bias-aware arm across forty-six, and $724$ of $913{,}468$ in the
 region-matched bias-aware arm across fifty-four. The gradient is mechanical rather than a fault
@@ -482,12 +472,12 @@ free genomic intervals, the bias-aware arm from the finite set of other proteins
 and the region-matched variant from that set further restricted to a matching transcript region,
 so the same window can be drawn twice.
 
-What matters is the kind rather than the count, and every dangerous kind is absent.
-\textbf{No duplicated window straddles a fold boundary in any arm}, so none reaches held-out
+The duplicates did not create cross-fold leakage. \textbf{No duplicated window straddles a
+fold boundary in any arm}, so none reaches held-out
 evaluation through a training copy; none carries conflicting labels; and all $1{,}020$
 duplicate groups are internally identical in sequence, label and fold, so which copy any
 subsample retains cannot change the data. The effect is that one negative is double-weighted
-within one fold of one dataset, at a worst-arm rate of $7.9\times10^{-4}$. We report it rather
+within one fold of one dataset, at a worst-arm rate of $7.9\times10^{-4}$. I report it rather
 than remove it: the correction is far below the precision anything here is quoted to, and
 removing it would alter committed evidence.
 
@@ -497,9 +487,9 @@ Table~\ref{tab:survey} is a \textbf{targeted, non-systematic sample} and is repo
 It was assembled by hand on 2026-09-05, not by a database query, and it makes no claim to
 completeness or to representativeness of the field.
 
-Selection. Starting from the methods this paper already cited or benchmarked against, we
+Selection. Starting from the methods this paper already cited or benchmarked against, I
 followed the negative-construction description of each to the dataset or predictor it inherited
-from, and added the two RBP benchmarks we had already used as external comparators. The
+from, and added the two RBP benchmarks I had already used as external comparators. The
 resulting seven span 2014 to 2025 and cover both constructions this paper contrasts. Sources
 were read as primary publications; where a paper offered several negative constructions, the one
 used for its own reported benchmarks was recorded and the alternative noted in the same row.
@@ -509,13 +499,10 @@ recording the verbatim sentence the classification was read from, and every such
 committed in \texttt{results/tables/negative\_set\_survey\_per\_method.csv} beside a resolvable
 link, so a reader can check the classification rather than take it.
 
-What this design does and does not support. It supports the descriptive statement that among
-these seven, five construct negatives positionally and none reports a composition-only baseline.
-It does not support any statement about prevalence in the literature as a whole, and the paper
-makes none: a hand-assembled sample of seven cannot estimate a field-level rate, and the
-recommendation in the Discussion does not depend on one. The survey corrected a claim this paper
-had previously made from assumption rather than from reading, which is recorded in
-\texttt{scripts/negative\_set\_survey.py}.
+This design supports only a descriptive statement about the seven selected studies: five use
+positionally constructed negatives and none reports a composition-only baseline. Because the
+sample was assembled by hand, it cannot estimate the prevalence of either practice in the
+literature. The recommendation in the Discussion does not depend on such a prevalence estimate.
 
 \subsection{Reproducibility}
 

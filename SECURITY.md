@@ -62,11 +62,24 @@ The options, in order of cost:
 repository is the repository owner's decision and not an automatic remediation.** It is recorded
 here rather than quietly fixed or quietly ignored.
 
-**Status as of the current release candidate: deliberately deferred to the release phase, not
-resolved and not dropped.** The scan is a gate now, so the finding cannot fade out of the record
-between here and the tag: `scripts/history_scan.py --check` fails if it changes, and it will
-still be reported on the commit that is archived. Whoever cuts that release makes the call from
-options 1 to 3 above and records which, on the release commit, before the DOI is minted.
+**DECIDED AT THE v1.0.0 RELEASE: option 1, accept and record.** The owner judged the exposure
+acceptable, and the reasoning is recorded here rather than left implicit.
+
+A billing account ID authenticates nothing. It names an account, which is why this repository
+forbids committing one, but possessing it grants no access. Set against that, this repository
+has been public for weeks, so its history is already in clones, in forks and in GitHub's own
+API. Rewriting history would remove the string from the canonical branch and from nowhere else,
+while breaking every existing clone and invalidating every commit SHA any reader has cited,
+including the ones this paper cites. That is a real cost paid for an incomplete remedy.
+
+Option 3, moving to a fresh billing account, is the only action that would make the identifier
+refer to nothing. It is not taken because the account is still in use and the identifier grants
+nothing to begin with.
+
+The finding stays gated rather than closed: `scripts/history_scan.py --check` still fails if the
+count changes, so accepting the exposure does not stop it being reported. It is visible in
+`results/tables/history_scan.csv` on the archived commit, which is the point of recording a
+decision instead of quietly resolving one.
 
 ## What is not guarded
 

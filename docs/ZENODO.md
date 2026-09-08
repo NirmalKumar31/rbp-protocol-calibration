@@ -90,10 +90,10 @@ property a reproducibility citation needs. Give both: the version DOI and its ta
 snapshot the analysis ran on, and the concept DOI beside it so a reader finds later versions.
 
 **THE TAG MUST MATCH THE DECLARED VERSION.** `pyproject.toml` and `CITATION.cff` are the source
-of truth for the version string; tag whatever they say rather than the `v1.0.0` used as an
-example below. They currently read 0.9.0, deliberately, because no tagged release exists and
-`SECURITY.md` makes no support promise. Raising it to 1.0.0 is a decision about support, not a
-formatting step, and both files must move together.
+of truth for the version string; tag whatever they say. They read 1.0.0 as of the release
+commit, raised together, and the decision behind that is recorded in `CHANGELOG.md`: the
+version identifies the archived snapshot and does not promise support, which `SECURITY.md`
+still declines to offer. Both files must always move together, and a test enforces it.
 
 The concept DOI is the one shown as "Cite all versions" on the record page. Give it in the
 manuscript **beside** the version DOI, not instead of it. This paragraph used to say "use it in

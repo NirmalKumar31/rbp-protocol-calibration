@@ -17,37 +17,20 @@
 \usepackage{amssymb}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[colorlinks=true,allcolors=blue]{hyperref}
-% PDF DOCUMENT PROPERTIES. All four of these were blank in the built file until an external
-% review read them out of the artefact. They are what a reference manager, an indexer and the
-% reader's own PDF viewer show, and none of them is derivable from \title at PDF-write time.
-% Written out here rather than through \title so that the maths and line breaks in the
-% typeset title do not have to survive the trip into a PDF string.
+% PDF metadata are written explicitly so that indexing does not depend on the typeset title.
 \hypersetup{
   pdftitle={Apparent sequence-model contribution depends strongly on negative-set
             construction: a calibration across 94 ENCODE eCLIP datasets},
-  pdfauthor={Nirmalkumar Thirupallikrishnan Kesavan},
+  pdfauthor={Nirmalkumar Thirupallikrishnan Kesavan (ORCID 0009-0002-9977-1739)},
   pdfsubject={Calibration of negative-set construction in RNA-binding-protein sequence model
               benchmarks},
   pdfkeywords={RNA-binding proteins; eCLIP; negative sets; benchmark calibration; sequence
                models; ENCODE},
   pdfcreator={pdfLaTeX}
 }
-% patch excludes `footnote'. lineno redefines the footnote machinery, so microtype's patch
-% for it cannot apply and warned on every build. Loading microtype after lineno does not
-% help; naming the patches that CAN apply does, and is microtype's documented way to say so
-% rather than silencing the warning channel wholesale.
+% lineno redefines footnotes, so apply only the compatible microtype patches.
 \usepackage[patch={item,eqnum,verbatim}]{microtype}
-% A 56-character \url in Code Availability cannot be broken by default and left a 2.35pt
-% overfull box. Three remedies were tried before this one. \sloppy clears it and pays with two
-% underfull boxes. \emergencystretch does nothing, because the problem is an unbreakable atom
-% wider than the remaining measure rather than a paragraph TeX cannot stretch. xurl fixes it
-% properly and is not in texlive-latex-recommended, so the build died with "File xurl.sty not
-% found" on a machine that had been building fine -- and the failed run left a paper.log with
-% no Overfull line in it, which reads exactly like success if you grep for the warning instead
-% of checking the exit status.
-%
-% This needs no package: url.sty ships inside hyperref, and \UrlBreaks tells it where a URL may
-% break. After a slash, a hyphen or a dot is enough for this one.
+% Allow long repository URLs to break without requiring an additional package.
 \def\UrlBreaks{\do\/\do\-\do\.\do\_\do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j\do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t\do\u\do\v\do\w\do\x\do\y\do\z}
 \Urlmuskip=0mu plus 1mu\relax
 % Preprint conventions. Line numbers and 1.5 spacing are what reviewers ask for on a
@@ -79,24 +62,14 @@
 \tolerance=1500
 \emergencystretch=2em
 
-% THE TITLE LEADS WITH WHAT SURVIVES. It used to assert that apparent difficulty and measured
-% contribution move in opposite directions, which is the one headline relation the Limitations
-% report failing to replicate on the external benchmark. The five-fold span holds for all three
-% model classes and both composition-matched arms; the inverse direction keeps its place in the
-% abstract, with its non-replication attached.
-% THE TITLE SAID "more than five-fold" AND THAT BECAME FALSE IN THIS REPOSITORY. The span is
-% 5.42-fold under the two-stage estimator the literature uses and 4.84-fold under the
-% cross-fitted one this paper recommends, so the threshold held for the estimator being
-% criticised and not for the one being advocated. Its second clause, that the estimator returns
-% a positive value where the truth is zero, went the same way: true of the common
-% implementation, and removable, which is the more useful statement. A title should not carry a
-% number that a later section of the same paper corrects.
+% The title states the result that transfers across estimators and external validation.
 \title{\bfseries Apparent sequence-model contribution depends strongly on negative-set
 construction: a calibration across 94 ENCODE eCLIP datasets}
 
 \author{Nirmalkumar Thirupallikrishnan Kesavan\\[2pt]
 \normalsize Northeastern University, Boston, MA, USA\\
-\normalsize \texttt{thirupallikrishnan.n@northeastern.edu}}
+\normalsize \texttt{thirupallikrishnan.n@northeastern.edu}\\[1pt]
+\normalsize ORCID: \href{https://orcid.org/0009-0002-9977-1739}{0009-0002-9977-1739}}
 
 \date{}
 
@@ -104,68 +77,35 @@ construction: a calibration across 94 ENCODE eCLIP datasets}
 \linenumbers
 \maketitle
 
-% THE ABSTRACT WAS 616 WORDS until an external review measured it. SUBMISSION.md said 255,
-% which was stale by a factor of 2.4, and the review quoted the stale figure and so understated
-% the problem. The venue is bioRxiv, which sets no abstract limit, so the cut is not forced by
-% the preprint; it is for the journal submission afterwards, where about 250 is typical. The
-% structure follows Briefings in Bioinformatics, which is the literature this reports on.
-%
-% What was cut, and it was not padding: the design argument that dinucleotide matching
-% constrains fifteen degrees of freedom against GC matching's one; the bias-aware arm's
-% per-dataset detail; that the arm is easiest for the 4-mer and the CNN but not for SpliceBERT;
-% the reversal of baseline attribution between model classes; the eight reparameterisations;
-% the four-construction span of 20.62-fold; and that five of the seven surveyed sources build
-% negatives by relocating genomic intervals. Every one is in the Results.
-%
-% The long version is preserved on the working-notes branch and in the history of this file.
-% Restoring it is one revert, and a venue with a longer limit should have it.
+% The abstract is intentionally concise; detailed sensitivity analyses remain in Results.
 \begin{abstract}
 \noindent
-Sequence models for RNA-binding proteins are evaluated against constructed negative windows, and
-how those windows are chosen is usually treated as a detail. Across 94 paired ENCODE eCLIP
-datasets we held the model class, the peak set, the chromosome-to-fold map and the estimator
-fixed, varied how the negative windows were built, and measured each model's nested contribution
-over a 19-feature composition baseline. Model and baseline are refitted per protocol, and
-matcher failures leave the retained positives very slightly different; restricting to their
-intersection moves the contrast by 0.0003.
+Sequence models for RNA-binding proteins (RBPs) are evaluated against constructed negative
+windows, but the influence of negative selection on estimated model contribution is poorly
+characterized. I compared GC-matched, dinucleotide-matched and bias-aware negatives across 94
+ENCODE eCLIP datasets, using the same source peaks and holding the model class,
+chromosome-blocked folds and estimator fixed. Contribution was defined as incremental AUROC over a
+19-feature composition baseline.
 
-For a 4-mer the measured contribution moves 4.84-fold across three protocols (95\% CI 3.98 to
-5.81) under the cross-fitted estimator we take as primary, and 5.42-fold (4.43 to 6.58) under
-the two-stage estimator this literature computes, reported for comparability. The two-stage span
-is 3.7 to 7.4-fold across three model classes; both neural spans are exploratory, because
-cross-fitting them was not run; it would cost about \$115. A model's
-apparent AUROC moves the opposite way: replacing GC-matched with dinucleotide-matched negatives
-lowers the 4-mer's own AUROC from 0.798 to 0.688 in all 94 datasets while raising its measured
-contribution from 0.027 to 0.066 in 88. Fitting on one protocol and scoring another attributes
-most of the movement to the evaluation protocol rather than the fitted model, under two
-decompositions that are different estimands and not two weightings of one: $62.7\%$ (95\% CI
-56.6 to 68.4) against $15.2\%$ for training, averaging each dataset's own shares, and $80.7\%$
-(73.0 to 86.9) against $9.2\%$ for the matrix of panel means.
+For a 4-mer model, contribution varied 4.84-fold across protocols (95\% CI 3.98--5.81) with the
+primary cross-fitted estimator and 5.42-fold (4.43--6.58) with the conventional two-stage
+estimator. Two-stage spans ranged from 3.7- to 7.4-fold across the 4-mer, a convolutional neural
+network and SpliceBERT. Replacing GC-matched with dinucleotide-matched negatives reduced the
+4-mer AUROC from 0.798 to 0.688 in all 94 datasets, while increasing its contribution from
+0.027 to 0.066 in 88 datasets.
 
-The two-stage estimator has a floor, which is why it is not primary: on a 2-mer, whose true
-contribution is zero because the baseline spans its features, it returns $+0.011$ to $+0.014$,
-90.4\% of the smallest protocol's value. That belongs to how the estimate is computed rather
-than to the estimand, and it is removable. Generating the score covariate outside the outer test
-fold cuts it by at least 95\% in every protocol and recovers the known zero to within
-$5\times10^{-4}$.
+The conventional estimator also produced a positive null contribution of $+0.011$ to $+0.014$
+for a 2-mer model whose features were contained in the baseline. Cross-fitting the score
+covariate reduced this floor by at least 95\% in every protocol. In 135 held-out datasets from
+an independently constructed benchmark, the two negative sets produced a 1.66-fold
+cross-fitted span (95\% CI 1.40--1.98), or 1.67-fold (1.40--2.00) after chromosome-blocked
+refolding. Protocol dependence replicated, whereas the inverse relation between apparent
+difficulty and contribution did not.
 
-The pattern is not confined to our own construction. On 135 datasets from \citet{horlacher2023} that
-our panel does not contain, using their windows, negatives and folds, the two-stage estimator
-gives a 1.69-fold span (95\% CI 1.41 to 2.03) across their two negative-set constructions,
-meeting criteria committed before that disjoint subset was scored. Two analyses fixed in a
-dated amendment before either was run close the gaps in that comparison: cross-fitting the
-external covariate, so like-for-like with our primary, gives $1.66$ ($1.40$ to $1.98$), and
-rebuilding their folds so no chromosome is split, with one identical map for both arms, gives
-$1.67$ ($1.40$ to $2.00$) cross-fitted on all 135 datasets, with the cross-fold same-strand
-neighbour fraction falling to zero in both arms. All
-four meet the numerical thresholds the original protocol fixed, though only the two repairs
-were specified before their own cells were computed. The directional relation between apparent
-difficulty and measured contribution does not replicate there, and we report it as failing.
-
-In a targeted, non-systematic sample of seven methods and benchmarks, none reports a
-composition-only AUROC beside its headline. We recommend cross-fitting the score covariate,
-reporting that baseline under the same protocol, and not comparing contributions measured under
-different protocols.
+Incremental performance therefore depends on both the negative-set protocol and the baseline
+used to define it. I recommend cross-fitting score covariates, reporting composition-only
+performance under the same protocol, and avoiding direct comparisons of contributions
+estimated under different negative-set constructions.
 \end{abstract}
 
 \noindent\textbf{Keywords:} RNA-binding proteins; eCLIP; benchmarking; negative-set
@@ -190,70 +130,39 @@ construction; sequence composition; incremental value; AUROC
 \input{sections/data-availability}
 
 \backsection{Code availability}
-% RELEASE STEP, and this is the SECOND place a DOI is needed, not the only one. SUBMISSION.md
-% said Data availability was the only manuscript edit required; it is not. A bare GitHub URL is
-% a moving branch and does not identify the code that produced these numbers. Uncomment and
-% insert the same two DOIs used in Data availability, per docs/ZENODO.md.
+% Release step: insert the version and concept DOIs used in Data availability.
 %
 % The exact snapshot these results come from is archived at \doi{10.5281/zenodo.XXXXXXX}
 % (tag vX.Y.Z; all versions: \doi{10.5281/zenodo.YYYYYYY}).
-All analysis code is available at
-\url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
-\texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
-regression-checked offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 1156 numeric assertions against a frozen
-expectations file and asserts that no fewer than that number ran, so a check cannot silently
-skip. That is a check against committed evidence and not a rebuild from raw inputs: two of the
-assertions are genuine end-to-end rebuilds, 285 AUROCs from committed per-window scores and the
-headline contrast from raw sequence, and \texttt{results/tables/PROVENANCE.csv} classifies every
-released table by which of the two applies to it. One quantity is an exception and is marked as such in the text: the design effect, whose
-block bootstrap needs the genomic coordinates that the published per-window score files do not
-carry. It is reproduced by \texttt{scripts/design\_effect.py} against the window store, which is
-regenerated from the accessions above in one command.
+All analysis code is available in the
+\href{https://github.com/NirmalKumar31/rbp-protocol-calibration}{project repository} under the MIT licence, with
+\texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. The repository includes a
+documented analysis environment, automated checks of reported values, and end-to-end
+recomputations of 285 AUROCs from per-window scores and of the headline contrast from raw
+sequence. \texttt{results/tables/PROVENANCE.csv} identifies the evidence available for each
+released table. Reproducing the block-bootstrap design effect additionally requires genomic
+coordinates from the regenerated window store.
 
-% ------------------------------------------------------------------------------------------
-% OPEN ITEM, TO BE SETTLED BEFORE SUBMISSION AND NOT BEFORE THE DRAFTING PHASE.
-%
-% This paragraph names one system. MULTIPLE external audits, produced by other generative
-% systems, were run against this repository during preparation and are enumerated in
-% docs/AI_USE_INVENTORY.md. Their findings materially shaped it:
-% they identified defects that changed code, changed released tables, and changed statements in
-% this manuscript. That is assistance of a different kind from the coding help described below,
-% and the paragraph does not currently mention it.
-%
-% Nothing here is being rewritten now, deliberately. The author has to inventory actual use and
-% decide what the target venue's policy requires: whether audit-and-review assistance is
-% disclosable at all, and if so which systems to name. This comment exists so the decision is
-% made rather than defaulted into. See SUBMISSION.md's pre-submission checklist.
-%
-% Related and already decided: per-commit `Co-Authored-By` trailers stop after 202953d, on the
-% ground that they are the wrong granularity rather than the wrong content. The historical ones
-% stay, no history is rewritten, and THIS PARAGRAPH is the disclosure of record. If the wording
-% below is ever narrowed, that decision has to be made knowing the repository no longer carries
-% a per-commit signal in its place.
-%
-% The final sentence below is the one to check hardest, because it is a personal warranty and
-% the author is the only person who can give it: "no reference was generated by a language
-% model". Keep it only if that can be verified by hand against the bibliography.
-% ------------------------------------------------------------------------------------------
 \backsection{Use of AI tools}
-Generative AI (Anthropic Claude) was used as a coding assistant to implement the analysis
-pipeline and to assist in drafting text, which the author revised. The study was conceived,
-designed and directed by the author, who made every analytical and interpretive decision,
-determined which claims the evidence supports, and is solely responsible for the content of
-this work. All reported values are produced by code in the accompanying repository and are
-checked against committed evidence by its verification harness; no reference was generated by a
-language model.
+I used generative AI tools (Anthropic Claude and OpenAI Codex) for coding and editorial
+assistance. I reviewed their outputs and take full responsibility for this work.
 
 \backsection{Acknowledgements}
-The author thanks Horlacher and colleagues for releasing their processed negative sets and fold
-assignments, without which the external validation in this paper would not have been possible.
+I thank Horlacher and colleagues for making their processed negative sets and fold assignments
+publicly available, which enabled the external validation in this study.
 
 \backsection{Funding}
-This work received no specific funding. Cloud compute was paid for by the author.
+This research received no specific funding. I paid the cloud-computing costs.
 
 \backsection{Competing interests}
-The author declares no competing interests.
+I declare no competing interests.
+
+\backsection{Ethics}
+This study is a secondary analysis of publicly released data. It involved no human participants,
+no animals and no identifiable personal information, so no ethical approval was required. The
+ENCODE eCLIP experiments and the GENCODE annotation were produced and released by their
+respective consortia under their own governance; this work reanalyses those public releases and
+generated no new experimental data.
 
 \input{sections/bibliography}
 

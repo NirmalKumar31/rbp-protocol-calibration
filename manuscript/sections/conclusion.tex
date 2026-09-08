@@ -1,33 +1,20 @@
-How much a sequence model adds over sequence composition is a joint property of the model and
-of the negative set it was evaluated against, and on this panel the two axes move against each
-other: the protocol that made the discrimination easiest by AUROC was also the one that left a
-sequence model least to add.
+The contribution of an RBP sequence model beyond nucleotide composition depends jointly on the
+model, the baseline and the negative-set protocol. In the study panel, the protocol yielding the
+highest apparent AUROC left the least incremental signal for the sequence model, while stricter
+composition matching lowered apparent AUROC and increased the measured contribution. The
+protocol-associated variation was comparable in scale to that produced by changing model
+class.
 
-The estimator that measures it is also not neutral, and that turns out to be fixable. Given a
-model whose information the composition baseline already contains, so that the true increment is
-zero, the two-stage estimator this literature uses returns $+0.0111$ to $+0.0137$ on these data.
-That floor is nearly the same in every arm, so it does not create the difference between
-protocols, but it is nine tenths of the smallest arm's reported value, so increments of that
-size say nothing about a model. It is almost entirely one identifiable route: the score covariate
-on the training rows of each outer fold comes from base models that saw that fold. Generating the
-covariate outside the outer test fold reduces the floor by at least 95\% in every arm and
-returns the zero the construction requires, at the cost of ten extra base fits per dataset. The protocol span narrows
-from 5.42-fold to 4.84-fold and survives.
+Estimator design also mattered. The conventional two-stage procedure returned a positive
+increment for a model whose information was already contained in the baseline. Cross-fitting
+the score covariate reduced this null floor by at least 95\% and preserved a 4.84-fold span
+across protocols. The externally constructed benchmark reproduced the protocol dependence, but
+not the inverse relation between apparent difficulty and contribution.
 
-For a benchmark designer this has two operational consequences. Cross-fit the score covariate, so that no base model
-contributing a training-row covariate has seen the outer test fold; on a model of this size that
-is ten extra fits per dataset and it removes almost all of the estimator's floor. Then report the
-composition-only AUROC obtained under the same protocol alongside every headline AUROC; it costs
-one logistic regression on nineteen features and it is the only summary of a protocol's effect
-that a reader can act on. And do not compare contributions measured under different negative-set protocols, nor read an
-increment as evidence of contribution without a null for the estimator that produced it.
-That restriction is one we can justify, where a normalisation that would remove the need for it
-is not. Of eight standard coordinates, five reduce the span without closing it, two are controls
-and one widens it. The exponent that appears to close it closes only under one way of
-aggregating the panel, and is in any case fitted rather than chosen, differing between
-benchmarks and between model classes measured on the same data.
-
-A third consequence bears on how protocols are compared with each other. The three here hold different
-things fixed, and the one that frees transcript region pays for it in a baseline that a
-nineteen-feature model can read. Loosening a constraint does not make a protocol more
-stringent.
+These findings support a practical reporting standard. Studies should describe the negative-set
+construction in reproducible detail, report the composition-only performance under the same
+protocol, state the baseline order, and calibrate the incremental estimator with a null model.
+Score covariates should be cross-fitted when feasible. Most importantly, contributions measured
+under different negative-set protocols should not be interpreted as directly comparable. The
+negative set is part of the scientific question posed by the benchmark, not merely a technical
+setting used to evaluate it.

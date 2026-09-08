@@ -8,28 +8,22 @@ ENCFF286KKZ and ENCFF829LCN for K562 (ENCSR115PIZ), and ENCFF863QWG and ENCFF376
 assignments released by \citet{horlacher2023} at \doi{10.5281/zenodo.10600977}, downloaded and
 md5-verified.
 
-\texttt{results/tables/raw\_inputs.csv} names the bytes rather than the resources: all 251 raw
-objects the study staged, with size, base64 MD5, the time each was written to the project's
-storage bucket, the source URL, the assembly and the annotation release. Sizes and checksums
-were re-verified against the stored objects, 251 of 251 with no mismatch, and the 244 peak files
-cover every accession in Supplementary Table S1. Two limits are recorded in the manifest itself
-rather than left to inference. The timestamps are bucket writes, all inside a 7.5-minute window
-during one staging run, and not download times; no checksum published by ENCODE or GENCODE was
-recorded at fetch time, so these MD5s identify the bytes this study used and cannot demonstrate
-that they are the bytes the provider served. The genome, annotation and ClinVar URLs are the
-ones recorded in \texttt{config/params.yaml}; the per-file ENCODE URLs are reconstructed from
-the accession, and the manifest's \texttt{url\_provenance} column says which is which.
+\texttt{results/tables/raw\_inputs.csv} records all 251 staged objects, including file size,
+base64 MD5, storage timestamp, source URL, assembly and annotation release. The recorded sizes
+and checksums match the stored objects, and the 244 peak files cover every accession in
+Supplementary Table S1. The timestamps refer to writes to the project storage bucket, not to
+provider download times. Because provider checksums were not recorded during retrieval, the MD5
+values identify the files used in this study but do not independently verify the bytes served by
+ENCODE or GENCODE. URL provenance is recorded explicitly for each object.
 
-Derived data supporting every number in this paper, including per-window out-of-fold model scores
-for all three model classes and all per-dataset result tables, are released with the code under
-CC BY 4.0. Intermediate window tables containing genomic sequence are not redistributed. What one
-command regenerates is precise and narrower than the whole study: \texttt{./run.sh all} rebuilds
-the dinucleotide arm from the accessions above, given a genome and cloud credentials. The GC and
-bias-aware neural sweeps were run through separate drivers under \texttt{cloud/modal/}, and their
-per-window scores are released rather than rebuilt by that command.
-\texttt{results/tables/PROVENANCE.csv} classifies every released table as raw-reproducible,
-recomputable from released evidence, a frozen input, or requiring the window store, so which is
-which is a committed fact rather than a sentence here.
+Derived data are released with the code under CC BY 4.0, including per-window out-of-fold scores
+for all three model classes and all per-dataset result tables. Intermediate window tables that
+contain genomic sequence are not redistributed. Given a reference genome and cloud credentials,
+\texttt{./run.sh all} rebuilds the dinucleotide arm from the listed accessions. The GC and
+bias-aware neural sweeps use separate drivers under \texttt{cloud/modal/}; their per-window
+scores are included in the release. \texttt{results/tables/PROVENANCE.csv} classifies each table
+by whether it is reproducible from raw inputs, recomputable from released evidence, a frozen
+input, or dependent on the window store.
 
 Supplementary Table S1 lists all 95 panel datasets. One of them, NCBP2 in K562, did not clear
 the out-of-fold pair floor in the GC arm, so it carries no three-protocol results; its
@@ -38,8 +32,9 @@ the out-of-fold pair floor in the GC arm, so it carries no three-protocol result
 % ZENODO. Uncomment the sentence below and insert BOTH DOIs once they are minted, per
 % docs/ZENODO.md. The VERSION DOI identifies the exact snapshot the reported numbers came from,
 % which is what a reproducibility citation needs; the concept DOI resolves to whatever the
-% latest version is, so it aids discovery and cannot identify this research object. Earlier
-% guidance here named the concept DOI alone and an audit was right that this is backwards.
+% latest version is, so it aids discovery and cannot identify this research object. Add the
+% version DOI after reserving the release deposit; use the concept DOI for the software
+% citation where the latest-version relationship is intended.
 % A permanently archived snapshot of the code and derived data is deposited at
 % \doi{10.5281/zenodo.XXXXXXX} (this version, tag vX.Y.Z; all versions:
 % \doi{10.5281/zenodo.YYYYYYY}).

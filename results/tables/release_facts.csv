@@ -1,11 +1,11 @@
 check,value,n,note
 tests collected,882,,derived from the built release by scripts/release_consistency.py
-pages,63,,derived from the built release by scripts/release_consistency.py
-references,31,,derived from the built release by scripts/release_consistency.py
+pages,55,,derived from the built release by scripts/release_consistency.py
+references,30,,derived from the built release by scripts/release_consistency.py
 figure environments,7,,derived from the built release by scripts/release_consistency.py
 table environments,17,,derived from the built release by scripts/release_consistency.py
 verify checks,1156,,derived from the built release by scripts/release_consistency.py
 paper assertions,1018,,derived from the built release by scripts/release_consistency.py
 legacy assertions,136,,derived from the built release by scripts/release_consistency.py
 harness assertions,2,,derived from the built release by scripts/release_consistency.py
-abstract words,536,,derived from the built release by scripts/release_consistency.py
+abstract words,250,,derived from the built release by scripts/release_consistency.py

@@ -1,14 +1,6 @@
-% Supplementary material. Built by manuscript/build.sh alongside paper.pdf.
-%
-% WHY THIS FILE EXISTS. The ten supplementary figures shipped as loose PDFs named f0 to f8 and
-% f13, with no S-numbering and no legends: the captions in paper.pdf cover the seven main
-% figures only. An audit was right that "bioRxiv accepts supplementary material as separate
-% files" does not make unlabelled, captionless figures self-interpreting. Every legend below
-% states what is plotted, what each panel is, the sample size, what the uncertainty is, and
-% which committed table the values come from.
-%
-% Every number in this file is scanned by scripts/audit_manuscript.py exactly as the main text
-% is, so a value here that traces to no committed table fails the build.
+% Supplementary material, built by manuscript/build.sh alongside paper.pdf. The figure legends
+% state the sample size, uncertainty definition and source table. Numerical values are checked
+% by scripts/audit_manuscript.py against the committed result tables.
 \documentclass[11pt]{article}
 
 \usepackage[margin=1in]{geometry}
@@ -33,9 +25,7 @@
                nested contribution, cross-fitting},
 }
 
-% THE EXACT ARTICLE TITLE, in the visible title and in the PDF metadata. This carried an
-% earlier title that two reviewers had rejected, and the metadata carried a third shortened
-% form, so a submission system had three strings for one pair of files.
+% Keep the visible title and PDF metadata consistent with the main manuscript.
 \title{Supplementary material\\[0.3em]
 \large Apparent sequence-model contribution depends strongly on negative-set construction:
 a calibration across 94 ENCODE eCLIP datasets}
@@ -45,11 +35,11 @@ a calibration across 94 ENCODE eCLIP datasets}
 \begin{document}
 \maketitle
 
-\section*{How to read this document}
+\section*{Overview}
 
-Ten supplementary figures and one supplementary table. Each figure carries a legend giving the
-panels, the sample size, the uncertainty definition and the committed table the values are read
-from, so that no figure needs the main text to be interpretable.
+This document contains ten supplementary figures and one supplementary table. Each legend
+defines the panels, sample size, uncertainty and source table so that it can be read
+independently of the main text.
 
 Two conventions hold throughout and are not repeated in every legend.
 
@@ -65,14 +55,14 @@ from a bootstrap that resamples \emph{proteins} and takes all datasets of each s
 4000 draws. The panel is 94 datasets over 79 proteins, 15 of which appear in both cell lines,
 so resampling datasets would treat correlated rows as independent evidence.
 
-\textbf{Estimator.} Figures showing a span or a contribution use the two-stage estimator unless
-stated, which is what this literature computes. The paper's primary estimator is the
+\textbf{Estimator.} Figures showing a span or contribution use the two-stage estimator unless
+stated otherwise, consistent with common practice in the literature. The paper's primary estimator is the
 cross-fitted one; the two differ by about a ninth of the span and the main text reports both.
 
 \subsection*{Figure and table numbering}
 
-The repository stores figures under their build names. This mapping is generated and checked by
-\texttt{tests/unit/test\_supplement.py}, so it cannot drift from the files.
+The repository stores figures under their build names. The mapping below links the supplementary
+numbering to those filenames and is checked by \texttt{tests/unit/test\_supplement.py}.
 
 \begin{table}[ht]
 \footnotesize
@@ -102,7 +92,7 @@ Table S1   & \texttt{supplementary\_table\_s1.csv} & dataset to ENCODE accession
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f0_panel_overview.pdf}
-\caption{\textbf{The study panel, and the check that it is not size-biased.}
+\caption{\textbf{Study panel and size distribution.}
 \textbf{(a)} Size distribution of the 94 study datasets, as $\log_{10}$ matched pairs, against
 the candidate pool they were drawn from, shown as a step outline. The panel was selected as a
 deterministic systematic subset by pair rank, which guarantees coverage of the size range; it is
@@ -126,17 +116,16 @@ show distributions rather than estimates.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f1_cost_of_matching.pdf}
-\caption{\textbf{Moving from GC-matched to dinucleotide-matched negatives lowers apparent AUROC
-and raises measured contribution.}
+\caption{\textbf{Effect of GC-matched versus dinucleotide-matched negatives on apparent AUROC
+and measured contribution.}
 Paired within dataset, because the two arms share nearly all of their positives; an unpaired
 plot would discard the structure that makes the per-dataset counts meaningful.
 \textbf{(a)} The 4-mer model's own AUROC under each protocol. It falls in every dataset, which is
 expected: dinucleotide matching removes the compositional cue the model was partly using.
 \textbf{(b)} The nested contribution over composition under each protocol. It rises.
-\textbf{What this figure is not.} The two arms do not have identical positives and the model is
-not held fixed across them: it is refitted under each protocol, and each matcher rejects the
-positives it cannot pair, leaving a median Jaccard of 0.9972 between the two positive sets and
-exact agreement in only 10 of 94 datasets.
+The model is refitted under each protocol, and the positive sets are nearly but not perfectly
+identical because each matcher rejects positives it cannot pair. Their median Jaccard similarity
+is 0.9972, with exact agreement in 10 of 94 datasets.
 \textbf{n}: 94 paired datasets. \textbf{Uncertainty}: not plotted; the panel-level intervals are
 in the main text.
 \textbf{Source}: \texttt{cost\_of\_matching.csv}.}
@@ -154,9 +143,8 @@ logistic model, the convolutional network and fine-tuned SpliceBERT. Within an a
 scored on the same rows under the same chromosome-grouped partition.
 \textbf{(b)} The same four as a gain over the composition baseline, with datasets sorted within
 each model. Only SpliceBERT exceeds the baseline in every dataset.
-\textbf{Why it is supplementary.} This is a methods orientation figure rather than a result: it
-establishes that the model ladder behaves as expected under one protocol, which is the premise
-the three-protocol comparison in the main text varies.
+This methods-oriented figure establishes the performance ordering under one protocol before the
+three-protocol comparison in the main text.
 \textbf{n}: 94 datasets. \textbf{Uncertainty}: not plotted; each point is one dataset's pooled
 out-of-fold AUROC.
 \textbf{Source}: \texttt{matched\_four\_models.csv}.}
@@ -168,21 +156,21 @@ out-of-fold AUROC.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f3_strand_placebo.pdf}
-\caption{\textbf{The strand control, and why the naive version of it overstates the artefact.}
+\caption{\textbf{Strand-control analysis.}
 Negatives inherit the strand of the positive they are matched to rather than the strand of the
 gene they sit in, so a fraction of them are antisense. Restricting to pairs whose negative is
 unambiguously on its own gene's strand discards most of the data, and a 256-feature model loses
 more from that restriction than a 19-feature baseline does, in both arms.
 \textbf{(a)} The contrast under four conditions: the full data, the sense-only restriction, a
 placebo dropping the same number of pairs at random, and a placebo matched on transcript region
-crossed with gene-density quartile. The figure is the argument: the naive control attributes the
-whole shrinkage to strand, and the two placebos show why it should not.
+crossed with gene-density quartile. The naive control attributes the full reduction to strand,
+whereas the two placebos quantify the effect of data removal.
 \textbf{(b)} The same information as a decomposition of the $-0.0091$ that restriction alone
 reports, into the cost of dropping pairs at all and the strand-specific remainder.
-\textbf{Why gene density.} Retention requires exactly one overlapping gene strand, so it selects
-against multi-gene loci by construction, and the region-only placebo does not remove that.
-\textbf{Result.} The strand-specific excess is $-0.0055$ and 85.3\% of the contrast survives
-correction.
+Gene density is included because retention requires exactly one overlapping gene strand and
+therefore selects against multi-gene loci by construction; the region-only placebo does not
+remove that selection. The strand-specific excess is $-0.0055$, and 85.3\% of the contrast
+remains after correction.
 \textbf{n}: 40 datasets, over 40 distinct proteins, so protein clustering is a no-op here and is
 asserted rather than assumed. 20 placebo seeds per dataset per arm.
 \textbf{Uncertainty}: 95\% percentile intervals over datasets.
@@ -205,9 +193,8 @@ about whether the magnitudes agree, which is what makes this evidence rather tha
 \textbf{(b)} $z = \text{gain} / \text{SE}$ under each protocol, paired per dataset. The gain
 rises faster than its standard error, so the same contribution reaches the same confidence with
 fewer labelled windows.
-\textbf{A caveat that belongs with panel (a).} Partialling out each dataset's total nested gain
-reduces the correlation to $+0.3321$ with $p = 0.2265$, so the replication is not independent of
-overall signal strength.
+After partialling out each dataset's total nested gain, the correlation is $+0.3321$ with
+$p = 0.2265$, so the replication is not independent of overall signal strength.
 \textbf{n}: 15 proteins for (a), 94 datasets for (b).
 \textbf{Uncertainty}: Pearson correlation with a protein-level bootstrap interval in the main
 text; DeLong standard errors for $z$.
@@ -223,8 +210,8 @@ text; DeLong standard errors for $z$.
 \caption{\textbf{The contrast is larger in larger datasets.}
 Each point is one dataset: matched pairs on a logarithmic axis against the contrast in nested
 contribution between the dinucleotide-matched and GC-matched protocols.
-\textbf{Why this cannot be a confound.} The contrast is paired within dataset, so both arms have
-identical $n$ and size affects precision rather than bias. It is reported here as effect
+The contrast is paired within dataset, so both arms have identical $n$ and size affects
+precision rather than bias. It is reported here as effect
 modification, which is a different and weaker statement: the protocol matters more where there
 is more data.
 \textbf{n}: 94 datasets. \textbf{Uncertainty}: Spearman correlation, printed in the panel title;
@@ -248,10 +235,9 @@ published contrast to $1.2\times 10^{-6}$.
 and positive at every order in 82 of 94 datasets individually.
 \textbf{(b)} The mean nested gain in each arm as a function of $k$, so a reader can see where the
 contrast comes from rather than only its difference.
-\textbf{What it settles.} The manuscript described the model as a 5-mer in four places before a
-referee reproduced the tables at $k = 4$ and found the error. The difference between the two is
-$+0.0001$, paired Wilcoxon $p = 0.84$. The contrast is also smallest at $k = 3$, so order 4 is
-not the most favourable choice available.
+The difference between the $k=4$ and $k=5$ specifications is $+0.0001$ (paired Wilcoxon
+$p = 0.84$). The contrast is also smallest at $k = 3$, so order 4 is not the most favourable
+choice available.
 \textbf{n}: 94 datasets per order, both arms.
 \textbf{Uncertainty}: 95\% protein-clustered percentile intervals in the source table.
 \textbf{Source}: \texttt{k\_sweep.csv}, \texttt{k\_sweep\_per\_dataset.csv}.}
@@ -269,13 +255,11 @@ Datasets are grouped by the transcript region their positives mostly occupy.
 \textbf{(a)} The contrast by dominant region. CDS-dominant datasets give $+0.0635$ against
 $+0.0316$ for intron-dominant ones, a difference of $+0.0319$, which is as large as the headline
 contrast itself.
-\textbf{(b)} The proposed mechanism, plotted rather than asserted: intronic sites are
+\textbf{(b)} Intronic sites are
 compositionally distinctive, so composition alone already discriminates them and leaves the
 protocol less to expose. Composition-only AUROC is $0.6656$ for intron-dominant datasets against
-$0.5765$ for CDS-dominant ones. If this ordering ever inverted, the explanation in the text would
-be wrong, and a gate asserts it.
-\textbf{The limitation, which is gated too.} The intronic fraction correlates with the contrast
-at $-0.3399$, but partialling out total nested gain removes the association. Region indexes how
+$0.5765$ for CDS-dominant ones. The intronic fraction correlates with the contrast at
+$-0.3399$, but partialling out total nested gain removes the association. Region indexes how
 much non-compositional signal exists; it is not an independent mechanism.
 \textbf{n}: 94 datasets, grouped into three region classes with at least 8 datasets each.
 \textbf{Uncertainty}: Mann--Whitney and Kruskal--Wallis tests in the source table.
@@ -289,8 +273,7 @@ much non-compositional signal exists; it is not an independent mechanism.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/f8_scale_check.pdf}
-\caption{\textbf{How much of the contrast is compression against a higher baseline, and why the
-decomposition is reported as a range rather than a number.}
+\caption{\textbf{Sensitivity of the protocol contrast to baseline compression.}
 An AUROC increment is bounded above by the headroom the baseline leaves, so part of any
 comparison between arms with unequal baselines is arithmetic. The transplant converts AUROC to
 $d'$, moves one arm's increment onto the other arm's baseline, and asks what remains.
@@ -301,10 +284,10 @@ the contrast: the protocol effect net of scale is $+0.0313$ in one direction.
 \textbf{(c)} The diagnostic behind the log-odds reversal. The between-arm coefficient gap tracks
 each task's total signal rather than the incremental value it should measure, which is the
 standard non-comparability of logistic coefficients across separate fits.
-\textbf{Why the paper declines to quote a single number.} Running the transplant in the other
-direction gives $+0.0215$, and across six monotone links and both directions the smallest member
-is $+0.0188$. Every member keeps the sign, so the contrast is not a compression artefact; the
-width is why the decomposition is a sensitivity analysis rather than a headline. Separately, the
+Running the transplant in the other direction gives $+0.0215$, and across six monotone links
+and both directions the smallest member is $+0.0188$. Every member keeps the sign, so the
+contrast is not a compression artefact. The range of estimates supports treating the
+decomposition as a sensitivity analysis. Separately, the
 identifying assumption that the $d'$ increment is baseline-invariant is refuted by its own
 diagnostic, so no model's protocol effect is point-identified.
 \textbf{n}: 94 datasets. \textbf{Uncertainty}: 95\% protein-clustered percentile intervals.
@@ -326,8 +309,7 @@ choice costs. The extended baseline adds all 64 trinucleotide frequencies, 82 fe
 \textbf{(a)} GC-matched arm and \textbf{(b)} dinucleotide-matched arm: the share of each model's
 contribution that survives an order-3 baseline. For the 4-mer the surviving share on the GC arm
 is $0.2170$, against $0.6049$ for the convolutional network and $0.7504$ for SpliceBERT.
-\textbf{The shares are not the result, and reading them alone is a mistake this analysis made
-once.} The \emph{absolute} amount absorbed is statistically indistinguishable across model
+The \emph{absolute} amount absorbed is statistically indistinguishable across model
 classes, and the convolutional network loses the least of the three, which no capacity story
 predicts. The shares follow from the totals. What the figure supports is that the protocol
 contrast survives an order-3 baseline for every model class, not that the 4-mer is uniquely

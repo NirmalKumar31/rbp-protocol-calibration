@@ -1,8 +1,10 @@
 # Changelog
 
-## 0.9.0 — release candidate for the preprint
+## 1.0.0, the archived preprint release
 
-Not tagged. `1.0.0` is reserved for the commit that is archived and given a DOI.
+Tagged `v1.0.0` and archived to Zenodo. This is the snapshot the manuscript cites and the one a
+version DOI resolves to. The version identifies the snapshot; it makes no support promise, and
+`SECURITY.md` still makes none.
 
 The state the manuscript describes. 1156 numeric assertions pass offline against committed
 tables; 882 collected tests; the paper builds from a clean export with zero LaTeX warnings, zero undefined references and zero over- or underfull boxes. "Warning-clean" used to be the phrasing and an audit objected, correctly, because a fresh log then carried one underfull \hbox: a typesetting diagnostic rather than a LaTeX Warning, but not nothing. That box was in methods.tex, where an unbreakable \texttt path forced TeX to stretch the line before it; the path now carries the same \allowbreak the manuscript already used in three other places, and both logs are at zero. Both counts are stated rather than one being folded into the other.

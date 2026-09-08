@@ -466,23 +466,19 @@ def test_both_model_loading_paths_honour_a_pinned_revision():
             f"{rel} mentions revision but does not put it in the from_pretrained kwargs")
 
 
-def test_the_open_release_decisions_are_still_recorded():
-    """P0.6 and P1.14. Both are the author's to make, and both are easy to lose quietly.
-
-    They are deferred, not resolved. The failure mode for a deferred item is that it stops
-    being mentioned and then stops being remembered, which is indistinguishable from having
-    decided it. This fails if either disappears from the submission checklist.
-    """
+def test_the_ai_disclosure_and_billing_decision_are_recorded():
+    """The manuscript must disclose known AI roles; the billing decision remains open."""
     sub = _read("SUBMISSION.md")
-    assert "AI-use disclosure needs an author decision" in sub, (
-        "the AI-use disclosure decision has dropped out of the pre-submission checklist")
+    assert "AI-use disclosure has been rewritten for author review" in sub, (
+        "the AI-use disclosure review has dropped out of the pre-submission checklist")
     assert "billing-account ID needs an explicit decision" in sub, (
         "the historical billing-account decision has dropped out of the checklist")
     paper = ROOT / "manuscript" / "paper.tex"
     if paper.exists():
-        assert "OPEN ITEM, TO BE SETTLED BEFORE SUBMISSION" in paper.read_text(), (
-            "the marker above the AI-use paragraph is gone; either the decision was made and "
-            "this test should be retired, or it was lost")
+        text = " ".join(paper.read_text().split())
+        for phrase in ("Anthropic Claude", "OpenAI Codex", "editorial assistance",
+                       "I reviewed their outputs", "take full responsibility"):
+            assert phrase in text, f"the manuscript's AI-use disclosure omits {phrase!r}"
 
 
 def test_the_history_scan_counts_are_generated_not_typed():
@@ -581,6 +577,7 @@ def test_the_trailer_change_is_recorded_as_granularity_not_a_narrowing():
     assert "change of granularity and not of disclosure" in sub
     paper = ROOT / "manuscript" / "paper.tex"
     if paper.exists():
-        assert "trailers stop after" in paper.read_text(), (
-            "the AI-use paragraph must know it is now the disclosure of record, because "
-            "narrowing it later would leave nothing in its place")
+        text = " ".join(paper.read_text().split())
+        assert "Use of AI tools" in text and "editorial assistance" in text, (
+            "the manuscript must remain the disclosure of record for both coding and writing "
+            "assistance; commit-trailer mechanics belong in the submission checklist")

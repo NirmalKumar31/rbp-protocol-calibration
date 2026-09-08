@@ -145,7 +145,12 @@ MACRO = re.compile(r"\\(ref|label|cite\w*|citep|citet|includegraphics|vspace|hsp
 # Flagging one is a false positive that costs the reader's trust in the real orphans, and
 # "10.5281" from a Zenodo DOI is exactly the case that surfaced. Matched on the surrounding
 # text rather than the token, so a genuine 10.5281 elsewhere is still checked.
-IDENTIFIER = re.compile(r"(doi:|zenodo\.|10\.\d{4,}/|ENC[A-Z]{2}\d|GSE\d|v\d+\.\d+)",
+# An ORCID is the same case as a DOI: four groups of four digits that name a person, not a
+# measurement. Adding one to the title page put 9977 in front of the integer scan three times,
+# which is the gate working correctly on a token that no result table could ever source. The
+# context is matched, not the digits, so a genuine 9977 anywhere else is still checked.
+IDENTIFIER = re.compile(r"(doi:|zenodo\.|10\.\d{4,}/|ENC[A-Z]{2}\d|GSE\d|v\d+\.\d+"
+                        r"|orcid|\d{4}-\d{4}-\d{4}-\d{3}[\dX])",
                         re.IGNORECASE)
 
 

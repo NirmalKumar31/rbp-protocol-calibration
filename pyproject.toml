@@ -1,6 +1,6 @@
 [project]
 name = "rbp"
-version = "0.9.0"
+version = "1.0.0"
 # THE DESCRIPTION NAMED THE PREVIOUS STUDY. It read "conservation-controlled variant
 # evaluation", which is what this code was built for and is not what the paper reports; an
 # external review noticed before any reader did. Package metadata is the one description that
@@ -15,9 +15,12 @@ authors = [
 keywords = ["RNA-binding proteins", "eCLIP", "negative sets", "benchmark calibration",
             "sequence models", "ENCODE"]
 classifiers = [
-    # NOT Production/Stable. SECURITY.md says this is not maintained as a library and
-    # exposes no supported API, and no tagged release exists yet. 1.0.0 and "stable" are
-    # claims about support, and both were made before either was true.
+    # STILL NOT Production/Stable, at 1.0.0, and the two are not in conflict. The version
+    # identifies the immutable snapshot the paper cites and that a DOI resolves to. The
+    # classifier states the support level, and SECURITY.md still says this is not maintained
+    # as a library and exposes no supported API. Raising the classifier would promise
+    # maintenance nobody has committed to; raising the version promises only that this
+    # snapshot exists and will not move.
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3.11",
