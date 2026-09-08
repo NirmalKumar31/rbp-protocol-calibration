@@ -9,8 +9,8 @@ baseline_order_per_dataset.csv,scripts/baseline_order.py,s13b_local_analysis,fro
 candidate_sizes.csv,scripts/cloud_analysis.py,,frozen-only,79cd9551dbf92127,5316,not invoked by run.sh
 capacity_ladder.csv,scripts/capacity_ladder.py,s13b_local_analysis,evidence-recomputable,85fe83e45db1e479,4625,"""$PY"" scripts/capacity_ladder.py --from-cache || die ""capacity ladder"""
 capacity_ladder_per_dataset.csv,scripts/capacity_ladder.py,s13b_local_analysis,frozen-cache,a4e9cce4d4887ca9,24592,"""$PY"" scripts/capacity_ladder.py --from-cache || die ""capacity ladder"""
-class_ratio.csv,scripts/class_ratio.py,s13b_local_analysis,evidence-recomputable,e91e4aecd534d9c1,3551,"""$PY"" scripts/class_ratio.py --from-cache || die ""class ratio"""
-class_ratio_per_dataset.csv,scripts/class_ratio.py,s13b_local_analysis,frozen-cache,4893fcc4368142b0,53168,"""$PY"" scripts/class_ratio.py --from-cache || die ""class ratio"""
+class_ratio.csv,scripts/class_ratio.py,s13b_local_analysis,evidence-recomputable,aed5aac71f2ae877,3552,"""$PY"" scripts/class_ratio.py --from-cache || die ""class ratio"""
+class_ratio_per_dataset.csv,scripts/class_ratio.py,s13b_local_analysis,frozen-cache,93fc2677444e3587,53150,"""$PY"" scripts/class_ratio.py --from-cache || die ""class ratio"""
 cluster_intervals.csv,scripts/cluster_intervals.py,s13b_local_analysis,raw-reproducible,da1da712f1237a9c,1904,"""$PY"" scripts/cluster_intervals.py || die ""clustered intervals"""
 cobinding_noise.csv,scripts/cobinding_noise.py,,frozen-only,b9a9789a4537b65a,791,not invoked by run.sh
 cobinding_noise_per_dataset.csv,scripts/cobinding_noise.py,,frozen-only,7e9b44f5a564a61a,10690,not invoked by run.sh
@@ -57,7 +57,7 @@ expression_control_per_dataset.csv,scripts/expression_control.py,s13b_local_anal
 external_replication.csv,scripts/external_replication.py,s13b_local_analysis,frozen-cache,042700dbcb86495c,3226,"""$PY"" scripts/external_replication.py --from-cache || die ""external replication"""
 external_replication_per_dataset.csv,scripts/external_replication.py,s13b_local_analysis,frozen-cache,5223711733221343,15411,"""$PY"" scripts/external_replication.py --from-cache || die ""external replication"""
 external_search.csv,scripts/external_search.py,s13b_local_analysis,raw-reproducible,006a700c05f068bc,2809,"""$PY"" scripts/external_search.py || die ""external search record"""
-external_sensitivity.csv,scripts/external_sensitivity.py,s13b_local_analysis,evidence-recomputable,2c88273e46858120,4947,"""$PY"" scripts/external_sensitivity.py --from-cache || die ""external sensitivity"""
+external_sensitivity.csv,scripts/external_sensitivity.py,s13b_local_analysis,evidence-recomputable,a08b33b90f2c0e07,4941,"""$PY"" scripts/external_sensitivity.py --from-cache || die ""external sensitivity"""
 external_sensitivity_per_dataset.csv,scripts/external_sensitivity.py,s13b_local_analysis,frozen-cache,4dd41f3ae1779c6a,45273,"""$PY"" scripts/external_sensitivity.py --from-cache || die ""external sensitivity"""
 fold_integrity.csv,scripts/fold_integrity.py,s13b_local_analysis,evidence-recomputable,56c39db13feffa0b,1620,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
 fold_integrity_per_dataset.csv,scripts/fold_integrity.py,s13b_local_analysis,frozen-cache,1fe9ddecccfa97d8,31402,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
@@ -163,5 +163,5 @@ variant_tasks.tsv,scripts/variant_splicebert.py,,cloud-produced,e09699b1bb536269
 variant_threshold_curve.csv,scripts/cloud_analysis.py,,frozen-only,dc487df8279213cd,1918,not invoked by run.sh
 window_centring.csv,scripts/window_centring.py,s13b_local_analysis,evidence-recomputable,6c25a33a921bdfe4,2624,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""
 window_centring_per_dataset.csv,scripts/window_centring.py,s13b_local_analysis,frozen-cache,6250e080d134fda7,6496,"""$PY"" scripts/window_centring.py --from-cache || die ""window centring"""
-window_duplication.csv,scripts/window_duplication.py,s13b_local_analysis,evidence-recomputable,17c9697faf7a9b7b,1001,"""$PY"" scripts/window_duplication.py --from-cache || die ""window duplication"""
-window_duplication_per_arm.csv,scripts/window_duplication.py,s13b_local_analysis,frozen-cache,1e6d5c71a1c7ea66,151,"""$PY"" scripts/window_duplication.py --from-cache || die ""window duplication"""
+window_duplication.csv,scripts/window_duplication.py,s13b_local_analysis,evidence-recomputable,72ffd79be2a5afef,1461,"""$PY"" scripts/window_duplication.py --from-cache || die ""window duplication"""
+window_duplication_per_arm.csv,scripts/window_duplication.py,s13b_local_analysis,frozen-cache,53a97034243095da,236,"""$PY"" scripts/window_duplication.py --from-cache || die ""window duplication"""

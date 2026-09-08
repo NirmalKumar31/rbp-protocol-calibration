@@ -31,10 +31,13 @@ sys.path.insert(0, str(ROOT / "scripts"))
 es = pytest.importorskip("external_sensitivity")
 
 
+WIN = 101
+
+
 def _arm(chroms, starts, labels, strands=None):
     n = len(chroms)
     return pd.DataFrame({
-        "chrom": chroms, "start": starts, "label": labels,
+        "chrom": chroms, "start": starts, "end": [s + WIN for s in starts], "label": labels,
         "strand": strands if strands is not None else ["+"] * n,
         "seq_rna": ["ACGU" * 5] * n, "fold": [i % 5 for i in range(n)]})
 
@@ -155,3 +158,20 @@ def test_the_deposit_reader_returns_strand():
     assert '"strand": strand' in src, (
         "windows() no longer returns strand. external_sensitivity.py then has no strand to "
         "use, and a same-strand statistic without strand is a different statistic")
+
+
+def test_a_missing_identity_column_is_an_error_not_a_weaker_check():
+    """`end` and `strand` are REQUIRED, not used-if-present.
+
+    The first version of the multiset comparison composed its key from whichever of `end` and
+    `strand` happened to exist. A caller that stopped supplying one would then get a silently
+    weaker check rather than a failure, which is the same shape as the "+"-for-every-strand
+    fallback that produced the mislabelled leakage number.
+    """
+    pos = [(f"chr{1 + i % 6}", i * 1000) for i in range(60)]
+    for drop in ("end", "strand"):
+        arms = _two_arms(pos, [("chr1", 1)], [("chr1", 2)])
+        arms = {k: v.drop(columns=[drop]) for k, v in arms.items()}
+        with pytest.raises(SystemExit) as e:
+            es.shared_map(arms)
+        assert drop in str(e.value), f"the error should name the missing column, got {e.value}"

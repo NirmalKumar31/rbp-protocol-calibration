@@ -1295,16 +1295,21 @@ The first varies the class ratio. Every nested fit here is estimated at one nega
 positive, and a genome-wide screen faces a far smaller positive fraction; AUROC is invariant to
 prevalence but the fitted logistic is not, and the estimand is a difference between two fits.
 Subsampling within fold to 1:2, 1:4 and 2:1 leaves the arm ordering intact in all four
-conditions including the control, and the span is $5.42$, $5.81$, $6.10$ and $6.04$
+conditions including the control, and the span is $5.42$, $5.86$, $6.16$ and $5.68$
 respectively. The 1:1 condition recomputes the published two-stage span through an independent
 code path and lands within $2\times10^{-4}$ of it, which is what makes the other three readable.
 The span therefore widens rather than collapses as the positive fraction falls.
 
-Three qualifications, one of them a correction. The positives kept at each ratio are chosen by a
-hash of the window's own coordinates rather than by a random draw over row indices, so a
-positive present in two arms is retained in both; an earlier version drew independently per arm,
-which varied the positive realisation alongside the negative protocol and changed these spans by
-up to $0.35$ fold units. The sparser ratios are still reached by cutting positives, so they also
+Three qualifications, one of them a correction, and the first is the important one. These are
+one subsample draw and the spans are sensitive to which draw it is. The positives kept at each
+ratio are chosen by a hash of the window's own identity rather than by a random draw over row
+indices, so a positive present in two arms is retained in both; an earlier version drew
+independently per arm, which varied the positive realisation alongside the negative protocol.
+Correcting that, and then correcting the identity from \texttt{chrom:start} to the full
+\texttt{chrom:start:end:strand}, moved individual spans by up to $0.37$ fold units without ever
+disturbing the $1{:}1$ control or the ordering. \textbf{The finding here is the ordering and
+the direction, not the magnitude}: a single subsample carries draw variability of roughly four
+tenths of a fold unit, which is larger than the differences between the ratios themselves. The sparser ratios are still reached by cutting positives, so they also
 shrink the dataset and this design cannot separate size from balance. And 15 of 282 dataset-arm
 cells are dropped at 1:4, where a fold would hold fewer than 20 rows of a class, leaving 89 of
 94 datasets present in all three arms; every figure at that ratio is computed on those 89. No

@@ -2161,7 +2161,8 @@ def verify_window_duplication(T, g):
     # number that cannot fail.
     for arm, want in (("gc", spec["gc_duplicate_rows"]),
                       ("dinuc", spec["dinuc_duplicate_rows"]),
-                      ("neg2", spec["neg2_duplicate_rows"])):
+                      ("neg2", spec["neg2_duplicate_rows"]),
+                      ("neg2_rm", spec["neg2_rm_duplicate_rows"])):
         v = val(f"duplicate window rows, {arm} arm")
         if v is not None:
             record(int(v) == want, f"duplicate rows, {arm} arm", int(v), want)
@@ -2179,6 +2180,17 @@ def verify_window_duplication(T, g):
     if ml is not None:
         record(int(ml) == spec["mixed_label"],
                "NO window is both a positive and a negative", int(ml), spec["mixed_label"])
+
+    # The invariant the class-ratio subsampler's negative ranking depends on: where a
+    # coordinate repeats, the rows must be interchangeable in everything a model reads.
+    ident = val("duplicate groups whose rows are IDENTICAL in seq_rna, label and fold")
+    if ident is not None:
+        record(int(ident) == spec["dup_groups_identical"],
+               "every duplicate group is internally identical, so which copy is kept cannot "
+               "change the data", int(ident), spec["dup_groups_identical"])
+        record(int(ident) == spec["dup_groups"],
+               "and that is ALL of them, not a subset", f"{int(ident)} of {spec['dup_groups']}",
+               f"{spec['dup_groups']} of {spec['dup_groups']}")
 
 
 def verify_external_sensitivity(T, g):

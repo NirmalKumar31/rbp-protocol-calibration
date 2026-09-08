@@ -251,7 +251,7 @@ linear predictors on identical rows and folds. The model-score column is the out
 for every row, training rows included, so the nested model is never fitted on an in-sample
 score. Had it been, the fitted and the evaluated covariate would sit on different scales, and
 the mismatch would grow with how much the underlying model overfits. That differs sharply
-between a 256-column penalised logistic and a fully fine-tuned transformer. 
+between a 256-column penalised logistic and a fully fine-tuned transformer.
 
 \subsubsection*{The estimands, stated}
 
@@ -473,18 +473,23 @@ one quantity the verification harness cannot check from released evidence, becau
 genomic coordinates that the published per-window score files do not carry.
 
 A paper about how negative sets are built should say whether its own repeat a window, and
-ours do, rarely. Scanning every committed window table, no window appears twice in the
-GC-matched arm; fourteen rows out of $1{,}797{,}046$ do in the dinucleotide arm, across eleven
-datasets, and three hundred out of $913{,}468$ do in the bias-aware arm, across forty-six. The
-forty-fold difference is mechanical rather than a fault in one arm: bias-aware negatives are
-drawn from a finite pool of other proteins' binding sites, so the same window can be selected
-twice for one dataset, while the composition-matched arms sample free genomic intervals. What
-matters is the kind rather than the count, and both dangerous kinds are absent. \textbf{No
-duplicated window straddles a fold boundary in any arm}, so none reaches held-out evaluation
-through a training copy, and no duplicated window carries conflicting labels. The effect is that
-one negative is double-weighted within one fold of one dataset, at a worst-arm rate of
-$3.3\times10^{-4}$. We report it rather than remove it: the correction is far below the
-precision anything here is quoted to, and removing it would alter committed evidence.
+ours do, rarely. Scanning all four committed arms, no window appears twice in the GC-matched
+arm; fourteen rows of $1{,}797{,}046$ do in the dinucleotide arm across eleven datasets, three
+hundred of $913{,}468$ in the bias-aware arm across forty-six, and $724$ of $913{,}468$ in the
+region-matched bias-aware arm across fifty-four. The gradient is mechanical rather than a fault
+in one arm, and it tracks how constrained the pool is: the composition-matched arms draw from
+free genomic intervals, the bias-aware arm from the finite set of other proteins' binding sites,
+and the region-matched variant from that set further restricted to a matching transcript region,
+so the same window can be drawn twice.
+
+What matters is the kind rather than the count, and every dangerous kind is absent.
+\textbf{No duplicated window straddles a fold boundary in any arm}, so none reaches held-out
+evaluation through a training copy; none carries conflicting labels; and all $1{,}020$
+duplicate groups are internally identical in sequence, label and fold, so which copy any
+subsample retains cannot change the data. The effect is that one negative is double-weighted
+within one fold of one dataset, at a worst-arm rate of $7.9\times10^{-4}$. We report it rather
+than remove it: the correction is far below the precision anything here is quoted to, and
+removing it would alter committed evidence.
 
 \subsection{The negative-set survey}
 
@@ -516,7 +521,7 @@ had previously made from assumption rather than from reading, which is recorded 
 
 Every published value is regression-checked offline by a single command against committed
 evidence, which is a different and weaker claim than rebuilding it from raw inputs. The
-harness runs 1153 numeric assertions against a frozen expectations file, and the harness asserts
+harness runs 1156 numeric assertions against a frozen expectations file, and the harness asserts
 that no
 fewer than that number ran, so a check cannot silently skip. Two assertions are
 stronger than regression gates: 285 published AUROCs are rebuilt from committed per-example

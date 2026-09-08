@@ -1,4 +1,5 @@
-arm,datasets,rows,duplicate_rows,datasets_affected,cross_fold,mixed_label
-gc,187,1792050,0,0,0,0
-dinuc,187,1797046,14,11,0,0
-neg2,94,913468,300,46,0,0
+arm,datasets,rows,duplicate_rows,datasets_affected,cross_fold,mixed_label,dup_groups,dup_groups_identical
+gc,187,1792050,0,0,0,0,0,0
+dinuc,187,1797046,14,11,0,0,7,7
+neg2,94,913468,300,46,0,0,299,299
+neg2_rm,94,913468,724,54,0,0,714,714

@@ -5,6 +5,9 @@ check,value,ci_low,ci_high,n,note
 "duplicate rate, dinuc arm",7.790562957208663e-06,,,1797046,duplicate rows over total rows
 "duplicate window rows, neg2 arm",300.0,,,913468,46 of 94 datasets affected
 "duplicate rate, neg2 arm",0.00032841872950119765,,,913468,duplicate rows over total rows
-duplicate windows that straddle a fold boundary,0.0,,,4502564,a window in two folds would put the same sequence in training and in held-out evaluation; this is the number that must be zero
-duplicate windows carrying conflicting labels,0.0,,,4502564,the same window as both a positive and a negative; must be zero
-worst duplicate rate across arms,0.00032841872950119765,,,4502564,"the bias-aware arm draws from a finite pool of other proteins' sites, so it repeats where the others do not"
+"duplicate window rows, neg2_rm arm",724.0,,,913468,54 of 94 datasets affected
+"duplicate rate, neg2_rm arm",0.0007925838671962236,,,913468,duplicate rows over total rows
+duplicate windows that straddle a fold boundary,0.0,,,5416032,a window in two folds would put the same sequence in training and in held-out evaluation; this is the number that must be zero
+duplicate windows carrying conflicting labels,0.0,,,5416032,the same window as both a positive and a negative; must be zero
+"duplicate groups whose rows are IDENTICAL in seq_rna, label and fold",1020.0,,,1020,"if every duplicate group is internally identical then which copy a subsampler keeps is immaterial, and selection stays shuffle-invariant in content. Measured because the class-ratio ranking relies on it"
+worst duplicate rate across arms,0.0007925838671962236,,,5416032,"the bias-aware arm draws from a finite pool of other proteins' sites, so it repeats where the others do not"

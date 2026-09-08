@@ -114,9 +114,30 @@ def shared_map(arms):
     """
     tags = sorted(arms)
     pos = {t: arms[t][arms[t].label == 1] for t in tags}
-    keys = {t: set(zip(pos[t].chrom, pos[t].start)) for t in tags}
-    if len({frozenset(v) for v in keys.values()}) != 1:
-        sys.exit("the two arms do not share a positive set, so no arm-invariant map exists")
+
+    IDENTITY = ("chrom", "start", "end", "strand")
+
+    def _key(d):
+        """A sorted MULTISET over the full window identity.
+
+        Comparing SETS of (chrom, start) would ignore strand, ignore the end coordinate and
+        ignore multiplicity, so two arms differing in any of those would still pass the check
+        this assertion exists to make.
+
+        The four columns are REQUIRED, not taken if present. An earlier version composed the
+        key from whichever of `end` and `strand` happened to exist, which means a caller that
+        stops supplying one gets a silently weaker check instead of an error: the same failure
+        shape as the "+"-for-every-strand fallback this whole correction exists to undo.
+        """
+        missing = [c for c in IDENTITY if c not in d.columns]
+        if missing:
+            sys.exit(f"the window table is missing {missing}, so a full window identity cannot "
+                     "be built. This check is not allowed to degrade silently")
+        return sorted(map(tuple, d[list(IDENTITY)].astype(str).to_numpy().tolist()))
+
+    if len({tuple(_key(pos[t])) for t in tags}) != 1:
+        sys.exit("the two arms do not share an identical positive multiset, so no "
+                 "arm-invariant map exists")
 
     base = chrom_folds(pos[tags[0]].chrom.values)
     if base is None:

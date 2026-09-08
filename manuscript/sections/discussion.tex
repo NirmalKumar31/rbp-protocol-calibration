@@ -209,8 +209,10 @@ influence. The class ratio is 1:1 in every arm, one negative per positive, where
 faces a far smaller positive fraction. AUROC is invariant to prevalence, and the reported
 quantities are not biased by this. The nested fit is nonetheless estimated at a balance no
 application sees, and a precision-based estimand would move. That parameter is now varied
-rather than only noted: the ordering holds at 1:2, 1:4 and 2:1, and the span widens to $6.10$
-at 1:4 rather than collapsing (Section~\ref{sec:sensitivity}). The window is 101~nt throughout, and window
+rather than only noted: the ordering holds at 1:2, 1:4 and 2:1, and the span widens to $6.16$
+at 1:4 rather than collapsing, though one subsample draw carries about four tenths of a fold
+unit of variability and the ordering rather than the magnitude is what transfers
+(Section~\ref{sec:sensitivity}). The window is 101~nt throughout, and window
 length is precisely the resource the composition baseline spends. A longer window gives
 mononucleotide and dinucleotide frequencies more sequence to estimate from, which should raise
 the baseline and shrink the contribution in every arm, though not necessarily by the same
@@ -393,7 +395,7 @@ affects a matching covariate and not an outcome, and it is the same annotation f
 classes in the two arms that match on it.
 
 The verification harness needs describing precisely, because its headline number invites more
-credit than it earns. Its 1153 assertions compare each published value against a frozen
+credit than it earns. Its 1156 assertions compare each published value against a frozen
 expectations file generated from the same run those values come from, so they are regression
 coverage: they detect drift, corruption and silently skipped checks, and cannot confirm that the
 original run was correct. Two assertions do more, and they are the reproducibility claim worth
@@ -405,7 +407,7 @@ Everything downstream of the neural scores is bit-reproducible; the scores thems
 because initialisation was unseeded, so a rerun gives slightly different scores and then
 identical numbers from every step after them. The harness asserts values, not the provenance of
 the code producing them, and the fold-partition defect above is exactly the class that
-distinction permits: it was found by inspection and by none of the 1153 assertions, as was the
+distinction permits: it was found by inspection and by none of the 1156 assertions, as was the
 region asymmetry of Section~\ref{sec:region}.
 
 The manuscript audit traces the numbers in this text, decimals and bare counts alike, to a

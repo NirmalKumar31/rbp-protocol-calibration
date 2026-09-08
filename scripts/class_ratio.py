@@ -55,15 +55,60 @@ MIN_PER_FOLD = 20            # rows of EITHER class below which a fold is not an
 K = 4
 
 
-def _rank(ids, dataset, label, salt):
-    """A deterministic order over rows, keyed on the WINDOW rather than on its row index.
+IDENTITY = ("chrom", "start", "end", "strand")
 
-    This is what makes the positive subsample arm-invariant. Ranking by a hash of the window's
-    own identity means a positive present in two arms gets the same rank in both, so the
-    retained positives coincide wherever the positive sets do.
+
+def window_ids(d):
+    """The full window identity per row: chrom:start:end:strand.
+
+    `chrom:start` alone is NOT a window. Two records can share a start and differ in end or
+    strand, which happens in 2 of 40 datasets sampled, and ranking on a coarse key would treat
+    two distinct windows as one identity.
     """
+    missing = [c for c in IDENTITY if c not in d.columns]
+    if missing:
+        sys.exit(f"the window table is missing {missing}; a window identity needs all four")
+    return (d.chrom.astype(str) + ":" + d.start.astype(str) + ":"
+            + d.end.astype(str) + ":" + d.strand.astype(str)).values
+
+
+def _rank(ids, dataset, label, salt, require_unique):
+    """A deterministic total order over rows, keyed on the WINDOW, not on its row index.
+
+    This is what makes the positive subsample arm-invariant: a positive present in two arms
+    gets the same rank in both, so the retained positives coincide wherever the positive sets
+    do, and the arm comparison varies only the negative protocol.
+
+    Uniqueness is required of positives and not of negatives, and that is a fact about the data
+    rather than a convenience. Measured over every committed window table, duplicate positives
+    on the full identity number ZERO in all three arms, while duplicate negatives number 7 in
+    the dinucleotide arm and 300 in the bias-aware arm, whose negatives are drawn from a finite
+    pool of other proteins' sites and can repeat. So positives assert uniqueness, because a
+    duplicate there would make the ranking ambiguous exactly where arm-invariance depends on
+    it. Negatives get a stable occurrence index appended, assigned in canonical key order, so
+    the order is total even with exact duplicates. Which physical copy is chosen does not
+    matter: the rows are identical, so the resulting subsample has identical content.
+    """
+    ids = np.asarray(ids)
+    if require_unique:
+        u, c = np.unique(ids, return_counts=True)
+        dup = u[c > 1]
+        if len(dup):
+            sys.exit(f"{dataset}: {len(dup)} duplicated positive window identities "
+                     f"(e.g. {dup[0]}). Positives must be unique for the ranking to be a "
+                     "function of the window; fix the table rather than the ranking")
+        keyed = ids
+    else:
+        seen = {}
+        occ = np.empty(len(ids), dtype=int)
+        for j in np.argsort(ids, kind="stable"):       # canonical, so shuffling cannot change it
+            k = ids[j]
+            occ[j] = seen.get(k, 0)
+            seen[k] = occ[j] + 1
+        keyed = np.array([f"{i}#{o}" for i, o in zip(ids, occ)])
     return np.argsort([hashlib.sha256(
-        f"{SEED}|{dataset}|{label}|{salt}|{i}".encode()).hexdigest() for i in ids])
+        f"{SEED}|{dataset}|{label}|{salt}|{k}".encode()).hexdigest() for k in keyed],
+        kind="stable")
 
 
 def subsample(ids, y, folds, ratio, dataset, arm, label):
@@ -94,8 +139,8 @@ def subsample(ids, y, folds, ratio, dataset, arm, label):
         want_pos, want_neg = min(want_pos, len(pos)), min(want_neg, len(neg))
         if want_pos < MIN_PER_FOLD or want_neg < MIN_PER_FOLD:
             return None
-        keep[pos[_rank(ids[pos], dataset, label, "pos")[:want_pos]]] = True
-        keep[neg[_rank(ids[neg], dataset, label, f"neg|{arm}")[:want_neg]]] = True
+        keep[pos[_rank(ids[pos], dataset, label, "pos", True)[:want_pos]]] = True
+        keep[neg[_rank(ids[neg], dataset, label, f"neg|{arm}", False)[:want_neg]]] = True
     return keep
 
 
@@ -114,7 +159,7 @@ def build(store, limit=0):
                 break
             d = pd.read_csv(f, sep="\t")
             seqs, y, folds = d.seq_rna.values, d.label.values, d.fold.values
-            ids = (d.chrom.astype(str) + ":" + d.start.astype(str)).values
+            ids = window_ids(d)
             for lab, ratio in RATIOS:
                 m = subsample(ids, y, folds, ratio, ds, arm, lab)
                 if m is None:

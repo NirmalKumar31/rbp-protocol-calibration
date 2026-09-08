@@ -218,8 +218,18 @@ FACTS = {
         # assertions" in three files and "937 checks" in a fourth, all of which a reader
         # acts on exactly as if they said "numeric assertions".
         r"(\d{3,4})\s+\w*\s*assertions",
-        r"All (\d{3,4}) verification checks",
+        # "checks" is NOT required after either form. README states the count as a bare
+        # comment, `# 1153/1153`, and ZENODO.md wraps "All 1153 verification" onto the next
+        # line, so both escaped --fix and had to be hand-edited on three consecutive rounds.
+        # A syncing tool that cannot reach a claim makes that claim the one that goes stale.
+        r"All (\d{3,4}) verification",
         r"(\d{3,4})/\d{3,4} checks",
+        r"#\s*(\d{3,4})/\d{3,4}\b",
+        # BOTH SIDES of an N/N pair. Capturing only the left one rewrote "# 1153/1153" to
+        # "# 1156/1153", which is worse than leaving it alone: a self-contradicting line that
+        # still looks synced. The offsets differ so the positional fixer handles both.
+        r"#\s*\d{3,4}/(\d{3,4})\b",
+        r"\d{3,4}/(\d{3,4}) checks",
         r"one command, (\d{3,4}) checks",
     ]),
     "abstract words": (abstract_words, [

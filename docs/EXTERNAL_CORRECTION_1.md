@@ -81,7 +81,7 @@ estimator and fold combination and gated.
 |---|---:|---|
 | supplied folds, two-stage | 1.6912 | 1.4121 to 2.0264 |
 | supplied folds, cross-fitted | 1.6640 | 1.3993 to 1.9837 |
-| chromosome-blocked, two-stage | **1.7428** | 1.4412 to 2.1218 | 
+| chromosome-blocked, two-stage | **1.7428** | 1.4412 to 2.1218 |
 | chromosome-blocked, cross-fitted | **1.6822** | 1.4087 to 2.0200 |
 | cross-fold near-neighbour, supplied folds | **0.003558** | strand-agnostic, mislabelled |
 

@@ -1,28 +1,28 @@
 check,value,ci_low,ci_high,n,note
 datasets analysed,135,,,135,Horlacher ENCODE datasets absent from our 95-dataset panel
-"directional R, supplied folds, two-stage (the published analysis, recomputed)",1.6911878750894382,1.4121465313386727,2.0263515105020926,135,point >= 1.5 and lower bound >= 1.2
+"directional R, supplied folds, two-stage (the published analysis, recomputed)",1.6911878750894371,1.4121465313386723,2.02635151050209,135,point >= 1.5 and lower bound >= 1.2
 "verdict, supplied_2s",supports,,,135,amendment decision rule: supports/weak/fails/indeterminate
-"panel mean negative-1, supplied_2s",0.03594893812470927,,,135,
-"panel mean negative-2, supplied_2s",0.021256620068192077,,,135,
-"no-shared-protein R, supplied folds, two-stage (the published analysis, recomputed)",1.6603377025580446,1.3308776903031225,2.0737444226597628,104,every protein appearing in our panel excluded; point >= 1.5 and lower bound >= 1.2
+"panel mean negative-1, supplied_2s",0.03594893812470931,,,135,
+"panel mean negative-2, supplied_2s",0.021256620068192116,,,135,
+"no-shared-protein R, supplied folds, two-stage (the published analysis, recomputed)",1.6603377025580432,1.330877690303122,2.073744422659761,104,every protein appearing in our panel excluded; point >= 1.5 and lower bound >= 1.2
 "no-shared-protein verdict, supplied_2s",supports,,,104,
-"directional R, supplied folds, CROSS-FITTED (D3: like-for-like with our primary)",1.663961447452119,1.3993344251035527,1.9837136770301067,135,point >= 1.5 and lower bound >= 1.2
+"directional R, supplied folds, CROSS-FITTED (D3: like-for-like with our primary)",1.663961447452117,1.3993344251035524,1.983713677030105,135,point >= 1.5 and lower bound >= 1.2
 "verdict, supplied_cf",supports,,,135,amendment decision rule: supports/weak/fails/indeterminate
-"panel mean negative-1, supplied_cf",0.03707263425070986,,,135,
-"panel mean negative-2, supplied_cf",0.022279743504560155,,,135,
-"no-shared-protein R, supplied folds, CROSS-FITTED (D3: like-for-like with our primary)",1.6364731761456042,1.3241483516213077,2.0256358462682234,104,every protein appearing in our panel excluded; point >= 1.5 and lower bound >= 1.2
+"panel mean negative-1, supplied_cf",0.0370726342507099,,,135,
+"panel mean negative-2, supplied_cf",0.022279743504560204,,,135,
+"no-shared-protein R, supplied folds, CROSS-FITTED (D3: like-for-like with our primary)",1.6364731761456026,1.324148351621307,2.025635846268221,104,every protein appearing in our panel excluded; point >= 1.5 and lower bound >= 1.2
 "no-shared-protein verdict, supplied_cf",supports,,,104,
-"directional R, chromosome-blocked folds, two-stage (D2: the literal criterion)",1.7308369039977862,1.4341782821479985,2.0985798517608103,135,point >= 1.5 and lower bound >= 1.2
+"directional R, chromosome-blocked folds, two-stage (D2: the literal criterion)",1.730836903997785,1.4341782821479976,2.098579851760807,135,point >= 1.5 and lower bound >= 1.2
 "verdict, chrom_2s",supports,,,135,amendment decision rule: supports/weak/fails/indeterminate
-"panel mean negative-1, chrom_2s",0.03584365658964524,,,135,
-"panel mean negative-2, chrom_2s",0.02070885853361206,,,135,
-"no-shared-protein R, chromosome-blocked folds, two-stage (D2: the literal criterion)",1.7047399667509122,1.3522238769768002,2.1576465919189647,104,every protein appearing in our panel excluded; point >= 1.5 and lower bound >= 1.2
+"panel mean negative-1, chrom_2s",0.03584365658964529,,,135,
+"panel mean negative-2, chrom_2s",0.02070885853361211,,,135,
+"no-shared-protein R, chromosome-blocked folds, two-stage (D2: the literal criterion)",1.7047399667509107,1.3522238769767998,2.1576465919189625,104,every protein appearing in our panel excluded; point >= 1.5 and lower bound >= 1.2
 "no-shared-protein verdict, chrom_2s",supports,,,104,
-"directional R, chromosome-blocked folds, cross-fitted (D2 and D3 together)",1.67047549055396,1.4004514345359471,1.997446809134051,135,point >= 1.5 and lower bound >= 1.2
+"directional R, chromosome-blocked folds, cross-fitted (D2 and D3 together)",1.670475490553959,1.4004514345359471,1.9974468091340494,135,point >= 1.5 and lower bound >= 1.2
 "verdict, chrom_cf",supports,,,135,amendment decision rule: supports/weak/fails/indeterminate
-"panel mean negative-1, chrom_cf",0.037556001275018784,,,135,
-"panel mean negative-2, chrom_cf",0.0224822222698787,,,135,
-"no-shared-protein R, chromosome-blocked folds, cross-fitted (D2 and D3 together)",1.6462259834754733,1.324054668906495,2.0492841796188017,104,every protein appearing in our panel excluded; point >= 1.5 and lower bound >= 1.2
+"panel mean negative-1, chrom_cf",0.03755600127501883,,,135,
+"panel mean negative-2, chrom_cf",0.022482222269878744,,,135,
+"no-shared-protein R, chromosome-blocked folds, cross-fitted (D2 and D3 together)",1.6462259834754727,1.3240546689064947,2.0492841796188004,104,every protein appearing in our panel excluded; point >= 1.5 and lower bound >= 1.2
 "no-shared-protein verdict, chrom_cf",supports,,,104,
 datasets where BOTH arms share one identical chromosome map,135,,,135,"the property the first version did not have, and the gate did not check: the fold partition must be held FIXED while the negative construction varies"
 datasets whose every chromosome falls in exactly one fold,135,,,135,"must equal the count with a chromosome partition, or the refold is broken"
@@ -30,7 +30,7 @@ datasets whose every chromosome falls in exactly one fold,135,,,135,"must equal 
 "cross-fold same-strand neighbour fraction, chromosome-blocked folds, negative-2",0.0,,,1834873,"0 of 1834873. DENOMINATOR: windows, positives and negative-2 negatives together, that HAVE an eligible same-strand neighbour within 1 kb. Not all windows, and not positives only, which is what external_replication.fold_blocking counts"
 "cross-fold same-strand neighbour fraction, their supplied folds, negative-1",0.000145084028347567,,,1619751,"235 of 1619751. DENOMINATOR: windows, positives and negative-1 negatives together, that HAVE an eligible same-strand neighbour within 1 kb. Not all windows, and not positives only, which is what external_replication.fold_blocking counts"
 "cross-fold same-strand neighbour fraction, their supplied folds, negative-2",0.0005215619827639297,,,1834873,"957 of 1834873. DENOMINATOR: windows, positives and negative-2 negatives together, that HAVE an eligible same-strand neighbour within 1 kb. Not all windows, and not positives only, which is what external_replication.fold_blocking counts"
-fraction of windows on the minus strand,0.4882021211101728,,,135,"near a half, which is why discarding strand changed the answer"
+fraction of windows on the minus strand,0.4882021211101729,,,135,"near a half, which is why discarding strand changed the answer"
 "datasets excluded, no_chrom_folds",0,,,135,reported rather than dropped silently
 "datasets excluded, fold_class",0,,,135,reported rather than dropped silently
 "datasets excluded, no_build",0,,,135,reported rather than dropped silently

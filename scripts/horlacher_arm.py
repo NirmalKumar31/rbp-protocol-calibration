@@ -83,7 +83,7 @@ def windows(fa, bed, label):
         # rate. A same-strand statistic computed without strand is not a weaker measurement,
         # it is a different one.
         out.append({"seq_rna": seq.replace("T", "U"), "label": label,
-                    "chrom": chrom, "start": s, "strand": strand})
+                    "chrom": chrom, "start": s, "end": e, "strand": strand})
     return out
 
 

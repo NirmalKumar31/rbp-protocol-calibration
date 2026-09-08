@@ -2574,9 +2574,17 @@ window_duplication:
   gc_duplicate_rows: 0                  # the composition-matched arm never repeats
   dinuc_duplicate_rows: 14
   neg2_duplicate_rows: 300
-  max_rate: 0.0005                      # observed 3.28e-04, the bias-aware arm
+  neg2_rm_duplicate_rows: 724           # the region-matched arm; a tighter pool, so more repeats
+  max_rate: 0.001                       # observed 7.93e-04, the region-matched arm
   cross_fold: 0                         # a window in two folds is leakage. MUST be zero
   mixed_label: 0                        # the same window positive and negative. MUST be zero
+  # Every duplicate group must be INTERNALLY IDENTICAL in the fields a model consumes. The
+  # class-ratio subsampler ranks negatives by a canonical occurrence index, which is only
+  # legitimate if the copies are interchangeable. Measured: 1020 of 1020 groups agree on
+  # seq_rna, label and fold, none differ. If that ever stops being true the ranking needs
+  # deterministic treatment of those fields and this fails first.
+  dup_groups: 1020
+  dup_groups_identical: 1020
 
 # THE EXTERNAL SENSITIVITIES, SPECIFIED IN docs/EXTERNAL_BENCHMARK_AMENDMENT.md AT 02a2bac
 # BEFORE THE RUN. An audit found three defects in the external claim as applied: the prewritten
