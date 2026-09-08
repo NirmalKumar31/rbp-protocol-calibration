@@ -142,50 +142,50 @@ capacity_ladder_per_dataset.csv,k5_channel_neg2,float,,,24,0,24,-0.00703754,0.00
 capacity_ladder_per_dataset.csv,k6_2s_neg2,float,,,24,0,24,-0.0029887,0.0454328,0.0075283937263385114,,scripts/capacity_ladder.py
 capacity_ladder_per_dataset.csv,k6_cf_neg2,float,,,24,0,24,0.000266093,0.05094,0.00919415900486753,,scripts/capacity_ladder.py
 capacity_ladder_per_dataset.csv,k6_channel_neg2,float,,,24,0,24,-0.00585037,0.00130827,-0.001665765278529019,,scripts/capacity_ladder.py
-class_ratio.csv,check,string,,yes,22,0,22,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/class_ratio.py
-class_ratio.csv,value,float,,,22,0,18,0.00854529,94,94.0,The asserted quantity,scripts/class_ratio.py
-class_ratio.csv,ci_low,empty,,,22,22,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/class_ratio.py
-class_ratio.csv,ci_high,empty,,,22,22,0,,,,Upper bound of the same interval as ci_low,scripts/class_ratio.py
-class_ratio.csv,n,int,count,,22,0,2,89,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/class_ratio.py
-class_ratio.csv,note,string,,,22,12,4,,,"the study panel, all three arms present","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/class_ratio.py
+class_ratio.csv,check,string,,yes,30,0,30,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/class_ratio.py
+class_ratio.csv,value,float,,,30,0,21,0,94,94.0,The asserted quantity,scripts/class_ratio.py
+class_ratio.csv,ci_low,empty,,,30,30,0,,,,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/class_ratio.py
+class_ratio.csv,ci_high,empty,,,30,30,0,,,,Upper bound of the same interval as ci_low,scripts/class_ratio.py
+class_ratio.csv,n,int,count,,30,0,3,89,282,94,"Datasets, or rows, behind the value. Usually 94",scripts/class_ratio.py
+class_ratio.csv,note,string,,,30,0,7,,,"the study panel, all three arms present","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/class_ratio.py
 class_ratio_per_dataset.csv,dataset,string,,yes,94,0,94,,,AATF:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/class_ratio.py
 class_ratio_per_dataset.csv,protein,string,,yes,94,0,79,,,AATF,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/class_ratio.py
 class_ratio_per_dataset.csv,cell,string,,yes,94,0,2,,,K562,K562 or HepG2,scripts/class_ratio.py
 class_ratio_per_dataset.csv,gain_dn_1:1,float,AUROC,,94,0,94,-0.00360316,0.24737,0.0473171704344062,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
 class_ratio_per_dataset.csv,comp_dn_1:1,float,AUROC,,94,0,94,0.525558,0.85047,0.6370929716120938,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_dn_1:1,int,,,94,0,94,860,64774,2162,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_dn_1:2,float,AUROC,,94,0,94,-0.00295576,0.245925,0.034892727860319606,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_dn_1:2,float,AUROC,,94,0,94,0.524348,0.853052,0.6384551854328077,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_dn_1:2,float,AUROC,,94,0,94,-0.00367857,0.245604,0.02518719403031011,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_dn_1:2,float,AUROC,,94,0,94,0.524286,0.851254,0.6502827360850585,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_dn_1:2,int,,,94,0,94,645,48581,1622,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_dn_1:4,float,AUROC,,94,5,89,-0.00430341,0.248738,0.0184365303412517,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_dn_1:4,float,AUROC,,94,5,89,0.51067,0.843875,0.6219162931684821,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_dn_1:4,float,AUROC,,94,5,89,-0.00756636,0.241466,0.029301828633457427,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_dn_1:4,float,AUROC,,94,5,89,0.528315,0.852751,0.6440496874903995,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_dn_1:4,float,,,94,5,89,617,40484,1352.0,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_dn_2:1,float,AUROC,,94,0,94,-0.0049578,0.247351,0.04026189210031783,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_dn_2:1,float,AUROC,,94,0,94,0.517912,0.848747,0.6440654490861307,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_dn_2:1,float,AUROC,,94,0,94,-0.00785738,0.245329,0.019395678335764277,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_dn_2:1,float,AUROC,,94,0,94,0.486548,0.849894,0.636069840173318,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_dn_2:1,int,,,94,0,94,645,48581,1622,,scripts/class_ratio.py
 class_ratio_per_dataset.csv,gain_gc_1:1,float,AUROC,,94,0,94,-0.00739423,0.115115,0.016446216340686992,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
 class_ratio_per_dataset.csv,comp_gc_1:1,float,AUROC,,94,0,94,0.639428,0.966476,0.843218130457444,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_gc_1:1,int,,,94,0,93,860,64768,2086,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_gc_1:2,float,AUROC,,94,0,94,-0.0118291,0.116298,0.015014051612406654,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_gc_1:2,float,AUROC,,94,0,94,0.636416,0.967534,0.8335365149434727,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_gc_1:2,float,AUROC,,94,0,94,-0.00151514,0.112153,0.013725299685236392,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_gc_1:2,float,AUROC,,94,0,94,0.636499,0.964019,0.8479052739835268,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_gc_1:2,int,,,94,0,94,645,48576,1566,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_gc_1:4,float,AUROC,,94,5,89,-0.00288384,0.1079,0.010111027350640067,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_gc_1:4,float,AUROC,,94,5,89,0.624922,0.963776,0.8355594914844876,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_gc_1:4,float,AUROC,,94,5,89,-0.00229447,0.106628,0.009708489164403922,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_gc_1:4,float,AUROC,,94,5,89,0.611588,0.966914,0.8496190524982984,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_gc_1:4,float,,,94,5,89,612,40480,1305.0,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_gc_2:1,float,AUROC,,94,0,94,-0.00241211,0.114811,0.013908621438745605,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_gc_2:1,float,AUROC,,94,0,94,0.634494,0.965887,0.8321047720485657,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_gc_2:1,float,AUROC,,94,0,94,-0.00414815,0.11396,0.016093816740575972,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_gc_2:1,float,AUROC,,94,0,94,0.632595,0.966329,0.8405357394924554,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_gc_2:1,int,,,94,0,94,645,48576,1566,,scripts/class_ratio.py
 class_ratio_per_dataset.csv,gain_neg2_1:1,float,AUROC,,94,0,94,-0.00987378,0.0544948,0.05085080741904435,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
 class_ratio_per_dataset.csv,comp_neg2_1:1,float,AUROC,,94,0,94,0.662467,0.973278,0.7559330385007478,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_neg2_1:1,int,,,94,0,93,860,64768,2086,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_neg2_1:2,float,AUROC,,94,0,94,-0.0145971,0.0528879,0.036273875366872654,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_neg2_1:2,float,AUROC,,94,0,94,0.659028,0.972905,0.7485485500165907,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_neg2_1:2,float,AUROC,,94,0,94,-0.00985244,0.0441869,0.036398534159258644,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_neg2_1:2,float,AUROC,,94,0,94,0.658074,0.973573,0.7657422972782221,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_neg2_1:2,int,,,94,0,94,645,48576,1566,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_neg2_1:4,float,AUROC,,94,5,89,-0.0100249,0.0390379,0.033110595536949394,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_neg2_1:4,float,AUROC,,94,5,89,0.65174,0.973951,0.75890524251096,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_neg2_1:4,float,AUROC,,94,5,89,-0.0076289,0.0400891,0.040089143911061,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_neg2_1:4,float,AUROC,,94,5,89,0.673439,0.974367,0.7456105040509979,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_neg2_1:4,float,,,94,5,89,612,40480,1305.0,,scripts/class_ratio.py
-class_ratio_per_dataset.csv,gain_neg2_2:1,float,AUROC,,94,0,94,-0.0121985,0.0552504,0.04232349323267737,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
-class_ratio_per_dataset.csv,comp_neg2_2:1,float,AUROC,,94,0,94,0.655639,0.972899,0.7587834035150114,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
+class_ratio_per_dataset.csv,gain_neg2_2:1,float,AUROC,,94,0,94,-0.0236648,0.0512109,0.05121093184280534,"Nested contribution in that arm: AUROC(19 composition features + model score) minus AUROC(composition alone), both pooled out of fold. Dimensionless, on [-1, 1]",scripts/class_ratio.py
+class_ratio_per_dataset.csv,comp_neg2_2:1,float,AUROC,,94,0,94,0.666299,0.973189,0.7439178425229472,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/class_ratio.py
 class_ratio_per_dataset.csv,rows_neg2_2:1,int,,,94,0,94,645,48576,1566,,scripts/class_ratio.py
 cluster_intervals.csv,check,string,,yes,18,0,18,,,within_protein_correlation_kmer,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/cluster_intervals.py
 cluster_intervals.csv,quantity,string,,,18,0,5,,,correlation,,scripts/cluster_intervals.py
@@ -689,12 +689,12 @@ external_search.csv,datasets,string,,,7,0,6,,,"223 ENCODE eCLIP, of which 135 ar
 external_search.csv,outcome,string,,,7,0,3,,,QUALIFIES on the disjoint subset,,scripts/external_search.py
 external_search.csv,failed_criterion,string,,,7,2,5,,,"1, independence",,scripts/external_search.py
 external_search.csv,note,string,,,7,0,7,,,The protocol asserted this benchmark rel,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/external_search.py
-external_sensitivity.csv,check,string,,yes,20,0,20,,,datasets analysed,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/external_sensitivity.py
-external_sensitivity.csv,value,string,,,20,0,16,,,135,The asserted quantity,scripts/external_sensitivity.py
-external_sensitivity.csv,ci_low,float,,,20,16,4,1.39933,1.44123,1.4121465313386727,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/external_sensitivity.py
-external_sensitivity.csv,ci_high,float,,,20,16,4,1.98371,2.12177,2.0263515105020926,Upper bound of the same interval as ci_low,scripts/external_sensitivity.py
-external_sensitivity.csv,n,int,count,,20,0,2,135,1623101,135,"Datasets, or rows, behind the value. Usually 94",scripts/external_sensitivity.py
-external_sensitivity.csv,note,string,,,20,8,6,,,Horlacher ENCODE datasets absent from ou,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/external_sensitivity.py
+external_sensitivity.csv,check,string,,yes,35,0,35,,,datasets analysed,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/external_sensitivity.py
+external_sensitivity.csv,value,string,,,35,0,23,,,135,The asserted quantity,scripts/external_sensitivity.py
+external_sensitivity.csv,ci_low,float,,,35,27,8,1.32405,1.43418,1.4121465313386727,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/external_sensitivity.py
+external_sensitivity.csv,ci_high,float,,,35,27,8,1.98371,2.15765,2.0263515105020926,Upper bound of the same interval as ci_low,scripts/external_sensitivity.py
+external_sensitivity.csv,n,int,count,,35,0,4,104,1834873,135,"Datasets, or rows, behind the value. Usually 94",scripts/external_sensitivity.py
+external_sensitivity.csv,note,string,,,35,12,12,,,Horlacher ENCODE datasets absent from ou,"Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/external_sensitivity.py
 external_sensitivity_per_dataset.csv,dataset,string,,yes,135,0,135,,,AARS:K562,PROTEIN:CELL. The primary key of a per-dataset table,scripts/external_sensitivity.py
 external_sensitivity_per_dataset.csv,protein,string,,yes,135,0,108,,,AARS,"ENCODE target. NOT unique: 15 proteins appear in both cell lines, which is why intervals are protein-clustered",scripts/external_sensitivity.py
 external_sensitivity_per_dataset.csv,cell,string,,yes,135,0,2,,,K562,K562 or HepG2,scripts/external_sensitivity.py
@@ -706,17 +706,24 @@ external_sensitivity_per_dataset.csv,supplied_2s_n2,float,,,135,0,135,-0.0031187
 external_sensitivity_per_dataset.csv,supplied_cf_n2,float,,,135,0,135,-0.00609744,0.170741,0.0003905965993750149,,scripts/external_sensitivity.py
 external_sensitivity_per_dataset.csv,comp_n2,float,AUROC,,135,0,135,0.548133,0.972589,0.6847884617781049,"Composition-only pooled out-of-fold AUROC in that arm: 19 features, refit on that arm's own windows and folds",scripts/external_sensitivity.py
 external_sensitivity_per_dataset.csv,n_n2,int,count,,135,0,135,852,39990,6962,"Row count for that arm, which is twice the pair count",scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,chrom_2s_n1,float,,,135,0,135,-0.00394471,0.175513,0.017004857740889334,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,chrom_cf_n1,float,,,135,0,135,-0.00448573,0.176705,0.018945544330980946,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,chrom_comp_n1,float,,,135,0,135,0.58361,0.97597,0.8020578903277702,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,chrom_2s_n2,float,,,135,0,135,-0.000888119,0.17042,-0.0006275293770647838,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,chrom_cf_n2,float,,,135,0,135,-0.00298662,0.171797,-0.0008374760808066428,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,chrom_comp_n2,float,,,135,0,135,0.531942,0.972406,0.6826403867970922,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_2s_n1,float,,,135,0,135,-0.00138228,0.175808,0.01563970900924727,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_cf_n1,float,,,135,0,135,-0.00105529,0.177879,0.017640227108856488,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_comp_n1,float,,,135,0,135,0.580072,0.976006,0.8019526693972392,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_2s_n2,float,,,135,0,135,-0.00263025,0.173653,-0.000636277156387477,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_cf_n2,float,,,135,0,135,-0.00247665,0.175981,-0.0006682973297569283,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_comp_n2,float,,,135,0,135,0.53972,0.972499,0.6796792634964,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,map_identical,int,,,135,0,1,1,1,1,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,map_shared_chroms,int,,,135,0,3,23,25,24,,scripts/external_sensitivity.py
 external_sensitivity_per_dataset.csv,chrom_blocked,int,,,135,0,1,1,1,1,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,chrom_neighbours,int,,,135,0,135,340,26206,3062,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,chrom_cross_fold,int,,,135,0,1,0,0,0,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,supplied_neighbours,int,,,135,0,135,340,26206,3062,,scripts/external_sensitivity.py
-external_sensitivity_per_dataset.csv,supplied_cross_fold,int,,,135,0,62,0,516,2,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_neighbours_n1,int,,,135,0,134,338,26163,3060,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_cross_fold_n1,int,,,135,0,1,0,0,0,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_neighbours_n1,int,,,135,0,134,338,26163,3060,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_cross_fold_n1,int,,,135,0,10,0,16,0,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_neighbours_n2,int,,,135,0,135,303,25316,3001,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,chrom_cross_fold_n2,int,,,135,0,1,0,0,0,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_neighbours_n2,int,,,135,0,135,303,25316,3001,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,supplied_cross_fold_n2,int,,,135,0,22,0,30,0,,scripts/external_sensitivity.py
+external_sensitivity_per_dataset.csv,minus_strand_fraction,float,,,135,0,135,0.45431,0.518956,0.4909508761850043,,scripts/external_sensitivity.py
 fold_integrity.csv,check,string,,yes,29,0,29,,,"score sets audited, gc arm","The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/fold_integrity.py
 fold_integrity.csv,value,float,,,29,0,7,0,188,188.0,The asserted quantity,scripts/fold_integrity.py
 fold_integrity.csv,n,int,count,,29,0,2,0,94,94,"Datasets, or rows, behind the value. Usually 94",scripts/fold_integrity.py
@@ -761,9 +768,9 @@ gene_clustered_cv_per_dataset.csv,comp_gene_dn,float,AUROC,,94,0,94,0.37067,0.85
 gene_clustered_cv_per_dataset.csv,gain_gene_dn,float,AUROC,,94,0,94,-0.00642902,0.248216,0.04939836260152464,Nested contribution under dinucleotide-matched negatives,scripts/gene_clustered_cv.py
 gene_clustered_cv_per_dataset.csv,published_gain_gc,float,,,94,0,94,-0.00739423,0.115115,0.0164462163406869,,scripts/gene_clustered_cv.py
 gene_clustered_cv_per_dataset.csv,published_gain_dn,float,,,94,0,94,-0.00360316,0.24737,0.0480770794164786,,scripts/gene_clustered_cv.py
-history_scan.csv,check,string,,yes,28,0,28,,,commits on HEAD,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/history_scan.py
-history_scan.csv,value,int,,,28,0,7,0,240,230,The asserted quantity,scripts/history_scan.py
-history_scan.csv,note,string,,,28,0,7,,,"as of df7bcf4, which is the commit BEFOR","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/history_scan.py
+history_scan.csv,check,string,,yes,29,0,29,,,commits on HEAD,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/history_scan.py
+history_scan.csv,value,int,,,29,0,8,0,266,256,The asserted quantity,scripts/history_scan.py
+history_scan.csv,note,string,,,29,0,8,,,"as of 865e478, which is the commit BEFOR","Scope, caveat, or the definition of a non-obvious quantity. Empty where there is nothing to say",scripts/history_scan.py
 homology_folds.csv,check,string,,yes,22,0,22,,,datasets,"The asserted quantity, in words. Primary key within the file, and the string scripts/verify.py looks the row up by, so renaming one is a breaking change",scripts/homology_folds.py
 homology_folds.csv,value,float,,,22,0,22,0.00393975,94,94.0,The asserted quantity,scripts/homology_folds.py
 homology_folds.csv,ci_low,float,,,22,7,15,0.00269807,94,94.0,"Lower bound of a 95% interval. Protein-clustered percentile bootstrap, 4000 draws, unless the note says otherwise. Empty where the quantity is a count or a ratio of means and has no resampling distribution",scripts/homology_folds.py

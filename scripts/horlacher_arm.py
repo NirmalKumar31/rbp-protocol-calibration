@@ -77,8 +77,13 @@ def windows(fa, bed, label):
             continue
         if strand == "-":
             seq = seq.translate(COMP)[::-1]
+        # Strand is returned, and it was not. It was read above to reverse-complement the
+        # sequence and then dropped, so external_sensitivity.py fell back to filling every
+        # window with "+" and published a strand-agnostic number as a same-strand leakage
+        # rate. A same-strand statistic computed without strand is not a weaker measurement,
+        # it is a different one.
         out.append({"seq_rna": seq.replace("T", "U"), "label": label,
-                    "chrom": chrom, "start": s})
+                    "chrom": chrom, "start": s, "strand": strand})
     return out
 
 

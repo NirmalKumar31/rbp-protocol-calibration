@@ -2595,9 +2595,17 @@ external_sensitivity:
   max_control_gap: 0.01                 # against external_replication.csv's published span
   # D3: like-for-like with the internal primary 4.84.
   supplied_cf_R: {value: 1.6640, tol: 0.01}
-  # D2: the literal criterion the protocol asked for.
-  chrom_2s_R: {value: 1.7428, tol: 0.01}
-  chrom_cf_R: {value: 1.6822, tol: 0.01}
+  # D2: the literal criterion the protocol asked for. REGENERATED 2026-09-07 after
+  # EXTERNAL_CORRECTION_1.md: the first run gave each arm its own chromosome map, so these were
+  # 1.7428 and 1.6822 and mixed a fold-design difference into the arm comparison. With one
+  # shared map they are 1.7308 and 1.6705, a shift of about 0.012, and both still support.
+  # An independent auditor's own shared-map implementation obtained 1.7281 and 1.6694; close,
+  # and not identical, because their map used the pooled arm windows and this one uses the
+  # positives alone. Exact agreement would have been suspicious.
+  chrom_2s_R: {value: 1.7308, tol: 0.01}
+  chrom_cf_R: {value: 1.6705, tol: 0.01}
+  # The property the first gate did not check.
+  maps_identical: 135
   # Every cell must clear the protocol's own thresholds, and every verdict must be `supports`.
   min_point: 1.5
   min_lower_bound: 1.2
@@ -2605,9 +2613,19 @@ external_sensitivity:
   # The refold must actually deliver the property, on every dataset, and must not INCREASE the
   # channel chromosome blocking is a proxy for.
   chrom_blocked_datasets: 135
-  max_chrom_leakage: 0.0                # observed exactly zero of 1,623,101
-  supplied_leakage: {value: 0.003558, tol: 0.0005}
+  max_chrom_leakage: 0.0                # exactly zero, both arms, after the refold
+  # PER ARM AND WITH STRAND, which the first version had neither of. It filled every strand
+  # with "+" and published 0.003558 as a same-strand rate over one arm. The real minus-strand
+  # fraction is 0.488. These two reproduce an independent BED-level audit exactly, including
+  # its denominators: 235/1,619,751 and 957/1,834,873.
+  supplied_leakage_n1: {value: 0.00014508, tol: 0.00002}
+  supplied_leakage_n2: {value: 0.00052156, tol: 0.00005}
+  min_minus_strand: 0.40                # observed 0.488; a "+"-only fill is not plausible
   max_excluded: 0                       # no dataset was dropped for any reason
+  # P0-4: the no-shared-protein subset, now for every cell rather than the original one only.
+  no_shared_datasets: 104
+  no_shared_min_R: 1.5                  # observed 1.646 to 1.705; all four still support
+  no_shared_cells_supporting: 4
 
 # THE k-MER CAPACITY LADDER, WHICH FALSIFIED A CLAIM THIS PAPER MADE. The Methods argued from
 # two points, k=2 and k=4, that the outer-fold channel grows with base-model capacity, and used
@@ -2641,7 +2659,8 @@ class_ratio:
   min_span: 5.0                               # no ratio may collapse the span
   max_span: 7.5
   orderings_that_hold: 4                      # of four ratios; the claim under test
-  max_excluded: 20                            # dataset-arms lost at the sparsest ratio
+  max_excluded: 20                            # of 282 dataset-arm cells; observed 15 at 1:4
+  min_common_datasets: 85                     # observed 89 of 94 present in all three arms
 
 # THE COMPOSITION-MATCHED ARMS, REDRAWN. `negative_draws` above measures draw-to-draw
 # variability on the bias-aware arm only, on the stated ground that the other two arms need a

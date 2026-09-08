@@ -1,8 +1,8 @@
 check,value
 tables,166
-columns,1750
+columns,1757
 schemas,97
 columns with a definition,1225
-columns without a definition,525
-columns with a producing script,1740
+columns without a definition,532
+columns with a producing script,1747
 columns typed empty,16

@@ -346,8 +346,9 @@ def main():
     verdict = ("supported" if (supported and powered)
                else "fails to replicate" if (failed and powered)
                else "indeterminate")
-    out.append({"check": "protocol verdict for Claim A on an independent sample", "value": 1.0
-                if verdict == "supported" else 0.0, "ci_low": "", "ci_high": "", "n": len(t),
+    out.append({"check": "protocol verdict for Claim A on a dataset-disjoint external sample",
+                "value": 1.0 if verdict == "supported" else 0.0,
+                "ci_low": "", "ci_high": "", "n": len(t),
                 "note": f"{verdict}; criteria fixed in docs/EXTERNAL_BENCHMARK_PROTOCOL.md at "
                         f"commit e76a80c: supported if span > {SUPPORT_SPAN} and CI low > "
                         f"{SUPPORT_CI_LOW}, fails if the interval contains 1.0, indeterminate "

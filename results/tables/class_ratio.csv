@@ -1,23 +1,31 @@
 check,value,ci_low,ci_high,n,note
 datasets,94.0,,,94,"the study panel, all three arms present"
-"panel-mean contribution, dn arm, 1:1",0.06626649987231822,,,94,
-"panel-mean contribution, gc arm, 1:1",0.026513098340627504,,,94,
-"panel-mean contribution, neg2 arm, 1:1",0.012231944163197651,,,94,
-"span, 1:1",5.417495288418237,,,94,"max over min of the three panel means, as in the paper"
+"panel-mean contribution, dn arm, 1:1",0.06626649987231827,,,94,over the datasets retained in ALL THREE arms at this ratio
+"panel-mean contribution, gc arm, 1:1",0.02651309834062755,,,94,over the datasets retained in ALL THREE arms at this ratio
+"panel-mean contribution, neg2 arm, 1:1",0.012231944163197693,,,94,over the datasets retained in ALL THREE arms at this ratio
+"datasets in all three arms, 1:1",94.0,,,94,of 94; the denominator every row at this ratio is computed on
+"span, 1:1",5.4174952884182215,,,94,"max over min of the three panel means, on the common intersection"
 "ordering dn > gc > neg2 holds, 1:1",1.0,,,94,the claim under test; reported whichever way it comes out
-"panel-mean contribution, dn arm, 1:2",0.05985719721719799,,,94,
-"panel-mean contribution, gc arm, 1:2",0.023703743652112745,,,94,
-"panel-mean contribution, neg2 arm, 1:2",0.010509556876074801,,,94,
-"span, 1:2",5.695501525232143,,,94,"max over min of the three panel means, as in the paper"
+"panel-mean contribution, dn arm, 1:2",0.058065064664710696,,,94,over the datasets retained in ALL THREE arms at this ratio
+"panel-mean contribution, gc arm, 1:2",0.02320602799980733,,,94,over the datasets retained in ALL THREE arms at this ratio
+"panel-mean contribution, neg2 arm, 1:2",0.009994318948911772,,,94,over the datasets retained in ALL THREE arms at this ratio
+"datasets in all three arms, 1:2",94.0,,,94,of 94; the denominator every row at this ratio is computed on
+"span, 1:2",5.809807047536049,,,94,"max over min of the three panel means, on the common intersection"
 "ordering dn > gc > neg2 holds, 1:2",1.0,,,94,the claim under test; reported whichever way it comes out
-"panel-mean contribution, dn arm, 1:4",0.0551179034474642,,,89,
-"panel-mean contribution, gc arm, 1:4",0.021536450303682123,,,89,
-"panel-mean contribution, neg2 arm, 1:4",0.00854529283373711,,,89,
-"span, 1:4",6.450089484336549,,,94,"max over min of the three panel means, as in the paper"
-"ordering dn > gc > neg2 holds, 1:4",1.0,,,94,the claim under test; reported whichever way it comes out
-"panel-mean contribution, dn arm, 2:1",0.0617343624510366,,,94,
-"panel-mean contribution, gc arm, 2:1",0.024245546824809595,,,94,
-"panel-mean contribution, neg2 arm, 2:1",0.0106711863701134,,,94,
-"span, 2:1",5.7851451853502365,,,94,"max over min of the three panel means, as in the paper"
+"panel-mean contribution, dn arm, 1:4",0.053207303133122316,,,89,over the datasets retained in ALL THREE arms at this ratio
+"panel-mean contribution, gc arm, 1:4",0.021436814084192117,,,89,over the datasets retained in ALL THREE arms at this ratio
+"panel-mean contribution, neg2 arm, 1:4",0.00872656791770756,,,89,over the datasets retained in ALL THREE arms at this ratio
+"datasets in all three arms, 1:4",89.0,,,94,of 94; the denominator every row at this ratio is computed on
+"span, 1:4",6.097162554038735,,,89,"max over min of the three panel means, on the common intersection"
+"ordering dn > gc > neg2 holds, 1:4",1.0,,,89,the claim under test; reported whichever way it comes out
+"panel-mean contribution, dn arm, 2:1",0.060047460652651236,,,94,over the datasets retained in ALL THREE arms at this ratio
+"panel-mean contribution, gc arm, 2:1",0.024428174871062847,,,94,over the datasets retained in ALL THREE arms at this ratio
+"panel-mean contribution, neg2 arm, 2:1",0.00993701524912238,,,94,over the datasets retained in ALL THREE arms at this ratio
+"datasets in all three arms, 2:1",94.0,,,94,of 94; the denominator every row at this ratio is computed on
+"span, 2:1",6.042806531664981,,,94,"max over min of the three panel means, on the common intersection"
 "ordering dn > gc > neg2 holds, 2:1",1.0,,,94,the claim under test; reported whichever way it comes out
-span at the published 1:1 balance,5.417495288418237,,,94,the control: this is the arm ordering and span the paper reports
+span at the published 1:1 balance,5.4174952884182215,,,94,the control: this is the arm ordering and span the paper reports
+"dataset-arms excluded, 1:1",0.0,,,282,of 282 dataset-arm cells at this ratio (94 datasets x 3 arms); a fold would hold under 20 rows of one class
+"dataset-arms excluded, 1:2",0.0,,,282,of 282 dataset-arm cells at this ratio (94 datasets x 3 arms); a fold would hold under 20 rows of one class
+"dataset-arms excluded, 1:4",15.0,,,282,of 282 dataset-arm cells at this ratio (94 datasets x 3 arms); a fold would hold under 20 rows of one class
+"dataset-arms excluded, 2:1",0.0,,,282,of 282 dataset-arm cells at this ratio (94 datasets x 3 arms); a fold would hold under 20 rows of one class

@@ -1111,7 +1111,7 @@ bias-aware   & $+0.0130$ & $+0.0339$ & $+0.0122$ \\
 \end{tabular}
 \end{table}
 
-\subsection{The protocol effect replicates on 135 datasets this study never analysed}
+\subsection{The protocol effect holds on 135 datasets outside our panel, unscored before this analysis}
 \label{sec:external}
 
 Everything above is measured on windows we built, with negatives our own matcher drew. The
@@ -1123,10 +1123,11 @@ negatives and their five-fold partition; our estimator, our 19-column compositio
 our 4-mer, transported unchanged.
 
 Two properties of that transport are load-bearing and neither was stated before an audit asked.
-The estimator transported is the \emph{two-stage} one, so the external span is comparable with
-the 5.42-fold two-stage figure and, since the amendment, also with the 4.84-fold cross-fitted primary; cross-fitting
-the external arms is affordable and simply has not been run. And their fold partition is not
-chromosome-blocked: every chromosome appears in every fold, in all 135 datasets. Chromosome
+The estimator transported here is the \emph{two-stage} one, so this figure is comparable with
+the 5.42-fold two-stage result. Both properties were repaired after an audit and both repairs
+are reported below: the cross-fitted external analysis makes the comparison like-for-like with
+the primary 4.84, and their fold partition is not chromosome-blocked, every chromosome appearing
+in every fold in all 135 datasets, so we rebuilt it. Chromosome
 grouping is a coarse instrument for one channel, a held-out window sharing sequence with a
 training window, and the direct metric for that channel is the fraction of positives whose
 same-strand neighbour within 1 kb sits in a different fold. On their coordinates that is
@@ -1172,7 +1173,9 @@ defects were addressed by running the analyses they ask for.
 \begin{table}[htbp]
 \centering
 \caption{The external analysis under both estimators and both fold partitions. All four cells
-meet thresholds fixed before any of them was computed. The first row is the published analysis
+meet the numerical thresholds fixed in the original protocol, before the 135-dataset
+complement was scored. The directional estimand and the two repairs were specified afterwards,
+in a dated amendment, and before those two cells were computed. The first row is the published analysis
 recomputed, and reproduces it to $2\times10^{-16}$, which is what makes the other three
 readable. Intervals are 95\% protein-clustered percentile bootstraps over 4000 draws, seed
 fixed in the amendment.}
@@ -1183,8 +1186,8 @@ folds & estimator & $R$ (95\% CI) & verdict \\
 \midrule
 supplied & two-stage & 1.69 (1.41--2.03) & supports \\
 supplied & cross-fitted & 1.66 (1.40--1.98) & supports \\
-chromosome-blocked & two-stage & 1.74 (1.44--2.12) & supports \\
-chromosome-blocked & cross-fitted & 1.68 (1.41--2.02) & supports \\
+chromosome-blocked & two-stage & 1.73 (1.43--2.10) & supports \\
+chromosome-blocked & cross-fitted & 1.67 (1.40--2.00) & supports \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1198,11 +1201,26 @@ estimator does not carry it.
 The chromosome-blocked refold answers the literal criterion. Their coordinates were repartitioned
 into five folds by assigning whole chromosomes largest-first to the emptiest fold, a
 deterministic rule that never splits a chromosome, applied to positives and negatives together.
-It succeeded on all 135 datasets with no exclusions, every chromosome falls in exactly one fold,
-and the fraction of windows whose nearest same-strand neighbour within 1~kb sits in a different
-fold falls from $0.0036$ to \textbf{exactly zero} of 1{,}623{,}101. The result is $1.74$
-two-stage and $1.68$ cross-fitted, slightly larger than under their own folds rather than
-smaller, so closing the channel does not remove the effect.
+It succeeded on all 135 datasets with no exclusions, every chromosome falls in exactly one
+fold, and \textbf{both arms receive the identical map}, which is the property that makes this a
+fold-design change held constant across the comparison rather than a second variable. The
+fraction of windows whose nearest same-strand neighbour within 1~kb sits in a different fold
+falls to \textbf{exactly zero} in both arms, from $1.45\times10^{-4}$ of 1{,}619{,}751
+under \texttt{negative-1} and $5.22\times10^{-4}$ of 1{,}834{,}873 under \texttt{negative-2}.
+The result is $1.73$ two-stage and $1.67$ cross-fitted, slightly larger than under their own
+folds rather than smaller, so closing the channel does not remove the effect.
+
+Both of those statements are corrections. The first implementation gave each arm its own
+chromosome map, because the assignment balanced fold sizes using the counts of the arm being
+processed and the arms differ in their negatives; the two maps were identical in none of the 135
+datasets, and the figures were $1.74$ and $1.68$. The leakage metric discarded strand and so was
+not the same-strand quantity it was labelled. Both were found by audit after publication of the
+first figures, are recorded in \texttt{docs/\allowbreak EXTERNAL\_\allowbreak CORRECTION\_1.md}
+with the original values, and are now gated: the release fails unless both arms share one map
+and unless the minus-strand fraction, $0.488$ here, shows strand is genuinely present.
+
+Excluding every protein that also appears in our panel leaves 104 datasets over 77 proteins, and
+all four cells still meet the thresholds: $1.66$, $1.64$, $1.70$ and $1.65$.
 
 What the amendments do not buy is prospectiveness. The benchmark was known and its intersection
 with our panel had been scored before the original protocol was written, and these two analyses
@@ -1212,8 +1230,10 @@ description of the whole external component remains the one given above.
 
 Three things this does and does not establish, because the distinctions are load-bearing.
 
-It is disjoint in \emph{datasets} and analysed by an independent pipeline, which the
-45-dataset comparison we report elsewhere is not: that one is restricted to the intersection
+It is disjoint in \emph{datasets}, and the windows, the negative construction and the fold
+assignment are external while the analysis code is this repository's. It is therefore an
+externally constructed benchmark analysed with our pipeline, not an independent pipeline. The
+45-dataset comparison we report elsewhere is not disjoint at all: that one is restricted to the intersection
 with our panel by design, so it is an independent \emph{construction} on the same proteins.
 Both are useful and they answer different questions.
 
@@ -1275,15 +1295,21 @@ The first varies the class ratio. Every nested fit here is estimated at one nega
 positive, and a genome-wide screen faces a far smaller positive fraction; AUROC is invariant to
 prevalence but the fitted logistic is not, and the estimand is a difference between two fits.
 Subsampling within fold to 1:2, 1:4 and 2:1 leaves the arm ordering intact in all four
-conditions including the control, and the span is $5.42$, $5.70$, $6.45$ and $5.79$
+conditions including the control, and the span is $5.42$, $5.81$, $6.10$ and $6.04$
 respectively. The 1:1 condition recomputes the published two-stage span through an independent
 code path and lands within $2\times10^{-4}$ of it, which is what makes the other three readable.
-The span therefore widens rather than collapses as the positive fraction falls. Two
-qualifications: the sparser ratios are reached by cutting positives, so they also shrink the
-dataset and this design cannot separate the two, and 15 of 376 dataset-arms are dropped at 1:4
-because a fold would hold fewer than 20 rows of a class. No interval is quoted for the
-subsampled conditions, because the subsample adds a variance component a one-draw
-protein-clustered bootstrap does not represent.
+The span therefore widens rather than collapses as the positive fraction falls.
+
+Three qualifications, one of them a correction. The positives kept at each ratio are chosen by a
+hash of the window's own coordinates rather than by a random draw over row indices, so a
+positive present in two arms is retained in both; an earlier version drew independently per arm,
+which varied the positive realisation alongside the negative protocol and changed these spans by
+up to $0.35$ fold units. The sparser ratios are still reached by cutting positives, so they also
+shrink the dataset and this design cannot separate size from balance. And 15 of 282 dataset-arm
+cells are dropped at 1:4, where a fold would hold fewer than 20 rows of a class, leaving 89 of
+94 datasets present in all three arms; every figure at that ratio is computed on those 89. No
+interval is quoted for the subsampled conditions, because the subsample adds a variance
+component a one-draw protein-clustered bootstrap does not represent.
 
 The second is the capacity ladder, and it \textbf{falsifies a directional claim this paper
 previously made}. The outer-fold channel was measured at two orders, $k=2$ and $k=4$, and the

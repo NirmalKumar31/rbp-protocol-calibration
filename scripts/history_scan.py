@@ -120,11 +120,24 @@ def scan():
     # The AI co-author trailer, counted rather than typed. SUBMISSION.md records that the
     # trailer stops at a named commit and why; both numbers in that sentence came out of here
     # after the manuscript audit refused them as untraceable, which is the rule working.
-    bodies = _git("log", "--all", "--format=%H%x00%b%x00---")
-    trailed = sum(1 for blk in bodies.split("---\n")
-                  if "Co-Authored-By: Claude" in blk)
-    rows.append({"check": "commits carrying an AI co-author trailer", "value": trailed,
-                 "note": "historical; the trailer is no longer added, see SUBMISSION.md"})
+    # Git's own trailer parser, not a grep over the body, and the difference is three commits.
+    # This counted any commit whose body contained the text "Co-Authored-By: Claude", so three
+    # commits that merely DISCUSS the trailer in prose were counted as carrying one: 209 against
+    # the 206 git reports. A table row labelled "commits carrying a trailer" that actually
+    # counts "commits mentioning a trailer" is false, and this row feeds the AI-use disclosure.
+    def _trailed(*rev):
+        out = _git("log", *rev, "--format=%x00%(trailers:key=Co-Authored-By,valueonly)")
+        return sum(1 for blk in out.split("\x00")[1:] if "Claude" in blk)
+
+    rows.append({"check": "commits carrying an AI co-author trailer, all refs",
+                 "value": _trailed("--all"),
+                 "note": "git's structured trailer parser, not a grep over the body: three "
+                         "commits discuss the trailer in prose without carrying one"})
+    rows.append({"check": "commits carrying an AI co-author trailer, HEAD only",
+                 "value": _trailed(),
+                 "note": "the count that describes the published branch; the all-refs figure "
+                         "above includes working branches. Trailer no longer added, see "
+                         "SUBMISSION.md"})
 
     total = sum(len(v) for k, v in hits.items() if k != "GCP billing account ID")
     rows.append({"check": "commits containing credential material of any kind", "value": total,

@@ -14,8 +14,8 @@ first. Nothing here is a summary of the science, which is in `manuscript/paper.p
 
 | bioRxiv asks for | file |
 |---|---|
-| Manuscript PDF | `manuscript/paper.pdf` (62 pages) |
-| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 512 words, no markup |
+| Manuscript PDF | `manuscript/paper.pdf` (63 pages) |
+| Abstract (paste into the form) | abstract of `manuscript/paper.tex`, 536 words, no markup |
 | Supplementary tables | `results/tables/supplementary_table_s1.csv` and the per-dataset tables listed below |
 | Source, if requested | `manuscript/` is self-contained: `paper.tex`, `sections/`, `figures/`, `build.sh` |
 
@@ -34,7 +34,7 @@ stronger claim and a review was right to object.
 absent; it depends only on nothing being misdescribed.
 
 What that does NOT settle: a journal submission afterwards will impose its own limits, and the
-ones that would bite are the abstract (512 words against a typical 250) and the main text (62
+ones that would bite are the abstract (536 words against a typical 250) and the main text (62
 pages, 17 table environments). The long-form abstract and the guidance for cutting are kept
 where they can be found again -- see the note above `\begin{abstract}` in `paper.tex` -- and
 `results/tables/PROVENANCE.csv` already identifies which tables are secondary and would move to
@@ -138,7 +138,7 @@ exactly, because five figures were orphaned once before when a section was cut.
 python scripts/verify.py --local results/tables
 ```
 
-1141 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
+1153 numeric assertions against `config/golden.yaml`, and the number of assertions that ran is
 itself asserted, so a check cannot silently skip. A clean `git clone` of this repository passes
 all of them; that is the property worth checking, rather than that they pass in a working copy.
 
@@ -162,7 +162,10 @@ dollars of compute at current prices, and is not required to check any published
    `manuscript/sections/data-availability.tex` and insert **both**: the **version** DOI and its
    tag, which identify the exact snapshot the reported numbers came from and are what a
    reproducibility citation needs, and the **concept** DOI beside it for discovery. Then run
-   `cd manuscript && ./build.sh`. That is the only manuscript edit required.
+   `cd manuscript && ./build.sh`. **Two places, not one**: the same two DOIs also go in
+   **Code availability** in `paper.tex`, which currently gives only a moving GitHub URL. This
+   item previously said Data availability was the only manuscript edit required, which
+   contradicted `docs/ZENODO.md` and was wrong; both sections carry a commented slot.
 2. **A journal submission after the preprint** will need the abstract cut to about 250 words
    and a main/supplement split. Neither is required by bioRxiv, and both depend on which
    journal, so neither is done.
@@ -178,7 +181,7 @@ dollars of compute at current prices, and is not required to check any published
    quietly stopped.
 4. **The AI-use disclosure needs an author decision before submission, and is deliberately not
    rewritten here.** The paragraph in `paper.tex` names one system and describes coding and
-   drafting assistance. Six external audits produced by other generative systems were run
+   drafting assistance. TEN external audits produced by other generative systems were run
    against this repository during preparation, and their findings materially shaped it: they
    found defects that changed code, changed released tables and changed statements in the
    manuscript. Whether that is disclosable, and which systems to name, is the author's call
@@ -201,8 +204,10 @@ fails on a mismatch, so the way this section goes stale next will not be a numbe
 
 ## What the last review round changed
 
-Four independent reviews were run against the manuscript and the repository. None broke a
-headline claim; all four returned major revision on presentation and disclosure. The
+Four independent reviews were run against the manuscript and the repository IN THAT ROUND;
+the running total across all rounds is ten, enumerated in `docs/AI_USE_INVENTORY.md`, which is
+the one place that list lives. None of the four broke a headline claim; all four returned major
+revision on presentation and disclosure. The
 substantive change is a new Results subsection: the bias-aware protocol matches fold only,
 while both composition-matched protocols also match transcript region, so region alone
 separates its classes at a median AUROC of 0.748 against exactly 0.5000 in the other two. That

@@ -15,7 +15,7 @@ their positives with a same-strand neighbour within 1 kb,1323516.0,,,135,"the de
 SPAN across their two negative-set constructions,1.691187875089438,1.4111001059134676,2.031879450855265,135,"the protocol's primary estimand, transported unchanged: ratio of the two arms' panel means, protein-clustered percentile interval"
 "PRE-LABELLED RATIO, negative-1 over negative-2",1.691187875089438,1.4111001059134676,2.031879450855265,135,"the quantity the falsification rule is evaluated on, because max/min is bounded below by 1 and so cannot straddle it"
 the arm ordering never swaps under resampling,1.0,,,4000,fraction of draws with negative-1 above negative-2; at 1.0 the pre-labelled ratio and the max/min span agree exactly
-protocol verdict for Claim A on an independent sample,1.0,,,135,"supported; criteria fixed in docs/EXTERNAL_BENCHMARK_PROTOCOL.md at commit e76a80c: supported if span > 1.5 and CI low > 1.2, fails if the interval contains 1.0, indeterminate otherwise or if fewer than 20 datasets qualify"
+protocol verdict for Claim A on a dataset-disjoint external sample,1.0,,,135,"supported; criteria fixed in docs/EXTERNAL_BENCHMARK_PROTOCOL.md at commit e76a80c: supported if span > 1.5 and CI low > 1.2, fails if the interval contains 1.0, indeterminate otherwise or if fewer than 20 datasets qualify"
 "no-shared-protein contribution, negative-1",0.03495579382095692,,,104,the 31 proteins shared with our panel removed
 "no-shared-protein contribution, negative-2",0.02105342411191491,,,104,the 31 proteins shared with our panel removed
 SPAN excluding every protein shared with our panel,1.6603377025580437,1.3448598005327157,2.0889817644930324,104,104 datasets over 77 proteins; the replication must not depend on the shared biology

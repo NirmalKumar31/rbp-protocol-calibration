@@ -2197,8 +2197,12 @@ def verify_external_sensitivity(T, g):
     spec = g["external_sensitivity"]
     q = d.set_index("check")
 
-    def find(sub, col="value"):
-        hit = [k for k in q.index if sub in k]
+    def find(sub, col="value", exact=False):
+        # `exact` matters since the no-shared-protein rows were added: "verdict, supplied_2s"
+        # is a substring of "no-shared-protein verdict, supplied_2s", so the substring form
+        # matched two rows, returned None, and the verdict tally silently read 0 of 4. A
+        # lookup that goes quiet on ambiguity has to be told when ambiguity is possible.
+        hit = [k for k in q.index if (k == sub if exact else sub in k)]
         if len(hit) != 1:
             return None
         v = q.loc[hit[0], col]
@@ -2220,7 +2224,7 @@ def verify_external_sensitivity(T, g):
     for label, tag, key in CELLS:
         r = find(f"directional R, {label}")
         lo = find(f"directional R, {label}", "ci_low")
-        v = find(f"verdict, {tag}")
+        v = find(f"verdict, {tag}", exact=True)
         if r is not None:
             near(f"R, {label}", r, spec[key])
             at_least(f"R clears the protocol threshold, {label}", r, spec["min_point"])
@@ -2254,16 +2258,55 @@ def verify_external_sensitivity(T, g):
         record(int(cb) == spec["chrom_blocked_datasets"],
                "every chromosome falls in exactly one fold, on every dataset", int(cb),
                spec["chrom_blocked_datasets"])
-    ch = find("cross-fold near-neighbour fraction, chromosome-blocked folds")
-    su = find("cross-fold near-neighbour fraction, their supplied folds")
-    if ch is not None:
-        at_most("the refold leaves no cross-fold near neighbour", ch, spec["max_chrom_leakage"])
-    if su is not None:
-        near("cross-fold near-neighbour fraction on their supplied folds", su,
-             spec["supplied_leakage"])
-    if ch is not None and su is not None:
-        record(ch <= su, "the refold does not INCREASE the channel it replaces",
-               f"{ch:.5f} vs {su:.5f}", "no larger")
+
+    # The one the first gate did not assert, and its absence is why a defect in 135 of 135
+    # datasets passed 1141 checks. Each arm being chromosome-blocked is not the property the
+    # comparison needs; the two arms sharing ONE map is.
+    mi = find("BOTH arms share one identical chromosome map")
+    if mi is not None:
+        record(int(mi) == spec["maps_identical"],
+               "both arms share ONE identical chromosome map, on every dataset",
+               int(mi), spec["maps_identical"])
+
+    for arm, key in (("negative-1", "supplied_leakage_n1"), ("negative-2", "supplied_leakage_n2")):
+        ch = find(f"same-strand neighbour fraction, chromosome-blocked folds, {arm}")
+        su = find(f"same-strand neighbour fraction, their supplied folds, {arm}")
+        if ch is not None:
+            at_most(f"the refold leaves no cross-fold same-strand neighbour, {arm}", ch,
+                    spec["max_chrom_leakage"])
+        if su is not None:
+            near(f"cross-fold same-strand neighbour fraction, supplied folds, {arm}", su,
+                 spec[key])
+        if ch is not None and su is not None:
+            record(ch <= su, f"the refold does not INCREASE the channel it replaces, {arm}",
+                   f"{ch:.6f} vs {su:.6f}", "no larger")
+
+    # A "+"-only strand fill is what produced the original number. This makes that impossible
+    # to reintroduce silently: the real minus-strand fraction is near a half.
+    ms = find("fraction of windows on the minus strand")
+    if ms is not None:
+        at_least("windows on the minus strand, so strand is genuinely present", ms,
+                 spec["min_minus_strand"])
+
+    # P0-4: the no-shared-protein subset, for every cell.
+    n_sup = 0
+    for label, tag in (("supplied folds, two-stage", "supplied_2s"),
+                       ("supplied folds, CROSS-FITTED", "supplied_cf"),
+                       ("chromosome-blocked folds, two-stage", "chrom_2s"),
+                       ("chromosome-blocked folds, cross-fitted", "chrom_cf")):
+        r = find(f"no-shared-protein R, {label}")
+        v = find(f"no-shared-protein verdict, {tag}")
+        if r is not None:
+            at_least(f"no-shared-protein R, {label}", r, spec["no_shared_min_R"])
+        if v is not None:
+            n_sup += int(v == "supports")
+    record(n_sup == spec["no_shared_cells_supporting"],
+           "every cell still supports with all 31 shared proteins excluded",
+           f"{n_sup} of 4", f"{spec['no_shared_cells_supporting']} of 4")
+    nd = find("no-shared-protein R, supplied folds, two-stage", "n")
+    if nd is not None:
+        record(int(nd) == spec["no_shared_datasets"], "datasets after excluding shared proteins",
+               int(nd), spec["no_shared_datasets"])
 
     worst = max((find(f"datasets excluded, {r}") or 0)
                 for r in ("no_chrom_folds", "fold_class", "no_build"))
@@ -2414,6 +2457,14 @@ def verify_class_ratio(T, g):
     worst = max((val(f"dataset-arms excluded, {lab}") or 0)
                 for lab in ("1:1", "1:2", "1:4", "2:1"))
     at_most("dataset-arms lost at the sparsest ratio", worst, spec["max_excluded"])
+
+    # Every figure at a ratio must be computed on the datasets present in ALL THREE arms, and
+    # that count must be stated rather than assumed to be the full panel. It was not: the span
+    # and ordering rows claimed n = 94 at a ratio where five datasets had dropped.
+    fewest = min((val(f"datasets in all three arms, {lab}") or 0)
+                 for lab in ("1:1", "1:2", "1:4", "2:1"))
+    at_least("datasets present in all three arms at every ratio", fewest,
+             spec["min_common_datasets"])
 
 
 def verify_redraw_composition(T, g):
@@ -2690,7 +2741,7 @@ def verify_external_replication(T, g):
            f"span > {spec['support_span_floor']}, CI low > {spec['support_ci_low_floor']}")
     record(not (lo < 1.0 < hi), "the external interval excludes 1.0",
            f"[{lo:.3f}, {hi:.3f}]", "excludes 1")
-    v = get("protocol verdict for Claim A on an independent sample")
+    v = get("protocol verdict for Claim A on a dataset-disjoint external sample")
     if v is not None:
         record(v == 1.0, "the table's recorded verdict agrees with the recomputed one",
                v, 1.0)

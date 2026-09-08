@@ -55,16 +55,33 @@ MIN_PER_FOLD = 20            # rows of EITHER class below which a fold is not an
 K = 4
 
 
-def subsample(y, folds, ratio, dataset, arm, label):
+def _rank(ids, dataset, label, salt):
+    """A deterministic order over rows, keyed on the WINDOW rather than on its row index.
+
+    This is what makes the positive subsample arm-invariant. Ranking by a hash of the window's
+    own identity means a positive present in two arms gets the same rank in both, so the
+    retained positives coincide wherever the positive sets do.
+    """
+    return np.argsort([hashlib.sha256(
+        f"{SEED}|{dataset}|{label}|{salt}|{i}".encode()).hexdigest() for i in ids])
+
+
+def subsample(ids, y, folds, ratio, dataset, arm, label):
     """Row mask giving `ratio` positives per negative, within every fold.
 
-    The generator is seeded from the constant plus a stable hash of (dataset, arm, ratio), so
-    the draw does not depend on iteration order and rerunning reproduces it exactly. Python's
-    own hash() is salted per process and would not.
+    The arm confound this fixes. The first version drew with an RNG seeded on
+    (dataset, arm, ratio) and selected by row index, so each arm kept a DIFFERENT random subset
+    of positives. For the ratios below one, which are reached by cutting positives, the arm
+    comparison then varied both the negative protocol and the positive sample realisation, when
+    the whole point is to vary only the first. An audit was right to call that out.
+
+    Positives are now ranked by a hash of the window's own (chrom, start) identity, with the
+    arm deliberately ABSENT from the key, so any positive shared between two arms is kept or
+    dropped in both. Negatives are ranked with the arm in the key, because they are different
+    windows by construction and there is nothing to hold fixed.
     """
-    key = f"{dataset}|{arm}|{label}".encode()
-    rng = np.random.default_rng(SEED + int(hashlib.sha256(key).hexdigest()[:8], 16))
     y, folds = np.asarray(y, dtype=int), np.asarray(folds)
+    ids = np.asarray(ids)
     keep = np.zeros(len(y), dtype=bool)
     for f in np.unique(folds):
         inf = folds == f
@@ -77,8 +94,8 @@ def subsample(y, folds, ratio, dataset, arm, label):
         want_pos, want_neg = min(want_pos, len(pos)), min(want_neg, len(neg))
         if want_pos < MIN_PER_FOLD or want_neg < MIN_PER_FOLD:
             return None
-        keep[rng.choice(pos, want_pos, replace=False)] = True
-        keep[rng.choice(neg, want_neg, replace=False)] = True
+        keep[pos[_rank(ids[pos], dataset, label, "pos")[:want_pos]]] = True
+        keep[neg[_rank(ids[neg], dataset, label, f"neg|{arm}")[:want_neg]]] = True
     return keep
 
 
@@ -97,8 +114,9 @@ def build(store, limit=0):
                 break
             d = pd.read_csv(f, sep="\t")
             seqs, y, folds = d.seq_rna.values, d.label.values, d.fold.values
+            ids = (d.chrom.astype(str) + ":" + d.start.astype(str)).values
             for lab, ratio in RATIOS:
-                m = subsample(y, folds, ratio, ds, arm, lab)
+                m = subsample(ids, y, folds, ratio, ds, arm, lab)
                 if m is None:
                     excluded[lab] += 1
                     continue
@@ -154,37 +172,50 @@ def main():
     log("")
     published = None
     for lab, _ in RATIOS:
-        means = {}
-        for arm in ARMS:
-            col = f"gain_{arm}_{lab}"
-            if col not in t.columns:
-                continue
-            v = t[col].dropna()
-            if len(v):
-                means[arm] = float(v.mean())
-                add(f"panel-mean contribution, {arm} arm, {lab}", means[arm], n=len(v))
-        if len(means) < 3:
-            add(f"span, {lab}", np.nan, note="an arm did not survive this ratio")
+        cols = [f"gain_{arm}_{lab}" for arm in ARMS]
+        if not all(c in t.columns for c in cols):
+            add(f"span, {lab}", np.nan, note="an arm produced no column at this ratio")
             log(f"  {lab}: an arm did not survive")
             continue
+        # The common intersection, and the first version did not take it. Panel means were
+        # computed over whatever each arm retained, then the span and the ordering were
+        # reported with n = 94 whichever datasets had actually survived. At 1:4 five datasets
+        # drop, so those rows claimed a panel they were not computed on. Every arm mean, the
+        # span and the ordering now come from the SAME datasets, and n is that number.
+        common = t.dropna(subset=cols)
+        means = {arm: float(common[f"gain_{arm}_{lab}"].mean()) for arm in ARMS}
+        for arm in ARMS:
+            add(f"panel-mean contribution, {arm} arm, {lab}", means[arm], n=len(common),
+                note="over the datasets retained in ALL THREE arms at this ratio")
+        add(f"datasets in all three arms, {lab}", len(common), n=len(t),
+            note=f"of {len(t)}; the denominator every row at this ratio is computed on")
         span = max(means.values()) / min(means.values()) if min(means.values()) > 0 else np.nan
-        add(f"span, {lab}", span, n=len(t),
-            note="max over min of the three panel means, as in the paper")
+        add(f"span, {lab}", span, n=len(common),
+            note="max over min of the three panel means, on the common intersection")
         holds = means["dn"] > means["gc"] > means["neg2"]
-        add(f"ordering dn > gc > neg2 holds, {lab}", float(holds), n=len(t),
+        add(f"ordering dn > gc > neg2 holds, {lab}", float(holds), n=len(common),
             note="the claim under test; reported whichever way it comes out")
         if lab == "1:1":
             published = span
-        log(f"  {lab}: dn {means['dn']:+.4f}  gc {means['gc']:+.4f}  neg2 {means['neg2']:+.4f}"
-            f"   span {span:.3f}   ordering {'HOLDS' if holds else 'BREAKS'}")
+        log(f"  {lab}: n={len(common):3d}  dn {means['dn']:+.4f}  gc {means['gc']:+.4f}  "
+            f"neg2 {means['neg2']:+.4f}   span {span:.3f}   "
+            f"ordering {'HOLDS' if holds else 'BREAKS'}")
 
     if published is not None:
         add("span at the published 1:1 balance", published, n=len(t),
             note="the control: this is the arm ordering and span the paper reports")
-    if excluded is not None:
-        for lab, v in excluded.items():
-            add(f"dataset-arms excluded, {lab}", v, n=len(t),
-                note=f"a fold would hold under {MIN_PER_FOLD} rows of one class")
+    # --from-cache cannot recompute an exclusion count: the excluded cells are absent from the
+    # per-dataset table it reads. Carried, so the documented command does not degrade a
+    # committed table. See rbp.utils.carry.
+    from rbp.utils.carry import emit as carry_emit
+    for lab, _ in RATIOS:
+        if excluded is not None:
+            add(f"dataset-arms excluded, {lab}", excluded[lab], n=len(t) * len(ARMS),
+                note=f"of {len(t) * len(ARMS)} dataset-arm cells at this ratio "
+                     f"({len(t)} datasets x {len(ARMS)} arms); a fold would hold under "
+                     f"{MIN_PER_FOLD} rows of one class")
+        else:
+            carry_emit(out, OUT, f"dataset-arms excluded, {lab}", None, recomputed=False)
 
     pd.DataFrame(out).to_csv(OUT, index=False)
     log(f"\n  wrote {OUT.name} and {PER.name}")

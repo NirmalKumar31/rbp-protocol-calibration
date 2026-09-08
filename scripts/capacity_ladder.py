@@ -182,10 +182,18 @@ def main():
     add("datasets on the ladder", len(t), n=len(t),
         note="systematic every-m-th by pair rank; a subsample, and the rule is in "
              "docs/SENSITIVITY_SPEC.md")
+    # Same as the exclusion counts elsewhere: neither the sampling interval nor the skip count
+    # can be recovered from the per-dataset table, so --from-cache carries them rather than
+    # dropping them and degrading a committed table.
+    from rbp.utils.carry import emit as carry_emit
     if meta:
         add("systematic sampling interval m", meta[0], n=len(t),
             note="chosen by a timed projection against a 90-minute budget, not by outcome")
         add("dataset-arms skipped, a fold lacked both classes", meta[1], n=len(t))
+    else:
+        carry_emit(out, OUT, "systematic sampling interval m", None, recomputed=False)
+        carry_emit(out, OUT, "dataset-arms skipped, a fold lacked both classes", None,
+                   recomputed=False)
 
     log("")
     channels = {}

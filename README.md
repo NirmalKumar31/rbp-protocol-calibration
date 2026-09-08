@@ -55,8 +55,8 @@ throughout for different quantities.
 
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download. 1141 numeric assertions are checked
-against committed tables, of which **1003 belong to this paper** and 136 to an earlier
+No cloud account, no credentials, no data download. 1153 numeric assertions are checked
+against committed tables, of which **1015 belong to this paper** and 136 to an earlier
 variant-scoring study whose code and evidence are still here and still pass. The verifier prints
 that split on every run, because one total covering two papers is not this paper's evidence. That is a regression gate on the published values, not a proof that
 each is attached to the right claim; the Limitations section says what it does not cover.
@@ -65,15 +65,18 @@ each is attached to the right claim; the Limitations section says what it does n
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
 python -m pip install -e . -c constraints.txt   # no torch: the neural stack is an extra
 
-# Before pushing, run what CI runs, in the order that works:
-./scripts/preflight.sh          # check only
-./scripts/preflight.sh --fix    # also sync derived counts and refresh the manifests
-PYTHONPATH=src python scripts/verify.py --local results/tables   # 1141/1141
+PYTHONPATH=src python scripts/verify.py --local results/tables   # 1153/1153
 PYTHONPATH=src python -m pytest tests -q \
   --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
 
-# to run the two modules above, and to reproduce the sweeps:
-python -m pip install -e '.[neural]'
+# Everything CI runs, in the order that works. WITHOUT torch this prints PREFLIGHT PARTIAL
+# and names the steps it could not run; it will not report CLEAN over a subset.
+./scripts/preflight.sh          # check only
+./scripts/preflight.sh --fix    # also sync derived counts and refresh the manifests
+
+# For the FULL release gate, and to reproduce the sweeps, install the neural extra first:
+python -m pip install -e '.[neural]' -c constraints.txt
+./scripts/preflight.sh          # now PREFLIGHT CLEAN means the whole gate
 ```
 
 `verify.py` re-derives every published value from the committed result tables and fails if any
@@ -122,7 +125,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          844 tests, no network or cloud; 2 modules need torch
+tests/          855 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes

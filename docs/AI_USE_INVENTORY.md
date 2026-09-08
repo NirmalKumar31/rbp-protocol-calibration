@@ -14,8 +14,8 @@ An assistant cannot attest to it, and this file does not.**
 
 | fact | how to check it |
 |---|---|
-| 243 commits, 2026-08-25 to 2026-09-07 | `git rev-list --count HEAD` |
-| **200** carry a `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>` trailer | `git log --format='%(trailers:key=Co-Authored-By,valueonly)' \| sort \| uniq -c` |
+| 256 commits on HEAD, 2026-08-25 to 2026-09-07 | `git rev-list --count HEAD` |
+| **200 on HEAD, 206 across all refs** carry a `Co-Authored-By: Claude Opus 5 (1M context)` trailer | `results/tables/history_scan.csv`, which now uses git's structured trailer parser. It previously said 209 because it grepped commit bodies, and three commits discuss the trailer without carrying one |
 | That is the **only** system named anywhere in the history | same command: one distinct value |
 | Trailers stop after `202953d` (2026-09-06), by decision, and the historical ones are not rewritten | `SUBMISSION.md` item 3 |
 | Anthropic Claude wrote or co-wrote the analysis code, the verification harness, the manuscript source and this file | the trailers, and the drafting record |
@@ -36,12 +36,30 @@ An assistant cannot attest to it, and this file does not.**
 
 ## 2. What only the author can supply
 
-**Which generative systems produced the eight external audit reports.** This cannot be
-determined from the repository or from the reports. They live outside the repository, at
-`~/Deep Learning Project/*audit*.md` and `science-completion-report.md`, dated 2026-09-05 to
-2026-09-07. Every one mentions "Claude" only because it is auditing a repository whose commits
+**Which generative systems produced the TEN external audit reports.** This cannot be determined
+from the repository or from the reports. They live outside the repository, deliberately, and
+this is the one place the list is kept:
+
+| # | file | date |
+|---|---|---|
+| 1 | `rbp-repro-publication-audit.md` | 2026-09-05 |
+| 2 | `final audit.md` | 2026-09-05 |
+| 3 | `final audit of everything.md` | 2026-09-05 |
+| 4 | `audit of everything one last time.md` | 2026-09-05 |
+| 5 | `last audit.md` | 2026-09-05 |
+| 6 | `indepth audit.md` | 2026-09-06 |
+| 7 | `today's audit final.md` | 2026-09-06 |
+| 8 | `today's audit indepth final.md` | 2026-09-06 |
+| 9 | `finishing up final audit.md` | 2026-09-07 |
+| 10 | `v1 final audit.md` | 2026-09-07 |
+
+`science-completion-report.md` is not in this list: it is a report produced for the author, not
+an audit of the repository.
+
+Every one of the ten mentions "Claude" only because it is auditing a repository whose commits
 name Claude; **none identifies its own system.** The author commissioned them and is the only
-person who knows.
+person who knows. The count previously read six in two places, eight here and four in a third;
+the four was correct for one round and is now labelled as such.
 
 That assistance was material, not cosmetic. Findings from those reports changed code, changed
 released tables and changed statements in the manuscript. `docs/AUDIT-RESPONSE.md` is the

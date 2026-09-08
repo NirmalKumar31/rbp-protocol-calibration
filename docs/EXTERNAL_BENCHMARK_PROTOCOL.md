@@ -163,7 +163,9 @@ protocol says the estimand is "exactly the one defined in Methods, transported u
 at the time it was written the paper's headline estimator WAS the two-stage one. The paper has
 since made the cross-fitted estimator primary, which makes the external span comparable with the
 5.42 rather than with the 4.84. The abstract said "the same estimator" and now names it.
-Cross-fitting the external arms is affordable and has not been run.
+Cross-fitting the external arms is affordable and HAS SINCE BEEN RUN, under
+`EXTERNAL_BENCHMARK_AMENDMENT.md`; this line was stale from 2026-09-07 and is corrected here
+rather than deleted.
 
 **A premise above is also wrong.** The protocol states that the Horlacher benchmark "releases one"
 negative-set construction and therefore cannot test Claim A. It releases **two**, per fold, over

@@ -90,6 +90,53 @@ def chrom_folds(chrom, n_folds=N_FOLDS):
     return np.array([where[c] for c in chrom])
 
 
+def shared_map(arms):
+    """ONE chromosome-to-fold map per dataset, identical for both arms. Returns None if the
+    partition cannot be built.
+
+    The defect this replaces. `chrom_folds` was called once per arm, inside the loop over
+    negative-1 and negative-2. It balances fold sizes by the counts it is given; the arms share
+    their positives but differ in their negatives, so the counts differ and the greedy
+    assignment diverges. Measured across all 135 datasets, the two maps were identical in ZERO
+    of them. Each arm was still individually chromosome-blocked, which is why the verifier
+    passed: it asserted one fold per chromosome, true of each arm separately, and never
+    asserted the maps agreed. So a fold-design difference was folded into a comparison whose
+    entire purpose is to hold the folds fixed and vary only the negative construction.
+
+    The repair needs an ARM-INVARIANT source, and the positives are one: they are identical in
+    both arms, which this function verifies rather than assumes. The map is built from the
+    positive chromosome counts alone, so it cannot depend on either negative set.
+
+    Chromosomes appearing only among negatives are rare, zero or one per dataset, but they
+    exist. They are assigned after the positives, in NAME order, each to the currently emptiest
+    fold, and the set is taken as the UNION over both arms so that the result does not depend
+    on which arm is processed first.
+    """
+    tags = sorted(arms)
+    pos = {t: arms[t][arms[t].label == 1] for t in tags}
+    keys = {t: set(zip(pos[t].chrom, pos[t].start)) for t in tags}
+    if len({frozenset(v) for v in keys.values()}) != 1:
+        sys.exit("the two arms do not share a positive set, so no arm-invariant map exists")
+
+    base = chrom_folds(pos[tags[0]].chrom.values)
+    if base is None:
+        return None
+    who = pos[tags[0]].chrom.values
+    cmap = {}
+    load = [0] * N_FOLDS
+    for c, f in zip(who, base):
+        cmap.setdefault(c, int(f))
+        load[int(f)] += 1
+
+    # Negative-only chromosomes, from the union over arms, in name order, deterministically.
+    extra = sorted({c for t in tags for c in arms[t].chrom.unique()} - set(cmap))
+    for c in extra:
+        f = min(range(N_FOLDS), key=lambda j: (load[j], j))
+        cmap[c] = f
+        load[f] += int(sum((arms[t].chrom == c).sum() for t in tags))
+    return cmap
+
+
 def one_fold_per_chrom(chrom, folds):
     """True when every chromosome sits in exactly one fold. The criterion, measured."""
     seen = {}
@@ -190,17 +237,18 @@ def build(limit=0):
         # made, which is what criterion 4's "cannot be made chromosome-blocked" means per
         # dataset, rather than being dropped quietly.
         chrom_ok = True
-        for tag, d in arms.items():
-            cf_folds = chrom_folds(d.chrom.values)
-            if cf_folds is None:
-                excluded["no_chrom_folds"] += 1
-                chrom_ok = False
-                break
-            if not usable(d.label.values, cf_folds):
-                excluded["fold_class"] += 1
-                chrom_ok = False
-                break
-            arms[tag] = d.assign(chrom_fold=cf_folds)
+        cmap = shared_map(arms)
+        if cmap is None:
+            excluded["no_chrom_folds"] += 1
+            chrom_ok = False
+        else:
+            for tag, d in arms.items():
+                cf_folds = np.array([cmap[c] for c in d.chrom.values])
+                if not usable(d.label.values, cf_folds):
+                    excluded["fold_class"] += 1
+                    chrom_ok = False
+                    break
+                arms[tag] = d.assign(chrom_fold=cf_folds)
         if chrom_ok:
             for tag, d in arms.items():
                 ts, cfv, comp = contributions(d.seq_rna.values, d.label.values,
@@ -208,13 +256,29 @@ def build(limit=0):
                 rec[f"chrom_2s_{tag}"] = ts
                 rec[f"chrom_cf_{tag}"] = cfv
                 rec[f"chrom_comp_{tag}"] = comp
+            # The property the old gate did not check: one map, both arms, byte-identical.
+            per_arm = [{c: int(f) for c, f in zip(a.chrom.values, a.chrom_fold.values)}
+                       for a in arms.values()]
+            shared_keys = set(per_arm[0]) & set(per_arm[1])
+            rec["map_identical"] = int(all(per_arm[0][c] == per_arm[1][c] for c in shared_keys))
+            rec["map_shared_chroms"] = len(shared_keys)
+            rec["chrom_blocked"] = int(all(
+                one_fold_per_chrom(a.chrom.values, a.chrom_fold.values) for a in arms.values()))
             d = arms["n1"]
-            rec["chrom_blocked"] = int(one_fold_per_chrom(d.chrom.values, d.chrom_fold.values))
-            strand = d.strand.values if "strand" in d.columns else np.full(len(d), "+")
-            have, cross = leakage(d.chrom.values, d.start.values, strand, d.chrom_fold.values)
-            rec["chrom_neighbours"], rec["chrom_cross_fold"] = have, cross
-            have, cross = leakage(d.chrom.values, d.start.values, strand, d.fold.values)
-            rec["supplied_neighbours"], rec["supplied_cross_fold"] = have, cross
+            # No fallback. A missing strand column is a hard failure, not a "+" for every
+            # window: the silent fallback is what turned this into a strand-agnostic number
+            # published under a same-strand label.
+            for tag, dd in arms.items():
+                if "strand" not in dd.columns:
+                    sys.exit("horlacher_arm.windows() did not return strand; a same-strand "
+                             "metric cannot be computed without it")
+                if not set(dd.strand.unique()) <= {"+", "-"}:
+                    sys.exit(f"unexpected strand values: {sorted(set(dd.strand.unique()))}")
+                for lab, folds in (("chrom", dd.chrom_fold.values), ("supplied", dd.fold.values)):
+                    have, cross = leakage(dd.chrom.values, dd.start.values, dd.strand.values,
+                                          folds)
+                    rec[f"{lab}_neighbours_{tag}"], rec[f"{lab}_cross_fold_{tag}"] = have, cross
+            rec["minus_strand_fraction"] = float((arms["n1"].strand == "-").mean())
 
         rows.append(rec)
         log(f"  [{i:3d}/{len(keys)}] {key:20s} supplied 2s {rec['supplied_2s_n1']:+.4f}/"
@@ -315,6 +379,18 @@ def main():
     add("datasets analysed", len(t), n=len(t),
         note="Horlacher ENCODE datasets absent from our 95-dataset panel")
 
+    # P0-4: the no-shared-protein subset, for EVERY cell rather than only the original one.
+    # 31 of the 108 external proteins also appear in our panel, in different cell lines or
+    # experiments, so the two samples share biology even where they share no dataset.
+    import external_replication as er
+    # our_panel() returns "PROTEIN:CELL" dataset keys; the overlap that matters is at the
+    # PROTEIN level, because the same protein in another cell line is still shared biology.
+    ours = {k.split(":")[0] for k in er.our_panel()}
+    excl = t[~t.protein.isin(ours)] if ours else t.iloc[0:0]
+    log(f"  no-shared-protein subset: {len(excl)} datasets over "
+        f"{excl.protein.nunique() if len(excl) else 0} proteins "
+        f"({len(t) - len(excl)} dropped, sharing {len(set(t.protein) & ours)} proteins)")
+
     log("")
     for prefix, label in CELLS:
         r = directional(t, prefix)
@@ -324,6 +400,11 @@ def main():
         if np.isfinite(r["m1"]):
             add(f"panel mean negative-1, {prefix}", r["m1"], n=r["n"])
             add(f"panel mean negative-2, {prefix}", r["m2"], n=r["n"])
+        if len(excl) >= MIN_DATASETS:
+            e = directional(excl, prefix)
+            add(f"no-shared-protein R, {label}", e["point"], e["lo"], e["hi"], e["n"],
+                note="every protein appearing in our panel excluded; " + e["why"])
+            add(f"no-shared-protein verdict, {prefix}", e["verdict"], n=e["n"])
         log(f"  {label}")
         log(f"      R = {r['point']:.4f}  [{r['lo']:.4f}, {r['hi']:.4f}]   n={r['n']}"
             f"   -> {r['verdict'].upper()}"
@@ -334,26 +415,44 @@ def main():
     # channel chromosome blocking is a proxy for?
     if "chrom_blocked" in t.columns:
         c = t.dropna(subset=["chrom_blocked"])
+        add("datasets where BOTH arms share one identical chromosome map",
+            int(c.map_identical.sum()) if "map_identical" in c.columns else 0, n=len(c),
+            note="the property the first version did not have, and the gate did not check: "
+                 "the fold partition must be held FIXED while the negative construction varies")
         add("datasets whose every chromosome falls in exactly one fold",
             int(c.chrom_blocked.sum()), n=len(c),
             note="must equal the count with a chromosome partition, or the refold is broken")
+        # PER ARM, and named exactly. The first version computed this for negative-1 only,
+        # with strand discarded, and called it a same-strand rate over "positives and
+        # negatives together" without naming which negative construction.
         for tag, lab in (("chrom", "chromosome-blocked"), ("supplied", "their supplied")):
-            have = float(c[f"{tag}_neighbours"].sum())
-            cross = float(c[f"{tag}_cross_fold"].sum())
-            add(f"cross-fold near-neighbour fraction, {lab} folds",
-                cross / have if have else np.nan, n=int(have),
-                note=f"{int(cross)} of {int(have)} WINDOWS, positives and negatives together, "
-                     "with a same-strand neighbour within 1 kb sit in a different fold from it. "
-                     "NOT the same measure as external_replication.fold_blocking, which counts "
-                     "positives only and reports 199 of 1,323,516 on the supplied folds; this "
-                     "one has a larger population and a larger denominator, and the two are not "
-                     "interchangeable")
+            for arm, armlab in (("n1", "negative-1"), ("n2", "negative-2")):
+                hcol, ccol = f"{tag}_neighbours_{arm}", f"{tag}_cross_fold_{arm}"
+                if hcol not in c.columns:
+                    continue
+                have, cross = float(c[hcol].sum()), float(c[ccol].sum())
+                add(f"cross-fold same-strand neighbour fraction, {lab} folds, {armlab}",
+                    cross / have if have else np.nan, n=int(have),
+                    note=f"{int(cross)} of {int(have)}. DENOMINATOR: windows, positives and "
+                         f"{armlab} negatives together, that HAVE an eligible same-strand "
+                         "neighbour within 1 kb. Not all windows, and not positives only, "
+                         "which is what external_replication.fold_blocking counts")
+        if "minus_strand_fraction" in c.columns:
+            add("fraction of windows on the minus strand", float(c.minus_strand_fraction.mean()),
+                n=len(c), note="near a half, which is why discarding strand changed the answer")
         log(f"\n  chromosome-blocked on {int(c.chrom_blocked.sum())}/{len(c)} datasets")
 
-    if excluded is not None:
-        for k, v in excluded.items():
-            add(f"datasets excluded, {k}", v, n=len(t),
+    # --from-cache cannot recompute an exclusion count: the excluded datasets are, by
+    # definition, absent from the per-dataset table it reads. Dropping the rows would take a
+    # clean checkout from passing to failing by running a documented command, which is the
+    # defect rbp.utils.carry exists to close. The committed row goes back byte-identical.
+    from rbp.utils.carry import emit as carry_emit
+    for k in ("no_chrom_folds", "fold_class", "no_build"):
+        if excluded is not None:
+            add(f"datasets excluded, {k}", excluded[k], n=len(t),
                 note="reported rather than dropped silently")
+        else:
+            carry_emit(out, OUT, f"datasets excluded, {k}", None, recomputed=False)
 
     if a.n:
         log("  --n: summary NOT written")

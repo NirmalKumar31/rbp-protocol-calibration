@@ -149,15 +149,17 @@ than to the estimand, and it is removable. Generating the score covariate outsid
 fold cuts it by at least 95\% in every protocol and recovers the known zero to within
 $5\times10^{-4}$.
 
-It is not a property of our own construction. On 135 datasets from \citet{horlacher2023} that
+The pattern is not confined to our own construction. On 135 datasets from \citet{horlacher2023} that
 our panel does not contain, using their windows, negatives and folds, the two-stage estimator
 gives a 1.69-fold span (95\% CI 1.41 to 2.03) across their two negative-set constructions,
 meeting criteria committed before that disjoint subset was scored. Two analyses fixed in a
 dated amendment before either was run close the gaps in that comparison: cross-fitting the
 external covariate, so like-for-like with our primary, gives $1.66$ ($1.40$ to $1.98$), and
-rebuilding their folds so no chromosome is split gives $1.68$ ($1.41$ to $2.02$) cross-fitted on
-all 135 datasets, with the cross-fold near-neighbour fraction falling from $0.0036$ to zero. All
-four analyses meet the same pre-fixed thresholds. The directional relation between apparent
+rebuilding their folds so no chromosome is split, with one identical map for both arms, gives
+$1.67$ ($1.40$ to $2.00$) cross-fitted on all 135 datasets, with the cross-fold same-strand
+neighbour fraction falling to zero in both arms. All
+four meet the numerical thresholds the original protocol fixed, though only the two repairs
+were specified before their own cells were computed. The directional relation between apparent
 difficulty and measured contribution does not replicate there, and we report it as failing.
 
 In a targeted, non-systematic sample of seven methods and benchmarks, none reports a
@@ -188,11 +190,18 @@ construction; sequence composition; incremental value; AUROC
 \input{sections/data-availability}
 
 \backsection{Code availability}
+% RELEASE STEP, and this is the SECOND place a DOI is needed, not the only one. SUBMISSION.md
+% said Data availability was the only manuscript edit required; it is not. A bare GitHub URL is
+% a moving branch and does not identify the code that produced these numbers. Uncomment and
+% insert the same two DOIs used in Data availability, per docs/ZENODO.md.
+%
+% The exact snapshot these results come from is archived at \doi{10.5281/zenodo.XXXXXXX}
+% (tag vX.Y.Z; all versions: \doi{10.5281/zenodo.YYYYYYY}).
 All analysis code is available at
 \url{https://github.com/NirmalKumar31/rbp-protocol-calibration} under the MIT licence, with
 \texttt{results/} and \texttt{data/evidence/} under CC BY 4.0. Every published value is
 regression-checked offline from the repository with \texttt{python scripts/verify.py
--{}-local\allowbreak{} results/tables}, which runs 1141 numeric assertions against a frozen
+-{}-local\allowbreak{} results/tables}, which runs 1153 numeric assertions against a frozen
 expectations file and asserts that no fewer than that number ran, so a check cannot silently
 skip. That is a check against committed evidence and not a rebuild from raw inputs: two of the
 assertions are genuine end-to-end rebuilds, 285 AUROCs from committed per-window scores and the
@@ -205,7 +214,7 @@ regenerated from the accessions above in one command.
 % ------------------------------------------------------------------------------------------
 % OPEN ITEM, TO BE SETTLED BEFORE SUBMISSION AND NOT BEFORE THE DRAFTING PHASE.
 %
-% This paragraph names one system. Six external audits, produced by other generative systems,
+% This paragraph names one system. TEN external audits, produced by other generative systems,
 % were run against this repository during preparation, and their findings materially shaped it:
 % they identified defects that changed code, changed released tables, and changed statements in
 % this manuscript. That is assistance of a different kind from the coding help described below,

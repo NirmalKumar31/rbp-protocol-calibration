@@ -183,7 +183,15 @@ with its recorded MD5.
 
 **What gets committed.** Every row produced, whatever it says, into
 `results/tables/external_replication.csv` and its per-dataset companion, with golden entries and
-`verify.py` assertions, gated like everything else. Tests must fail if the fold criterion, the
+`verify.py` assertions, gated like everything else.
+
+**EXECUTION NOTE, added 2026-09-07 after the run, and this specification is not edited above.**
+The outputs went to `results/tables/external_sensitivity.csv` and
+`external_sensitivity_per_dataset.csv` instead. `external_replication.csv` already existed and
+holds the original supplied-fold two-stage analysis, and overwriting it would have destroyed the
+record this amendment exists to extend. The new file is a sibling, not a replacement, and both
+are gated. See also `EXTERNAL_CORRECTION_1.md`, which records two implementation defects found
+in that run after the fact and the corrective rerun. Tests must fail if the fold criterion, the
 estimator, the thresholds or the dataset count is violated.
 
 **What this amendment cannot buy.** It does not make the original search prospective. The

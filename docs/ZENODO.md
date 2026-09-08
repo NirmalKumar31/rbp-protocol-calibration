@@ -59,7 +59,7 @@ In the repository on GitHub:
 3. Target: `main`.
 4. Release title: `v1.0.0` (or the paper title).
 5. Description: one or two lines is enough. For example:
-   > Code, committed evidence and manuscript accompanying the preprint. All 1141 verification
+   > Code, committed evidence and manuscript accompanying the preprint. All 1153 verification
    > assertions pass on a clean clone.
 6. **Publish release**.
 
@@ -121,12 +121,21 @@ cd manuscript && ./build.sh
 
 `build.sh` fails on an undefined reference, so a broken edit will not silently produce a PDF.
 
-## 7. A wrinkle worth knowing
+## 7. The wrinkle, and it is resolved in section 5 rather than here
 
-The archived `v1.0.0` snapshot cannot contain its own DOI, because the DOI does not exist until
-after the release is cut. This is normal and nobody objects to it. If it bothers you, cut
-`v1.0.1` after wiring the DOI in; the concept DOI will then resolve to a snapshot that does
-contain it.
+An earlier version of this section said flatly that the archived snapshot **cannot** contain its
+own DOI. That contradicted section 5 above, which correctly offers DOI reservation in a draft as
+one of two workflows, and a reader following this file could reasonably have done either.
+
+**Pick one, and section 5's first option is the recommended one:** reserve the DOI in a manual
+Zenodo draft, insert it into the manuscript and `CITATION.cff`, rebuild, commit, tag, and then
+archive that tag. Zenodo documents reservation directly, and the reserved DOI survives as long
+as the draft does. The snapshot then contains its own version DOI and there is no second
+release.
+
+The fallback remains valid if reservation is not used: archive once, insert the minted version
+DOI, and cut a second release whose only change is that insertion. Whichever is chosen, say so
+in the release notes.
 
 ## 8. Changing the repo after the DOI exists
 

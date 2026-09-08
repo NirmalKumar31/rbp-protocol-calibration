@@ -32,11 +32,33 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 PY="${PY:-python3}"
-export PYTHONPATH="$PWD/src"
+# PREPEND, do not overwrite. Discarding a caller's PYTHONPATH is rude and it also made this
+# script impossible to test against a simulated environment, which is how the torch-free path
+# went unexercised.
+export PYTHONPATH="$PWD/src${PYTHONPATH:+:$PYTHONPATH}"
 export GOOGLE_CLOUD_PROJECT="${GOOGLE_CLOUD_PROJECT:-ci-no-such-project}"
 
 FIX=0
 [ "${1:-}" = "--fix" ] && FIX=1
+
+# Is torch here? README's documented base install is `pip install -e . -c constraints.txt`,
+# which deliberately omits torch, and this script then ran the whole test tree and the
+# GPU-image test selection, both of which need it. So the documented commands could not
+# succeed in the documented environment. An audit reproduced that in a clean archive.
+#
+# The answer is not to demand torch. It is to run what CAN run, say plainly what did not, and
+# NOT print "PREFLIGHT CLEAN" over a subset, because a green word covering a partial run is the
+# same defect as a gate nothing runs.
+if "$PY" -c "import torch" >/dev/null 2>&1; then
+  HAVE_TORCH=1
+else
+  HAVE_TORCH=0
+fi
+skipped=0
+skip() {
+  printf '\n=== %s\n    SKIPPED: %s\n' "$1" "$2" >&2
+  skipped=1
+}
 
 fail=0
 step() {
@@ -57,7 +79,14 @@ step "manuscript numbers trace to a table" "$PY" scripts/audit_manuscript.py
 if [ "$FIX" = 1 ]; then
   step "release documents (syncing counts)" "$PY" scripts/release_consistency.py --fix
 fi
-step "release documents are consistent" "$PY" scripts/release_consistency.py --require-all
+# --require-all demands every derived fact, and the test census cannot be derived without
+# torch because the full suite will not collect. Without torch this reports rather than fails.
+if [ "$HAVE_TORCH" = 1 ]; then
+  step "release documents are consistent" "$PY" scripts/release_consistency.py --require-all
+else
+  step "release documents are consistent (partial: no test census)" \
+       "$PY" scripts/release_consistency.py
+fi
 
 # TWICE, IN --fix, AND THE SECOND ONE IS STILL LAST. refresh_manifests.sh must run after every
 # generator, which is why it is at the bottom. But tests/unit/test_provenance.py CHECKS those
@@ -81,7 +110,14 @@ step "raw input manifest" "$PY" scripts/raw_inputs.py --check
 step "history secret scan" "$PY" scripts/history_scan.py --check
 
 # 6. code
-step "unit suite" "$PY" -m pytest tests
+if [ "$HAVE_TORCH" = 1 ]; then
+  step "unit suite" "$PY" -m pytest tests
+else
+  step "unit suite, minus the two torch modules" "$PY" -m pytest tests \
+       --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
+  skip "the two torch test modules" \
+       "no torch. Install 'pip install -e .[neural] -c constraints.txt' to cover them"
+fi
 step "ruff" "$PY" -m ruff check .
 step "shell syntax" bash -c 'for f in $(git ls-files "*.sh"); do bash -n "$f" || exit 1; done'
 
@@ -91,8 +127,13 @@ step "shell syntax" bash -c 'for f in $(git ls-files "*.sh"); do bash -n "$f" ||
 # published image silently stays stale. check_image_tree.sh has existed to catch that since the
 # image was unbuildable for weeks; it was in no pipeline, and by 2026-09-07 it was failing again
 # on nine supplement tests added the day before. A gate nothing runs is not a gate.
-step "the suite passes against the container's file set" \
-     env PY="$PY" bash scripts/check_image_tree.sh
+if [ "$HAVE_TORCH" = 1 ]; then
+  step "the suite passes against the container's file set" \
+       env PY="$PY" bash scripts/check_image_tree.sh
+else
+  skip "the container file-set check" \
+       "it exercises the GPU image selection, which needs torch"
+fi
 
 # 7. the manuscript, and whether the tracked PDF is the output of the tracked source
 # pdf_freshness.py runs build.sh inside a TEMPORARY COPY, so every gate build.sh carries
@@ -118,7 +159,12 @@ else
 fi
 
 printf '\n'
-if [ "$fail" = 0 ]; then
+if [ "$fail" = 0 ] && [ "$skipped" = 1 ]; then
+  printf 'PREFLIGHT PARTIAL. Everything runnable here passed, but this environment has no\n'
+  printf 'torch, so the steps marked SKIPPED above did NOT run and this is NOT the full\n'
+  printf 'release gate. For that: pip install -e ".[neural]" -c constraints.txt, or read the\n'
+  printf 'exact GitHub Actions run for this commit, whose full-suite job does have torch.\n'
+elif [ "$fail" = 0 ]; then
   if [ "$FIX" = 1 ]; then
     printf 'PREFLIGHT CLEAN. Counts synced and manifests refreshed; review `git diff` and commit.\n'
   else
