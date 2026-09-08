@@ -211,8 +211,15 @@ jobs:
       # bash -n only. shellcheck is not installed here on purpose: it reports on style as well
       # as syntax and a first run would fail the build on a hundred pre-existing SC2086s, which
       # would mean turning it off again the same day. Syntax is the property worth gating.
+      # ZERO FILES IS A FAILURE. `git ls-files` yields nothing outside a checkout or after a
+      # rename the glob stops matching, and the loop then runs no iterations and the step
+      # passes having parsed nothing. scripts/preflight.sh had exactly this and a `git archive`
+      # extraction holding 18 shell scripts got a green step that checked none of them.
       - name: shell syntax
-        run: for f in $(git ls-files '*.sh'); do bash -n "$f" || exit 1; done
+        run: |
+          files=$(git ls-files '*.sh')
+          [ -n "$files" ] || { echo "no shell scripts found; this step checked NOTHING"; exit 1; }
+          for f in $files; do bash -n "$f" || exit 1; done
 
   manuscript:
     runs-on: ubuntu-latest

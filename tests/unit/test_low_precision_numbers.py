@@ -229,3 +229,101 @@ def test_the_cross_fitting_cost_is_twice_one_sweep():
     assert abs(int(xfit.group(1)) - 2 * int(sweep.group(1))) <= 2, (
         f"${xfit.group(1)} is not twice ${sweep.group(1)}; the two cost statements in one "
         "section do not agree")
+
+
+# --- the external benchmark's four cells, on every surface that states them -------------------
+#
+# Every one of these is two decimals, so audit_manuscript.py never looked at them, and the
+# withdrawn values are still legitimately present in docs/EXTERNAL_CORRECTION_1.md, which
+# preserves them on purpose. So when the repaired analysis moved the chromosome-blocked
+# cross-fitted cell from 1.68 (1.41 to 2.02) to 1.67 (1.40 to 2.00), the Discussion went on
+# quoting the withdrawn figure as the current result for two commits and nothing objected: no
+# orphan, no stale count, 1156/1156, CI green on all four jobs. An external audit found it by
+# reading the paper. Six surfaces state these numbers and they have to agree.
+
+EXTERNAL = {
+    "supplied_2s":
+        "directional R, supplied folds, two-stage (the published analysis, recomputed)",
+    "supplied_cf":
+        "directional R, supplied folds, CROSS-FITTED (D3: like-for-like with our primary)",
+    "chrom_2s":
+        "directional R, chromosome-blocked folds, two-stage (D2: the literal criterion)",
+    "chrom_cf":
+        "directional R, chromosome-blocked folds, cross-fitted (D2 and D3 together)",
+}
+
+# (file, cell, pattern, the column each capture group must equal). Patterns cross line breaks
+# with \s+ because the TeX is hard-wrapped and the sentence is what matters, not the wrapping.
+EXT_CLAIMS = [
+    # Results, Table 14: the canonical statement, all four cells with their intervals.
+    ("manuscript/sections/results.tex", "supplied_2s",
+     r"supplied & two-stage & ([\d.]+) \(([\d.]+)--([\d.]+)\)", ("value", "ci_low", "ci_high")),
+    ("manuscript/sections/results.tex", "supplied_cf",
+     r"supplied & cross-fitted & ([\d.]+) \(([\d.]+)--([\d.]+)\)",
+     ("value", "ci_low", "ci_high")),
+    ("manuscript/sections/results.tex", "chrom_2s",
+     r"chromosome-blocked & two-stage & ([\d.]+) \(([\d.]+)--([\d.]+)\)",
+     ("value", "ci_low", "ci_high")),
+    ("manuscript/sections/results.tex", "chrom_cf",
+     r"chromosome-blocked & cross-fitted & ([\d.]+) \(([\d.]+)--([\d.]+)\)",
+     ("value", "ci_low", "ci_high")),
+    # Results prose, which restates two of them without their intervals.
+    ("manuscript/sections/results.tex", "supplied_cf",
+     r"It gives \$([\d.]+)\$ against the two-stage", ("value",)),
+    ("manuscript/sections/results.tex", "supplied_2s",
+     r"against the two-stage \$([\d.]+)\$", ("value",)),
+    ("manuscript/sections/results.tex", "chrom_2s",
+     r"The result is \$([\d.]+)\$ two-stage", ("value",)),
+    ("manuscript/sections/results.tex", "chrom_cf",
+     r"two-stage and \$([\d.]+)\$ cross-fitted, slightly larger", ("value",)),
+    # The abstract.
+    ("manuscript/paper.tex", "supplied_2s",
+     r"gives a ([\d.]+)-fold span \(95\\% CI ([\d.]+) to ([\d.]+)\)",
+     ("value", "ci_low", "ci_high")),
+    ("manuscript/paper.tex", "supplied_cf",
+     r"so like-for-like with our primary, gives \$([\d.]+)\$ \(\$([\d.]+)\$ to \$([\d.]+)\$\)",
+     ("value", "ci_low", "ci_high")),
+    ("manuscript/paper.tex", "chrom_cf",
+     r"\$([\d.]+)\$ \(\$([\d.]+)\$ to \$([\d.]+)\$\) cross-fitted on all 135 datasets",
+     ("value", "ci_low", "ci_high")),
+    # The Discussion. This is the one that went stale.
+    ("manuscript/sections/discussion.tex", "supplied_2s",
+     r"at \$([\d.]+)\$-fold \(95\\% CI \$([\d.]+)\$ to\s+\$([\d.]+)\$\)",
+     ("value", "ci_low", "ci_high")),
+    ("manuscript/sections/discussion.tex", "supplied_cf",
+     r"two-stage figure, it is \$([\d.]+)\$ \(\$([\d.]+)\$ to\s+\$([\d.]+)\$\)",
+     ("value", "ci_low", "ci_high")),
+    ("manuscript/sections/discussion.tex", "chrom_cf",
+     r"release does not provide, it is \$([\d.]+)\$ \(\$([\d.]+)\$ to\s+\$([\d.]+)\$\)",
+     ("value", "ci_low", "ci_high")),
+    # README, which a reader meets before the paper.
+    ("README.md", "supplied_2s",
+     r"constructions is \*\*([\d.]+)\*\* \(95% CI ([\d.]+) to ([\d.]+)\) two-stage",
+     ("value", "ci_low", "ci_high")),
+    ("README.md", "supplied_cf",
+     r"and \*\*([\d.]+)\*\* \(([\d.]+) to ([\d.]+)\) cross-fitted",
+     ("value", "ci_low", "ci_high")),
+    ("README.md", "chrom_2s", r"does not do, gives ([\d.]+) and [\d.]+ with", ("value",)),
+    ("README.md", "chrom_cf", r"does not do, gives [\d.]+ and ([\d.]+) with", ("value",)),
+]
+
+
+@pytest.mark.parametrize("path,cell,pattern,columns", EXT_CLAIMS,
+                         ids=[f"{c[0].split('/')[-1]}:{c[1]}:{'+'.join(c[3])}"
+                              for c in EXT_CLAIMS])
+def test_an_external_benchmark_cell_agrees_with_its_evidence_row(path, cell, pattern, columns):
+    f = ROOT / path
+    if not f.exists():
+        pytest.skip(f"{path} not in this checkout")
+    m = re.search(pattern, f.read_text())
+    assert m, (
+        f"{path}: the sentence stating the {cell} external cell no longer matches this "
+        "pattern. Reworded, in which case fix the pattern; or deleted, in which case delete "
+        "this claim. It must not quietly stop covering the number")
+    assert len(m.groups()) == len(columns), "the pattern and the column list disagree"
+    for got, col in zip(m.groups(), columns):
+        truth = round(_row("external_sensitivity.csv", EXTERNAL[cell], col), 2)
+        assert float(got) == truth, (
+            f"{path} states {got} for the {cell} {col}; external_sensitivity.csv gives "
+            f"{truth}. The withdrawn values live in docs/EXTERNAL_CORRECTION_1.md and "
+            "nowhere else: prose describing the current analysis must state the current one")

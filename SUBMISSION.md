@@ -181,7 +181,7 @@ dollars of compute at current prices, and is not required to check any published
    quietly stopped.
 4. **The AI-use disclosure needs an author decision before submission, and is deliberately not
    rewritten here.** The paragraph in `paper.tex` names one system and describes coding and
-   drafting assistance. TEN external audits produced by other generative systems were run
+   drafting assistance. ELEVEN external audits produced by other generative systems were run
    against this repository during preparation, and their findings materially shaped it: they
    found defects that changed code, changed released tables and changed statements in the
    manuscript. Whether that is disclosable, and which systems to name, is the author's call

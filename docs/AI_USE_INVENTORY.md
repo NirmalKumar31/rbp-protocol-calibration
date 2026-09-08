@@ -36,9 +36,9 @@ An assistant cannot attest to it, and this file does not.**
 
 ## 2. What only the author can supply
 
-**Which generative systems produced the TEN external audit reports.** This cannot be determined
-from the repository or from the reports. They live outside the repository, deliberately, and
-this is the one place the list is kept:
+**Which generative systems produced the ELEVEN external audit reports.** This cannot be
+determined from the repository for ten of the eleven, nor from those ten reports. They live
+outside the repository, deliberately, and this is the one place the list is kept:
 
 | # | file | date |
 |---|---|---|
@@ -52,14 +52,18 @@ this is the one place the list is kept:
 | 8 | `today's audit indepth final.md` | 2026-09-06 |
 | 9 | `finishing up final audit.md` | 2026-09-07 |
 | 10 | `v1 final audit.md` | 2026-09-07 |
+| 11 | `v2 final audit.md` | 2026-09-07 |
 
 `science-completion-report.md` is not in this list: it is a report produced for the author, not
 an audit of the repository.
 
-Every one of the ten mentions "Claude" only because it is auditing a repository whose commits
-name Claude; **none identifies its own system.** The author commissioned them and is the only
-person who knows. The count previously read six in two places, eight here and four in a third;
-the four was correct for one round and is now labelled as such.
+Reports 1 to 10 mention "Claude" only because they are auditing a repository whose commits name
+Claude; **none of the ten identifies its own system.** Report 11 is the exception and names
+itself: it states that it "is an additional OpenAI Codex review if its findings are used", and
+its findings were used, so it is disclosable as OpenAI Codex. That leaves ten unattributed. The
+author commissioned all eleven and is the only person who knows. The count previously read six
+in two places, eight here and four in a third; the four was correct for one round and is now
+labelled as such.
 
 That assistance was material, not cosmetic. Findings from those reports changed code, changed
 released tables and changed statements in the manuscript. `docs/AUDIT-RESPONSE.md` is the

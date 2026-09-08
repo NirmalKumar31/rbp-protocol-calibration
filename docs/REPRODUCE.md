@@ -1,10 +1,13 @@
-# Reproduce the whole study, from raw inputs to verified results
+# Reproduce the core pipeline, from raw inputs to verified results
 
 Cloud only. The laptop submits jobs and reads results; it never computes. Roughly **$60** without credits; see **[COST.md](COST.md)**, which is the only authoritative cost
 table and separates what was measured from what is forecast.
 
-The study has been run; this is the procedure for running it again from raw inputs. To check
-every published number without running any of it, see
+The study has been run; this is the procedure for running it again from raw inputs. `run.sh all`
+is the core pipeline and not a literal rebuild of every published table: it covers the
+dinucleotide arm end to end, while the GC and bias-aware neural sweeps ran through `cloud/modal/`
+and are consumed here from committed per-window scores. Each stage below says which it is. To
+check every published number without running any of it, see
 [`../SUBMISSION.md`](../SUBMISSION.md):
 `python scripts/verify.py --local results/tables` needs only a clone.
 

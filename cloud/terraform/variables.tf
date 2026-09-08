@@ -1,7 +1,11 @@
+# NO DEFAULT, ON PURPOSE. This carried "rbp-composition-2026", the PREVIOUS study's project,
+# while config/params.yaml said "rbp-repro-2026". run.sh derives the state-bucket name from
+# params.yaml and Terraform named every resource from this variable, so a user who accepted the
+# defaults would have put the state in one project and the buckets, IAM and budget in another.
+# A required variable has no wrong value to inherit; run.sh cross-checks the two before init.
 variable "project_id" {
-  description = "GCP project ID. Must be globally unique, 6-30 chars, lowercase."
+  description = "GCP project ID. Must be globally unique, 6-30 chars, lowercase. Set it in terraform.tfvars, and it must equal config/params.yaml gcp.project_id."
   type        = string
-  default     = "rbp-composition-2026"
 
   validation {
     condition     = can(regex("^[a-z][a-z0-9-]{5,29}$", var.project_id))
@@ -12,7 +16,7 @@ variable "project_id" {
 variable "project_name" {
   description = "Human-readable project name shown in the console."
   type        = string
-  default     = "RBP composition confound"
+  default     = "RBP negative-set calibration"
 }
 
 variable "billing_account" {

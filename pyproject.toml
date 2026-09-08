@@ -69,6 +69,12 @@ neural = ["torch>=2.2", "transformers>=4.40", "multimolecule>=0.0.5", "peft>=0.1
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
+# BOTH FILES. The third-party attribution used to sit at the bottom of LICENSE and therefore
+# shipped inside the wheel. Moving it to NOTICE, so GitHub can detect the MIT licence instead of
+# reporting NOASSERTION, would otherwise have quietly dropped it from the distribution.
+[tool.setuptools]
+license-files = ["LICENSE", "NOTICE"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

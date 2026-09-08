@@ -1,0 +1,25 @@
+NOTICE
+======
+
+The repository's code is under the MIT licence in `LICENSE`, which is that licence's
+unmodified text and nothing else. GitHub's licence detection compares a LICENSE file
+against the canonical text, so the section below, which used to be appended there, made
+the repository report NOASSERTION and lose the signal for both licences at once.
+
+Nothing here is waived by living in this file: these attributions are a condition of use.
+
+DATA AND RESULTS. The contents of `results/` and `data/evidence/` are released
+under CC-BY-4.0, and each of those directories carries its own LICENSE file
+naming that licence and linking its legal code, so a directory extracted on its
+own still says what it is. They are derived from public sources that carry their own terms
+and must be cited independently:
+
+  ENCODE Consortium eCLIP peaks        https://www.encodeproject.org
+  GENCODE release 45                   Frankish et al., gencodegenes.org
+  NCBI ClinVar                         Landrum et al.
+  UCSC phyloP 100-way
+  Horlacher et al. 2023, Brief Bioinform 24(5):bbad307
+    negative sets via Zenodo 10.5281/zenodo.10600977, CC-BY-4.0
+
+No genomic sequence is redistributed here: the committed evidence carries window
+identifiers, labels, fold assignments and model scores only.

@@ -111,8 +111,8 @@ def n_figure_files():
     return len(list(d.glob("*.pdf"))) if d.exists() else None
 
 
-def n_verify_checks():
-    """The verifier's own total, read from the summary it writes.
+def _verify_summary(key):
+    """One row of the summary the verifier writes.
 
     Read from the artefact and not from verify.py's source, because the count is a property
     of a run: gates skip when a table is absent, and a number taken from the source would be
@@ -123,9 +123,31 @@ def n_verify_checks():
         return None
     for ln in f.read_text().strip().splitlines()[1:]:
         k, _, v = ln.partition(",")
-        if k.strip() == "assertions":
+        if k.strip() == key:
             return int(v)
     return None
+
+
+def n_verify_checks():
+    return _verify_summary("assertions")
+
+
+# THE SPLIT, not just the total. README states how many of the 1156 assertions belong to this
+# paper rather than to the earlier variant-scoring study, which is the number a reader of THIS
+# paper actually wants. Only the total was ever derived, so when a gate was added the total was
+# synced and the split was not: the README said 1015 while the verifier printed 1018. A fact
+# stated in prose and derived by nothing is the definition of what goes stale here.
+def n_paper_assertions():
+    return _verify_summary("assertions_this_paper")
+
+
+def n_legacy_assertions():
+    return _verify_summary("assertions_legacy_study")
+
+
+def n_harness_assertions():
+    """The pair that made the README's split fail to add up: 1018 + 136 is 1154, not 1156."""
+    return _verify_summary("assertions_harness")
 
 
 def abstract_words():
@@ -232,6 +254,15 @@ FACTS = {
         r"\d{3,4}/(\d{3,4}) checks",
         r"one command, (\d{3,4}) checks",
     ]),
+    "paper assertions": (n_paper_assertions, [
+        r"(\d{3,4}) belong to this paper",
+    ]),
+    "legacy assertions": (n_legacy_assertions, [
+        r", (\d{2,4}) to an earlier",
+    ]),
+    "harness assertions": (n_harness_assertions, [
+        r"and (\d+) are\s+the harness checking itself",
+    ]),
     "abstract words": (abstract_words, [
         r"(\d+) words, no markup",
     ]),
@@ -253,7 +284,8 @@ TOLERANCE = {"abstract words": 4}
 # "this environment could derive it but a dependency is missing". The first is a legitimate
 # partial run and is reported; the second is a broken environment and fails. --require-all makes
 # every fact mandatory, and the full-suite CI job passes it.
-REQUIRED = {"tests collected", "verify checks"}
+REQUIRED = {"tests collected", "verify checks", "paper assertions", "legacy assertions",
+            "harness assertions"}
 
 
 def title_equality():

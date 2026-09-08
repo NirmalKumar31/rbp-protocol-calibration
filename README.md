@@ -56,16 +56,21 @@ throughout for different quantities.
 ## Check it in thirty seconds, offline
 
 No cloud account, no credentials, no data download. 1156 numeric assertions are checked
-against committed tables, of which **1015 belong to this paper** and 136 to an earlier
-variant-scoring study whose code and evidence are still here and still pass. The verifier prints
-that split on every run, because one total covering two papers is not this paper's evidence. That is a regression gate on the published values, not a proof that
-each is attached to the right claim; the Limitations section says what it does not cover.
+against committed tables, of which **1018 belong to this paper**, 136 to an earlier
+variant-scoring study whose code and evidence are still here and still pass, and 2 are the harness checking itself.
+The verifier prints that split on every run, because one total covering two papers is not this
+paper's evidence. That is a regression gate on the published values, not a proof that each is
+attached to the right claim; the Limitations section says what it does not cover.
 
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git && cd rbp-protocol-calibration
-python -m pip install -e . -c constraints.txt   # no torch: the neural stack is an extra
+python -m pip install -e . -c constraints.txt   # base: enough to VERIFY, no torch
 
 PYTHONPATH=src python scripts/verify.py --local results/tables   # 1156/1156
+
+# The tests and the gate below need pytest, ruff and pypdf, which live in the `dev` extra.
+# A constraints file pins what is already being installed; it does not add anything.
+python -m pip install -e '.[dev]' -c constraints.txt
 PYTHONPATH=src python -m pytest tests -q \
   --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
 
@@ -74,8 +79,8 @@ PYTHONPATH=src python -m pytest tests -q \
 ./scripts/preflight.sh          # check only
 ./scripts/preflight.sh --fix    # also sync derived counts and refresh the manifests
 
-# For the FULL release gate, and to reproduce the sweeps, install the neural extra first:
-python -m pip install -e '.[neural]' -c constraints.txt
+# For the FULL release gate, and to reproduce the sweeps, add the neural extra:
+python -m pip install -e '.[dev,neural]' -c constraints.txt
 ./scripts/preflight.sh          # now PREFLIGHT CLEAN means the whole gate
 ```
 
@@ -95,7 +100,7 @@ headline contrast recomputed from raw sequence.
 | **The estimator has a floor** | Applied to a model whose information the baseline already contains, so the truth is zero, it returns **+0.0119 / +0.0137 / +0.0111**. Nearly flat across arms, so the span survives; but 90.4% of the bias-aware arm's value, so that level does not |
 | **The floor is removable** | It is the outer-fold route, not conditioning. Cross-fitting the covariate cuts it by **at least 95%** and lands within 5e-4 of the known zero. The span goes 5.42 to **4.84**. Measured for the k-mer classes; the CNN and SpliceBERT would need about $115, twice one sweep of both models across the three arms |
 | **The baseline's order matters too** | Raising it to order three removes most of a 4-mer's contribution and a third of SpliceBERT's; at order four the baseline overfits and the estimator's error exceeds most published increments |
-| **It holds on someone else's data** | On 135 datasets from Horlacher et al. 2023 that our panel does not contain, 108 proteins, their windows and their negatives: the directional ratio between their two negative-set constructions is **1.69** (95% CI 1.41 to 2.03) two-stage and **1.66** (1.40 to 1.98) cross-fitted, so it is comparable with both our 5.42 and our primary 4.84. Rebuilding their folds so no chromosome is split, which their release does not do, gives 1.74 and 1.68 with cross-fold near-neighbour leakage falling to exactly zero. Criteria for all four were committed before each was computed. It is disjoint in datasets and processing, **not** in proteins: 31 of 108 overlap ours, and excluding every shared one still gives 1.66. It is a pre-specified analysis of a held-out subset of an already-known benchmark, not a prospective search |
+| **It holds on someone else's data** | On 135 datasets from Horlacher et al. 2023 that our panel does not contain, 108 proteins, their windows and their negatives: the directional ratio between their two negative-set constructions is **1.69** (95% CI 1.41 to 2.03) two-stage and **1.66** (1.40 to 1.98) cross-fitted, so it is comparable with both our 5.42 and our primary 4.84. Rebuilding their folds so no chromosome is split, which their release does not do, gives 1.73 and 1.67 with cross-fold same-strand neighbour leakage falling to exactly zero. Criteria for all four were committed before each was computed. It is disjoint in datasets and processing, **not** in proteins: 31 of 108 overlap ours, and excluding every shared one still gives 1.66. It is a pre-specified analysis of a held-out subset of an already-known benchmark, not a prospective search |
 | **None of seven surveyed reports the baseline** | Of a targeted, non-systematic sample of seven methods and benchmarks, five build negatives by relocating genomic intervals, which leaves composition unconstrained, and **none** reports a composition-only AUROC. Seven hand-picked sources are not a systematic review, and the survey's selection rule is stated in `scripts/negative_set_survey.py` |
 
 ## Rebuild it from raw data
@@ -125,7 +130,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          864 tests, no network or cloud; 2 modules need torch
+tests/          882 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes
@@ -153,6 +158,7 @@ data/evidence/  per-window out-of-fold scores for all three model classes
 
 ## Licence and citation
 
-Code and derived data under MIT and CC BY 4.0 respectively; see `LICENSE`. Intermediate window
-tables containing genomic sequence are not redistributed and are regenerated from the ENCODE
-accessions in Supplementary Table S1.
+Code and derived data under MIT and CC BY 4.0 respectively; see `LICENSE` for the code and
+`NOTICE` for the third-party sources the evidence derives from and the terms each carries.
+Intermediate window tables containing genomic sequence are not redistributed and are
+regenerated from the ENCODE accessions in Supplementary Table S1.

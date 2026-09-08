@@ -45,6 +45,8 @@ FIX=0
 # which deliberately omits torch, and this script then ran the whole test tree and the
 # GPU-image test selection, both of which need it. So the documented commands could not
 # succeed in the documented environment. An audit reproduced that in a clean archive.
+# The README now installs `.[dev]` before running anything here, because a constraints file
+# pins what is being installed and does not add pytest, ruff or pypdf.
 #
 # The answer is not to demand torch. It is to run what CAN run, say plainly what did not, and
 # NOT print "PREFLIGHT CLEAN" over a subset, because a green word covering a partial run is the
@@ -116,10 +118,17 @@ else
   step "unit suite, minus the two torch modules" "$PY" -m pytest tests \
        --ignore=tests/unit/test_models.py --ignore=tests/unit/test_train_folds.py
   skip "the two torch test modules" \
-       "no torch. Install 'pip install -e .[neural] -c constraints.txt' to cover them"
+       "no torch. Install 'pip install -e .[dev,neural] -c constraints.txt' to cover them"
 fi
 step "ruff" "$PY" -m ruff check .
-step "shell syntax" bash -c 'for f in $(git ls-files "*.sh"); do bash -n "$f" || exit 1; done'
+# ZERO FILES IS A FAILURE, not a pass. `git ls-files` fails outside a checkout, the command
+# substitution then yields an empty list, the loop runs no iterations and the step printed OK.
+# An audit ran this in a `git archive` extraction holding real shell scripts and got a green
+# step that had parsed none of them, which is the same defect as a gate nothing runs.
+step "shell syntax" bash -c '
+  files=$(git ls-files "*.sh" 2>/dev/null || find . -name "*.sh" -not -path "./.git/*")
+  [ -n "$files" ] || { echo "no shell scripts found; this step checked NOTHING" >&2; exit 1; }
+  for f in $files; do bash -n "$f" || exit 1; done'
 
 # 6b. THE CONTAINER'S FILE SET, which is smaller than this one and which nothing was running.
 # docker/Dockerfile.cpu copies src, scripts, config, tests and pyproject.toml. Any test needing
@@ -145,9 +154,11 @@ fi
 if command -v pdflatex >/dev/null 2>&1; then
   step "tracked PDFs match a clean build (builds in a temp copy)" "$PY" scripts/pdf_freshness.py
 else
-  printf '\n=== tracked PDFs match a clean build\n    SKIPPED: no pdflatex here.\n' >&2
-  printf '    The CI manuscript job is then the ONLY thing checking this. That is a gap in\n' >&2
-  printf '    this run, not an absence of one, and it is reported rather than passed over.\n' >&2
+  # THROUGH skip(), not a bare printf. This branch used to print the word SKIPPED without
+  # setting the flag, so a machine with no TeX still ended on PREFLIGHT CLEAN while the only
+  # check that the tracked PDFs are the output of the tracked sources had not run at all.
+  skip "tracked PDFs match a clean build" \
+       "no pdflatex here, so the CI manuscript job is the ONLY thing checking it"
 fi
 
 # 8. LAST, and two passes. Anything regenerated after this leaves the manifest stale.
@@ -160,10 +171,10 @@ fi
 
 printf '\n'
 if [ "$fail" = 0 ] && [ "$skipped" = 1 ]; then
-  printf 'PREFLIGHT PARTIAL. Everything runnable here passed, but this environment has no\n'
-  printf 'torch, so the steps marked SKIPPED above did NOT run and this is NOT the full\n'
-  printf 'release gate. For that: pip install -e ".[neural]" -c constraints.txt, or read the\n'
-  printf 'exact GitHub Actions run for this commit, whose full-suite job does have torch.\n'
+  printf 'PREFLIGHT PARTIAL. Everything runnable here passed, but the steps marked SKIPPED\n'
+  printf 'above did NOT run, so this is NOT the full release gate. For that: install\n'
+  printf 'pip install -e ".[dev,neural]" -c constraints.txt and a TeX distribution, or read\n'
+  printf 'the GitHub Actions run for this commit, whose jobs cover both.\n'
 elif [ "$fail" = 0 ]; then
   if [ "$FIX" = 1 ]; then
     printf 'PREFLIGHT CLEAN. Counts synced and manifests refreshed; review `git diff` and commit.\n'

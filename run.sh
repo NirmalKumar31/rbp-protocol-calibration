@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# The whole study, raw inputs to verified results, cloud only.
+# The core pipeline, raw inputs to verified results, cloud only.
+#
+# NOT a literal rebuild of every published table. `all` covers the dinucleotide arm end to end;
+# the GC and bias-aware neural sweeps were run through cloud/modal/ and their per-window scores
+# are committed rather than recomputed here, and several later analyses rebuild their summaries
+# from those committed caches. docs/REPRODUCE.md marks which is which, per stage.
 #
 #   ./run.sh preflight          check GCP, spend nothing
 #   ./run.sh preflight-modal    check Modal (run AFTER stage 1 creates the service account)
 #   ./run.sh stage 3            run one stage
 #   ./run.sh from 6             run stage 6 onward
-#   ./run.sh all                everything (still stops at each paid gate)
+#   ./run.sh all                every stage below (still stops at each paid gate)
 #   ./run.sh parallel           stages 8, 9 and 11 at once (independent tracks)
 #   ./run.sh status             where the artefacts are
 #
@@ -109,6 +114,21 @@ s1_terraform() {
   [ -f cloud/terraform/terraform.tfvars ] || die \
     "cloud/terraform/terraform.tfvars missing. Copy terraform.tfvars.example and set
      project_id and billing_account. It is gitignored on purpose."
+
+  # TWO SOURCES OF TRUTH, RECONCILED BEFORE ANYTHING IS CREATED. The state bucket below is
+  # named from PROJECT_ID, which comes from GOOGLE_CLOUD_PROJECT or config/params.yaml, while
+  # every resource Terraform makes is named from the project_id in terraform.tfvars. Nothing
+  # compared them, so a mismatch put the state in one project and the buckets, IAM and budget
+  # in another, and the destroy guard below would then be reading a state that describes
+  # neither. Cheap to check, expensive to discover afterwards.
+  TFVARS_PROJECT=$(sed -n 's/^[[:space:]]*project_id[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' \
+    cloud/terraform/terraform.tfvars | head -1)
+  [ -n "$TFVARS_PROJECT" ] || die \
+    "cloud/terraform/terraform.tfvars sets no project_id. It has no default: set it."
+  [ "$TFVARS_PROJECT" = "$PROJECT_ID" ] || die \
+    "project mismatch. terraform.tfvars says '${TFVARS_PROJECT}' and this run resolved
+     '${PROJECT_ID}' from GOOGLE_CLOUD_PROJECT or config/params.yaml. Applying would put the
+     state in one project and the resources in the other. Make them equal and rerun."
 
   # The state bucket is per project and must exist before init. Creating it here rather than
   # in Terraform avoids the bootstrap paradox of storing state about the bucket that stores

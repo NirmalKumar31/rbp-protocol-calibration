@@ -328,11 +328,15 @@ def test_every_licence_cross_reference_resolves_from_its_own_directory():
         f = root / rel
         if not f.exists():
             continue
-        for ref in re.findall(r"\.\./[./]*LICENSE", f.read_text()):
+        # NOTICE as well as LICENSE. The third-party source list moved out of the root
+        # LICENSE into NOTICE, because appending it made GitHub report the repository as
+        # NOASSERTION, and the two CC BY files were repointed at it. A pattern that only
+        # knew about LICENSE would have stopped covering the reference it was repointed to.
+        for ref in re.findall(r"\.\./[./]*(?:LICENSE|NOTICE)", f.read_text()):
             seen += 1
             target = (f.parent / ref).resolve()
             assert target.exists(), f"{rel} points at {ref}, which resolves to a missing {target}"
-    assert seen >= 2, (
+    assert seen >= 4, (
         f"only {seen} licence cross-references found; the pattern stopped matching rather than "
         "the files having stopped cross-referencing")
 

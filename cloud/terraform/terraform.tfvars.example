@@ -5,5 +5,5 @@
 #   gcloud billing accounts list
 
 billing_account = "XXXXXX-XXXXXX-XXXXXX"
-project_id      = "rbp-composition-2026"   # must be globally unique across all of GCP
+project_id      = "rbp-repro-2026"         # globally unique, and MUST equal config/params.yaml
 budget_usd      = 100
