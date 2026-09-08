@@ -28,8 +28,8 @@ public first.
 for private-key blocks, service-account JSON fields, AWS keys, GitHub, Slack and Google API
 tokens, OAuth tokens, and billing account IDs. **The counts are in
 `results/tables/history_scan.csv`, generated, not typed here.** They were typed here, as "206
-commits at the time of writing"; by the time an external audit read it the repository was larger,
-the audit counted a third number, and there was no way to tell which described the release. The
+commits at the time of writing"; by the time anyone read it the repository was larger, a fresh
+count gave a third number, and there was no way to tell which described the release. The
 scan is now a gate, and `--check` fails if any FINDING changes, which is the property that
 matters rather than the size of the history.
 
@@ -80,6 +80,17 @@ The finding stays gated rather than closed: `scripts/history_scan.py --check` st
 count changes, so accepting the exposure does not stop it being reported. It is visible in
 `results/tables/history_scan.csv` on the archived commit, which is the point of recording a
 decision instead of quietly resolving one.
+
+## AI co-author trailers in the commit history
+
+Most commits up to `202953d` carry a `Co-Authored-By: Claude` trailer; the count is in
+`results/tables/history_scan.csv`, generated rather than typed, because a number written here is
+wrong by the next commit. From `202953d` the trailer is no longer added.
+
+That is a change of granularity, not of disclosure. The historical trailers are left in place and
+no history is rewritten. The manuscript's Use of AI tools section is the disclosure of record.
+It is written down here so the change is visible: a signal that simply stops looks like
+concealment, whereas one that stops with the reason recorded does not.
 
 ## What is not guarded
 

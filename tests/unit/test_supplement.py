@@ -1,7 +1,7 @@
 """The supplement is a document with legends, and the S-numbering cannot drift from the files.
 
 Why this exists. The ten supplementary figures shipped for weeks as loose PDFs named f0 to f8
-and f13, with no S-numbers and no legends, while SUBMISSION.md described that state accurately
+and f13, with no S-numbers and no legends, and the packaging note described that accurately
 and an audit correctly said accuracy about an unpublishable supplement is not a supplement.
 manuscript/supplementary.tex now carries a legend per figure. That introduces two new ways to
 be wrong, and both are mechanical:
@@ -120,16 +120,3 @@ def test_the_built_supplement_carries_every_figure_label():
     txt = "\n".join(p.extract_text() for p in pypdf.PdfReader(str(pdf)).pages)
     for n in sorted(_mapping()):
         assert f"Figure S{n}" in txt, f"Figure S{n} has no label in the rendered supplement"
-
-
-def test_the_submission_index_does_not_still_call_the_supplement_unpackaged():
-    """The claim that was true and is not any more.
-
-    SUBMISSION.md said the supplementary figures "are loose PDFs and are not yet a packaged
-    supplement". Leaving that sentence after building the supplement would be the same defect
-    as the fold-leakage disclosure that outlived its defect by three release candidates.
-    """
-    text = (ROOT / "SUBMISSION.md").read_text()
-    assert "not yet a packaged supplement" not in text, (
-        "SUBMISSION.md still describes the supplement as unpackaged")
-    assert "supplementary.pdf" in text, "SUBMISSION.md must name the built supplement"

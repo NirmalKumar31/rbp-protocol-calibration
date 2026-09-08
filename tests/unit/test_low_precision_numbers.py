@@ -182,7 +182,7 @@ def test_one_sweep_of_both_neural_models_over_three_arms():
 # --- the neural cross-fitting cost, which five files quoted four different ways -------------
 
 # Files that may legitimately contain an obsolete figure BECAUSE they record it as an error.
-CORRECTION_RECORDS = ("docs/AUDIT-RESPONSE.md", "docs/REDRAW_PLAN.md", "CHANGELOG.md")
+CORRECTION_RECORDS = ("CHANGELOG.md", "docs/EXTERNAL_CORRECTION_1.md")
 
 OBSOLETE = ("$570", "$573", "$590", "four times the GPU sweep", "ten times that")
 
@@ -202,7 +202,7 @@ def test_the_neural_cross_fitting_cost_is_one_figure_everywhere():
     independently from the measured rates and the committed pair counts.
     """
     for rel in ("README.md", "manuscript/sections/methods.tex",
-                "manuscript/sections/results.tex", "docs/REDRAW_PLAN.md"):
+                "manuscript/sections/results.tex"):
         f = ROOT / rel
         if not f.exists():
             continue

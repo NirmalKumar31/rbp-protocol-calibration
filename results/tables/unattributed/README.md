@@ -6,8 +6,8 @@ Two files, moved here rather than deleted or left in place.
 had none. One, `positive_set_overlap.csv`, is quoted in the Discussion, so its producer was
 reconstructed and its measure turned out to be wrong; see `scripts/positive_set_overlap.py`.
 
-These two are the others. Neither is cited in the manuscript, in `SUBMISSION.md`, in
-`config/golden.yaml` or in `scripts/verify.py`, and no script in the repository produces them.
+These two are the others. Neither is cited in the manuscript, in `config/golden.yaml` or in
+`scripts/verify.py`, and no script in the repository produces them.
 
 | file | what it appears to be |
 |---|---|

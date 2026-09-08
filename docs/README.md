@@ -7,19 +7,18 @@
 | [architecture.md](architecture.md) | stage graph; **the provider split as a measured decision** (live quota readings, measured $/Mpair per model, and the accelerator benchmark that picks the middle of the range); object layout; one task end to end |
 | [cloud-setup.md](cloud-setup.md) | provisioning from an empty project: Terraform, service accounts, IAM, budget guards and the killswitch |
 | [operating.md](operating.md) | running a sweep, reading a failure, estimating cost, and when to stop |
-| [ZENODO.md](ZENODO.md) | minting the archival DOI for a release |
 
-The manuscript and its figure legends are in [`../manuscript/`](../manuscript/); the submission
-index is [`../SUBMISSION.md`](../SUBMISSION.md).
+The manuscript, its figure legends and the built PDFs are in
+[`../manuscript/`](../manuscript/).
 
-## Working notes
+## The pre-specified protocols
 
-Development history, the internal review records and the drafting notes live on the
-`working-notes` branch rather than here. They document how the study arrived at its current
-claim set, including analyses that were withdrawn and the reasons, and are kept because that
-record is worth having. They are not part of the release and are not needed to reproduce
-anything.
+These four are cited by name in the paper, because the claims that rest on them are only
+checkable if you can read them.
 
-```
-git checkout working-notes
-```
+| file | contents |
+|---|---|
+| [EXTERNAL_BENCHMARK_PROTOCOL.md](EXTERNAL_BENCHMARK_PROTOCOL.md) | the eligibility rule and decision thresholds for the external replication, fixed before the held-out subset was scored |
+| [EXTERNAL_BENCHMARK_AMENDMENT.md](EXTERNAL_BENCHMARK_AMENDMENT.md) | the directional estimand and the two fold repairs, committed before either was run |
+| [EXTERNAL_CORRECTION_1.md](EXTERNAL_CORRECTION_1.md) | two implementation defects found after publication, with the withdrawn values preserved |
+| [SENSITIVITY_SPEC.md](SENSITIVITY_SPEC.md) | the class-ratio and capacity-ladder analyses, specified before running |

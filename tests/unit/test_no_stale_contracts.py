@@ -225,7 +225,7 @@ def test_an_escaped_dollar_is_not_a_maths_delimiter():
 
     It then closed the span at the next real `$` and swallowed 165 words of prose as one token,
     so the abstract counted 300 instead of 465 and the release check reported a stale claim in
-    SUBMISSION.md that was not stale. A measurement tool returning a confident wrong number is
+    a release document that was not stale. A measurement tool returning a confident wrong number is
     worse than one that fails, because the wrong number gets acted on.
     """
     import sys
@@ -467,12 +467,16 @@ def test_both_model_loading_paths_honour_a_pinned_revision():
 
 
 def test_the_ai_disclosure_and_billing_decision_are_recorded():
-    """The manuscript must disclose known AI roles; the billing decision remains open."""
-    sub = _read("SUBMISSION.md")
-    assert "AI-use disclosure has been rewritten for author review" in sub, (
-        "the AI-use disclosure review has dropped out of the pre-submission checklist")
-    assert "billing-account ID needs an explicit decision" in sub, (
-        "the historical billing-account decision has dropped out of the checklist")
+    """Both facts must live in an artefact a reader sees, not in a working checklist.
+
+    They used to be tracked in SUBMISSION.md, which was a pre-submission to-do list and is not
+    published. The disclosure belongs in the manuscript, which is the disclosure of record, and
+    the billing decision belongs in SECURITY.md beside the finding it resolves.
+    """
+    sec = _read("SECURITY.md")
+    assert "option 1, accept and record" in sec, (
+        "SECURITY.md no longer records which billing-history option was taken; an open finding "
+        "with no recorded decision reads as an oversight rather than a judgement")
     paper = ROOT / "manuscript" / "paper.tex"
     if paper.exists():
         text = " ".join(paper.read_text().split())
@@ -570,14 +574,14 @@ def test_the_trailer_change_is_recorded_as_granularity_not_a_narrowing():
     of record, is a change of granularity. The difference is entirely in whether it is written
     down, so this fails if it stops being.
     """
-    sub = _read("SUBMISSION.md")
-    assert "Per-commit AI co-author trailers stop after" in sub, (
-        "the trailer change has dropped out of the submission checklist, which makes it look "
-        "like a signal that quietly stopped rather than one that was deliberately relocated")
-    assert "change of granularity and not of disclosure" in sub
+    sec = _read("SECURITY.md")
+    assert "the trailer is no longer added" in sec, (
+        "the trailer change has dropped out of SECURITY.md, which makes it look like a signal "
+        "that quietly stopped rather than one that was deliberately relocated")
+    assert "change of granularity, not of disclosure" in sec
     paper = ROOT / "manuscript" / "paper.tex"
     if paper.exists():
         text = " ".join(paper.read_text().split())
         assert "Use of AI tools" in text and "editorial assistance" in text, (
             "the manuscript must remain the disclosure of record for both coding and writing "
-            "assistance; commit-trailer mechanics belong in the submission checklist")
+            "assistance; commit-trailer mechanics belong in SECURITY.md")

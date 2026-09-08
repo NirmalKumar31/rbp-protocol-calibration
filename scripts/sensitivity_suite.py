@@ -25,7 +25,7 @@ specification search.
 What is not here and why. Class-ratio sensitivity and the k-mer capacity ladder need the
 composition features refit on resampled rows, which needs the window sequences. Only the
 bias-aware arm's windows are on this machine; the composition-matched arms' are in cloud storage.
-Both are in the costed plan in docs/REDRAW_PLAN.md rather than half-done here, because a
+Both are costed and deferred rather than half-done here, because a
 sensitivity run on one arm of three would answer a different question from the one asked. That
 plan has since been run in part: its negative-redraw section executed and is reported in
 redraw_composition.csv, while these two were dropped when the machine came in at half the

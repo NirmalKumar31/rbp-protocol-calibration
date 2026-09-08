@@ -34,7 +34,7 @@ costs milliseconds, so the full panel runs on a laptop. Doing the same for the C
 means ten extra fits per dataset where a sweep does five, so twice the base cost on each of three
 arms: about $115 at the $6.66 (CNN) and $12.44 (SpliceBERT) per arm measured over the bias-aware
 sweep's 940 recorded runs. "Four times the GPU sweep" is what this said, which does not name WHICH
-sweep and was converted to $76 in docs/AUDIT-RESPONSE.md on one reading of it; the arithmetic
+sweep and was once converted to $76 on one reading of it; the arithmetic
 above is the one that follows from the measured rates. The honest statement is still that it has
 not been done; what the k-mer classes establish is the SIGN and the SCALE of the channel where it
 can be measured exactly, and whether the published claim, that the channel is one-directional,

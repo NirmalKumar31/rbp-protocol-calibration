@@ -123,8 +123,7 @@ including the candidates that fail on criterion 1 or 2 immediately.
 Recorded here rather than folded into the text, because a prospective protocol whose errors are
 corrected in place afterwards is not a prospective protocol.
 
-**The title and opening claim of this document are too strong, and an external audit was right
-to say so.** "Before any candidate benchmark was searched for, opened, downloaded or scored" is
+**The title and opening claim of this document are too strong.** "Before any candidate benchmark was searched for, opened, downloaded or scored" is
 false of the benchmark this search actually landed on. The Horlacher deposit had been downloaded
 and MD5-verified on 2026-08-31 (`0a79763`), its 45-dataset intersection with our panel had been
 scored the same day (`3f96e8e`, `2b5843a`), and it was analysed further on 2026-09-04

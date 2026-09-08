@@ -100,9 +100,8 @@ MANUSCRIPT_DIR = ROOT / "manuscript"
 # could ever source, and a gate whose output is mostly false positives is a gate that gets
 # skimmed. The distinction is whether a reader would act on the number, not whether it is
 # published. A glob would silently re-acquire the chronicle the next time one is added.
-RELEASE_DOCS = [ROOT / "README.md", ROOT / "SUBMISSION.md",
-                ROOT / "docs" / "REPRODUCE.md", ROOT / "docs" / "PANELS.md",
-                ROOT / "docs" / "ZENODO.md"]
+RELEASE_DOCS = [ROOT / "README.md",
+                ROOT / "docs" / "REPRODUCE.md", ROOT / "docs" / "PANELS.md"]
 MANUSCRIPT = ([MANUSCRIPT_DIR / "paper.tex"]
               + sorted((MANUSCRIPT_DIR / "sections").glob("*.tex"))
               + [p for p in RELEASE_DOCS if p.exists()])

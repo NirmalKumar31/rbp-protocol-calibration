@@ -14,7 +14,7 @@ to 2.03) over 135 datasets. Nothing below has been computed.
 
 ## 1. Why this amendment exists
 
-An external audit identified three defects in the original protocol as applied. All three are
+Post hoc review identified three defects in the original protocol as applied. All three are
 real. None is repaired by rewording the original document.
 
 **D1. The estimand's failure rule was ill-posed.** The protocol's estimand is

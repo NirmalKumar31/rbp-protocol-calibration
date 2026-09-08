@@ -7,8 +7,7 @@ The study has been run; this is the procedure for running it again from raw inpu
 is the core pipeline and not a literal rebuild of every published table: it covers the
 dinucleotide arm end to end, while the GC and bias-aware neural sweeps ran through `cloud/modal/`
 and are consumed here from committed per-window scores. Each stage below says which it is. To
-check every published number without running any of it, see
-[`../SUBMISSION.md`](../SUBMISSION.md):
+check every published number without running any of it:
 `python scripts/verify.py --local results/tables` needs only a clone.
 
 ---

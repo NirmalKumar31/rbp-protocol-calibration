@@ -11,7 +11,7 @@ document whose job is to tell a reader what the columns mean.
 Why it was rewritten. A second audit read the output and found it was not a data dictionary.
 It carried four fields -- table, column, dtype, example -- where the dtype came from THE FIRST
 DATA ROW ALONE and there was no definition, unit, key or missingness rule anywhere in it, while
-SUBMISSION.md advertised it as "column definitions for every released table". The first-row
+It was advertised as "column definitions for every released table". The first-row
 inference was not merely thin, it was wrong: 98 columns were typed `empty` and 87 of those 98
 are populated further down the same file. A summary table's `ci_low` is blank on its first row
 whenever that row is a count, so the single most common interval column in the release was

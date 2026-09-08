@@ -1,6 +1,6 @@
 check,value,note
-commits on HEAD,256,"as of 865e478, which is the commit BEFORE the one recording this; the count necessarily excludes that commit and every later one"
-commits on all refs,266,"the scan covers this set, as of 865e478"
+commits on HEAD,266,"as of 58d070b, which is the commit BEFORE the one recording this; the count necessarily excludes that commit and every later one"
+commits on all refs,276,"the scan covers this set, as of 58d070b"
 commits containing a private key block,0,the matched strings are deliberately not printed here
 commit-and-file pairs containing a private key block,0,a file touched in two commits counts twice
 diff lines containing a private key block,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
@@ -26,5 +26,5 @@ commits containing a GCP billing account ID,4,the matched strings are deliberate
 commit-and-file pairs containing a GCP billing account ID,9,a file touched in two commits counts twice
 diff lines containing a GCP billing account ID,11,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
 "commits carrying an AI co-author trailer, all refs",206,"git's structured trailer parser, not a grep over the body: three commits discuss the trailer in prose without carrying one"
-"commits carrying an AI co-author trailer, HEAD only",200,"the count that describes the published branch; the all-refs figure above includes working branches. Trailer no longer added, see SUBMISSION.md"
+"commits carrying an AI co-author trailer, HEAD only",200,"the count that describes the published branch; the all-refs figure above includes working branches. The trailer is no longer added, by decision, and the historical ones are not rewritten"
 commits containing credential material of any kind,0,"everything except the billing account ID, which is an identifier rather than a credential and is documented in SECURITY.md"

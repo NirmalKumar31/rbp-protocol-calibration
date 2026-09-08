@@ -2,7 +2,7 @@
 
 **Written 2026-09-07. Committed before either analysis was run.**
 
-`docs/REDRAW_PLAN.md` sections B and C proposed these two analyses on 2026-09-06 and they were
+Both analyses were proposed on 2026-09-06 in a costed plan and they were
 dropped when the machine allocated for that run halved. They have since been described in the
 manuscript as specified but unrun, which an audit correctly said invites the obvious reviewer
 request. This document fixes the settings; the results are not known at the time of writing.

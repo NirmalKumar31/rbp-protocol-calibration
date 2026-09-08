@@ -117,7 +117,7 @@ def scan():
         rows.append({"check": f"diff lines containing a {kind}", "value": lines[kind],
                      "note": "both sides of the diff, so a scrub commit contributes its "
                              "removal line as well as the original addition"})
-    # The AI co-author trailer, counted rather than typed. SUBMISSION.md records that the
+    # The AI co-author trailer, counted rather than typed. The repository records that the
     # trailer stops at a named commit and why; both numbers in that sentence came out of here
     # after the manuscript audit refused them as untraceable, which is the rule working.
     # Git's own trailer parser, not a grep over the body, and the difference is three commits.
@@ -136,8 +136,8 @@ def scan():
     rows.append({"check": "commits carrying an AI co-author trailer, HEAD only",
                  "value": _trailed(),
                  "note": "the count that describes the published branch; the all-refs figure "
-                         "above includes working branches. Trailer no longer added, see "
-                         "SUBMISSION.md"})
+                         "above includes working branches. The trailer is no longer added, "
+                         "by decision, and the historical ones are not rewritten"})
 
     total = sum(len(v) for k, v in hits.items() if k != "GCP billing account ID")
     rows.append({"check": "commits containing credential material of any kind", "value": total,
@@ -206,8 +206,13 @@ def main():
         log("  no finding has changed")
         return
 
+    # lineterminator="\n", because the csv module's default dialect ends lines with CRLF even
+    # when the file is opened with newline="". This is the only table here written by the csv
+    # module rather than by pandas, so it was the only one with CRLF, and `git diff --check`
+    # reads the CR as trailing whitespace the moment the file changes. That failed the release
+    # gate on a line-ending, which is a real defect wearing a trivial disguise.
     with OUT.open("w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=["check", "value", "note"])
+        w = csv.DictWriter(fh, fieldnames=["check", "value", "note"], lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     log(f"  wrote {OUT.relative_to(ROOT)}")

@@ -65,10 +65,9 @@ TEX = [MANUSCRIPT / "paper.tex"] + SECTIONS
 #
 # A workflow file and a pyproject comment are not prose, but a reader acts on them and a
 # citation file is the most quoted artefact in the repository.
-DOCS = [ROOT / "README.md", ROOT / "SUBMISSION.md",
+DOCS = [ROOT / "README.md",
         ROOT / "docs" / "REPRODUCE.md", ROOT / "docs" / "PANELS.md",
-        ROOT / "docs" / "ZENODO.md", ROOT / "docs" / "COST.md",
-        ROOT / "docs" / "AUDIT-RESPONSE.md", ROOT / "docs" / "AI_USE_INVENTORY.md",
+        ROOT / "docs" / "COST.md",
         ROOT / "CITATION.cff", ROOT / "CHANGELOG.md", ROOT / "pyproject.toml",
         ROOT / ".github" / "workflows" / "ci.yml"] + TEX
 
@@ -165,7 +164,7 @@ def abstract_words():
     # AN ESCAPED DOLLAR IS NOT A MATHS DELIMITER, and this treated it as one. Writing a cost
     # of "\\$115" in the abstract made the regex below open a maths span at that dollar and close
     # it at the next real one, swallowing 165 words of prose as a single token: the count went
-    # from 465 to 300 and the release check reported a stale claim in SUBMISSION.md that was not
+    # from 465 to 300 and the release check reported a stale claim in a document that was not
     # stale. Escaped dollars are taken out of play first.
     body = m.group(1).replace(r"\$", "\x00")
     body = re.sub(r"\$[^$]*\$", " X ", body)            # one token per maths span
@@ -241,7 +240,7 @@ FACTS = {
         # acts on exactly as if they said "numeric assertions".
         r"(\d{3,4})\s+\w*\s*assertions",
         # "checks" is NOT required after either form. README states the count as a bare
-        # comment, `# 1153/1153`, and ZENODO.md wraps "All 1153 verification" onto the next
+        # comment, `# 1153/1153`, and another wrapped "All 1153 verification" onto the next
         # line, so both escaped --fix and had to be hand-edited on three consecutive rounds.
         # A syncing tool that cannot reach a claim makes that claim the one that goes stale.
         r"All (\d{3,4}) verification",
@@ -387,7 +386,7 @@ def main(argv=None):
 
     # The facts are committed, which is what makes them quotable. scripts/audit_manuscript.py
     # flags any number in a released document that no table can source, and a page count or a
-    # test census lives in no result table -- so widening that audit to README and SUBMISSION
+    # test census lives in no result table -- so widening that audit to the release documents
     # correctly reported them as unsourced. Writing them here gives them the one thing they
     # were missing: a committed artefact that says what they are.
     # A partial run must not rewrite the committed facts. This file is environment-dependent:

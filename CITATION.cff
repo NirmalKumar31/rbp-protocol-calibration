@@ -7,9 +7,8 @@ title: >-
   negative-set construction: analysis code and released evidence
 message: >-
   If you use this software or its released evidence, please cite
-  the preprint. No DOI exists yet: the Zenodo deposit is minted
-  from a tagged release, and SUBMISSION.md tracks that as the last
-  outstanding step. Add a doi: key here when it exists.
+  the preprint. No DOI exists yet: the archival deposit is minted
+  from a tagged release. Add a doi: key here when it exists.
 type: software
 authors:
   - given-names: Nirmalkumar
@@ -40,7 +39,7 @@ keywords:
   - sequence models
 # MIT ALONE, DELIBERATELY, AND NOT BECAUSE THE REPOSITORY IS SINGLE-LICENSED. Code is MIT;
 # `results/` and `data/evidence/` are CC BY 4.0, which their own LICENSE files record and
-# docs/ZENODO.md now instructs the depositor to preserve. The CFF schema does permit a list
+# which the archival deposit preserves. The CFF schema does permit a list
 # here, but it defines the relationship as OR: "When there are multiple licenses, it is assumed
 # their relationship is OR, not AND". Ours is AND, one licence per part of the tree, so
 # `[MIT, CC-BY-4.0]` would tell a reader they may take the code under CC BY or the evidence
