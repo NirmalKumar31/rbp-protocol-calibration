@@ -136,6 +136,26 @@ results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes
 ```
 
+### This repository holds two studies, and the larger files belong to the older one
+
+The paper above is the current work. The same repository also carries a **superseded
+variant-scoring study** on ClinVar variants and conservation, because the two share a pipeline:
+`scripts/cloud_analysis.py` writes tables for both, so they cannot be split by directory without
+editing a script that produces seven of this paper's tables.
+
+It is kept rather than deleted, and named rather than left to be inferred:
+
+| belongs to the older study | |
+|---|---|
+| `results/tables/variant_*` | 12 tables, and the three largest files in the repository are among them |
+| `src/rbp/variants/`, `scripts/*variants*.py`, `cloud/modal/modal_variants.py` | its code |
+| 136 of the 1156 assertions | the verifier prints the split, 1018 / 136 / 2, on every run |
+
+**Nothing in the paper depends on any of it.** The 1018 that do belong to this paper are the
+ones to read; the other 136 are kept passing so that a superseded result is not quietly
+allowed to rot. `results/tables/unattributed/` holds two further tables that no current script
+reproduces, and its own README says so.
+
 ## Design rules
 
 1. **Verification is a stage**, not an afterthought. Reproducibility that is not checked is not
