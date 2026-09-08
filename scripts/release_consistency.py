@@ -68,7 +68,7 @@ TEX = [MANUSCRIPT / "paper.tex"] + SECTIONS
 DOCS = [ROOT / "README.md", ROOT / "SUBMISSION.md",
         ROOT / "docs" / "REPRODUCE.md", ROOT / "docs" / "PANELS.md",
         ROOT / "docs" / "ZENODO.md", ROOT / "docs" / "COST.md",
-        ROOT / "docs" / "AUDIT-RESPONSE.md",
+        ROOT / "docs" / "AUDIT-RESPONSE.md", ROOT / "docs" / "AI_USE_INVENTORY.md",
         ROOT / "CITATION.cff", ROOT / "CHANGELOG.md", ROOT / "pyproject.toml",
         ROOT / ".github" / "workflows" / "ci.yml"] + TEX
 
@@ -253,6 +253,9 @@ FACTS = {
         r"#\s*\d{3,4}/(\d{3,4})\b",
         r"\d{3,4}/(\d{3,4}) checks",
         r"one command, (\d{3,4}) checks",
+        # Hyphenated and singular: "the 1141-assertion verification harness" sat 15 behind
+        # and no pattern here could reach it, the same failure as a document nobody scans.
+        r"(\d{3,4})-assertion",
     ]),
     "paper assertions": (n_paper_assertions, [
         r"(\d{3,4}) belong to this paper",

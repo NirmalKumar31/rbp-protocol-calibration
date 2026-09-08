@@ -102,15 +102,20 @@ or just export it, which wins over the file:
 export GOOGLE_CLOUD_PROJECT=your-new-project-id
 ```
 
-That single value redirects everything: buckets, service accounts, job specs, Modal
+That value drives everything the laptop submits: buckets, service accounts, job specs, Modal
 secrets, the killswitch. There is **no hardcoded project id anywhere in the source** and
 `tests/unit/test_no_hardcoded_project.py` fails the build if one reappears.
 
-Then fill in Terraform's inputs:
+Terraform is the **second** input and it is not derived from the first. It reads
+`terraform.tfvars`, the variable has no default, and everything Terraform creates is named from
+it. So the project id is entered twice, in two places, on purpose: nothing can silently inherit
+a stale value. `run.sh` compares the two before `terraform init` and refuses to proceed if they
+differ, because a mismatch puts the state bucket in one project and the buckets, IAM and budget
+in another.
 
 ```bash
 cp cloud/terraform/terraform.tfvars.example cloud/terraform/terraform.tfvars
-# set project_id and billing_account
+# set project_id to the SAME value as above, and billing_account
 ```
 
 ---
@@ -139,11 +144,23 @@ went wrong the first time, all of which were discovered *after* money had been s
 GPU quota is reported but **is not a gate**. It will be 0 on a new project, it cannot be
 raised (`NOT_ENOUGH_USAGE_HISTORY`), and that is precisely why the GPU stages run on Modal.
 
-One gate cannot be automated: Modal does not expose a balance via CLI. Check the dashboard
-yourself, then:
+**Modal is gated separately, and it has to be.** The `rbp-gcp` secret holds a key for the
+`rbp-modal` service account, and that account does not exist until stage 1 has run, so a single
+all-or-nothing preflight would demand a secret that cannot yet be created in order to permit
+the stage that creates its prerequisite. `./run.sh preflight` therefore checks GCP only and
+passes `--skip-modal`. GCP stages need that gate; the Modal stages, 9, 10 and 12, need both.
+
+After stage 1, create the secret and run the second gate. One check inside it cannot be
+automated, because Modal does not expose a balance via CLI: confirm it on the dashboard first.
 
 ```bash
-./run.sh preflight   # after: PREFLIGHT_ARGS=--modal-credit-ok
+gcloud iam service-accounts keys create /tmp/k.json \
+  --iam-account=rbp-modal@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
+modal secret delete rbp-gcp 2>/dev/null || true
+modal secret create rbp-gcp SERVICE_ACCOUNT_JSON="$(cat /tmp/k.json)"
+rm /tmp/k.json
+
+./run.sh preflight-modal
 ```
 
 ---

@@ -214,7 +214,7 @@ jobs:
       # ZERO FILES IS A FAILURE. `git ls-files` yields nothing outside a checkout or after a
       # rename the glob stops matching, and the loop then runs no iterations and the step
       # passes having parsed nothing. scripts/preflight.sh had exactly this and a `git archive`
-      # extraction holding 18 shell scripts got a green step that checked none of them.
+      # extraction got a green step that had parsed none of the scripts it contained.
       - name: shell syntax
         run: |
           files=$(git ls-files '*.sh')

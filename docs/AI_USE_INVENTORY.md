@@ -14,7 +14,7 @@ An assistant cannot attest to it, and this file does not.**
 
 | fact | how to check it |
 |---|---|
-| 256 commits on HEAD, 2026-08-25 to 2026-09-07 | `git rev-list --count HEAD` |
+| 256 commits on HEAD as of `865e478`, from 2026-08-25; the snapshot in `history_scan.csv`, which necessarily excludes the commits that recorded it and every one since | `git rev-list --count HEAD` for the live number |
 | **200 on HEAD, 206 across all refs** carry a `Co-Authored-By: Claude Opus 5 (1M context)` trailer | `results/tables/history_scan.csv`, which now uses git's structured trailer parser. It previously said 209 because it grepped commit bodies, and three commits discuss the trailer without carrying one |
 | That is the **only** system named anywhere in the history | same command: one distinct value |
 | Trailers stop after `202953d` (2026-09-06), by decision, and the historical ones are not rewritten | `SUBMISSION.md` item 3 |
@@ -23,7 +23,7 @@ An assistant cannot attest to it, and this file does not.**
 
 **Roles that assistance actually took, all evidenced in the repository:**
 
-1. **Coding and debugging.** The pipeline, the 1141-assertion verification harness, the gates.
+1. **Coding and debugging.** The pipeline, the 1156-assertion verification harness, the gates.
 2. **Drafting and revision.** The manuscript source, the README, the documentation.
 3. **Analysis implementation and correction.** Including changes that moved published numbers:
    the cross-fitted estimator becoming primary, the SD-versus-SD/sqrt(n) variance fix, the
@@ -36,9 +36,11 @@ An assistant cannot attest to it, and this file does not.**
 
 ## 2. What only the author can supply
 
-**Which generative systems produced the ELEVEN external audit reports.** This cannot be
-determined from the repository for ten of the eleven, nor from those ten reports. They live
-outside the repository, deliberately, and this is the one place the list is kept:
+**Which generative systems produced the external audit reports.** This cannot be determined
+from the repository, nor from the reports themselves except where one names itself. They live
+outside the repository, deliberately, and this is the one place the list is kept, enumerated
+rather than counted in prose so that no other document has to restate a total that grows every
+time the repository is audited:
 
 | # | file | date |
 |---|---|---|
@@ -57,11 +59,11 @@ outside the repository, deliberately, and this is the one place the list is kept
 `science-completion-report.md` is not in this list: it is a report produced for the author, not
 an audit of the repository.
 
-Reports 1 to 10 mention "Claude" only because they are auditing a repository whose commits name
-Claude; **none of the ten identifies its own system.** Report 11 is the exception and names
-itself: it states that it "is an additional OpenAI Codex review if its findings are used", and
-its findings were used, so it is disclosable as OpenAI Codex. That leaves ten unattributed. The
-author commissioned all eleven and is the only person who knows. The count previously read six
+Rows 1 to 10 mention "Claude" only because they are auditing a repository whose commits name
+Claude; **none of those rows identifies its own system.** The last row is the exception and
+names itself: it states that it "is an additional OpenAI Codex review if its findings are
+used", and its findings were used, so it is disclosable as OpenAI Codex. Every other row is
+unattributed. The author commissioned them all and is the only person who knows. The count previously read six
 in two places, eight here and four in a third; the four was correct for one round and is now
 labelled as such.
 

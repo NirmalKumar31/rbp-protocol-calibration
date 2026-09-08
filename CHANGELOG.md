@@ -53,7 +53,7 @@ eight release defects. All eight are closed:
   `.[dev,neural]`.
 - **Two preflight steps could report success without checking anything.** The shell-syntax step
   ran `git ls-files` and, outside a checkout, silently looped over zero files: in a `git archive`
-  extraction holding 18 shell scripts it printed OK having parsed none. And the no-pdflatex
+  extraction holding every tracked shell script it printed OK having parsed none of them. And the no-pdflatex
   branch printed the word SKIPPED with a bare `printf`, so the flag stayed clear and the run
   still ended on PREFLIGHT CLEAN with the PDF gate unrun.
 - **`run.sh` and `docs/REPRODUCE.md` called the default path the whole study.** It is the core
