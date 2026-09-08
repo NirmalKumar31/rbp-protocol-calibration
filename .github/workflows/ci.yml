@@ -136,7 +136,7 @@ jobs:
       # pass on the value they just wrote and leave a report nobody committed -- but it certified
       # 3 of 158 tables while reading as though it certified every one.
       #
-      # The 33 offline entry points are checked by the step below instead, which regenerates each
+      # The offline entry points are checked by the step below instead, which regenerates each
       # and compares structurally. A byte diff is the wrong tool there: seven of those tables
       # differ by floating-point summation order at 1e-14 and always will.
       - name: regenerated artefacts match what is committed
