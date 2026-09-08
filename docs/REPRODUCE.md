@@ -139,7 +139,6 @@ went wrong the first time, all of which were discovered *after* money had been s
   list*, not an error, so a missing scope reads exactly like a missing result. Preflight
   asserts the project by name, which does fail loudly
 - bucket names not already taken by someone else
-- Modal authenticated and the `rbp-gcp` secret present
 
 GPU quota is reported but **is not a gate**. It will be 0 on a new project, it cannot be
 raised (`NOT_ENOUGH_USAGE_HISTORY`), and that is precisely why the GPU stages run on Modal.

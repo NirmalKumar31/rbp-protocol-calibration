@@ -1,7 +1,7 @@
 """The idempotence gate's own failure paths, and rbp.utils.carry's.
 
-Why these exist. scripts/cache_idempotence.py is the only thing asserting that the 33
-documented offline entry points return the tables they are documented to return, and
+Why these exist. scripts/cache_idempotence.py is the only thing asserting that the documented
+offline entry points return the tables they are documented to return, and
 rbp.utils.carry is the only thing stopping those entry points degrading a committed table when
 an optional input is absent. Both were written in one day, and between them they had four
 false-pass paths that an audit found and one that CI found:

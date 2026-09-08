@@ -3,9 +3,11 @@
     python scripts/cache_idempotence.py            # all of them
     python scripts/cache_idempotence.py --only window_centring,gene_clustered_cv
 
-WHY THIS EXISTS, and it is the check that should have existed first. `run.sh` advertises 33
-offline entry points, each of which rebuilds a committed summary from committed evidence. That
-is the reproducibility claim a reader can actually exercise. Nothing checked that any of them
+WHY THIS EXISTS, and it is the check that should have existed first. `run.sh` advertises a set
+of offline entry points, each of which rebuilds a committed summary from committed evidence.
+This script prints how many it found and ran rather than stating a number that goes stale
+whenever one is added; the count was written as 33 in two files while the gate ran 37. That is
+the reproducibility claim a reader can actually exercise, and nothing checked that any of them
 returned what is committed.
 
 Running all 33 in a clean `git archive` found three defects, and one of them was serious:
