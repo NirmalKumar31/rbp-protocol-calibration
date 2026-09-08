@@ -566,7 +566,12 @@ def f8():
         ax[2].scatter(x, cgap, s=20, alpha=0.75, color=c, edgecolor="white",
                       linewidth=0.3, zorder=3, label=f"{lab}   rho {rho:+.2f}")
     ax[2].axhline(0, color="#999999", lw=0.8, ls="--")
-    ax[2].legend(frameon=False, fontsize=7.5, loc="lower right")
+    # A background here, unlike the other legends in this file. This panel is a dense scatter
+    # and the legend sits inside it, so with frameon=False the markers showed through the text:
+    # a point sat behind "rho" in the built supplement. Semi-opaque rather than solid, so the
+    # few points underneath are still visible as context, and edgeless so it stays unobtrusive.
+    ax[2].legend(frameon=True, framealpha=0.85, edgecolor="none", fontsize=7.5,
+                 loc="lower right")
     ax[2].set(xlabel="between-arm gap (d' units)",
               ylabel="between-arm gap in coefficient")
     ax[2].set_title("c  the coefficient tracks difficulty, not value", loc="left")

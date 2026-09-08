@@ -144,6 +144,16 @@ else
        "it exercises the GPU image selection, which needs torch"
 fi
 
+# 6c. FIGURES, WHICH NO GATE HAD EVER LOOKED AT. Every other check here reads extracted text,
+# and extraction cannot see two words in the same place: f10 drew panel b's label inside panel
+# a's title in every build it ever had, on a page fourteen audits inspected. Positions, not text.
+if command -v pdftotext >/dev/null 2>&1; then
+  step "no figure draws text on top of text" "$PY" scripts/figure_overlap.py
+else
+  skip "the figure text-overlap check" \
+       "no pdftotext (poppler-utils) here; the CI manuscript job installs it"
+fi
+
 # 7. the manuscript, and whether the tracked PDF is the output of the tracked source
 # pdf_freshness.py runs build.sh inside a TEMPORARY COPY, so every gate build.sh carries
 # (undefined references, over- and underfull boxes) runs there and a failure propagates. It is
