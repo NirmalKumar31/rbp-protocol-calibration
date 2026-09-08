@@ -7,6 +7,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{booktabs}
+\usepackage{longtable}
 \usepackage{caption}
 \usepackage[colorlinks=true,allcolors=blue]{hyperref}
 
@@ -325,15 +326,17 @@ fragile.
 % ---------------------------------------------------------------------------------------------
 \section*{Table S1. Dataset to ENCODE accession}
 
-The file \texttt{supplementary\_table\_s1.csv} ships with this document and is committed under
-\texttt{results/}\allowbreak\texttt{tables/}. One row per dataset in the 95-dataset candidate
-panel, giving the
-protein, the cell line, the ENCODE file and experiment accessions, the number of replicates, the
-matched pair count, and a flag for whether the dataset carries all three protocols.
+The table below is typeset from \texttt{supplementary\_table\_s1.csv}, which ships beside this
+document and is committed under \texttt{results/}\allowbreak\texttt{tables/}. The CSV carries
+six further columns, each arm's composition baseline and contribution, which do not fit a
+portrait page; the accession mapping is reproduced here so that this document is readable on its
+own.
 
-One row has that flag false: NCBP2 in K562 cleared the minimum-pair floor under dinucleotide
-matching and not under GC matching, so it is in the candidate panel and has no three-protocol
-result. That is the single blank row in the table and it is the difference between the 95
-selected datasets and the 94 the study reports on.
+One row has the three-arm flag false: NCBP2 in K562 cleared the minimum-pair floor under
+dinucleotide matching and not under GC matching, so it is in the candidate panel and has no
+three-protocol result. That is the difference between the 95 selected datasets and the 94 the
+study reports on.
+
+\input{sections/table_s1}
 
 \end{document}

@@ -27,6 +27,18 @@ done
 # submission.
 cp ../results/tables/supplementary_table_s1.csv supplementary_table_s1.csv
 
+# It is typeset too, so the supplement does not depend on the reader opening the CSV.
+#
+# REGENERATED ONLY WHEN THE GENERATOR IS REACHABLE, and this directory must stay a self-contained
+# upload. sections/table_s1.tex is committed, and scripts/pdf_freshness.py copies manuscript/
+# alone into a temp tree to rebuild it, so an unconditional call to ../scripts/ made the
+# freshness check fail on a path that does not exist there. Staleness is gated by
+# tests/unit/test_table_s1.py, which asserts the committed file is what the CSV regenerates,
+# rather than by hoping this line ran.
+if [ -f ../scripts/table_s1_tex.py ]; then
+  "${PY:-python3}" ../scripts/table_s1_tex.py
+fi
+
 command -v pdflatex >/dev/null || { echo "pdflatex not found; install MacTeX or TeX Live"; exit 1; }
 
 # ITERATE TO A FIXPOINT, DO NOT RUN TWICE AND HOPE. Two passes were enough on a warm tree with
