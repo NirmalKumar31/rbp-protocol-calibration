@@ -466,7 +466,8 @@ rbp-net  (custom VPC, no auto subnets)
 ├── rbp-workers          us-central1   Private Google Access ON
 │     Batch workers: prep, rehearsal, sweep, analysis
 │     NO external IP -> can reach *.googleapis.com and NOTHING else
-└── rbp-gpu-us-central1  us-central1   (present, unused: GPU quota is 0)
+└── rbp-gpu-{us-central1,us-east1,us-west1,europe-west4,asia-east1}
+                          10.20.0.0/16, PGA ON   (provisioned, never used: GPU quota is 0)
 
 default VPC
       ingest, panel, variants -> EXTERNAL IP
@@ -514,7 +515,7 @@ fi
 gcloud compute networks create rbp-net --subnet-mode=custom --project=rbp-repro-2026
 
 gcloud compute networks subnets create rbp-workers \
-  --network=rbp-net --region=us-central1 --range=10.0.0.0/20 \
+  --network=rbp-net --region=us-central1 --range=10.10.0.0/20 \
   --enable-private-ip-google-access --project=rbp-repro-2026
 ```
 
@@ -525,7 +526,7 @@ of surface you did not ask for.
 
 1. ☰ → **VPC network** → **VPC networks** → **CREATE VPC NETWORK**.
 2. Name `rbp-net`. **Subnet creation mode: Custom**.
-3. Add a subnet: name `rbp-workers`, region `us-central1`, IPv4 range `10.0.0.0/20`, and
+3. Add a subnet: name `rbp-workers`, region `us-central1`, IPv4 range `10.10.0.0/20`, and
    **Private Google Access: On**. That toggle is the whole point of the page.
 4. **CREATE**.
 
@@ -1188,7 +1189,7 @@ objects; never worth doing twice.
 | 5 | ☰ **Cloud Storage** → CREATE (×4) | `-raw`, `-derived`, `-artifacts`, `-tfstate`; region `us-central1`; **Uniform** access |
 | 6 | ☰ **IAM & Admin** → Service Accounts → CREATE (×5) | `rbp-ingest`, `rbp-prep`, `rbp-train`, `rbp-analysis`, `rbp-modal` |
 | 7 | Storage → bucket → **PERMISSIONS** → GRANT ACCESS | per-bucket roles. For `rbp-modal`: objectAdmin **+ ADD IAM CONDITION**, CEL from Ch.7 |
-| 8 | ☰ **VPC network** → CREATE VPC NETWORK | `rbp-net`, **Custom** subnets; subnet `rbp-workers` `10.0.0.0/20` with **Private Google Access ON** |
+| 8 | ☰ **VPC network** → CREATE VPC NETWORK | `rbp-net`, **Custom** subnets; subnet `rbp-workers` `10.10.0.0/20` with **Private Google Access ON** |
 | 9 | ☰ **Artifact Registry** → CREATE REPOSITORY | `rbp`, format Docker, `us-central1` |
 | 10 | ☰ **Cloud Build** → History | watch builds; click a failed step for its log |
 | 11 | ☰ **Batch** → CREATE JOB | script or container, machine type, parallelism, service account, network |

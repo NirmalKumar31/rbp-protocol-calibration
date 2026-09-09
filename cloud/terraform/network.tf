@@ -28,7 +28,8 @@ resource "google_compute_network" "main" {
   name    = "rbp-net"
 
   # Without this, GCP creates a subnet in EVERY region -- about 40 of them, all unused.
-  # We want exactly one, in the region we actually run in.
+  # We declare our own instead: one CPU-worker subnet in the region we run in, plus one GPU
+  # subnet per region in var.gpu_regions, created by the for_each resource further down.
   auto_create_subnetworks = false
 
   depends_on = [google_project_service.apis]

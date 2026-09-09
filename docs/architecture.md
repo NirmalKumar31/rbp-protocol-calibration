@@ -314,8 +314,8 @@ deliberately, in Terraform.
 ```mermaid
 flowchart TD
     subgraph NET["rbp-net - custom VPC, no auto subnets"]
-        SUB["subnet rbp-workers  10.0.0.0/20<br/>Private Google Access ON<br/>noExternalIpAddress: true"]
-        GPUSUB["subnet rbp-gpu-us-central1<br/>present, unused: GPU quota is 0"]
+        SUB["subnet rbp-workers  10.10.0.0/20<br/>us-central1, Private Google Access ON<br/>noExternalIpAddress: true"]
+        GPUSUB["5 subnets rbp-gpu-*  10.20.0.0/16<br/>us-central1, us-east1, us-west1,<br/>europe-west4, asia-east1<br/>Private Google Access ON<br/>PROVISIONED, NEVER USED: GPU quota is 0"]
     end
 
     subgraph DEF["default VPC - external IP"]
@@ -329,12 +329,16 @@ flowchart TD
     E["ingest / panel / variants"] --> EXT
     EXT --> ENCODE["ENCODE, GENCODE,<br/>NCBI, UCSC phyloP"]
 
+    MODAL["GPU work actually ran on MODAL,<br/>outside this VPC entirely"] -.->|"reads and writes GCS"| GAPI
+
     classDef sealed fill:#e6f0ea,stroke:#2b6a4d,color:#000
     classDef open fill:#fdf0e3,stroke:#e08214,color:#000
     classDef blocked fill:#fbe4e6,stroke:#b2182b,color:#000
     class SUB,W,GAPI sealed
     class DEF,EXT,E,ENCODE open
     class WEB blocked
+    class GPUSUB blocked
+    class MODAL open
 ```
 
 **Why no Cloud NAT.** It bills per gateway-hour *plus* per GB, which for occasional downloads

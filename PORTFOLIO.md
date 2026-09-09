@@ -13,10 +13,16 @@ live ones; `results/tables/release_facts.csv` holds them as data.
 ## The finding, in one paragraph
 
 Sequence models for RNA-binding proteins are scored against negative windows that somebody has
-to construct. Holding the model class, the peak set, the chromosome-blocked folds and the
-estimator fixed, and varying only how those negatives are built, a 4-mer model's measured
-contribution over a composition baseline moves **4.84-fold** across three protocols. Its
-apparent AUROC moves the opposite way. The estimator this literature uses also returns a
+to construct. Negative-set construction is the intended experimental factor: the source peaks,
+the model class, the chromosome-blocked fold policy and the estimator are held fixed, while the
+model and the composition baseline are refitted within each protocol, and the matchers retain
+slightly different positive subsets, which is quantified and sensitivity-tested rather than
+waved away. Varying that factor moves a 4-mer model's measured contribution over a composition
+baseline **4.84-fold** across three protocols. On this panel its apparent AUROC moves the
+opposite way, so the protocol that looks hardest yields the largest measured contribution;
+**that inverse association is internal to the study panel and did not replicate on the external
+benchmark**, which the paper reports. What did replicate externally is the protocol dependence
+itself. The estimator this literature uses also returns a
 positive score for a model whose true contribution is zero by construction; cross-fitting the
 score covariate removes at least 95 percent of that. A proposed headroom normalisation was
 evaluated against two falsification criteria committed before the external data were scored; it
