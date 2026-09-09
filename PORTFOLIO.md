@@ -18,9 +18,11 @@ estimator fixed, and varying only how those negatives are built, a 4-mer model's
 contribution over a composition baseline moves **4.84-fold** across three protocols. Its
 apparent AUROC moves the opposite way. The estimator this literature uses also returns a
 positive score for a model whose true contribution is zero by construction; cross-fitting the
-score covariate removes at least 95 percent of that. The recommendation the paper arrives at
-was pre-registered with falsification criteria, tested on 135 held-out datasets, and **failed**,
-which the paper reports rather than drops.
+score covariate removes at least 95 percent of that. A proposed headroom normalisation was
+evaluated against two falsification criteria committed before the external data were scored; it
+**failed** on the 45 externally constructed datasets, and the paper reports that failure rather
+than dropping it. The study was not formally preregistered, and says so: that commit is a
+repository timestamp, not a registry entry.
 
 ## Check it yourself, offline, in about a minute
 

@@ -1,6 +1,8 @@
 # Reproduce the core pipeline, from raw inputs to verified results
 
-Cloud only. The laptop submits jobs and reads results; it never computes. Roughly **$60** without credits; see **[COST.md](COST.md)**, which is the only authoritative cost
+Expensive work is cloud only: the laptop submits preprocessing and training and reads the
+results back. Lightweight analysis over committed evidence, stage 13b, and verification,
+stage 14, run locally and cost nothing. Roughly **$60** without credits; see **[COST.md](COST.md)**, which is the only authoritative cost
 table and separates what was measured from what is forecast.
 
 The study has been run; this is the procedure for running it again from raw inputs. `run.sh all`

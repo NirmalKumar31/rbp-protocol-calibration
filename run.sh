@@ -28,8 +28,10 @@
 #    stage killed midway redoes its work instead of being skipped. Rerunning a finished
 #    stage costs seconds.
 #
-# 4. NO LOCAL COMPUTE. Every stage runs in a container on Batch or on Modal. The laptop
-#    submits and reads; it never computes. That is the whole point of this rebuild.
+# 4. NO LOCAL COMPUTE FOR ANYTHING EXPENSIVE. Preprocessing and model training run in a
+#    container on Batch or on Modal; the laptop submits and reads. Stage 13b is the stated
+#    exception and runs locally, because it re-derives summaries from committed evidence at
+#    zero cost and a reader with a clone must be able to run it.
 #
 # 5. STAGES 3, 4 AND 11 NEED PUBLIC INTERNET: ingest (ENCODE, GENCODE, NCBI), panel (the
 #    ENCODE API) and variants (UCSC phyloP). Workers have Private Google Access only and no
@@ -242,7 +244,7 @@ s7_rehearsal() {
   # so nothing local has to wait for one arm and then submit the next. Before this, closing
   # the laptop lid between arms meant the second arm never started -- the sequencing lived in
   # a shell loop on one machine, which is not a cloud pipeline.
-  gate_preflight; say "stage 7: composition + k-mer, ALL arms in one job  -> R1"
+  gate_preflight; say "stage 7: composition + k-mer, both composition-matched arms in one job  -> R1"
   confirm "rehearsal, both negative arms, single job" "~\$0.60"
   "$PY" scripts/cloud_rehearsal.py manifest || die "rehearsal manifest"
   ./cloud/submit.sh rehearsal            || die "rehearsal"
@@ -474,6 +476,28 @@ STAGES=(s0_preflight s1_terraform s2_images s3_ingest s4_panel s5_prep s6_select
         s7_rehearsal s8_cnn s9_splicebert s10_locality s11_variants s12_clinvar \
         s13_analysis s13b_local_analysis s14_verify)
 
+# STAGE NUMBERS ARE NAMES, NOT ARRAY POSITIONS, and they stopped agreeing the moment 13b was
+# inserted. `stage 14` indexed position 14, which is s13b_local_analysis, so the one command
+# docs/REPRODUCE.md tells a reader to run for verification ran the analysis stage instead and
+# said nothing about it. Position is an accident of the array; the number in the name is the
+# contract. Resolve by name so inserting a stage can never silently renumber the rest.
+stage_fn() {
+  local want=$1 s
+  for s in "${STAGES[@]}"; do
+    [ "${s%%_*}" = "s$want" ] && { printf '%s' "$s"; return 0; }
+  done
+  die "no stage '$want'. Known: $(printf '%s ' "${STAGES[@]%%_*}" | tr -d 's')"
+}
+
+stage_index() {
+  local want=$1 i=0 s
+  for s in "${STAGES[@]}"; do
+    [ "${s%%_*}" = "s$want" ] && { printf '%s' "$i"; return 0; }
+    i=$((i + 1))
+  done
+  die "no stage '$want'"
+}
+
 status() {
   say "project=$PROJECT_ID derived=$DERIVED raw=$RAW region=$REGION panel=every-$EVERY"
   for k in raw-complete.json manifest/study_panel.tsv \
@@ -488,9 +512,11 @@ usage() { sed -n '2,30p' "$0"; }
 case "${1:-}" in
   preflight)       s0_preflight ;;
   preflight-modal) preflight_modal ;;
-  stage)     [ $# -ge 2 ] || die "which stage?"; "${STAGES[$2]}" ;;
+  stage)     [ $# -ge 2 ] || die "which stage?"; "$(stage_fn "$2")" ;;
   from)      [ $# -ge 2 ] || die "from which stage?"
-             for i in $(seq "$2" $((${#STAGES[@]} - 1))); do "${STAGES[$i]}"; done ;;
+             for i in $(seq "$(stage_index "$2")" $((${#STAGES[@]} - 1))); do
+               "${STAGES[$i]}"
+             done ;;
   all)       for s in "${STAGES[@]}"; do "$s"; done ;;
   status)    status ;;
   # THREE INDEPENDENT TRACKS AFTER STAGE 7, which is where the wall-clock saving is.

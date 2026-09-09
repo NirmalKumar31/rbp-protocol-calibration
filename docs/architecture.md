@@ -12,7 +12,7 @@ non-obvious edge in the whole graph.
 
 ```mermaid
 flowchart TD
-    subgraph LOCAL["LAPTOP - submits and reads, never computes"]
+    subgraph LOCAL["LAPTOP - submits, reads, and re-derives from committed evidence"]
         S0["stage 0<br/>preflight<br/>$0"]
         S6["stage 6<br/>select panel<br/>$0"]
         S14["stage 14<br/>verify<br/>$0"]
