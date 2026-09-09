@@ -221,7 +221,7 @@ def f1():
                            f"dinucleotide-matched\n{d.auroc_dn.mean():.3f}"])
     ax[0].set_ylabel("k-mer model AUROC")
     ax[0].set_xlim(-0.4, 1.4)
-    ax[0].set_title(f"Every dataset falls ({len(d)}/{len(d)})", loc="left", fontsize=9)
+    ax[0].set_title(f"a  every dataset falls ({len(d)}/{len(d)})", loc="left", fontsize=9)
 
     # Panel b is the finding, and it used to be a second view of panel a.
     #
@@ -247,7 +247,7 @@ def f1():
     ax[1].set_xticklabels(["GC-matched", "dinucleotide-matched"])
     ax[1].set_xlim(-0.4, 1.4)
     ax[1].set_ylabel("nested gain over composition")
-    ax[1].set_title(f"Gain RISES {ratio:.1f}x under the harder control", loc="left",
+    ax[1].set_title(f"b  gain rises {ratio:.1f}x under the harder control", loc="left",
                     fontsize=9)
     save(fig, "f1_cost_of_matching")
 
@@ -277,7 +277,7 @@ def f2():
     ax[0].set_xticklabels([SHORT[m] for m in order], fontsize=8)
     ax[0].set_ylabel("pooled out-of-fold AUROC")
     ax[0].set_ylim(0.45, 1.0)
-    ax[0].set_title(f"{len(d)} datasets, identical splits", loc="left", fontsize=9)
+    ax[0].set_title(f"a  {len(d)} datasets, identical splits", loc="left", fontsize=9)
 
     # Gain over composition is the quantity the control was built to measure, so it gets
     # its own panel rather than being left for the reader to subtract by eye.
@@ -288,7 +288,7 @@ def f2():
     ax[1].set_xlabel("datasets, sorted within model")
     ax[1].set_ylabel("AUROC gain over composition")
     ax[1].legend(frameon=False, fontsize=8, loc="upper left")
-    ax[1].set_title("Only SpliceBERT clears it everywhere", loc="left", fontsize=9)
+    ax[1].set_title("b  only SpliceBERT clears it everywhere", loc="left", fontsize=9)
     save(fig, "f2_four_models")
 
 

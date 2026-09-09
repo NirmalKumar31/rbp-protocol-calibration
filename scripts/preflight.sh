@@ -98,7 +98,7 @@ fi
 
 # 6c. A hyphen ending a source line splits a word, and the render can hide it. Needs no
 # toolchain, so it is unconditional.
-step "no word is split across a line by a hyphen" "$PY" scripts/tex_line_breaks.py
+step "manuscript source checks" "$PY" scripts/tex_source_checks.py
 
 # 6c. Check figure-text geometry when Poppler is available.
 if command -v pdftotext >/dev/null 2>&1; then

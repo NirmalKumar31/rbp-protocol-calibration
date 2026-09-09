@@ -129,9 +129,11 @@ substitutions:
   # because `$PROJECT_ID` contains capitals. These defaults are therefore only a hint; the
   # real values are passed by run.sh with --substitutions, where they are concrete.
   _IMAGE: us-central1-docker.pkg.dev/$PROJECT_ID/rbp/cpu
-  # 460 total minus the 34 in test_models.py, which needs torch and runs in the GPU image.
-  # A FLOOR. Set below the current count so adding tests never breaks the build, but high
-  # enough that a collection error (which silently drops whole files) fails it.
+  # A FLOOR, and deliberately far below the current count, which the step above prints on
+  # every run. It was once annotated with the suite size of the day ("460 total minus the 34
+  # in test_models.py"); the suite has more than doubled since and the annotation simply went
+  # stale, which is the argument for not restating a moving count beside a fixed threshold.
+  # High enough that a collection error, which silently drops whole files, still fails it.
   _EXPECTED_TESTS: '400'
   _GIT_SHA: unknown        # overridden by the caller with the real commit SHA
   _ARTIFACTS: $PROJECT_ID-artifacts

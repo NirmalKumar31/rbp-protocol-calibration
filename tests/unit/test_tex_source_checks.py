@@ -14,7 +14,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-import tex_line_breaks as t  # noqa: E402
+import tex_source_checks as t  # noqa: E402
 
 MAN = ROOT / "manuscript"
 
@@ -94,3 +94,24 @@ def test_the_shipped_manuscript_is_clean():
     srcs = sorted(MAN.glob("*.tex")) + sorted((MAN / "sections").glob("*.tex"))
     assert srcs, "no manuscript sources found; this test checked nothing"
     assert {p.name: t.offenders(p) for p in srcs if t.offenders(p)} == {}
+
+
+@needs_manuscript
+def test_the_supplement_declares_ten_figures_and_one_table():
+    """Parsed from the supplement's own mapping table, which test_supplement.py checks."""
+    d = t.supplement_defines()
+    assert sorted(d["Figure"]) == list(range(1, 11))
+    assert sorted(d["Table"]) == [1]
+
+
+@needs_manuscript
+def test_a_table_s_number_is_not_satisfied_by_a_figure_of_that_number():
+    """The defect this check exists for. A first version counted figures, got S1..S10, and
+    passed 'Table~S8' because 8 was in the set. Figures and tables count separately."""
+    d = t.supplement_defines()
+    assert 8 in d["Figure"] and 8 not in d["Table"]
+
+
+@needs_manuscript
+def test_the_main_text_cites_no_undefined_supplementary_float():
+    assert t.dangling_snumbers() == []

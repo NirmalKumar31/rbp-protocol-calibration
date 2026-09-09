@@ -29,7 +29,14 @@ T = ROOT / "results" / "tables"
 # STUDY   the selected panel, and the dinucleotide arm covers all of it
 # MATCHED the GC arm, one smaller because NCBP2:K562 drops below the min_pairs floor
 # VARIANT the ClinVar arm, which needs a dataset to have variants near its peaks
-STUDY, MATCHED, VARIANT = 95, 94, 94
+#
+# VARIANT read 94 and was wrong, and nothing found out because the table it was checked
+# against, variant_scores_splicebert.csv, is produced by a full pipeline run but is not
+# committed: four tests here skipped on every run and certified nothing. docs/PANELS.md, which
+# declares itself the single source for these counts, said 95. The released
+# variant_assignments.csv settles it: all 95 study datasets carry ClinVar assignments,
+# NCBP2:K562 among them. The doc was right and the test was wrong.
+STUDY, MATCHED, VARIANT = 95, 94, 95
 
 # What stage 7 submits: one task per dataset per arm. Not a panel size.
 STAGE7_TASKS = STUDY + MATCHED
@@ -68,8 +75,11 @@ def _arms():
 def _sets():
     study, matched = _arms()
     deep = set(_load_deep().dataset)
-    v = _load("variant_scores_splicebert.csv")
-    variant = set(v.protein + ":" + v.cell)
+    # variant_assignments.csv IS in the release and covers the whole candidate pool, so the
+    # variant panel is its intersection with the study panel. The superseded
+    # variant_scores_splicebert.csv is not shipped, and reading it made every test below skip.
+    v = _load("variant_assignments.csv")
+    variant = set(v.protein.astype(str) + ":" + v.cell.astype(str)) & study
     return study, matched, deep, variant
 
 
@@ -132,9 +142,11 @@ class TestTheDifferenceHasTheDocumentedCause:
         study, matched = _arms()
         assert not matched - study
 
-    def test_the_dataset_missing_from_the_variant_panel(self):
+    def test_no_study_dataset_is_missing_from_the_variant_panel(self):
+        """THE_FALLER drops out of the GC arm, not out of the variant arm. This asserted the
+        opposite while skipping, so the mistake cost nothing until it was read."""
         study, _, _, variant = _sets()
-        assert study - variant == {THE_FALLER}
+        assert study - variant == set()
 
     def test_study_is_a_systematic_sample_not_a_size_threshold(self):
         """A size-thresholded subset would confound the panel with dataset size, which
