@@ -335,7 +335,7 @@ Roles are bundles, not single permissions. `roles/storage.objectAdmin` includes 
 delete, get and list. There are **predefined** roles (Google's), **basic** roles (Owner,
 Editor, Viewer - far too broad, avoid) and **custom** roles.
 
-## 6.2 This project's five identities, and why five
+## 6.2 This project's five workload identities, and why five
 
 | service account | job | what it can do |
 |---|---|---|
@@ -467,7 +467,9 @@ rbp-net  (custom VPC, no auto subnets)
 │     Batch workers: prep, rehearsal, sweep, analysis
 │     NO external IP -> can reach *.googleapis.com and NOTHING else
 └── rbp-gpu-{us-central1,us-east1,us-west1,europe-west4,asia-east1}
-                          10.20.0.0/16, PGA ON   (provisioned, never used: GPU quota is 0)
+                          five /20 subnets from 10.20.0.0/16, PGA ON
+                          10.20.{0,16,32,48,64}.0/20
+                          (provisioned, never used: GPU quota is 0)
 
 default VPC
       ingest, panel, variants -> EXTERNAL IP
@@ -665,8 +667,9 @@ apply had already created.
 ## 9.6 UI equivalent
 
 There is none, and that is the point. The console has no "apply this file" and no state. To
-build this by hand you would create, in order: project, billing link, 7 APIs, 4 buckets, 5
-service accounts, ~20 IAM bindings (3 with CEL conditions), 1 VPC, 2 subnets, 1 Artifact
+build this by hand you would create, in order: project, billing link, 7 APIs, 4 buckets, 6
+service accounts (five workload identities plus `rbp-killswitch`), ~20 IAM bindings (3 with CEL
+conditions), 1 VPC, 6 subnets (one CPU-worker subnet plus five regional GPU subnets), 1 Artifact
 Registry repo, 1 budget, 1 Pub/Sub topic, 1 Cloud Function. Roughly 45 console pages, no
 record of what you did, and no way to tear it down reliably.
 
@@ -1187,9 +1190,9 @@ objects; never worth doing twice.
 | 3 | ☰ **APIs & Services** → Library | enable the 7 APIs from Ch.4, one at a time |
 | 4 | ☰ **IAM & Admin** → Quotas | filter `CPUS_ALL_REGIONS`; note the limit. Request an increase here if needed |
 | 5 | ☰ **Cloud Storage** → CREATE (×4) | `-raw`, `-derived`, `-artifacts`, `-tfstate`; region `us-central1`; **Uniform** access |
-| 6 | ☰ **IAM & Admin** → Service Accounts → CREATE (×5) | `rbp-ingest`, `rbp-prep`, `rbp-train`, `rbp-analysis`, `rbp-modal` |
+| 6 | ☰ **IAM & Admin** → Service Accounts → CREATE (×6) | five workload identities `rbp-ingest`, `rbp-prep`, `rbp-train`, `rbp-analysis`, `rbp-modal`, plus `rbp-killswitch` for step 13 |
 | 7 | Storage → bucket → **PERMISSIONS** → GRANT ACCESS | per-bucket roles. For `rbp-modal`: objectAdmin **+ ADD IAM CONDITION**, CEL from Ch.7 |
-| 8 | ☰ **VPC network** → CREATE VPC NETWORK | `rbp-net`, **Custom** subnets; subnet `rbp-workers` `10.10.0.0/20` with **Private Google Access ON** |
+| 8 | ☰ **VPC network** → CREATE VPC NETWORK | `rbp-net`, **Custom** subnets. Six in total, all with **Private Google Access ON**: `rbp-workers` `10.10.0.0/20` in us-central1, and `rbp-gpu-*` `10.20.{0,16,32,48,64}.0/20` in us-central1, us-east1, us-west1, europe-west4, asia-east1. The GPU five are provisioned and never used, because GPU quota was 0 |
 | 9 | ☰ **Artifact Registry** → CREATE REPOSITORY | `rbp`, format Docker, `us-central1` |
 | 10 | ☰ **Cloud Build** → History | watch builds; click a failed step for its log |
 | 11 | ☰ **Batch** → CREATE JOB | script or container, machine type, parallelism, service account, network |

@@ -259,7 +259,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    subgraph SA["Five service accounts, one job each"]
+    subgraph SA["Five WORKLOAD identities, one job each<br/>rbp-killswitch is a sixth, non-workload"]
         I["rbp-ingest"]
         P["rbp-prep"]
         T["rbp-train"]
@@ -315,7 +315,7 @@ deliberately, in Terraform.
 flowchart TD
     subgraph NET["rbp-net - custom VPC, no auto subnets"]
         SUB["subnet rbp-workers  10.10.0.0/20<br/>us-central1, Private Google Access ON<br/>noExternalIpAddress: true"]
-        GPUSUB["5 subnets rbp-gpu-*  10.20.0.0/16<br/>us-central1, us-east1, us-west1,<br/>europe-west4, asia-east1<br/>Private Google Access ON<br/>PROVISIONED, NEVER USED: GPU quota is 0"]
+        GPUSUB["5 regional /20 subnets rbp-gpu-*<br/>from 10.20.0.0/16, at .0 .16 .32 .48 .64<br/>us-central1, us-east1, us-west1,<br/>europe-west4, asia-east1<br/>Private Google Access ON<br/>PROVISIONED, NEVER USED: GPU quota is 0"]
     end
 
     subgraph DEF["default VPC - external IP"]
