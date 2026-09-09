@@ -30,6 +30,7 @@ them in the paired panel. All headline intervals therefore resample proteins rat
 datasets.
 
 \subsection{Windows}
+\label{sec:windows}
 
 Positive windows are 101~nt centred on the midpoint of each peak interval. Peak width and the
 significance columns are unused: I applied no further $p$-value, $q$-value or fold-change
@@ -51,6 +52,7 @@ gaps between consecutive exons.
 GTF 1-based inclusive coordinates are converted to 0-based half-open.
 
 \subsection{The three negative-set protocols}
+\label{sec:protocols}
 
 Each protocol produces one negative per positive. All three use a single random stream seeded at
 7 per protein.
@@ -108,6 +110,7 @@ transcription controls in the Results bound the other two; these are the tables 
 repository names \texttt{strand\_placebo} and \texttt{transcription\_placebo}.
 
 \subsection{Achieved match quality}
+\label{sec:matchquality}
 
 Achieved matching was quantified over every pair in each arm, 456{,}734 in the GC and
 bias-aware arms and 457{,}998 in the dinucleotide arm (Table~\ref{tab:match}).
@@ -157,6 +160,7 @@ windows, and the bias-aware arm inherits the GC arm's retained set; the resultin
 between the composition-matched arms is quantified in the Limitations.
 
 \subsection{Cross-validation}
+\label{sec:cv}
 
 Evaluation is grouped 5-fold cross-validation over whole chromosomes. The chromosome-to-fold map
 is frozen once for all datasets in both cell lines; the fifteen proteins measured in both
@@ -413,6 +417,7 @@ convolutional and transformer arms were trained on different accelerators, which
 floating-point summation order and is covered by the same measurement.
 
 \subsection{Inference}
+\label{sec:inference}
 
 Because fifteen of the 79 proteins contribute two datasets each and the within-protein
 correlation of the primary contrast is 0.92, every headline interval is a percentile interval
@@ -484,6 +489,7 @@ than remove it: the correction is far below the precision anything here is quote
 removing it would alter committed evidence.
 
 \subsection{The negative-set survey}
+\label{sec:survey}
 
 Table~\ref{tab:survey} is a \textbf{targeted, non-systematic sample} and is reported as one.
 It was assembled by hand on 2026-09-05, not by a database query, and it makes no claim to
@@ -507,6 +513,7 @@ sample was assembled by hand, it cannot estimate the prevalence of either practi
 literature. The recommendation in the Discussion does not depend on such a prevalence estimate.
 
 \subsection{Reproducibility}
+\label{sec:repro}
 
 Every published value is regression-checked offline by a single command against committed
 evidence, which is a different and weaker claim than rebuilding it from raw inputs. The

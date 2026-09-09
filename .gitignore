@@ -40,10 +40,10 @@ __pycache__/
 !/data/evidence/
 /logs/
 # EXTERNAL AUDIT REPORTS ARE WORKING NOTES AND DO NOT SHIP. One was dropped into this directory
-# while a session was running and `git add -A` swept it into a public commit. The repository
-# deliberately keeps the development record on the `working-notes` branch; an auditor's report
-# is not release material and is not the author's to publish either. Keep them beside the repo,
-# not in it.
+# while a session was running and `git add -A` swept it into a public commit. An auditor's
+# report is not release material and is not the author's to publish either. Keep them beside
+# the repo, not in it. The development record used to live on a `working-notes` branch; that
+# branch was deleted before the v1.0.0 deposit and its two files were archived off the repo.
 audit*.md
 *audit*.md
 /.preflight-ok

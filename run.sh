@@ -20,8 +20,9 @@
 #    API, zero quota, a budget that reported $0, or an unauthenticated client -- all free to
 #    detect, all discovered late, after spending.
 #
-# 2. PAID STAGES REQUIRE AN EXPLICIT CONFIRMATION. Stage 8 is ~$31 of real money and 95% of
-#    the budget. It asks. Set RBP_YES=1 to run unattended once you have decided.
+# 2. PAID STAGES REQUIRE AN EXPLICIT CONFIRMATION. Stage 9, the SpliceBERT sweep, is ~$31 of
+#    real money and 95% of the budget; stage 8, the CNN, is ~$3. Both ask. Set RBP_YES=1 to
+#    run unattended once you have decided.
 #
 # 3. EVERY STAGE IS IDEMPOTENT AND RESUMABLE. Completion markers are written LAST, so a
 #    stage killed midway redoes its work instead of being skipped. Rerunning a finished
@@ -30,9 +31,10 @@
 # 4. NO LOCAL COMPUTE. Every stage runs in a container on Batch or on Modal. The laptop
 #    submits and reads; it never computes. That is the whole point of this rebuild.
 #
-# 5. STAGES 3 AND 10 NEED PUBLIC INTERNET (ENCODE, GENCODE, NCBI, UCSC phyloP). Workers have
-#    Private Google Access only and no NAT by design, so those two run on a VM with an
-#    external IP. Everything else stays sealed.
+# 5. STAGES 3, 4 AND 11 NEED PUBLIC INTERNET: ingest (ENCODE, GENCODE, NCBI), panel (the
+#    ENCODE API) and variants (UCSC phyloP). Workers have Private Google Access only and no
+#    NAT by design, so those three run on a VM with an external IP, which cloud/submit.sh
+#    sets as EXTERNAL=1. Everything else stays sealed.
 
 set -uo pipefail
 cd "$(dirname "$0")" || exit 1

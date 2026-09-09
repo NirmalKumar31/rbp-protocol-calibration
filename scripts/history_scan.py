@@ -135,9 +135,11 @@ def scan():
                          "commits discuss the trailer in prose without carrying one"})
     rows.append({"check": "commits carrying an AI co-author trailer, HEAD only",
                  "value": _trailed(),
-                 "note": "the count that describes the published branch; the all-refs figure "
-                         "above includes working branches. The trailer is no longer added, "
-                         "by decision, and the historical ones are not rewritten"})
+                 "note": "the count that describes the published branch. It equals the "
+                         "all-refs figure now that main is the only ref: the two working "
+                         "branches were deleted before the v1.0.0 deposit. The trailer ran to "
+                         "202953d, stopped, and resumes; SECURITY.md explains the gap and no "
+                         "history is rewritten"})
 
     total = sum(len(v) for k, v in hits.items() if k != "GCP billing account ID")
     rows.append({"check": "commits containing credential material of any kind", "value": total,

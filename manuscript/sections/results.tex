@@ -273,6 +273,7 @@ negative one: co-binding is too rare here to be the explanation, and what variat
 not point the way the explanation requires.
 
 \subsection{Standard reparameterisations do not eliminate protocol dependence}
+\label{sec:rescaling}
 
 AUROC is compressive near unity: a contribution measured against a baseline of 0.82 is
 arithmetically smaller than the same contribution measured against 0.63, and part of the
@@ -763,7 +764,7 @@ dataset, SpliceBERT against the 4-mer; it is larger for SpliceBERT in all 94.}
 \label{sec:estimands}
 
 Every quantity so far is an AUROC increment, and an AUROC increment is bounded above by
-$1-c$ for a baseline $c$, which is the objection Section~\ref{sec:families} spends its length
+$1-c$ for a baseline $c$, which is the objection Section~\ref{sec:rescaling} spends its length
 answering. If the ordering is an artefact of that ceiling it should weaken or vanish on a scale
 with no ceiling. I therefore recomputed the same nested comparison on four further estimands,
 from the same two out-of-fold predictors so nothing is refitted (Table~\ref{tab:estimands}):
@@ -897,7 +898,7 @@ contribution is $+0.0019$ and is positive in only 60 of 94 datasets, against 71 
 convolutional network and 92 of 94 for SpliceBERT. The 4-mer span's interval runs to 10.05 for
 that reason and the ratio should not be read as a magnitude; the absolute differences in
 Table~\ref{tab:orderthree} provide the more interpretable summary. This is the same instability that disqualifies
-normalising by the excess over chance in Section~\ref{sec:families}. Second, the surviving
+normalising by the excess over chance in Section~\ref{sec:rescaling}. Second, the surviving
 contribution is concentrated in a few datasets. On a 30-dataset subsample the three largest
 datasets held 51\% of the GC arm's positive mass; on the full panel they hold 21\%. That fall
 is panel size and not dispersion, and reporting it alone would understate the caution: as a
@@ -1444,6 +1445,7 @@ model & arm & as published & cross-fitted & channel \\
 \end{table}
 
 \subsection{Replication on an externally constructed benchmark}
+\label{sec:replication45}
 
 I applied the same decomposition to the negative sets released by \citet{horlacher2023}, using
 their positives, peak calling, negative-set construction and fold assignments, over the 45

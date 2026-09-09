@@ -65,6 +65,31 @@ def test_a_dash_before_a_capital_or_a_macro_is_left_alone(tmp_path):
 
 
 @needs_manuscript
+def test_it_catches_an_unlabelled_subsection(tmp_path):
+    p = _write(tmp_path, "\\subsection{Standard reparameterisations}\n\nSome prose.\n")
+    assert [o[0] for o in t.unlabelled(p)] == [1]
+
+
+def test_a_labelled_subsection_is_clean(tmp_path):
+    p = _write(tmp_path, "\\subsection{Standard reparameterisations}\n\\label{sec:r}\n\nProse.\n")
+    assert t.unlabelled(p) == []
+
+
+def test_a_title_spanning_two_lines_still_finds_its_label(tmp_path):
+    """sec:families' title spans two source lines; a naive next-line check misreports it."""
+    p = _write(tmp_path, "\\subsection{Composition explains more variation than protocol\n"
+                         "labels for a $k$-mer model}\n\\label{sec:families}\n\nProse.\n")
+    assert t.unlabelled(p) == []
+
+
+@needs_manuscript
+def test_every_shipped_subsection_is_labelled():
+    srcs = sorted(MAN.glob("*.tex")) + sorted((MAN / "sections").glob("*.tex"))
+    assert srcs, "no manuscript sources found; this test checked nothing"
+    assert {p.name: t.unlabelled(p) for p in srcs if t.unlabelled(p)} == {}
+
+
+@needs_manuscript
 def test_the_shipped_manuscript_is_clean():
     srcs = sorted(MAN.glob("*.tex")) + sorted((MAN / "sections").glob("*.tex"))
     assert srcs, "no manuscript sources found; this test checked nothing"

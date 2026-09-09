@@ -76,7 +76,7 @@ from rbp.utils.log import log
 ROOT = Path(__file__).resolve().parents[1]
 TABLES = ROOT / "results" / "tables"
 # The submitted prose is the document that matters. An earlier revision also audited a
-# separate claims ledger under docs/, which now lives on the working-notes branch.
+# separate claims ledger under docs/, which is no longer part of the release.
 MANUSCRIPT_DIR = ROOT / "manuscript"
 # Every manuscript section is audited, not a single file: a value can be correct in one place
 # and mistyped in another, and the submitted prose is what a referee reads.
