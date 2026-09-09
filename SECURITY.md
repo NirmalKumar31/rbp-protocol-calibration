@@ -85,12 +85,13 @@ decision instead of quietly resolving one.
 
 Most commits up to `202953d` carry a `Co-Authored-By: Claude` trailer; the count is in
 `results/tables/history_scan.csv`, generated rather than typed, because a number written here is
-wrong by the next commit. From `202953d` the trailer is no longer added.
+wrong by the next commit.
 
-That is a change of granularity, not of disclosure. The historical trailers are left in place and
-no history is rewritten. The manuscript's Use of AI tools section is the disclosure of record.
-It is written down here so the change is visible: a signal that simply stops looks like
-concealment, whereas one that stops with the reason recorded does not.
+The trailer was dropped after `202953d` and then reinstated, so a stretch of commits in between
+carries none. Both the gap and its ends are deliberate and neither is a change of disclosure:
+the manuscript's Use of AI tools section is the disclosure of record throughout, and no history
+has been rewritten. It is written down here because a signal that stops and restarts without
+explanation reads worse than either consistent choice.
 
 ## What is not guarded
 

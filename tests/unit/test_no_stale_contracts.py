@@ -598,10 +598,10 @@ def test_the_trailer_change_is_recorded_as_granularity_not_a_narrowing():
     down, so this fails if it stops being.
     """
     sec = _read("SECURITY.md")
-    assert "the trailer is no longer added" in sec, (
-        "the trailer change has dropped out of SECURITY.md, which makes it look like a signal "
-        "that quietly stopped rather than one that was deliberately relocated")
-    assert "change of granularity, not of disclosure" in sec
+    assert "dropped after `202953d` and then reinstated" in sec, (
+        "SECURITY.md no longer explains the gap in Co-Authored-By trailers, which makes it look "
+        "like a signal that quietly stopped rather than one that was deliberately paused")
+    assert "no change of disclosure" in sec or "neither is a change of disclosure" in sec
     paper = ROOT / "manuscript" / "paper.tex"
     if paper.exists():
         text = " ".join(paper.read_text().split())
