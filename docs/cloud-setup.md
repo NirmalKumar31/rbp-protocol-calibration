@@ -2,9 +2,9 @@
 
 Every concept here is explained **three times**, deliberately:
 
-- **CLI / Terraform** — what to type, and what each flag does
-- **UI** — the same thing clicking through the console, step by step
-- **BACKEND** — what Google actually does when you do it, because that is what lets you debug
+- **CLI / Terraform** - what to type, and what each flag does
+- **UI** - the same thing clicking through the console, step by step
+- **BACKEND** - what Google actually does when you do it, because that is what lets you debug
 
 Assume no prior GCP knowledge. Nothing is skipped. If a term appears, it gets defined.
 
@@ -29,7 +29,7 @@ matters: `rbp-repro-2026` draws from the same ~$291 of free trial credit as
 
 **Why "all APIs off by default" matters.** A brand-new project cannot create a VM, cannot
 store an object, cannot run a container. Every one of those is an API you must enable first,
-and the error when you forget is *not* "enable the API" — it is a job that submits fine and
+and the error when you forget is *not* "enable the API" - it is a job that submits fine and
 dies two minutes later. This is the single most common wasted hour for a beginner.
 
 ## 1.2 There are three planes, and they fail differently
@@ -112,7 +112,7 @@ gcloud billing projects describe rbp-repro-2026 --format="value(billingEnabled)"
 2. Click the **project picker** in the top blue bar (it shows the current project name).
 3. Click **NEW PROJECT**, top right of the dialog.
 4. **Project name**: `RBP reproducible rebuild`. Note the grey text underneath showing the
-   generated **Project ID** — click **EDIT** and set it to `rbp-repro-2026`. Do this now; the
+   generated **Project ID** - click **EDIT** and set it to `rbp-repro-2026`. Do this now; the
    ID is immutable.
 5. Leave **Location** as *No organisation* for a personal account.
 6. **CREATE**. Watch the bell icon top-right for completion, ~30 seconds.
@@ -130,7 +130,7 @@ long-running **Operation** immediately; the project does not exist yet. `gcloud`
 the operation until done, which is why you see `Waiting for [operations/create_project...]`.
 
 Google allocates a **project number** (`PROJECT_NUMBER` here) alongside your chosen ID. The
-number is what internal systems actually use — you will see it in service account emails,
+number is what internal systems actually use - you will see it in service account emails,
 log resource names and error messages, and it is *not* interchangeable with the ID in those
 places.
 
@@ -159,7 +159,7 @@ Those are **three different things** and confusing them is common:
 
 ## 3.2 UI
 
-Authentication is implicit — you are logged into the browser. To get the CLI-equivalent, use
+Authentication is implicit - you are logged into the browser. To get the CLI-equivalent, use
 **Cloud Shell** (the `>_` icon top right): a container in your browser, already authenticated,
 with `gcloud`, `gsutil` and `terraform` installed. For learning, Cloud Shell removes an entire
 class of setup problem.
@@ -235,9 +235,9 @@ To audit: **APIs & Services** → **Enabled APIs & services**.
 
 ## 4.3 Backend
 
-Enabling an API flips a per-project flag *and* often creates a **service agent** — a
+Enabling an API flips a per-project flag *and* often creates a **service agent** - a
 Google-managed service account like
-`service-PROJECT_NUMBER@gcp-sa-batch.iam.gserviceaccount.com` — that the service uses to act on
+`service-PROJECT_NUMBER@gcp-sa-batch.iam.gserviceaccount.com` - that the service uses to act on
 your behalf. This is why enabling can take a minute and why it is a long-running operation.
 
 **The failure mode when you forget.** The control plane accepts your request (the API surface
@@ -263,7 +263,7 @@ Three consequences that matter daily:
    the emptiness as a failed job.
 2. **Listing is a prefix scan.** `ls gs://b/a/b/c/` is a filtered scan, not a directory
    lookup, and costs proportionally to matches.
-3. **Names are globally unique.** Not per project — global. `rbp-composition-2026-derived`
+3. **Names are globally unique.** Not per project - global. `rbp-composition-2026-derived`
    can exist exactly once on Earth, which is why reproducers cannot reuse it and why the
    convention is `{project_id}-derived`.
 
@@ -299,7 +299,7 @@ UI fiction.
 
 ## 5.4 Backend
 
-An object write is a single atomic operation — an object either fully exists or does not.
+An object write is a single atomic operation - an object either fully exists or does not.
 There are no partial objects and **no cross-object transactions**.
 
 That last point drives a pattern used everywhere in this pipeline. A task writes several
@@ -313,7 +313,7 @@ bucket.blob(f"{prefix}/metrics.json").upload_from_string(...)
 ```
 
 Now consider a crash between the two. The marker is absent, so the next run redoes the task.
-Costly, and correct. Reverse the order and a crash leaves a marker with no payload — the task
+Costly, and correct. Reverse the order and a crash leaves a marker with no payload - the task
 is skipped forever and the gap is permanent and silent. **Order the writes so the survivable
 failure is the one that happens.**
 
@@ -333,7 +333,7 @@ IAM is `(who, what, where)`:
 
 Roles are bundles, not single permissions. `roles/storage.objectAdmin` includes create,
 delete, get and list. There are **predefined** roles (Google's), **basic** roles (Owner,
-Editor, Viewer — far too broad, avoid) and **custom** roles.
+Editor, Viewer - far too broad, avoid) and **custom** roles.
 
 ## 6.2 This project's five identities, and why five
 
@@ -348,7 +348,7 @@ Editor, Viewer — far too broad, avoid) and **custom** roles.
 **Why not one account?** Because the point of separation is that a preprocessing task
 *cannot* write a model, and an ingest task *cannot* touch results. A single identity discards
 that for no benefit. This project shipped a bug where `submit.sh` ran every job as
-`rbp-train`, which silently threw the whole scheme away — see the chronicle.
+`rbp-train`, which silently threw the whole scheme away - see the chronicle.
 
 ## 6.3 CLI
 
@@ -388,7 +388,7 @@ allow.
 
 **Policies are eventually consistent.** A fresh binding can take seconds to tens of seconds
 to take effect. A 403 immediately after granting is often just propagation, and retrying is
-the right move — which is genuinely confusing the first time.
+the right move - which is genuinely confusing the first time.
 
 ---
 
@@ -396,7 +396,7 @@ the right move — which is genuinely confusing the first time.
 
 ## 7.1 The problem
 
-`rbp-modal`'s key **leaves Google's network** — it sits in a Modal secret on a third-party
+`rbp-modal`'s key **leaves Google's network** - it sits in a Modal secret on a third-party
 platform. If that key leaks, what can the holder do? With plain `roles/storage.objectAdmin`
 on the bucket: delete every result, overwrite every dataset, destroy the study.
 
@@ -483,7 +483,7 @@ network anyway.
 Google API. `hgdownload.soe.ucsc.edu` is not a Google API.
 
 This is exactly why the model weights are **baked into the container image**. A worker cannot
-`from_pretrained("multimolecule/splicebert")` — the DNS lookup fails, or worse, the library
+`from_pretrained("multimolecule/splicebert")` - the DNS lookup fails, or worse, the library
 retries until `maxRunDuration`. Baking makes the weights part of the artefact the digest
 identifies, so "which weights produced this result?" and "which image produced this result?"
 have the same answer.
@@ -632,7 +632,7 @@ resource "google_artifact_registry_repository_iam_member" "pullers" {
 
 `for_each` **keys must be known at plan time**. A resource attribute of something not yet
 created is not. Terraform refuses to plan *at all*, which also blocks `terraform import` of
-anything else in the configuration — so you cannot even adopt existing resources to get
+anything else in the configuration - so you cannot even adopt existing resources to get
 unstuck.
 
 The fix is to key on something known statically and build the derived value:
@@ -658,7 +658,7 @@ terraform import google_storage_bucket.tfstate rbp-repro-2026-tfstate
 ```
 
 Import writes the resource into state without changing infrastructure. Note the second import
-took state from 2 entries to 78 — Terraform refreshed and discovered the resources a partial
+took state from 2 entries to 78 - Terraform refreshed and discovered the resources a partial
 apply had already created.
 
 ## 9.6 UI equivalent
@@ -683,7 +683,7 @@ Do it once by hand to learn the objects. Never do it twice.
 | `gpu` | ~6 GB | the above **plus** torch, transformers, multimolecule, and baked model weights | the CNN sweep |
 
 Preprocessing fans out to 488 tasks. Using one 6 GB image would pull 4.8 GB of unused CUDA
-into every worker — more time spent pulling than preprocessing.
+into every worker - more time spent pulling than preprocessing.
 
 **And a trap that follows directly.** The CNN is a torch model. `submit.sh` originally pinned
 *every* job to the cpu image, so all 475 sweep tasks would have died on `import torch`. The
@@ -694,7 +694,7 @@ IMAGE_KIND=cpu
 [ "$JOB_TYPE" = "sweep" ] && IMAGE_KIND=gpu
 ```
 
-The gpu image runs fine on a CPU machine — it just carries CUDA it will not touch, which is
+The gpu image runs fine on a CPU machine - it just carries CUDA it will not touch, which is
 the cheaper mistake.
 
 ## 10.2 Layer order is the cost story
@@ -735,7 +735,7 @@ the literal string reaches docker, which rejects it:
 invalid reference format: repository name must be lowercase
 ```
 
-— because `$PROJECT_ID` contains capitals. Passing them at submit time makes the values
+- because `$PROJECT_ID` contains capitals. Passing them at submit time makes the values
 concrete.
 
 ## 10.4 The `.gitignore` trap, which is subtle and cost a build
@@ -747,7 +747,7 @@ concrete.
 data/
 ```
 
-That is **unanchored**, so it matches a directory of that name at *any depth* — including
+That is **unanchored**, so it matches a directory of that name at *any depth* - including
 `src/rbp/data/`. Git stopped tracking the package, the upload excluded it, and the image was
 built without it. The image's own test step caught it:
 
@@ -778,7 +778,7 @@ failure worth catching, so:
 if [ "$$n" -lt "${_EXPECTED_TESTS}" ]; then ... fi
 ```
 
-Note `$$n` — in a Cloud Build `bash` step, `$$` escapes a literal `$` so the shell expands it
+Note `$$n` - in a Cloud Build `bash` step, `$$` escapes a literal `$` so the shell expands it
 rather than Cloud Build's substitution engine.
 
 ## 10.6 Push before recording the digest
@@ -798,7 +798,7 @@ DIGEST=$(gcloud storage cat "gs://${PROJECT}-artifacts/images/${IMAGE_KIND}_dige
 IMAGE="${REGION}-docker.pkg.dev/${PROJECT}/rbp/${IMAGE_KIND}@${DIGEST}"
 ```
 
-A tag is mutable — `:latest` today is not `:latest` tomorrow. A digest is content-addressed.
+A tag is mutable - `:latest` today is not `:latest` tomorrow. A digest is content-addressed.
 "Which image produced this result?" is only answerable by digest.
 
 ## 10.8 UI
@@ -843,7 +843,7 @@ MANIFEST = f"manifest/sweep_tasks{MANIFEST_TAG}.tsv"
 ```
 
 One manifest per model. `MANIFEST_TAG=_cnn` selects it. Ordering within a manifest is only
-useful for *scheduling* — longest-first, so the job does not end when the unluckiest node
+useful for *scheduling* - longest-first, so the job does not end when the unluckiest node
 finishes.
 
 ## 11.3 The job spec, annotated
@@ -887,7 +887,7 @@ finishes.
    `allocationPolicy.networkInterfaces`. The latter is rejected with
    `Unknown name "networkInterfaces" at 'job.allocation_policy'`.
 2. `cpuMilli: 900` with a 4000-milli machine gives 4 tasks per node. It also **caps each
-   task at 0.9 CPU**, which is why `OMP_NUM_THREADS=1` matters — see §11.5.
+   task at 0.9 CPU**, which is why `OMP_NUM_THREADS=1` matters - see §11.5.
 
 ## 11.4 Never type a task count
 
@@ -900,7 +900,7 @@ manifest_rows() {
 ```
 
 The old script hardcoded `COUNT=189`. The gc arm has 187 datasets, so the job dispatched two
-tasks past the end of its manifest and Batch reported the whole job **FAILED** — with every
+tasks past the end of its manifest and Batch reported the whole job **FAILED** - with every
 real task having succeeded. That is an exceptionally confusing failure: complete output, red
 status.
 
@@ -982,7 +982,7 @@ once failed a job whose every task succeeded. The caller decides.
 
 - **Details**: the spec as submitted
 - **Task groups**: per-state counts, refreshing live
-- **Events**: `STATUS_CHANGED` and `OPERATIONAL_INFO`. **Read these first on any failure** —
+- **Events**: `STATUS_CHANGED` and `OPERATIONAL_INFO`. **Read these first on any failure** -
   this is where `CODE_GCE_QUOTA_EXCEEDED` appeared
 - **Logs**: straight into Cloud Logging, filtered to the job
 
@@ -1059,7 +1059,7 @@ last-resort brake, which is why it sits at a threshold you do not expect to reac
 - **Actions**: thresholds at 25/50/80/100%.
 - **Manage notifications** → **Connect a Pub/Sub topic to this budget**. This is the part
   people miss; email alerts alone cannot trigger automation.
-- **Credits**: under Scope there is a checkbox for discounts/credits. **Uncheck it** — that is
+- **Credits**: under Scope there is a checkbox for discounts/credits. **Uncheck it** - that is
   the UI equivalent of `EXCLUDE_ALL_CREDITS`.
 
 ---
@@ -1088,7 +1088,7 @@ possible and it becomes portable for free.
 
 ## 13.3 max_containers is a budget control, not a performance knob
 
-On GCP, quota capped the burn rate whether we liked it or not. Modal removes the cap — which
+On GCP, quota capped the burn rate whether we liked it or not. Modal removes the cap - which
 is why it is useful, and which also removes the accidental cost ceiling.
 
 ```
@@ -1105,13 +1105,13 @@ Modal equivalent of the billing killswitch, so this cap IS the guardrail.**
 ## 13.4 Choosing the GPU by measuring, not by price list
 
 - **A10G for training**: measured 1.98× a T4 for 1.42× the price, so it is the cheaper unit of
-  work. A100 measured only 2.89× a T4 — a 20M-parameter model does not saturate one — so it
+  work. A100 measured only 2.89× a T4 - a 20M-parameter model does not saturate one - so it
   costs more per unit.
 - **T4 for the variant scoring**: that job is **network-bound**, 375 MB of checkpoint per
   dataset against ~3,500 forward passes. Paying A10G rates to wait on a download is paying for
   the wrong thing.
-- **T4 for the locality probe**: that job *is* compute-bound — ~570,000 forward passes against
-  one 75 MB download — and it went from ~90 minutes of laptop CPU to ~8 minutes.
+- **T4 for the locality probe**: that job *is* compute-bound - ~570,000 forward passes against
+  one 75 MB download - and it went from ~90 minutes of laptop CPU to ~8 minutes.
 
 Also worth recording: `cpu=` and `memory=` on a GPU function set the allocation but are **not
 billed on top** of the GPU. An earlier estimate built by summing three published prices came
@@ -1130,8 +1130,8 @@ different SpliceBERT build than the binding scores would defeat the purpose.
 image = _base.add_local_file(f"{HERE}/modal_sweep.py", "/root/modal_sweep.py")
 ```
 
-**(b) `ModuleNotFoundError: No module named 'pyfaidx'`.** The cloud task never opens a FASTA —
-that is the entire point of precomputing windows — but the import sat at module scope, so it
+**(b) `ModuleNotFoundError: No module named 'pyfaidx'`.** The cloud task never opens a FASTA -
+that is the entire point of precomputing windows - but the import sat at module scope, so it
 crashed every container on a dependency it never used. Fix: import inside the two functions
 that actually cut windows.
 
@@ -1164,7 +1164,7 @@ modal secret create rbp-gcp SERVICE_ACCOUNT_JSON="$(cat /tmp/k.json)"
 rm /tmp/k.json
 ```
 
-**Two things that bite.** `modal` must be on `PATH`, not merely installed in a virtualenv —
+**Two things that bite.** `modal` must be on `PATH`, not merely installed in a virtualenv -
 preflight failed on exactly this. And if a `rbp-gcp` secret already exists from a previous
 project, **delete it first**: Modal will not overwrite, and the stage would silently write
 into the old project's bucket.
@@ -1216,10 +1216,10 @@ In order. Do not skip a rung; each is cheaper than the next.
 3. **Are there VMs?** `gcloud compute instances list`. No VMs plus a RUNNING job means
    allocation is failing.
 4. **What is quota doing?** `gcloud compute project-info describe`. Compare **usage** against
-   **limit**, and never filter to `limit > 0` — that is how a survey hid
+   **limit**, and never filter to `limit > 0` - that is how a survey hid
    `GPUS_ALL_REGIONS = 0` from its own output. Twice.
 5. **Did the container start?** Cloud Logging, filtered by `job_uid`. Look for
-   `Runnable command line:` — if present, the image pulled and docker ran.
+   `Runnable command line:` - if present, the image pulled and docker ran.
 6. **What did the code say?** Your own log lines. Filter out agent state dumps.
 7. **Did it write anything?** `gsutil ls` the output prefix. Compare against the completion
    marker: payload without marker means it died between writes, which is the *designed*

@@ -8,7 +8,7 @@ so; anything that disagrees with it is wrong.
 (`FULL` 189 datasets, `MATCHED` 187, losing `DDX51:K562` and `NCBP2:K562` to GC matching).
 Those numbers are gone and must not reappear. The digit 189 survives into this build meaning
 something completely different, which is exactly the kind of collision this file exists to
-prevent — see the warning below.
+prevent - see the warning below.
 
 ## The panels
 
@@ -59,7 +59,7 @@ specificity -- which are not what this paper reports. The current ones:
 the 94 both arms share, not 95 minus 94.
 
 **2. `STUDY` is a sample, so quantify the sampling.** Systematic by pair rank, taking every
-second row of the size-sorted candidate list. That spans the full size range by construction —
+second row of the size-sorted candidate list. That spans the full size range by construction -
 a size-threshold sample would confound the subset with dataset size, and AUROC correlates with
 size at r = +0.13 (composition) to +0.67 (SpliceBERT). Measured: `STUDY` spans `CANDIDATE` size
 percentile **0–99**, shown in `f0`.
@@ -75,12 +75,12 @@ study, whose ClinVar specificity result is claimed on the 44
 adequately powered datasets. The all-82 stratum shows nothing (gap −0.011, p=0.87) and is
 asserted in `golden.yaml` precisely so that it is never quietly omitted. Stratifying by power
 is legitimate here because the effect grows with power (rho=+0.52) while the wrong-protein
-floor stays flat — but the reader gets to check that, which means printing both.
+floor stays flat - but the reader gets to check that, which means printing both.
 
 ## Protein counts, which are also not a mistake
 
 Datasets are protein × cell line, so protein counts are always lower: `STUDY` is 95 datasets
 and **79 proteins**, of which **16** appear in both K562 and HepG2. A protein assayed in both
 lines is two datasets and one protein, and the CV grouping is by chromosome, so the two are
-not independent replicates of each other in any statistical sense — they share the genome,
+not independent replicates of each other in any statistical sense - they share the genome,
 not the assay.

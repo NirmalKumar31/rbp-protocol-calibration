@@ -37,7 +37,8 @@ rather than the fitted model. Two decompositions, which are different estimands 
 weightings of one: averaging each dataset's own normalised shares gives 63% (CI 57 to 68)
 against 15% for training, and decomposing the matrix of panel means gives 81% (73 to 87)
 against 9%. Leave-one-protein-out moves the larger share by at most 3.0 points, so no one
-protein carries it. Most of what the protocol moves is the measurement (`sec:transport`).
+protein carries it. Most of what the protocol moves is the measurement, not the model; the paper argues that
+under "Evaluation data account for most protocol-associated variation".
 It is descriptive, not causal.
 
 - **Verifiable offline, in one command, in under a minute:** every published number, against
@@ -130,7 +131,7 @@ rerun without credits. One table, with what is measured separated from what is f
 manuscript/     the paper and its figures
 scripts/        one analysis per file; each writes a table under results/tables/
 src/rbp/        the library the scripts import
-tests/          892 tests, no network or cloud; 2 modules need torch
+tests/          891 tests, no network or cloud; 2 modules need torch
 config/         params.yaml (the study's settings), golden.yaml (expected values)
 results/tables/ every number in the paper (SCHEMA.md documents the columns)
 data/evidence/  per-window out-of-fold scores for all three model classes

@@ -29,7 +29,7 @@ set) fixes it. **Teach: an empty log is not evidence of an idle process.**
 
 **"Complete" at 273 of 475.** A wait loop grepped Modal's JSON for a completion field. The grep
 failed to match, the loop treated no-match as done, and reported success at 57%. The fix is to
-**assume alive on a parse failure** — `submit.sh` does exactly this with its `"")` case. **Teach:
+**assume alive on a parse failure** - `submit.sh` does exactly this with its `"")` case. **Teach:
 a monitor's failure mode must be "keep waiting", never "declare victory".**
 
 **78 tasks/hour when the real rate was 246.** A rate computed from two snapshots that were both
@@ -70,7 +70,7 @@ double the true rate.
 
 **Never extrapolate from a single task.** I told the user prep would take 45–50 minutes based on
 one log line showing a 47.5s task. It took 3.5 hours. The manifest is deliberately sorted
-**biggest-first**, so early tasks are the *slowest* — throughput at the start is unrepresentative
+**biggest-first**, so early tasks are the *slowest* - throughput at the start is unrepresentative
 by design. Measured over a window: 2.28/min.
 
 ## 2.3 Job state and counts
@@ -84,7 +84,7 @@ gcloud batch jobs describe "$JOB" --project="$PROJECT" --location="$REGION" \
 Counts that appear to go **backwards** are normal: a node cycling out returns its tasks to
 PENDING. I once read that as a regression and invented a cause for it.
 
-## 2.4 Events — read these first on any failure
+## 2.4 Events - read these first on any failure
 
 ```bash
 gcloud batch jobs describe "$JOB" --format="json(status.statusEvents)" | python3 -c "
@@ -98,7 +98,7 @@ This is the rung most often skipped and the one that mattered most here.
 `CODE_GCE_QUOTA_EXCEEDED` sat in this output while I theorised about spot preemption, switched
 every job to on-demand, and measured no improvement.
 
-`OPERATIONAL_INFO` is not an error — it is Batch telling you about the *infrastructure*, and it
+`OPERATIONAL_INFO` is not an error - it is Batch telling you about the *infrastructure*, and it
 is where quota, capacity and preemption all appear.
 
 ## 2.5 Task logs without drowning
@@ -110,7 +110,7 @@ gcloud logging read 'labels.job_uid="<job_uid>"' --project="$PROJECT" \
 
 **The filter is essential.** Batch agents emit enormous protobuf state dumps. An unfiltered read
 of twelve entries returned several thousand tokens of agent metadata with two useful lines buried
-in it. Filter to your own log format — every script here prints `[HH:MM:SS] message`, so
+in it. Filter to your own log format - every script here prints `[HH:MM:SS] message`, so
 `grep -E "^\[[0-9]{2}:"` isolates them.
 
 `--freshness` is required for recent logs; without it the default window can miss them.
@@ -124,7 +124,7 @@ in it. Filter to your own log format — every script here prints `[HH:MM:SS] me
 ```
 
 Three things worth noting. `peak rss 0.17 GB` against a 3500 MiB allocation means memory is
-massively over-provisioned and could be cut to fit more tasks per node — except vCPU is the
+massively over-provisioned and could be cut to fit more tasks per node - except vCPU is the
 binding constraint, so it would buy nothing. `3744 pairs` is checkable against the original run,
 and matching it is the strongest single signal that the reproduction is real. And the task
 announces *what* it is doing before doing it, so a hang tells you which dataset hung.
@@ -138,7 +138,7 @@ announces *what* it is doing before doing it, so a hang tells you which dataset 
 Do not skip a rung. Each is cheaper than the next.
 
 1. **Did the control plane accept it?** `gcloud batch jobs describe`. Rejected specs fail here
-   with a precise field path — `Unknown name "networkInterfaces" at 'job.allocation_policy'`
+   with a precise field path - `Unknown name "networkInterfaces" at 'job.allocation_policy'`
    told me exactly what was wrong.
 2. **What do the Events say?** §2.4.
 3. **Are there VMs?** `gcloud compute instances list`. RUNNING job + no VMs = allocation
@@ -203,8 +203,8 @@ def probe(index: int = 0):
           f"{el*N_TASKS/MAX_CONTAINERS/60:.1f} min wall, ${el*N_TASKS/3600*0.59:.2f} at T4 rates")
 ```
 
-**One task, then multiply.** This caught all three Modal bugs — a missing module, a missing
-dependency, and a 403 — for about a cent each, before a 94-task sweep.
+**One task, then multiply.** This caught all three Modal bugs - a missing module, a missing
+dependency, and a 403 - for about a cent each, before a 94-task sweep.
 
 Its estimate was also usefully **pessimistic**: it projected 8.9 minutes and $0.87; the real
 sweep took ~2.5 minutes because containers stayed warm. Over-estimating from a cold start is the
@@ -249,7 +249,7 @@ print(f'{tot/3600:.2f} recorded GPU-hours')"
 - an **upper bound**: elapsed wall time × max containers × rate
 - a **lower bound**: recorded task time summed
 
-The truth is between them. Reporting one number invites false precision — and at one point the
+The truth is between them. Reporting one number invites false precision - and at one point the
 work-based estimate exceeded its own upper bound ($14.75 against $13.64), because per-task
 overhead was counted for every task when Modal actually reuses warm containers.
 
@@ -296,7 +296,7 @@ confirmation gate.
 ## 5.2 Do not stop
 
 - **`OPERATIONAL_INFO: CODE_GCE_QUOTA_EXCEEDED`** when the job is progressing. Batch is retrying a
-  node it cannot have. Annoying, harmless — and I spent real time on this.
+  node it cannot have. Annoying, harmless - and I spent real time on this.
 - **Task counts going backwards.** A node cycled out.
 - **A scatter of preempted tasks on spot.** Resumable; that is what markers are for.
 - **A FAILED job with complete output.** Check the manifest length first.

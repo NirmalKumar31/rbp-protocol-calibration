@@ -26,7 +26,7 @@ cloud:
 seed: 7
 
 encode:
-  # ONE cell line, for the scripts that operate on one at a time: download, panel_census.
+  # ONE cell line, for the scripts that operate on one at a time, such as download.py.
   cell_line: K562
   # The study spans BOTH. Anything that enumerates the panel must read this, not the
   # singular key above -- train.py read the singular one until 2026-08-23 and would have

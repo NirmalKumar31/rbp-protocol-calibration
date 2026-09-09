@@ -1,4 +1,5 @@
 \subsection{Negative-set construction changes measured contribution several-fold}
+\label{sec:threeprotocols}
 
 Across 94 paired datasets, the estimated contribution of the same 4-mer model class differed
 when the negative windows were constructed in three ways (Table~\ref{tab:three},
@@ -1190,9 +1191,6 @@ Automated checks require map identity and preservation of strand in the leakage 
 (minus-strand fraction $0.488$). The implementation and validation checks are documented in
 \texttt{docs/\allowbreak EXTERNAL\_\allowbreak CORRECTION\_1.md}.
 
-Excluding every protein that also appears in the study panel leaves 104 datasets over 77 proteins, and
-all four cells still meet the thresholds: $1.66$, $1.64$, $1.70$ and $1.65$.
-
 These amendments do not make the external component prospective. The benchmark and its
 intersection with the study panel were known before the original protocol was written, and the two
 sensitivity analyses were specified only after the first external result.
@@ -1208,7 +1206,8 @@ It is not, however, an independent sample of \emph{proteins}. Thirty-one of the 
 the external complement also appear among the 79 proteins in the study panel, in different cell lines or different
 experiments, so the two panels share biology even where they share no dataset. Excluding every
 shared protein leaves 104 datasets over 77 proteins and gives contributions of $+0.0350$ and
-$+0.0211$, a span of $1.66$-fold (95\% CI $1.35$ to $2.09$), which still meets both
+$+0.0211$, a span of $1.66$-fold (95\% CI $1.35$ to $2.09$); the other three estimator-by-fold
+cells of Table~\ref{tab:extsens} give $1.64$, $1.70$ and $1.65$, so all four still meet the
 pre-specified criteria. The replication is therefore not carried by the overlap, and the claim
 it supports is disjointness of datasets and of processing, not independence of biology.
 

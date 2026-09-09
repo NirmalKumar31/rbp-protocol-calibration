@@ -180,7 +180,7 @@ rm /tmp/k.json
 | 3 | ingest **(public internet)** | Batch | ~$0.20 | genome, GENCODE, ClinVar, ENCODE peaks |
 | 4 | panel **(public internet)** | Batch | ~$0.10 | candidate datasets, all arms |
 | 5 | preprocess **all candidates** + finalize | Batch | ~$2 | matched datasets, all arms, and the pair counts |
-| 6 | **select panel** | local | $0 | `manifest/study_panel.tsv` — *the* panel |
+| 6 | **select panel** | local | $0 | `manifest/study_panel.tsv` - *the* panel |
 | 7 | rehearsal | Batch | ~$0.60 | the k-mer baseline on the whole panel |
 | 8 | CNN | Batch | ~$3 | per-window scores, dinucleotide arm |
 | 9 | **SpliceBERT** | **Modal** | **~$31** | per-window scores, dinucleotide arm |
@@ -231,8 +231,8 @@ manifest and Batch reported the whole job FAILED while every real task had succe
 
 **3. The network posture is not uniform, on purpose.** Workers get Private Google Access and
 no external IP, so they reach `*.googleapis.com` and nothing else. Three stages genuinely
-need the public internet — ingest (ENCODE, GENCODE, NCBI), panel (ENCODE API) and variants
-(UCSC phyloP by HTTP range request) — and those run on a single short-lived VM with a public
+need the public internet - ingest (ENCODE, GENCODE, NCBI), panel (ENCODE API) and variants
+(UCSC phyloP by HTTP range request) - and those run on a single short-lived VM with a public
 IP. There is deliberately **no Cloud NAT**: it bills per VM-hour plus per GB and would hand
 internet access to every other worker for no reason.
 
@@ -245,8 +245,8 @@ internet access to every other worker for no reason.
 ```
 
 Every claim in `config/golden.yaml` is asserted with an explicit tolerance. Tolerances
-absorb what legitimately varies — panel size, BLAS thread order, bootstrap seed, GPU-vs-CPU
-inference (measured at max 1.1e-4 per variant) — and nothing more.
+absorb what legitimately varies - panel size, BLAS thread order, bootstrap seed, GPU-vs-CPU
+inference (measured at max 1.1e-4 per variant) - and nothing more.
 
 Where a claim is about unanimity or ordering, the **count** is checked rather than the mean,
 because that is what the paper asserts:

@@ -3,7 +3,7 @@
 | file | contents |
 |---|---|
 | [REPRODUCE.md](REPRODUCE.md) | how to check every published number offline, and what the full pipeline needs if you want to rebuild from raw ENCODE files |
-| [PANELS.md](PANELS.md) | how the dataset panel was defined, and why the counts 189, 95, 94 and 74 differ |
+| [PANELS.md](PANELS.md) | how the dataset panel was defined, and why the counts 189, 95 and 94 differ, and the variant study's 82 and 44 |
 | [architecture.md](architecture.md) | stage graph; **the provider split as a measured decision** (live quota readings, measured $/Mpair per model, and the accelerator benchmark that picks the middle of the range); object layout; one task end to end |
 | [cloud-setup.md](cloud-setup.md) | provisioning from an empty project: Terraform, service accounts, IAM, budget guards and the killswitch |
 | [operating.md](operating.md) | running a sweep, reading a failure, estimating cost, and when to stop |

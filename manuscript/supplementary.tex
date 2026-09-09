@@ -9,7 +9,16 @@
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{caption}
+% THE SECTION COLUMN BELOW IS RESOLVED FROM paper.aux, NOT TYPED. It was typed once, and six of
+% its eleven rows pointed at the wrong section from the day the table was written: a reader
+% sent to the region figure landed in 3.1, the compression figure in 3.2 and the baseline-order
+% figure in 3.3. Nothing caught it, because a hand-typed number in a separate document is not a
+% cross-reference and no build can check it. xr-hyper reads the paper's own labels, so an
+% unresolvable one now fails build.sh's undefined-reference gate. It must load before hyperref.
+\usepackage{xr-hyper}
 \usepackage[colorlinks=true,allcolors=blue]{hyperref}
+% build.sh always compiles paper.tex first, so paper.aux exists by the time this is read.
+\externaldocument{paper}
 
 \captionsetup{labelfont=bf,font=small,justification=raggedright,singlelinecheck=false}
 \renewcommand{\thefigure}{S\arabic{figure}}
@@ -72,16 +81,16 @@ numbering to those filenames and is checked by \texttt{tests/unit/test\_suppleme
 \toprule
 supplementary & repository file (in \texttt{results/figures/}) & subject & section \\
 \midrule
-Figure S1  & \texttt{f0\_panel\_overview}          & the panel and how it was drawn   & Methods \\
-Figure S2  & \texttt{f1\_cost\_of\_matching}       & the two-protocol contrast        & 3.1 \\
-Figure S3  & \texttt{f2\_four\_models}             & four model classes, one protocol & Methods \\
-Figure S4  & \texttt{f3\_strand\_placebo}          & the strand control               & Limitations \\
-Figure S5  & \texttt{f4\_replication}              & cross-cell-line replication      & 3.1 \\
-Figure S6  & \texttt{f5\_size\_modification}       & effect modification by size      & 3.1 \\
-Figure S7  & \texttt{f6\_k\_sweep}                 & sensitivity to $k$               & Methods \\
-Figure S8  & \texttt{f7\_region}                   & region heterogeneity             & 3.1 \\
-Figure S9  & \texttt{f8\_scale\_check}             & the compression correction       & 3.2 \\
-Figure S10 & \texttt{f13\_baseline\_order\_models}  & order-3 baseline by model class  & 3.3 \\
+Figure S1  & \texttt{f0\_panel\_overview}          & the panel and how it was drawn   & \ref*{sec:panel} \\
+Figure S2  & \texttt{f1\_cost\_of\_matching}       & the two-protocol contrast        & \ref*{sec:threeprotocols} \\
+Figure S3  & \texttt{f2\_four\_models}             & four model classes, one protocol & \ref*{sec:methods-models} \\
+Figure S4  & \texttt{f3\_strand\_placebo}          & the strand control               & \ref*{sec:threeprotocols} \\
+Figure S5  & \texttt{f4\_replication}              & cross-cell-line replication      & \ref*{sec:sensitivity} \\
+Figure S6  & \texttt{f5\_size\_modification}       & effect modification by size      & \ref*{sec:sensitivity} \\
+Figure S7  & \texttt{f6\_k\_sweep}                 & sensitivity to $k$               & \ref*{sec:methods-models} \\
+Figure S8  & \texttt{f7\_region}                   & region heterogeneity             & \ref*{sec:region} \\
+Figure S9  & \texttt{f8\_scale\_check}             & the compression correction       & \ref*{sec:models} \\
+Figure S10 & \texttt{f13\_baseline\_order\_models}  & order-3 baseline by model class  & \ref*{sec:orderthree} \\
 Table S1   & \texttt{supplementary\_table\_s1.csv} & dataset to ENCODE accession      & Data avail. \\
 \bottomrule
 \end{tabular}

@@ -96,6 +96,10 @@ else
        "it exercises the GPU image selection, which needs torch"
 fi
 
+# 6c. A hyphen ending a source line splits a word, and the render can hide it. Needs no
+# toolchain, so it is unconditional.
+step "no word is split across a line by a hyphen" "$PY" scripts/tex_line_breaks.py
+
 # 6c. Check figure-text geometry when Poppler is available.
 if command -v pdftotext >/dev/null 2>&1; then
   step "no figure draws text on top of text" "$PY" scripts/figure_overlap.py

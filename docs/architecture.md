@@ -12,7 +12,7 @@ non-obvious edge in the whole graph.
 
 ```mermaid
 flowchart TD
-    subgraph LOCAL["LAPTOP — submits and reads, never computes"]
+    subgraph LOCAL["LAPTOP - submits and reads, never computes"]
         S0["stage 0<br/>preflight<br/>$0"]
         S6["stage 6<br/>select panel<br/>$0"]
         S14["stage 14<br/>verify<br/>$0"]
@@ -23,7 +23,7 @@ flowchart TD
         S2["stage 2<br/>build images<br/>~$0.50"]
     end
 
-    subgraph BATCH["GCP BATCH — CPU fan-out, quota-capped at 8 concurrent"]
+    subgraph BATCH["GCP BATCH - CPU fan-out, quota-capped at 8 concurrent"]
         S3["stage 3<br/>ingest<br/>PUBLIC IP"]
         S4["stage 4<br/>panel<br/>PUBLIC IP"]
         S5["stage 5<br/>prep 488 tasks<br/>~$2"]
@@ -33,7 +33,7 @@ flowchart TD
         S13["stage 13<br/>analysis<br/>~$0.10"]
     end
 
-    subgraph MODAL["MODAL — GPU, no quota gate"]
+    subgraph MODAL["MODAL - GPU, no quota gate"]
         S9["stage 9<br/>SpliceBERT<br/>~$31 REAL MONEY"]
         S10["stage 10<br/>locality probe<br/>~$0.30"]
         S12["stage 12<br/>ClinVar x3 arms<br/>~$0.60"]
@@ -71,7 +71,7 @@ flowchart TD
     class R1,R2,R3,R4 result
 ```
 
-**Why stage 6 is after stage 5.** `pairs` — the number the panel is size-ranked on — counts the
+**Why stage 6 is after stage 5.** `pairs` - the number the panel is size-ranked on - counts the
 positives that could *actually be matched* to a negative. Matching is a search, so `pairs` is a
 **result** of preprocessing, not an input. A size-ranked panel cannot be chosen before prep has
 produced the counts.
@@ -102,7 +102,7 @@ inescapable rather than merely inconvenient:
 
 | accelerator | regional limit (us-central1, us-west1) | usable? |
 |---|---|---|
-| NVIDIA V100 | 1, and 1 preemptible | **no** — the global cap is 0 and it binds |
+| NVIDIA V100 | 1, and 1 preemptible | **no** - the global cap is 0 and it binds |
 | NVIDIA T4 | 0, including preemptible and VWS | no |
 | NVIDIA L4 | not listed, i.e. 0 | no |
 | NVIDIA A100 | not listed, i.e. 0 | no |
@@ -117,7 +117,7 @@ machine shape fits inside the CPU allowance. Two independent caps, both binding.
 
 ### What that leaves
 
-CPU work has a real allowance — 12 vCPU globally — so the CPU-bound stages run on GCP Batch,
+CPU work has a real allowance - 12 vCPU globally - so the CPU-bound stages run on GCP Batch,
 which is what `cloud/submit_cpu_sweep.sh` is for. GPU work has none, at any price, so it goes
 to Modal, which has no quota gate.
 
@@ -137,7 +137,7 @@ that measured $2.47. `cloud/modal/modal_gc_sweep.py` therefore carries a per-mod
 refuses to estimate for a model it has no measurement for.
 
 The estimator was then tested on work it had not seen. The 20-dataset dinucleotide retrain was
-predicted at **$7.07** from these rates and billed **$6.99** over 6.35 GPU-h — 1% out.
+predicted at **$7.07** from these rates and billed **$6.99** over 6.35 GPU-h - 1% out.
 
 ### Why this is the interesting artefact
 
@@ -161,7 +161,7 @@ flowchart LR
         Q4["Modal: no quota gate"]
     end
 
-    subgraph GCS["GCS — the ONLY shared state"]
+    subgraph GCS["GCS - the ONLY shared state"]
         direction TB
         B1[("raw/<br/>immutable inputs")]
         B2[("processed/<br/>matched datasets")]
@@ -303,7 +303,7 @@ Fully compromised, it cannot alter a dataset under `processed/`, cannot touch th
 and cannot delete anything outside those three prefixes.
 
 **This fired in practice.** The first Modal ClinVar probe scored its dataset correctly and then
-took a 403 writing `variants/scores_sb/K562_AATF.csv` — because `variants/` was not yet in the
+took a 403 writing `variants/scores_sb/K562_AATF.csv` - because `variants/` was not yet in the
 list. That is the guardrail working: a new write path stays denied until somebody widens it
 deliberately, in Terraform.
 
@@ -313,12 +313,12 @@ deliberately, in Terraform.
 
 ```mermaid
 flowchart TD
-    subgraph NET["rbp-net — custom VPC, no auto subnets"]
+    subgraph NET["rbp-net - custom VPC, no auto subnets"]
         SUB["subnet rbp-workers  10.0.0.0/20<br/>Private Google Access ON<br/>noExternalIpAddress: true"]
         GPUSUB["subnet rbp-gpu-us-central1<br/>present, unused: GPU quota is 0"]
     end
 
-    subgraph DEF["default VPC — external IP"]
+    subgraph DEF["default VPC - external IP"]
         EXT["one short-lived VM"]
     end
 
@@ -342,7 +342,7 @@ costs more than the downloads; it hands internet access to 488 workers that have
 have it; and it makes every run depend on third-party sites being up.
 
 **The consequence you must design around.** A sealed worker cannot
-`from_pretrained("multimolecule/splicebert")` — that is why model weights are **baked into the
+`from_pretrained("multimolecule/splicebert")` - that is why model weights are **baked into the
 image**, so weights and code share one digest.
 
 **The debugging signature.** A sealed worker attempting a non-Google host does not fail fast; it
@@ -445,6 +445,6 @@ sequenceDiagram
 ```
 
 **The two lines to remember.** Step 6, `"successfully submitted"`, is the control plane
-accepting your JSON — nothing more. And step 12: because Batch partitions the index space, you
+accepting your JSON - nothing more. And step 12: because Batch partitions the index space, you
 cannot express "run model X first" by ordering the manifest. Scope is expressed by *which*
 manifest, which is why `MANIFEST_TAG` exists.
