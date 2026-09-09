@@ -144,7 +144,7 @@ def test_the_killswitch_does_not_promise_that_nothing_is_lost():
 
 
 def test_the_venue_is_not_described_as_arxiv():
-    """P1.12. The target has been bioRxiv since the venue was chosen."""
+    """P1.12. The venue is not arXiv, and has not been since it was chosen."""
     assert "arXiv PDF" not in _read("manuscript/build.sh")
 
 

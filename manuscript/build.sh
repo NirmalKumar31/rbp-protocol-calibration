@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Build the preprint PDF, and leave this directory as a self-contained upload.
 #
-# The target venue is bioRxiv, which takes a PDF; this said "arXiv" long after that was
-# decided. Either wants a flat-ish source tree with the figures alongside the .tex, so the
+# The target is a preprint server or journal that takes a PDF; this said "arXiv" and then
+# "bioRxiv" as the plan changed. Any of them wants a flat-ish source tree with the figures
+# alongside the .tex, so the
 # figures are COPIED from results/figures/ rather than referenced out of the repo. That means
 # the upload cannot go stale relative to a figure that was regenerated: rerun this script.
 set -euo pipefail
@@ -97,7 +98,7 @@ boxes paper.log
 echo "no undefined citations or references, no over- or underfull boxes"
 
 # THE SUPPLEMENT IS A DOCUMENT, NOT A DIRECTORY OF LOOSE PDFS. Ten figures shipped as f0 to f8
-# and f13 with no S-numbering and no legends, and "bioRxiv accepts separate files" does not make
+# and f13 with no S-numbering and no legends, and "the venue accepts separate files" does not make
 # a captionless figure self-interpreting. Built here so it cannot go stale against a regenerated
 # figure, and gated by tests/unit/test_supplement.py so the S-number mapping cannot drift.
 sup_rerun() { grep -qE "Rerun to get|Label\(s\) may have changed" supplementary.log; }

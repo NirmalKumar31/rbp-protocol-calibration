@@ -5,7 +5,7 @@
 Why this exists. The supplement used to say "the file supplementary_table_s1.csv ships with this
 document" and print nothing else, so Table S1 was a pointer. That is three files to upload
 instead of two, and a reader who opens only the PDF gets a reference to something they do not
-have. bioRxiv takes supplementary files separately and nothing makes a reader fetch them.
+have. Venues take supplementary files separately and nothing makes a reader fetch them.
 
 The CSV stays: it is the machine-readable form and the columns a reuser wants, including the
 per-arm baselines and contributions, are wider than a page. What is typeset here is what the
