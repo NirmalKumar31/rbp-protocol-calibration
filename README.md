@@ -8,9 +8,9 @@ looks hardest is the one where the model appears to contribute most.
 > **Report the composition-only AUROC obtained under the same protocol alongside every headline
 > AUROC. Do not compare contributions measured under different protocols.**
 
-Preprint on bioRxiv. Archive: [10.5281/zenodo.22679284](https://doi.org/10.5281/zenodo.22679284)
-(all versions), [10.5281/zenodo.22679285](https://doi.org/10.5281/zenodo.22679285) (v1.0.0, the
-analysed snapshot).
+Archived and citable at [10.5281/zenodo.22679284](https://doi.org/10.5281/zenodo.22679284)
+(all versions) and [10.5281/zenodo.22679285](https://doi.org/10.5281/zenodo.22679285) (v1.0.0,
+the analysed snapshot). Not yet posted to a preprint server.
 
 ## Why I built this
 
