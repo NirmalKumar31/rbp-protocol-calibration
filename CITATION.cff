@@ -7,8 +7,22 @@ title: >-
   negative-set construction: analysis code and released evidence
 message: >-
   If you use this software or its released evidence, please cite
-  the preprint. No DOI exists yet: the archival deposit is minted
-  from a tagged release. Add a doi: key here when it exists.
+  the preprint below. To cite the software itself, the DOI
+  10.5281/zenodo.22679285 identifies this exact snapshot and
+  10.5281/zenodo.22679284 resolves to whichever version is latest.
+# The CONCEPT doi goes in the top-level key, because a software citation usually means
+# "this program" rather than one frozen build. The version DOI is listed beside it so a
+# reproducibility citation can name the snapshot that produced the published numbers.
+doi: 10.5281/zenodo.22679284
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.22679285
+    description: >-
+      The archived snapshot of v1.0.0, which is the state that produced
+      every number in the preprint.
+  - type: doi
+    value: 10.5281/zenodo.22679284
+    description: Concept DOI, resolving to the latest version.
 type: software
 authors:
   - given-names: Nirmalkumar
@@ -49,7 +63,7 @@ license: MIT
 # At release, tag v1.0.0 and the Zenodo version DOI will identify this immutable snapshot.
 # The tag, this file and pyproject.toml must agree, and
 # tests/unit/test_no_stale_contracts.py fails the build if they do not.
-version: 1.0.0
+version: 1.0.1
 
 preferred-citation:
   type: article
