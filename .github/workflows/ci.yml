@@ -23,6 +23,11 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5.0.1
+        with:
+          # history_scan.py audits every reachable ref, including the archived working-notes
+          # tag. A shallow checkout would certify a smaller history than a normal clone sees.
+          fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: "3.13"
@@ -87,6 +92,11 @@ jobs:
         env:
           PYTHONPATH: src
         run: python scripts/column_dictionary.py --check
+
+      - name: history secret scan covers every published ref
+        env:
+          PYTHONPATH: src
+        run: python scripts/history_scan.py --check
 
       # These audit commands write three report tables; require their committed copies to agree.
       - name: regenerated artefacts match what is committed

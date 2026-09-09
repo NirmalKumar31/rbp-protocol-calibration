@@ -112,7 +112,7 @@ CANDIDATES = [
 
 def main():
     with OUT.open("w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=FIELDS)
+        w = csv.DictWriter(fh, fieldnames=FIELDS, lineterminator="\n")
         w.writeheader()
         w.writerows(CANDIDATES)
     n_q = sum(1 for r in CANDIDATES if r["outcome"].startswith("QUALIFIES"))

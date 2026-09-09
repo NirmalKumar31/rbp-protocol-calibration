@@ -237,7 +237,7 @@ def counts(rows):
 def write(rows):
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=FIELDS)
+        w = csv.DictWriter(fh, fieldnames=FIELDS, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     # The counts are an artefact, not prose. SCHEMA.md hand-typed "135 tables, 1393 columns,
@@ -245,7 +245,7 @@ def write(rows):
     # or absent", and all three were wrong. SCHEMA.md now points at this file.
     c = counts(rows)
     with SUMMARY.open("w", newline="") as fh:
-        w = csv.writer(fh)
+        w = csv.writer(fh, lineterminator="\n")
         w.writerow(["check", "value"])
         for k, v in c.items():
             w.writerow([k.replace("_", " "), v])

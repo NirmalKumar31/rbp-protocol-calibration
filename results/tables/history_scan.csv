@@ -1,6 +1,6 @@
 check,value,note
-commits on HEAD,273,"as of fab6962, which is the commit BEFORE the one recording this; the count necessarily excludes that commit and every later one"
-commits on all refs,273,"the scan covers this set, as of fab6962"
+commits on HEAD,275,"as of 17d3778, which is the commit BEFORE the one recording this; the count necessarily excludes that commit and every later one"
+commits on all refs,285,"the scan covers this set, as of 17d3778"
 commits containing a private key block,0,the matched strings are deliberately not printed here
 commit-and-file pairs containing a private key block,0,a file touched in two commits counts twice
 diff lines containing a private key block,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
@@ -22,9 +22,9 @@ diff lines containing a Google API key,0,"both sides of the diff, so a scrub com
 commits containing a OAuth access token,0,the matched strings are deliberately not printed here
 commit-and-file pairs containing a OAuth access token,0,a file touched in two commits counts twice
 diff lines containing a OAuth access token,0,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
-commits containing a GCP billing account ID,3,the matched strings are deliberately not printed here
-commit-and-file pairs containing a GCP billing account ID,8,a file touched in two commits counts twice
-diff lines containing a GCP billing account ID,10,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
-"commits carrying an AI co-author trailer, all refs",202,"git's structured trailer parser, not a grep over the body: three commits discuss the trailer in prose without carrying one"
-"commits carrying an AI co-author trailer, HEAD only",202,"the count that describes the published branch. It equals the all-refs figure now that main is the only ref: the two working branches were deleted before the v1.0.0 deposit. The trailer ran to 202953d, stopped, and resumes; SECURITY.md explains the gap and no history is rewritten"
+commits containing a GCP billing account ID,4,the matched strings are deliberately not printed here
+commit-and-file pairs containing a GCP billing account ID,9,a file touched in two commits counts twice
+diff lines containing a GCP billing account ID,11,"both sides of the diff, so a scrub commit contributes its removal line as well as the original addition"
+"commits carrying an AI co-author trailer, all refs",210,"git's structured trailer parser, not a grep over the body: three commits discuss the trailer in prose without carrying one; archived refs are included"
+"commits carrying an AI co-author trailer, HEAD only",204,"the count that describes the published branch. The trailer ran to 202953d, stopped, and resumes; SECURITY.md explains the gap and no history is rewritten"
 commits containing credential material of any kind,0,"everything except the billing account ID, which is an identifier rather than a credential and is documented in SECURITY.md"

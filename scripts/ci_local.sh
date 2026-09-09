@@ -59,6 +59,9 @@ step "the column dictionary is current"
 step "every committed table has a producing script"
 "$PY" scripts/provenance.py --check || fail "provenance.py"
 
+step "history secret scan"
+"$PY" scripts/history_scan.py --check || fail "history_scan.py --check"
+
 # Compare tracked PDFs with a clean build when TeX is available.
 if command -v pdflatex >/dev/null 2>&1; then
   "$PY" scripts/pdf_freshness.py || fail "pdf_freshness.py"

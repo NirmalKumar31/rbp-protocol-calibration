@@ -198,7 +198,7 @@ def main():
     if a.check:
         return
     with OUT.open("w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=FIELDS)
+        w = csv.DictWriter(fh, fieldnames=FIELDS, lineterminator="\n")
         w.writeheader()
         w.writerows(rows)
     log(f"  wrote {OUT.relative_to(ROOT)}")

@@ -38,15 +38,12 @@ history, and the scan exits non-zero if that ever stops being true.
 
 **One finding, and it is real.** A live GCP **billing account ID** is in the history. Three
 counts, because this document previously gave one of them without saying which: it was
-introduced in **3 distinct commits**, touches **8 commit-and-file pairs**, and matches **10 diff
-lines** counting both sides.
+introduced in **4 distinct commits**, touches **9 commit-and-file pairs**, and matches **11 diff
+lines** counting both sides. These totals include the archived working-notes history preserved
+by tag `archive/working-notes-2026-09-06`; the published `main` branch contains three of those
+commits. Nothing was scrubbed to reduce the totals when the two working branches were removed.
 
-These three were 4, 9 and 11 until 2026-09-08, and **nothing was scrubbed to reduce them**. The
-scan reads `git log --all`, and the two working branches were deleted before the v1.0.0 deposit,
-so one commit carrying the ID is no longer reachable from any ref. The ID is still in the
-history of `main` and still recoverable by anyone who clones. The gate caught the change rather
-than letting it pass as an improvement, which is the reason it compares findings at all. It was
-scrubbed from the working tree by commit `f3fab95` ("Submission packaging:
+The ID was scrubbed from the working tree by commit `f3fab95` ("Submission packaging:
 scrub a live billing ID") and `tests/unit/test_no_hardcoded_project.py` has forbidden it in
 tracked files ever since, so it is absent from every current file. Git history is not the
 working tree: anyone who clones this public repository can recover it.

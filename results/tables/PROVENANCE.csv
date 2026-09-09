@@ -63,7 +63,7 @@ fold_integrity.csv,scripts/fold_integrity.py,s13b_local_analysis,evidence-recomp
 fold_integrity_per_dataset.csv,scripts/fold_integrity.py,s13b_local_analysis,frozen-cache,1fe9ddecccfa97d8,31402,"""$PY"" scripts/fold_integrity.py --from-cache   || die ""fold integrity"""
 gene_clustered_cv.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,evidence-recomputable,7ee1886c62381f38,2015,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
 gene_clustered_cv_per_dataset.csv,scripts/gene_clustered_cv.py,s13b_local_analysis,frozen-cache,01a9bfcb8ed368ce,26619,"""$PY"" scripts/gene_clustered_cv.py --from-cache || die ""gene-clustered CV"""
-history_scan.csv,scripts/history_scan.py,s13b_local_analysis,raw-reproducible,0369bac0f41211a2,3679,"""$PY"" scripts/history_scan.py --check || die ""history secret scan"""
+history_scan.csv,scripts/history_scan.py,s13b_local_analysis,raw-reproducible,78cc3344474e4d0b,3581,"""$PY"" scripts/history_scan.py --check || die ""history secret scan"""
 homology_folds.csv,scripts/homology_folds.py,s13b_local_analysis,evidence-recomputable,976b5276b0e98fe4,2464,"""$PY"" scripts/homology_folds.py --from-cache || die ""homology folds"""
 homology_folds_per_dataset.csv,scripts/homology_folds.py,s13b_local_analysis,frozen-cache,ede30d938da57cf3,38508,"""$PY"" scripts/homology_folds.py --from-cache || die ""homology folds"""
 horlacher_arm.csv,scripts/horlacher_arm.py,s13b_local_analysis,evidence-recomputable,8c222bcf67c7f2ee,1786,"""$PY"" scripts/horlacher_arm.py --from-cache || die ""horlacher arm"""

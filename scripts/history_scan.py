@@ -132,12 +132,11 @@ def scan():
     rows.append({"check": "commits carrying an AI co-author trailer, all refs",
                  "value": _trailed("--all"),
                  "note": "git's structured trailer parser, not a grep over the body: three "
-                         "commits discuss the trailer in prose without carrying one"})
+                         "commits discuss the trailer in prose without carrying one; archived "
+                         "refs are included"})
     rows.append({"check": "commits carrying an AI co-author trailer, HEAD only",
                  "value": _trailed(),
-                 "note": "the count that describes the published branch. It equals the "
-                         "all-refs figure now that main is the only ref: the two working "
-                         "branches were deleted before the v1.0.0 deposit. The trailer ran to "
+                 "note": "the count that describes the published branch. The trailer ran to "
                          "202953d, stopped, and resumes; SECURITY.md explains the gap and no "
                          "history is rewritten"})
 
