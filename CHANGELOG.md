@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.0.2, submission snapshot
+
+No result changes. This version exists so that the PDF submitted to a preprint server is the
+PDF that is archived, which was not true of 1.0.1.
+
+- **Affiliation.** The title page named only "Northeastern University". It now names the
+  department and college.
+- **Funding statement.** It read "This research received no specific funding. I paid the
+  cloud-computing costs." The second sentence is true and, beside a single author with a bare
+  university line, reads as a personal project rather than as research. It is now the standard
+  form. The full cost breakdown stays in `docs/COST.md`, where it is a strength.
+- **Venue.** bioRxiv declined the submission at screening, without review, as a student
+  research project. Comments and the README no longer name a target venue or claim a preprint.
+- **README.** Rewritten for a reader rather than for an adversarial reviewer: 2,035 words to
+  1,647, a first-person section explaining why the study pivoted from ClinVar variant scoring
+  to negative-set calibration, the offline check moved near the top, and the findings table cut
+  from a 114-word maximum cell to 35.
+
+Every published number is unchanged. 1156 assertions pass, CI is green on all five jobs, and
+`results/tables` is byte-identical to 1.0.0.
+
+## 1.0.1, the DOIs
+
+The 1.0.0 archive necessarily contained a paper with no DOI printed in it, because Zenodo
+cannot pre-reserve one through its GitHub integration. This version is the same analysis with
+the version and concept DOIs printed in Data availability and Code availability.
+
 ## 1.0.0, preprint release
 
 This version identifies the snapshot prepared for archival and makes no support promise;

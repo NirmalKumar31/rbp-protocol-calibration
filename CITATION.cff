@@ -63,7 +63,7 @@ license: MIT
 # At release, tag v1.0.0 and the Zenodo version DOI will identify this immutable snapshot.
 # The tag, this file and pyproject.toml must agree, and
 # tests/unit/test_no_stale_contracts.py fails the build if they do not.
-version: 1.0.1
+version: 1.0.2
 
 preferred-citation:
   type: article
