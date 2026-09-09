@@ -60,6 +60,33 @@ zero on GCP, so CPU fan-out runs on Batch and GPU work on Modal. The per-model d
 back-solved from recorded accelerator seconds and then used to price each manifest before
 submitting it. `docs/COST.md` separates what was measured from what is forecast.
 
+### Building the container images
+
+Three images exist and they are built by different systems, which is worth knowing before you
+try to build the wrong one.
+
+| Image | Built by | Purpose |
+|---|---|---|
+| `docker/Dockerfile.cpu` | Cloud Build, and GitHub Actions on every push | Ingest, preprocessing, the k-mer baseline, analysis. No torch, about 1.2 GB |
+| `docker/Dockerfile.gpu` | Cloud Build only | Torch jobs on GCP Batch, with the SpliceBERT weights baked in at build time. About 6 GB, which is why CI does not build it |
+| Modal's image | `cloud/modal/modal_sweep.py` | Defined in Python as `modal.Image.debian_slim`, not from a Dockerfile. Modal does not use `Dockerfile.gpu` |
+
+The CPU image builds from the repository root and runs an import smoke test as its default
+command:
+
+```bash
+docker build -f docker/Dockerfile.cpu -t rbp-cpu .
+docker run --rm rbp-cpu            # -> "rbp cpu image ok"
+docker run --rm rbp-cpu id -un     # -> runner, not root
+```
+
+**That smoke test is not a verification of the paper**, and the image cannot be. It carries
+`src`, `scripts`, `config` and `tests` only, because that is what a Batch worker needs;
+`results/` and `manuscript/` are deliberately absent. To check the published numbers, use the
+pip path at the top of this file, which needs no container. `scripts/check_image_tree.sh`
+mirrors this copy set into a temp tree and runs the suite there, so the file set is verified
+locally before anything is built.
+
 ### If you work on modelling
 
 | Path | What it shows |
@@ -68,7 +95,8 @@ submitting it. `docs/COST.md` separates what was measured from what is forecast.
 | `scripts/cross_fitting.py` | The bias and its removal. Ten extra base fits per dataset to close the outer-fold route |
 | `scripts/estimator_floor.py` | The null: a 2-mer whose information the baseline already contains, so the truth is zero |
 | `scripts/capacity_ladder.py` | Whether the bias tracks model capacity. It does not; it tracks overlap with the baseline |
-| `src/rbp/models/` | 4-mer logistic regression, a DeepBind-style CNN, and a fully fine-tuned SpliceBERT |
+| `src/rbp/eval/baseline.py` | The composition baseline and the k-mer logistic model |
+| `src/rbp/models/cnn.py`, `lm.py` | The DeepBind-style CNN and the fine-tuned SpliceBERT |
 | `data/evidence/` | Per-window out-of-fold scores, so every model-class AUROC recomputes from this repository alone |
 
 `scripts/recompute.py` rebuilds published AUROCs from those per-window scores rather than

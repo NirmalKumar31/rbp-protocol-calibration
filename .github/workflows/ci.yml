@@ -157,6 +157,47 @@ jobs:
           [ -n "$files" ] || { echo "no shell scripts found; this step checked NOTHING"; exit 1; }
           for f in $files; do bash -n "$f" || exit 1; done
 
+  # THE ONE PROPERTY check_image_tree.sh CANNOT COVER. That script mirrors the Dockerfile's copy
+  # set into a temp tree and runs the suite there, which proves the FILE SET is right. It does
+  # not prove the image BUILDS: apt layers, dependency resolution inside the image, the
+  # pyBigWig source rebuild against libcurl, the non-root switch, or the default command. Both
+  # images have built successfully in Cloud Build, but a green CI run said nothing about the
+  # Dockerfile in the commit being tested.
+  #
+  # CPU ONLY, DELIBERATELY. The GPU image is about 6 GB with CUDA and the baked SpliceBERT
+  # weights, which does not fit a free runner's disk in a useful time. Cloud Build validates
+  # that one; see docker/cloudbuild.gpu.yaml.
+  #
+  # Nothing is pushed. This builds, smoke-tests and discards.
+  docker-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5.0.1
+      - name: build the CPU image
+        run: docker build -f docker/Dockerfile.cpu -t rbp-cpu:ci .
+      # The default CMD is an import smoke test. If rbp cannot import, the image is useless to
+      # a Batch worker no matter how cleanly it built.
+      - name: default command runs
+        run: |
+          out=$(docker run --rm rbp-cpu:ci)
+          echo "$out"
+          [ "$out" = "rbp cpu image ok" ] || { echo "unexpected smoke output"; exit 1; }
+      # The Dockerfile drops to a non-root user. Asserted, because a silent revert to root is
+      # exactly the kind of regression nobody notices until a security review.
+      - name: runs as non-root
+        run: |
+          u=$(docker run --rm rbp-cpu:ci id -un)
+          i=$(docker run --rm rbp-cpu:ci id -u)
+          echo "user=$u uid=$i"
+          [ "$u" = "runner" ] && [ "$i" = "1000" ] || { echo "expected uid 1000 runner"; exit 1; }
+      # BLAS thread pinning is load-bearing: unpinned, a 406-pair dataset ran over 20 minutes
+      # in a container against 7 seconds on a laptop, and thread count changes summation order.
+      - name: BLAS threads are pinned in the image
+        run: |
+          v=$(docker run --rm rbp-cpu:ci printenv OMP_NUM_THREADS)
+          [ "$v" = "1" ] || { echo "OMP_NUM_THREADS=$v, expected 1"; exit 1; }
+
   manuscript:
     runs-on: ubuntu-latest
     timeout-minutes: 30
