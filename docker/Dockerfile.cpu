@@ -1,6 +1,7 @@
 # CPU image: everything except torch.
 #
-# WHY A SEPARATE IMAGE FROM THE GPU ONE. The preprocessing stage runs 374 parallel tasks.
+# WHY A SEPARATE IMAGE FROM THE GPU ONE. The preprocessing stage runs 488 parallel tasks,
+# one per candidate dataset per composition-matching arm: (139 K562 + 105 HepG2) x 2.
 # The GPU image is ~6 GB because of torch and the CUDA libraries; this one is ~1.2 GB. Using
 # one image for both would pull 4.8 GB of unused CUDA into 374 workers -- more time spent
 # pulling than preprocessing.

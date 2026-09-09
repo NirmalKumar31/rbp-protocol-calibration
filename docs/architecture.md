@@ -1,6 +1,6 @@
-# 57. Architecture diagrams
+# Architecture diagrams
 
-Seven Mermaid diagrams. Render in GitHub, VS Code (Markdown Preview Mermaid Support), or
+Eight Mermaid diagrams. Render in GitHub, VS Code (Markdown Preview Mermaid Support), or
 mermaid.live.
 
 ---
