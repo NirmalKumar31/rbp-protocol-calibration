@@ -29,6 +29,17 @@ rested on windows I had chosen to call "not bound", and I could not find a paper
 what a plain nucleotide counter scores on its own data. So I stopped chasing a better number and
 measured the thing the number rests on. That is this paper.
 
+## System architecture
+
+![RBP research pipeline](docs/assets/rbp-architecture-overview.png)
+
+The implemented pipeline used GCP Batch for CPU processing, GCS for the original data path,
+Modal for GPU training, and local analysis to assemble the verified evidence. The later Modal
+sweeps used uploaded volumes and returned scores locally rather than writing them back to GCS.
+
+[Architecture details](docs/architecture.md) ·
+[Editable SVG](docs/assets/rbp-architecture-overview.svg)
+
 ## Check it in thirty seconds, offline
 
 No cloud account, no credentials, no data download.

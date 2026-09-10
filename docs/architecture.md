@@ -3,6 +3,16 @@
 Eight Mermaid diagrams. Render in GitHub, VS Code (Markdown Preview Mermaid Support), or
 mermaid.live.
 
+## Architecture overview
+
+![Implemented RBP research architecture](assets/rbp-architecture-overview.png)
+
+This overview shows the implemented execution and evidence paths. The diagrams below provide
+the stage-level infrastructure, security and operational detail. The later Modal sweeps used
+uploaded volumes and returned scores locally; they did not write their outputs to GCS.
+
+[Open the editable SVG](assets/rbp-architecture-overview.svg)
+
 ---
 
 ## 1. The pipeline: fifteen stages, and where each one runs

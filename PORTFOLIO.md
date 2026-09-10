@@ -44,7 +44,8 @@ independent reproduction, and `docs/REPRODUCE.md` marks which stages are which.
 
 ### If you work on ML systems or infrastructure
 
-Start at **`docs/architecture.md`**. Eight Mermaid diagrams that render in GitHub: the stage
+Start with the **[architecture overview](docs/assets/rbp-architecture-overview.png)**, then open
+**`docs/architecture.md`**. Its eight Mermaid diagrams render in GitHub: the stage
 graph and where each stage executes, the two-cloud split as a measured decision, object layout
 and the marker discipline, the identity and blast-radius map, the network topology, and one
 Batch task end to end.
