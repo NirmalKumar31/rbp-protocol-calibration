@@ -50,7 +50,7 @@ sweeps used uploaded volumes and returned scores locally rather than writing the
 
 ## Check it in thirty seconds, offline
 
-No cloud account, no credentials, no data download.
+No cloud account, no credentials and no external source-data download.
 
 ```bash
 git clone https://github.com/NirmalKumar31/rbp-protocol-calibration.git
@@ -60,8 +60,8 @@ python -m pip install -e . -c constraints.txt      # enough to VERIFY, no torch
 PYTHONPATH=src python scripts/verify.py --local results/tables   # 1156/1156
 ```
 
-`verify.py` re-derives every published value from the committed tables and fails if any
-disagrees with `config/golden.yaml`. Of the 1156 numeric assertions,
+`verify.py` checks every published value against committed evidence and fails if any disagrees
+with `config/golden.yaml`. Of the 1156 numeric assertions,
 **1018 belong to this paper**, 136 to an earlier variant-scoring study whose code and evidence
 are still here and still pass, and 2 are the harness checking itself. The verifier prints that
 split on every run, because one total covering two papers is not this paper's evidence.

@@ -453,7 +453,7 @@ s14_verify() {
   # failed reproduction and is a dead bucket. It is skipped loudly rather than silently: a
   # cloner is told the cross-check did not run, which is the honest state, and anyone who
   # points DERIVED_BUCKET at a live bucket gets the comparison back.
-  "$PY" scripts/verify.py --local results/tables || die "THE SCIENCE DID NOT REPRODUCE (local tables) -- see the failed claims above"
+  "$PY" scripts/verify.py --local results/tables || die "RELEASED RESULTS FAILED VERIFICATION (local tables) -- see the failed claims above"
   if "$PY" -c "
 import sys
 from rbp.utils import cloud
@@ -464,8 +464,8 @@ b = cloud.bucket()
 sys.exit(0 if b.exists() and any(
     b.client.list_blobs(b.name, prefix='results/tables/', max_results=1)) else 1)" \
      >/dev/null 2>&1; then
-    "$PY" scripts/verify.py || die "THE SCIENCE DID NOT REPRODUCE (GCS artefacts) -- local tables passed, so suspect the upload"
-    say "reproduction verified against both the local tables and the bucket"
+    "$PY" scripts/verify.py || die "GCS ARTEFACTS FAILED VERIFICATION -- local tables passed, so suspect the upload"
+    say "released results verified against both the local tables and the bucket"
   else
     say "SKIPPED the bucket cross-check: no reachable DERIVED_BUCKET. Local tables passed."
     say "  the upload-vs-local disagreement this stage exists to catch was NOT tested"

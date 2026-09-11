@@ -1,6 +1,6 @@
 # How to read this repository
 
-A single-author calibration study, from raw ENCODE files to a submitted preprint: the cloud
+A single-author calibration study, from raw ENCODE files to a posted preprint: the cloud
 pipeline that produced the numbers, the numbers, and the checks that hold them in place.
 
 This file is a reader's guide. `README.md` is the scientific summary; this one says where to
@@ -37,7 +37,7 @@ python -m pip install -e . -c constraints.txt
 PYTHONPATH=src python scripts/verify.py --local results/tables
 ```
 
-That re-derives every published value from committed tables. It is a regression gate, not an
+That checks every published value against committed evidence. It is a regression gate, not an
 independent reproduction, and `docs/REPRODUCE.md` marks which stages are which.
 
 ## Where to look

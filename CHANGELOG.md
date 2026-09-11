@@ -121,7 +121,7 @@ benchmark. The inverse direction does not replicate there, and the paper says so
   classifying each table as raw-reproducible, evidence-recomputable or frozen.
 - Per-window out-of-fold scores for all three model classes, so the model-class comparison is
   recomputable from the repository alone rather than asserted against a summary.
-- The analysis code, the cloud definitions that ran it, and the container images.
+- The analysis code, the cloud definitions that ran it, and the container build definitions.
 - 1156 numeric assertions that check the published values offline against committed evidence,
   in one command and with no cloud account.
 - Four pre-specified protocols under `docs/`, cited by name in the paper, so the claims that

@@ -64,8 +64,7 @@ keywords:
 # under MIT. That is a broader grant than is offered. This record is `type: software`, so it
 # names the software licence and points at the others rather than misstating the relationship.
 license: MIT
-# At release, tag v1.0.0 and the Zenodo version DOI will identify this immutable snapshot.
-# The tag, this file and pyproject.toml must agree, and
+# At each software release, the tag, this file and pyproject.toml must agree, and
 # tests/unit/test_no_stale_contracts.py fails the build if they do not.
 version: 1.0.5
 

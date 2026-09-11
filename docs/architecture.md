@@ -389,8 +389,8 @@ flowchart TD
     MK -->|yes| SKIP["skip, cheap rerun"]
     SKIP --> V{"stage 14<br/>verify"}
     REDO --> V
-    V -->|"outside tolerance"| XV["STOP<br/>ran, but did not reproduce.<br/>Do not write it up."]
-    V -->|"all pass"| DONE(["reproduction verified"])
+    V -->|"outside tolerance"| XV["STOP<br/>outputs differ from<br/>released evidence"]
+    V -->|"all pass"| DONE(["released results verified"])
 
     classDef stop fill:#fbe4e6,stroke:#b2182b,color:#000
     classDef gate fill:#fdf0e3,stroke:#e08214,color:#000

@@ -268,17 +268,10 @@ overhead was counted for every task when Modal actually reuses warm containers.
 
 ## 4.5 What this project actually cost
 
-| | |
-|---|---|
-| GCP, original study | ~$8.55 of $300 credit |
-| GCP, the rebuild so far | ~$3 of credit |
-| Modal, SpliceBERT sweep | ~$31.50 (exhausted the $30 credit) |
-| Modal, everything else | ~$1.40 out of pocket |
-| **Real money, total** | **~$7.40** |
-
-The whole study, including a full from-scratch reproduction, for under ten dollars of real money.
-That is a design outcome, not luck: every expensive stage is preceded by a one-task probe and a
-confirmation gate.
+Cost accounting changed as the later three-arm sweeps completed. The single authoritative ledger
+is **[COST.md](COST.md)**: approximately $20 was paid out of pocket for the published run after
+credits, and a fresh rerun is forecast at approximately $60. Every expensive stage is preceded by
+a one-task probe and a confirmation gate.
 
 ---
 

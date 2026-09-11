@@ -1,4 +1,4 @@
-"""Stage 13. Assert the reproduction actually reproduced, and fail loudly if not.
+"""Verify released results against committed evidence, and fail loudly if they differ.
 
 Why this is the last stage and not an afterthought. A pipeline that runs to completion and
 quietly produces different science is worse than one that crashes, because nobody diffs a
@@ -5650,7 +5650,7 @@ def main():
     T = Tables(a.local)
 
     print("=" * 78)
-    print("VERIFY -- does the reproduction match the original science?")
+    print("VERIFY -- do the released results match the committed evidence?")
     # golden.yaml's meta keys are reference_run/established. They were source_run/measured_on
     # when the file described the earlier study, and renaming them there left this line
     # reading keys that no longer exist -- a KeyError before a single check ran.
