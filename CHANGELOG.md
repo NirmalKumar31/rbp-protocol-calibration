@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.3, the posted preprint
+
+No result changes. This version makes the repository, the Zenodo archive and the posted
+paper say the same thing, which they did not between 1.0.2 and the Preprints.org posting.
+
+- **The paper is posted.** Preprints.org, 2026-09-11, DOI `10.20944/preprints202609.0883.v1`,
+  CC BY 4.0. `CITATION.cff` records it in `preferred-citation`, which previously carried no
+  DOI at all and so left no machine-readable trace of where the work appeared.
+- **Use of AI tools.** Methods gains a subsection naming the tools, what they were used for
+  and who is responsible. Preprints.org requires the declaration; it belongs in the paper
+  regardless, and the repository copy lacked it while the submitted copy had it.
+- **Conflicts of Interest.** The declaration was titled "Competing interests" and sat before
+  Ethics. It is now titled and positioned as the submitted version has it.
+- **A false comment removed.** `CITATION.cff` asserted that the software title and the paper
+  title "carry the same title on purpose". They differ, deliberately, and have since this
+  record became `type: software`. The comment described a decision that had been reversed:
+  a pointer that read confidently and was wrong, which is the defect class this paper is
+  about.
+
+`manuscript/paper.tex` and `manuscript/sections/methods.tex` are now byte-identical to the
+source submitted to Preprints.org. Every published number is unchanged.
+
 ## 1.0.2, submission snapshot
 
 No result changes. This version exists so that the PDF submitted to a preprint server is the
