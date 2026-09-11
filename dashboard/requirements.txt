@@ -1,0 +1,12 @@
+# Dashboard only. Deliberately separate from the study's pyproject.toml so that installing the
+# dashboard cannot change the environment the analysis runs in, and so a Streamlit or Plotly
+# bump can never alter a published number.
+#
+# Pinned exactly, not with >=, because this file exists to make a screenshot reproducible.
+streamlit==1.40.2
+plotly==5.24.1
+pandas==2.2.3
+
+# Test and lint only.
+pytest==8.3.4
+ruff==0.16.3
