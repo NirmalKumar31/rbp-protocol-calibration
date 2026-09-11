@@ -1,0 +1,33 @@
+{
+  "title": "Apparent sequence-model contribution depends strongly on negative-set construction: analysis code and released evidence",
+  "upload_type": "software",
+  "description": "A calibration study across 94 paired ENCODE eCLIP datasets. Holding the model class, the peak set, the chromosome-blocked folds and the estimator fixed, refitting model and baseline within each protocol, and varying how negative windows are constructed moves a model's measured nested contribution 4.84-fold under the cross-fitted estimator the paper recommends and reports as primary, and 5.42-fold under the two-stage one this literature uses, while its apparent AUROC moves the opposite way. The two-stage estimator also returns a positive increment for a model whose information the composition baseline already contains, where the true contribution is zero by construction; cross-fitting the covariate removes at least 95 percent of it.",
+  "creators": [
+    {
+      "name": "Thirupallikrishnan Kesavan, Nirmalkumar",
+      "affiliation": "Northeastern University",
+      "orcid": "0009-0002-9977-1739"
+    }
+  ],
+  "keywords": [
+    "RNA-binding proteins",
+    "eCLIP",
+    "negative sets",
+    "benchmark calibration",
+    "sequence models"
+  ],
+  "access_right": "open",
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "10.20944/preprints202609.0883.v1",
+      "scheme": "doi",
+      "resource_type": "publication-preprint"
+    },
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/NirmalKumar31/rbp-protocol-calibration",
+      "scheme": "url"
+    }
+  ]
+}

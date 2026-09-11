@@ -608,3 +608,55 @@ def test_the_trailer_change_is_recorded_as_granularity_not_a_narrowing():
         assert "Use of AI tools" in text and "editorial assistance" in text, (
             "the manuscript must remain the disclosure of record for both coding and writing "
             "assistance; commit-trailer mechanics belong in SECURITY.md")
+
+
+def test_zenodo_json_and_citation_cff_cannot_drift():
+    """`.zenodo.json` silences CITATION.cff for archiving, so the two must still agree.
+
+    Zenodo's GitHub integration reads `.zenodo.json` in preference to CITATION.cff and, when it
+    is present, ignores CITATION.cff COMPLETELY. That is why this file exists at all: the
+    archive had to carry a link to the posted preprint, and CITATION.cff has no field that
+    Zenodo maps onto a related identifier. The cost is a second place stating the title, the
+    authorship and the abstract, which is exactly the shape every other check in this module
+    exists to catch. This pins them together instead of hoping.
+
+    `version` and `license` are deliberately ABSENT from `.zenodo.json`. Version comes from the
+    git tag and licence from the LICENSE file; naming either here would be a third copy that
+    nothing bumps.
+    """
+    import json
+
+    yaml = pytest.importorskip("yaml")
+    z = json.loads(_read(".zenodo.json"))
+    cff = yaml.safe_load(_read("CITATION.cff"))
+
+    collapse = lambda s: " ".join(s.split())
+
+    assert z["title"] == collapse(cff["title"]), (
+        "the software title differs between .zenodo.json and CITATION.cff, so the archive and "
+        "the citation file describe the deposit differently")
+    assert z["description"] == collapse(cff["abstract"]), (
+        "the Zenodo description has drifted from the CITATION.cff abstract")
+    assert z["keywords"] == list(cff["keywords"]), "keywords differ between the two files"
+    assert z["upload_type"] == "software" and cff["type"] == "software"
+
+    assert "version" not in z, (
+        "`version` in .zenodo.json is a copy that nothing bumps; Zenodo takes it from the tag")
+    assert "license" not in z, (
+        "`license` in .zenodo.json would shadow the LICENSE file, which is the only place the "
+        "per-subtree licensing is actually recorded")
+
+    orcid = cff["authors"][0]["orcid"].rsplit("/", 1)[-1]
+    assert z["creators"][0]["orcid"] == orcid, "ORCID differs between the two files"
+    family, given = cff["authors"][0]["family-names"], cff["authors"][0]["given-names"]
+    assert z["creators"][0]["name"] == f"{family}, {given}", (
+        "Zenodo wants 'Family, Given'; this no longer matches CITATION.cff")
+
+    # This link is the only reason the file exists. If it goes, the archive stops saying which
+    # paper it belongs to, and nothing else in the repository tells Zenodo.
+    paper_doi = cff["preferred-citation"]["doi"]
+    rel = {r["identifier"]: r["relation"] for r in z["related_identifiers"]}
+    assert paper_doi in rel, (
+        f"the posted preprint DOI {paper_doi} is in CITATION.cff but not in .zenodo.json's "
+        "related_identifiers, so the Zenodo record does not point at the paper")
+    assert rel[paper_doi] == "isSupplementTo"

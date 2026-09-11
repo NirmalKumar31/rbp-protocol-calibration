@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.0.4, the archive points at the paper
+
+Metadata only. No code, no results, no manuscript text changes.
+
+The Zenodo record carried one related identifier, a link to the GitHub tree, and nothing
+saying which paper the deposit belongs to. `CITATION.cff` gained the preprint DOI in 1.0.3,
+but Zenodo has no field that maps a CFF `preferred-citation` onto a related identifier, so
+the archive stayed silent about the paper it supports.
+
+- **`.zenodo.json` added**, declaring the posted preprint
+  `10.20944/preprints202609.0883.v1` as `isSupplementTo`, resource type
+  `publication-preprint`. Both vocabulary values were checked against Zenodo's live
+  vocabularies rather than assumed.
+- **It reproduces every field the record already had** (title, abstract, keywords, creator,
+  ORCID), because Zenodo ignores `CITATION.cff` entirely once this file is present. Each
+  field was compared against the published 1.0.3 record before release.
+- **`version` and `license` are deliberately omitted.** Version comes from the git tag and
+  licence from the LICENSE file, which is the only place the per-subtree licensing is
+  recorded. Naming either here would create a copy nothing bumps.
+- **A test pins the two files together.**
+  `test_zenodo_json_and_citation_cff_cannot_drift` fails if the title, abstract, keywords,
+  creator or ORCID diverge, if the preprint DOI leaves `.zenodo.json`, or if `version` or
+  `license` appear in it. The duplication is the same defect shape the rest of that module
+  exists to catch, so it is gated rather than trusted.
+
 ## 1.0.3, the posted preprint
 
 No result changes. This version makes the repository, the Zenodo archive and the posted
