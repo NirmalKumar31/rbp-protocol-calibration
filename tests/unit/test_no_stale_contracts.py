@@ -630,7 +630,8 @@ def test_zenodo_json_and_citation_cff_cannot_drift():
     z = json.loads(_read(".zenodo.json"))
     cff = yaml.safe_load(_read("CITATION.cff"))
 
-    collapse = lambda s: " ".join(s.split())
+    def collapse(text):
+        return " ".join(text.split())
 
     assert z["title"] == collapse(cff["title"]), (
         "the software title differs between .zenodo.json and CITATION.cff, so the archive and "

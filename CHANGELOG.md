@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.5, the lint fix 1.0.4 needed
+
+1.0.4 was tagged and released with a failing `lint` job. The drift-guard test added in that
+release assigned a lambda to a name, which ruff rejects as E731. The other four CI jobs
+(`test`, `full-suite`, `manuscript`, `docker-cpu`) passed, and no result, number, figure or
+table was affected: the rule is a style rule and the file is a test.
+
+- **`collapse` is a `def` rather than a lambda** in
+  `test_zenodo_json_and_citation_cff_cannot_drift`. `ruff check .` passes repository-wide.
+- **The 1.0.4 tag and its Zenodo archive are left exactly as they are.** Moving a tag that a
+  DOI has already been minted against would break the one correspondence a version DOI
+  exists to guarantee, which is a worse defect than the one being fixed. `10.5281/zenodo.22712185`
+  therefore archives a tree whose lint job fails, and this entry is the record of why.
+- **Cause, recorded because it will recur otherwise:** 1.0.4 was verified with `pytest` and
+  `scripts/release_consistency.py` run separately, neither of which lints. `scripts/ci_local.sh`
+  reproduces all five CI jobs including ruff and would have caught it before the tag existed.
+  It is the only pre-tag check worth running.
+
+Verified before tagging this time: all CI-local checks pass, 37 of 37 cached entry points
+reproduce their committed tables at 1e-09, and both tracked PDFs are byte-identical to a
+clean build.
+
 ## 1.0.4, the archive points at the paper
 
 Metadata only. No code, no results, no manuscript text changes.

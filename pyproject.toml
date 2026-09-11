@@ -1,6 +1,6 @@
 [project]
 name = "rbp"
-version = "1.0.4"
+version = "1.0.5"
 # THE DESCRIPTION NAMED THE PREVIOUS STUDY. It read "conservation-controlled variant
 # evaluation", which is what this code was built for and is not what the paper reports; an
 # external review noticed before any reader did. Package metadata is the one description that
