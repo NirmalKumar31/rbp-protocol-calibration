@@ -1,16 +1,24 @@
 # Apparent sequence-model contribution depends strongly on negative-set construction
 
-Take 94 ENCODE eCLIP datasets. Hold the model class, the positives, the chromosome-blocked folds
-and the estimator fixed. Change **only how the negative examples are built**. The model's measured
-contribution moves **4.84-fold**, and it moves in the direction nobody expects: the protocol that
-looks hardest is the one where the model appears to contribute most.
+How much does an RNA sequence model add beyond nucleotide composition? Across 94 ENCODE eCLIP
+datasets, the answer changes substantially with the construction of the negative examples. With
+the model class, source peaks, chromosome-blocked fold design and estimator held fixed, the
+primary 4-mer contribution spans **4.84-fold** (95% CI 3.98 to 5.81) across three negative-set
+protocols. Stricter composition matching lowers apparent AUROC while increasing the estimated
+contribution beyond composition.
 
-> **Report the composition-only AUROC obtained under the same protocol alongside every headline
-> AUROC. Do not compare contributions measured under different protocols.**
+Each protocol refits the model and composition baseline and retains the positives its matcher can
+pair; the small resulting difference in retained positives is quantified below and does not
+explain the result.
 
-Archived and citable at [10.5281/zenodo.22679284](https://doi.org/10.5281/zenodo.22679284)
-(all versions) and [10.5281/zenodo.22679285](https://doi.org/10.5281/zenodo.22679285) (v1.0.0,
-the analysed snapshot). Not yet posted to a preprint server.
+> **Practical implication:** Report a composition-only AUROC under the same negative-set protocol
+> as the sequence-model AUROC, and do not compare incremental contributions across protocols.
+
+**Paper:** [Preprints.org](https://doi.org/10.20944/preprints202609.0883.v1) (preprint; not yet peer
+reviewed)
+
+**Code and evidence:** [all versions](https://doi.org/10.5281/zenodo.22679284) ·
+[v1.0.0 analysed snapshot](https://doi.org/10.5281/zenodo.22679285)
 
 ## Why I built this
 
@@ -195,4 +203,6 @@ docs/           REPRODUCE, PANELS, COST, architecture, cloud-setup, operating
 Code under MIT, derived data under CC BY 4.0. See `LICENSE` for the code and `NOTICE` for the
 third-party sources the evidence derives from and the terms each carries. Intermediate window
 tables containing genomic sequence are not redistributed and are regenerated from the ENCODE
-accessions in Supplementary Table S1. Cite via `CITATION.cff` or the concept DOI above.
+accessions in Supplementary Table S1. Cite the study using the
+[preprint DOI](https://doi.org/10.20944/preprints202609.0883.v1); cite the software or released
+evidence using `CITATION.cff` and the relevant Zenodo DOI above.
