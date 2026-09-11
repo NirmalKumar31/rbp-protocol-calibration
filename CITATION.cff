@@ -1,7 +1,11 @@
 cff-version: 1.2.0
 # This file describes the SOFTWARE. preferred-citation below is the paper, which is what a
-# reader of the results should cite; the two carry the same title on purpose, because the
-# repository has no separate identity from the study it produced.
+# reader of the results should cite. The two titles DIFFER on purpose. This record is
+# `type: software`, so it names what is actually deposited, the analysis code and the
+# released evidence, and Zenodo displays that title on the archive. The paper's own title
+# sits in preferred-citation and is what a reader should quote. Same study, two research
+# objects, two DOIs, two titles. An earlier version of this comment claimed the titles were
+# identical; they were not, and that claim was removed on 2026-09-11.
 title: >-
   Apparent sequence-model contribution depends strongly on
   negative-set construction: analysis code and released evidence
@@ -78,3 +82,9 @@ preferred-citation:
       affiliation: Northeastern University
       orcid: 'https://orcid.org/0009-0002-9977-1739'
   year: 2026
+  # Posted preprint. The DOI is minted at posting and registered with Crossref in the
+  # server's next deposit batch, so it can 404 for about a day after the page is live.
+  doi: 10.20944/preprints202609.0883.v1
+  url: 'https://www.preprints.org/manuscript/202609.0883/v1'
+  notes: >-
+    Preprint, not yet peer reviewed. Posted on Preprints.org on 2026-09-10.
