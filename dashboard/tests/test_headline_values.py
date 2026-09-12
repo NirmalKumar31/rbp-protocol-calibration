@@ -227,3 +227,190 @@ def test_positive_floor_counts_come_from_the_floor_table_not_the_crossfitting_on
     lowers = raw_value("cross_fitting.csv",
                        f"2-mer datasets where cross-fitting LOWERS the contribution, {arm} arm")
     assert floor >= lowers - 1, "the two counts have diverged; recheck which one the view quotes"
+
+
+# --------------------------------------------------------------- how the negatives are built
+
+@pytest.mark.parametrize("arm,expected", [("gc", 0.95), ("dn", 0.85), ("neg2", 0.20)])
+def test_match_quality_is_what_the_construction_view_claims(arm, expected):
+    """The view states 95%, 85% and 20% matched within 0.05 GC. Those drive the whole story.
+
+    The bias-aware figure being low is not a defect in that protocol, it is the protocol: it
+    corrects for assay bias instead of matching composition. But it is the reason its baseline
+    is highest and its measured contribution smallest, so if the number moves the explanation
+    on that view is wrong.
+    """
+    got = raw_value("match_quality.csv", f"fraction of pairs within |dGC| 0.05, {arm} arm")
+    assert abs(got - expected) < 0.02, f"{arm} matched {got:.3f}, the view says about {expected}"
+
+
+def test_the_bias_aware_arm_is_the_least_composition_matched():
+    """The ordering is the mechanism. It must survive a regeneration or the prose is wrong."""
+    fracs = {a: raw_value("match_quality.csv", f"fraction of pairs within |dGC| 0.05, {a} arm")
+             for a in ARMS}
+    assert min(fracs, key=fracs.get) == "neg2"
+    assert max(fracs, key=fracs.get) == "gc"
+
+
+def test_dinucleotide_matching_is_strictly_the_harder_constraint():
+    """The view claims dn achieves a tighter GC gap AND a better dinucleotide match than gc.
+
+    That is a strong claim, and it is what makes the arm a fair comparison rather than a looser
+    one dressed up. Both halves are checked.
+    """
+    gc_gap_dn = raw_value("match_quality.csv", "gc_gap_median, dn arm")
+    gc_gap_gc = raw_value("match_quality.csv", "gc_gap_median, gc arm")
+    assert gc_gap_dn < gc_gap_gc, "dinucleotide matching no longer achieves a tighter GC gap"
+    improvement = raw_value("match_quality.csv",
+                            "dinucleotide L1 improvement factor, dn vs gc arm")
+    assert improvement > 2.0, f"the dinucleotide improvement fell to {improvement:.2f}"
+
+
+def test_stricter_matching_lowers_the_raw_score_on_most_datasets():
+    """The cost chart's annotation counts datasets below zero. Recomputed here independently."""
+    import csv as _csv
+
+    with (data.TABLES / "cost_of_matching.csv").open() as handle:
+        rows = list(_csv.DictReader(handle))
+    lower = sum(1 for r in rows if float(r["cost"]) < 0)
+    assert lower > len(rows) * 0.75, (
+        f"only {lower} of {len(rows)} datasets score lower under stricter matching; the "
+        "construction view says almost all of them do")
+
+
+def test_the_result_does_not_depend_on_one_random_draw():
+    """Five seeds. The view says they land inside one standard error; check that they do."""
+    seeds = [7, 11, 23, 42, 101]
+    vals = [raw_value("negative_draws.csv", f"panel-mean contribution, seed {s}") for s in seeds]
+    se = raw_value("negative_draws.csv",
+                   "between-protein standard error, the published draw")
+    mean = sum(vals) / len(vals)
+    assert max(abs(v - mean) for v in vals) < se, (
+        "a redraw now falls outside one standard error of the others")
+    ratio = raw_value("negative_draws.csv", "ratio of combined to published interval width")
+    assert ratio < 1.10, f"draw uncertainty now widens the interval by {(ratio - 1) * 100:.1f}%"
+
+
+# ---------------------------------------------------------------------- why the study exists
+
+def test_no_surveyed_method_reports_a_composition_baseline():
+    """Zero of seven. That number is the entire justification for the paper.
+
+    If a regenerated survey ever finds one, the motivating claim on the opening view stops being
+    true and must be rewritten rather than quietly left standing.
+    """
+    surveyed = raw_value("negative_set_survey.csv", "methods and benchmarks surveyed")
+    reporting = raw_value("negative_set_survey.csv",
+                          "surveyed sources reporting a composition-only baseline")
+    assert surveyed == 7.0
+    assert reporting == 0.0, f"{reporting:.0f} surveyed sources now report a baseline"
+
+    import csv as _csv
+    with (data.TABLES / "negative_set_survey_per_method.csv").open() as handle:
+        rows = list(_csv.DictReader(handle))
+    assert len(rows) == 7
+    assert all(r["composition_baseline"] == "False" for r in rows)
+    assert all(r["url"].startswith("http") for r in rows), "a source lost its citation"
+    assert all(len(r["quote"]) > 40 for r in rows), "a source lost its supporting quote"
+
+
+def test_the_variant_ladder_still_shows_the_controls_beating_the_model():
+    """The pivot story. Conservation with no model beats the model, and a wrong protein clears
+    chance by a wide margin. Both are the reason the earlier line of work stopped.
+    """
+    import csv as _csv
+
+    with (data.TABLES / "variant_ladder.csv").open() as handle:
+        arms = {r["arm"]: float(r["auroc"]) for r in _csv.DictReader(handle)}
+    assert arms["conservation"] > arms["matched"], (
+        "conservation no longer beats the matched model; the opening narrative is wrong")
+    assert arms["mismatched"] > 0.60, "the mismatched-protein control no longer clears chance"
+    assert arms["matched"] > arms["mismatched"] > arms["kmer"] > 0.5, "the ladder order changed"
+    assert round(arms["conservation"], 3) == 0.908
+    assert round(arms["matched"], 3) == 0.829
+
+
+# ------------------------------------------------------------------ the recommendation's test
+
+def test_the_recommendation_improves_every_pair_but_clears_zero_on_none():
+    """Both halves matter. The direction is consistent; the effect is not established.
+
+    Stating only the first half would be advertising, and stating only the second would throw
+    away a real signal. The view says both, so both are pinned.
+    """
+    pairs = ["gc vs dn", "gc vs neg2", "dn vs neg2"]
+    assert raw_value("recommendation_works.csv",
+                     "protocol pairs where rank agreement improves") == 3.0
+    for pair in pairs:
+        assert raw_value("recommendation_works.csv", f"rank agreement gain, {pair}") > 0, (
+            f"{pair} no longer improves; the recommendation's direction has changed")
+
+    cleared = 0
+    for pair in pairs:
+        _, low, _ = data.interval(
+            "recommendation_works.csv",
+            f"rank agreement gain, {pair}, Bonferroni over 3 pairs")
+        if low is not None and low > 0:
+            cleared += 1
+    assert cleared == 0, (
+        f"{cleared} pair(s) now clear zero after Bonferroni correction; the view claims none do")
+
+
+def test_exactly_one_pair_clears_zero_before_correction():
+    """The uncorrected picture, stated separately so the correction's effect is visible."""
+    cleared = []
+    for pair in ("gc vs dn", "gc vs neg2", "dn vs neg2"):
+        _, low, _ = data.interval("recommendation_works.csv", f"rank agreement gain, {pair}")
+        if low is not None and low > 0:
+            cleared.append(pair)
+    assert cleared == ["gc vs dn"], (
+        f"uncorrected, {cleared} clear zero; the view says only the GC/dinucleotide pair does")
+
+
+def test_between_dataset_spread_exceeds_between_protocol_spread():
+    """The site claimed the opposite for several releases. It is not true.
+
+    The Map view said "columns differ from each other more than rows do, which means the
+    protocol matters more than the dataset". Computed from the committed per-dataset table,
+    between-dataset variance is about 1.6x the between-protocol variance, so the dataset is the
+    larger source of spread.
+
+    Nothing in the paper depended on the false version: the published claim is that the PANEL
+    MEAN moves 4.84-fold, which is a statement about systematic shift and not about variance
+    share. Both hold at once. This pins the direction so the stronger, wrong sentence cannot
+    come back.
+    """
+    import statistics
+
+    frame = data.table("three_arm_per_dataset.csv")
+    columns = {arm: frame[f"gain_{arm}"].dropna().tolist() for arm in ARMS}
+    n = min(len(v) for v in columns.values())
+    rows = [[columns[arm][i] for arm in ARMS] for i in range(n)]
+
+    between_protocol = statistics.pvariance([statistics.mean(columns[a]) for a in ARMS])
+    between_dataset = statistics.pvariance([statistics.mean(r) for r in rows])
+
+    assert between_dataset > between_protocol, (
+        "between-protocol spread now exceeds between-dataset spread; the wording on the Map "
+        "view was written for the opposite and must be revisited")
+    ratio = between_dataset / between_protocol
+    assert 1.2 < ratio < 2.2, f"the ratio moved to {ratio:.2f}; the view states about 1.6"
+
+
+def test_the_trajectory_counter_matches_the_committed_table():
+    """The chart prints "59 of 94 follow the panel ordering". Recomputed here.
+
+    A count rendered into an annotation is exactly the kind of number that survives a data
+    change unnoticed, because the chart still draws.
+    """
+    frame = data.table("three_arm_per_dataset.csv").dropna(
+        subset=[f"gain_{a}" for a in ARMS])
+    follows = sum(
+        1 for _, r in frame.iterrows()
+        if r["gain_dn"] > r["gain_gc"] > r["gain_neg2"]
+    )
+    assert len(frame) == 94
+    assert follows == 59, f"{follows} of 94 now follow the ordering; the guide says 59"
+    assert follows < len(frame), (
+        "if every dataset followed the ordering the guide's second check, which says 35 do not, "
+        "would be wrong")

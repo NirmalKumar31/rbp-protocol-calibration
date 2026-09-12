@@ -44,6 +44,16 @@ REQUIRED = {
     ],
     "panel_summary.csv": ["dataset", "protein", "cell", "pairs", "in_both_arms"],
     "PROVENANCE.csv": ["table", "producing_script", "status", "sha256", "bytes"],
+    "match_quality.csv": ["check", "value", "n"],
+    "cost_of_matching.csv": ["dataset", "protein", "cell", "pairs", "cost",
+                             "auroc_gc", "auroc_dn"],
+    "negative_draws.csv": ["check", "value", "n"],
+    "class_ratio.csv": ["check", "value", "n"],
+    "negative_set_survey.csv": ["check", "value", "n"],
+    "negative_set_survey_per_method.csv": ["method", "year", "kind",
+                                           "composition_baseline", "url", "quote"],
+    "recommendation_works.csv": ["check", "value", "ci_low", "ci_high"],
+    "variant_ladder.csv": ["arm", "n_variants", "auroc"],
 }
 
 
@@ -114,3 +124,60 @@ def ci_text(name: str, label: str, digits: int = 3) -> str:
 def available() -> list[str]:
     """Which required tables are present. Used by the app to fail with a list, not a stack."""
     return [n for n in REQUIRED if (TABLES / n).exists()]
+
+
+# --------------------------------------------------------------------------- interactive filters
+
+def facets(frame: pd.DataFrame) -> dict:
+    """The filter options a per-dataset table can offer, read off the table itself.
+
+    Read rather than hardcoded, so a regenerated panel with a third cell line offers it without
+    an edit here.
+    """
+    return {
+        "cells": sorted(frame["cell"].dropna().unique().tolist()),
+        "proteins": sorted(frame["protein"].dropna().unique().tolist()),
+    }
+
+
+def apply_filters(
+    frame: pd.DataFrame,
+    cells: list[str] | None = None,
+    proteins: list[str] | None = None,
+    size_range: tuple[float, float] | None = None,
+    size_column: str | None = None,
+) -> pd.DataFrame:
+    """Filter a per-dataset table. Returns a copy; the cached frame is never touched."""
+    out = frame.copy()
+    if cells:
+        out = out[out["cell"].isin(cells)]
+    if proteins:
+        out = out[out["protein"].isin(proteins)]
+    if size_range and size_column and size_column in out.columns:
+        low, high = size_range
+        out = out[(out[size_column] >= low) & (out[size_column] <= high)]
+    return out
+
+
+def descriptive(frame: pd.DataFrame, column: str) -> dict | None:
+    """Summary statistics of a FILTERED subset. Descriptive only, never an estimand.
+
+    This is the one place the dashboard produces a number that is not in a committed table, and
+    the distinction matters enough to state twice. A published contribution is a panel mean over
+    all 94 datasets with a protein-clustered bootstrap interval. What this returns is the mean
+    of whatever the user filtered to, with no interval, no clustering and no claim. The interface
+    marks every one of these with a LIVE badge and every published value with a PUBLISHED badge.
+
+    `interval` is deliberately absent from the return value so a caller cannot draw an error bar
+    on it by reaching for a key that happens to exist.
+    """
+    series = frame[column].dropna()
+    if series.empty:
+        return None
+    return {
+        "n": int(series.size),
+        "mean": float(series.mean()),
+        "median": float(series.median()),
+        "min": float(series.min()),
+        "max": float(series.max()),
+    }

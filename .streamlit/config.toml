@@ -1,0 +1,30 @@
+# REPO ROOT, not dashboard/. Streamlit reads $CWD/.streamlit/config.toml, and the app is
+# launched as `streamlit run dashboard/app.py` from the repository root, so a config inside
+# dashboard/ is never read. It sat there unread for several releases: the dark surface came
+# from injected CSS and looked right, while Streamlit's OWN widgets kept their defaults, which
+# is why the slider rendered in the default accent and why editing that file fixed nothing.
+# `streamlit config show` reports the values actually in force.
+#
+# GENERATED FROM dashboard/rbp_dashboard/theme.py. These five colours must equal the module's
+# constants, and tests/test_schemas.py fails if they drift. They drifted once already: this file
+# kept a superseded neon palette after the module moved to the measured one, which is why
+# Streamlit widgets rendered in the old accent while everything else used the new.
+#
+# The palette was validated for colour-vision separation and contrast against the DARK surface
+# below. A light variant would need its own steps re-measured, not an inverted copy.
+[theme]
+base = "dark"
+primaryColor = "#A8C8E0"
+backgroundColor = "#10141C"
+secondaryBackgroundColor = "#151A24"
+textColor = "#E6EAF0"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true
+# Bind to this machine only. Streamlit otherwise listens on every interface, which puts a local
+# dashboard on the network you happen to be attached to.
+address = "127.0.0.1"
