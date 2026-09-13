@@ -759,3 +759,101 @@ def test_a_view_does_not_repeat_its_own_guide_lead():
             continue
         assert app_src.count(head) <= 1, (
             f"{name}: the guide lead {head!r} also appears in the view body")
+
+
+def _contrast(fg: str, bg: str) -> float:
+    """WCAG contrast ratio between two hex colours."""
+    def lin(value):
+        parts = [int(value.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+        return [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in parts]
+
+    def lum(value):
+        r, g, b = lin(value)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    high, low = sorted([lum(fg), lum(bg)], reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+def test_every_text_colour_clears_the_body_text_contrast_floor():
+    """Small type was measured, not eyeballed, and seven rules were below the floor.
+
+    The worst was the source line under every chart at 2.49:1. Tick labels and axis titles sat
+    at 3.33:1 at ten pixels. Hierarchy in this design now comes from size, weight and
+    letter-spacing; contrast is a legibility budget rather than a hierarchy device, and it had
+    been spent.
+
+    Measured against the background each rule is actually drawn on, which for charts is the
+    `.stPlotlyChart` panel and not the page surface. A rule that declares its own background is
+    checked against that.
+    """
+    import re
+
+    backgrounds = ["#10141C", "#141A23", "#151A24", "#0D1116"]
+    failures = []
+    checked = 0
+    for rule in re.finditer(r"([^{}]+)\{([^}]*)\}", theme.CSS):
+        selector = rule.group(1).strip().split("\n")[-1].strip()
+        body = rule.group(2)
+        # a bare `color:` property; not border-color, not background-color
+        fg = re.search(r"(?:^|[;\s])color:\s*(#[0-9A-Fa-f]{6})", body)
+        if not fg:
+            continue
+        checked += 1
+        own = re.search(r"background(?:-color)?:\s*(#[0-9A-Fa-f]{6})", body)
+        if own:
+            ratio = _contrast(fg.group(1), own.group(1))
+        else:
+            ratio = min(_contrast(fg.group(1), bg) for bg in backgrounds)
+        if ratio < 4.5:
+            failures.append(f"{selector[:46]}  {fg.group(1)}  {ratio:.2f}:1")
+
+    assert checked > 30, f"only {checked} text rules found; the matcher has stopped working"
+    assert not failures, "text below the 4.5:1 body-text floor:\n  " + "\n  ".join(failures)
+
+
+def test_in_chart_text_tokens_clear_the_floor_against_the_chart_panel():
+    """Charts sit on the .stPlotlyChart gradient, not on SURFACE. Measure against the panel.
+
+    INK_FAINT carries tick labels and axis titles at ten pixels. It measured 3.33:1 against the
+    panel while measuring acceptably against the page background, which is the wrong reference
+    and is why the numbers inside charts were hard to read.
+    """
+    panel = "#141A23"
+    for name, colour in (("INK_FAINT", theme.INK_FAINT), ("INK_MUTED", theme.INK_MUTED),
+                         ("INK", theme.INK)):
+        ratio = _contrast(colour, panel)
+        assert ratio >= 4.5, f"{name} {colour} is {ratio:.2f}:1 on the chart panel"
+
+
+def test_no_font_colour_inside_a_chart_falls_below_the_floor():
+    """Colour identifies a mark; the words beside it must still be legible.
+
+    Slate measures 3.09:1 as type against the chart panel, below the body-text floor, while
+    passing comfortably as a bar fill where 3.0 is the bar. Three annotations were setting it
+    as a font colour. Steel and brass are allowed as type because they measure 9.99:1 and
+    6.44:1, so this checks the ratio rather than banning series colours outright, which would
+    also have caught legitimate `line={"color": ...}` strokes.
+    """
+    import re
+
+    source = (PACKAGE / "figures.py").read_text()
+    panel = "#141A23"
+    names = {"theme.STEEL": theme.STEEL, "theme.BRASS": theme.BRASS, "theme.SLATE": theme.SLATE,
+             "theme.INK": theme.INK, "theme.INK_MUTED": theme.INK_MUTED,
+             "theme.INK_FAINT": theme.INK_FAINT}
+    failures = []
+    for match in re.finditer(r'"color":\s*(theme\.[A-Z_]+)', source):
+        token = match.group(1)
+        # only inside a font dict; a line colour is a stroke, not type
+        window = source[max(0, match.start() - 120):match.start()]
+        if "font" not in window.split("\n")[-1] and '"font"' not in window[-80:]:
+            continue
+        colour = names.get(token)
+        if colour is None:
+            continue
+        ratio = _contrast(colour, panel)
+        if ratio < 4.5:
+            line = source[:match.start()].count("\n") + 1
+            failures.append(f"figures.py:{line}  {token} is {ratio:.2f}:1 as type")
+    assert not failures, "font colours below the floor:\n  " + "\n  ".join(failures)

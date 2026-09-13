@@ -25,7 +25,11 @@ BORDER = "#252D3A"
 BORDER_SOFT = "#1C232E"
 INK = "#E6EAF0"
 INK_MUTED = "#93A0B3"
-INK_FAINT = "#616D7E"
+# 4.78:1 against the chart panel (#141A23), which is where tick labels and axis titles are
+# actually drawn. The previous #616D7E measured 3.33:1 at 10px and was the main reason small
+# type inside charts was hard to read. Contrast is measured against the PANEL, not against
+# SURFACE: charts sit on the .stPlotlyChart gradient, not on the page background.
+INK_FAINT = "#7A8798"
 
 # Fixed order. A series keeps its colour when a filter removes its neighbours.
 STEEL, BRASS, SLATE = "#A8C8E0", "#BE9752", "#55697F"
@@ -154,12 +158,12 @@ _CSS_BODY = """
   h1 { font-size: 1.72rem !important; font-weight: 300 !important; letter-spacing: -0.02em;
        color: #E6EAF0; margin-bottom: 0.35rem; }
   h2 { font-size: 0.72rem !important; font-weight: 500 !important; text-transform: uppercase;
-       letter-spacing: 0.13em; color: #616D7E; margin: 2.6rem 0 0.9rem 0;
+       letter-spacing: 0.13em; color: #7A8798; margin: 2.6rem 0 0.9rem 0;
        padding-bottom: 0.5rem; border-bottom: 1px solid #1C232E; }
   h3 { font-size: 1.0rem !important; font-weight: 500 !important; color: #E6EAF0;
        margin-top: 1.6rem; letter-spacing: -0.008em; }
   h5 { font-size: 0.78rem !important; text-transform: uppercase; letter-spacing: 0.1em;
-       color: #616D7E; font-weight: 500 !important; }
+       color: #7A8798; font-weight: 500 !important; }
   p, li { color: #93A0B3; line-height: 1.62; font-weight: 400; }
   strong { color: #E6EAF0; font-weight: 500; }
   em { color: #A8C8E0; font-style: normal; }
@@ -194,7 +198,7 @@ _CSS_BODY = """
   section[data-testid="stSidebar"] .block-container { padding-top: 1.4rem; }
   section[data-testid="stSidebar"] * { color: #93A0B3; }
   .sidebar-title { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem;
-      letter-spacing: 0.19em; text-transform: uppercase; color: #616D7E; margin-bottom: 0.1rem; }
+      letter-spacing: 0.19em; text-transform: uppercase; color: #7A8798; margin-bottom: 0.1rem; }
 
   /* Brand block */
   .brand { display: flex; align-items: center; gap: 0.65rem; padding: 0.1rem 0 0.2rem 0; }
@@ -232,7 +236,7 @@ _CSS_BODY = """
      nth-of-type numbers track the order of VIEWS in app.py and must move when a view is added. */
   section[data-testid="stSidebar"] div[role="radiogroup"] > label::before {
       font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; letter-spacing: 0.15em;
-      color: #4C5666; position: absolute; margin-top: -1.55rem; }
+      color: #7A8798; position: absolute; margin-top: -1.55rem; }
   section[data-testid="stSidebar"] div[role="radiogroup"] > label:nth-of-type(1) {
       margin-top: 1.5rem !important; }
   section[data-testid="stSidebar"] div[role="radiogroup"] > label:nth-of-type(1)::before {
@@ -252,8 +256,8 @@ _CSS_BODY = """
 
   .navfoot { display: flex; justify-content: space-between; align-items: center;
       font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
-      text-transform: uppercase; color: #4C5666; margin: 1.4rem 0 0 0.62rem; }
-  .navfoot span { color: #616D7E; }
+      text-transform: uppercase; color: #7A8798; margin: 1.4rem 0 0 0.62rem; }
+  .navfoot span { color: #7A8798; }
 
   /* Hairline motif. Decorative: encodes nothing. */
   .rule { display: flex; gap: 2px; margin: 0.55rem 0 1.9rem 0; height: 2px; }
@@ -265,12 +269,12 @@ _CSS_BODY = """
       border: 1px solid #252D3A; border-left: 2px solid #A8C8E0; border-radius: 3px;
       padding: 1.15rem 1.35rem; margin: 0.4rem 0 2rem 0; }
   .guide .gl { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
-      letter-spacing: 0.16em; text-transform: uppercase; color: #616D7E;
+      letter-spacing: 0.16em; text-transform: uppercase; color: #7A8798;
       margin-bottom: 0.55rem; }
   .guide p { color: #C2CCDA; margin: 0 0 0.7rem 0; font-size: 0.93rem; }
   .guide ol { margin: 0; padding-left: 1.15rem; }
   .guide li { color: #93A0B3; font-size: 0.875rem; margin-bottom: 0.34rem; }
-  .guide li::marker { color: #616D7E; font-family: 'JetBrains Mono', monospace;
+  .guide li::marker { color: #7A8798; font-family: 'JetBrains Mono', monospace;
       font-size: 0.78rem; }
 
   [data-testid="stMetric"] { background: #151A24; border: 1px solid #252D3A;
@@ -280,7 +284,7 @@ _CSS_BODY = """
   [data-testid="stMetricValue"] { font-family: 'JetBrains Mono', monospace;
       font-size: 1.3rem !important; font-weight: 400; color: #E6EAF0;
       font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
-  [data-testid="stMetricLabel"] { color: #616D7E !important; font-size: 0.64rem !important;
+  [data-testid="stMetricLabel"] { color: #7A8798 !important; font-size: 0.64rem !important;
       text-transform: uppercase; letter-spacing: 0.11em; font-weight: 500; }
 
   /* Schematic diagrams. Content, not decoration, so they get a frame and breathing room. */
@@ -295,7 +299,7 @@ _CSS_BODY = """
       padding-left: 0.75rem; border-left: 1px solid #252D3A; }
   .plain b { color: #C2CCDA; font-weight: 500; }
 
-  .src { color: #4C5666; font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;
+  .src { color: #7A8798; font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;
       margin: -0.35rem 0 1.7rem 0; }
 
   .note, .warn, .good, .bad { border-radius: 3px; padding: 0.85rem 1.1rem; margin: 1.1rem 0;
@@ -317,7 +321,7 @@ _CSS_BODY = """
             border: 1px solid rgba(97,109,126,0.3); }
 
   .stTabs [data-baseweb="tab-list"] { gap: 1.6rem; border-bottom: 1px solid #1C232E; }
-  .stTabs [data-baseweb="tab"] { font-size: 0.83rem; color: #616D7E; padding: 0.4rem 0;
+  .stTabs [data-baseweb="tab"] { font-size: 0.83rem; color: #7A8798; padding: 0.4rem 0;
       background: transparent; transition: color 180ms ease; }
   .stTabs [data-baseweb="tab"]:hover { color: #93A0B3; }
   .stTabs [aria-selected="true"] { color: #E6EAF0 !important; }
@@ -338,10 +342,10 @@ _CSS_BODY = """
   /* Numbered section rules. The number is the reading order, which is otherwise invisible. */
   .step { display: flex; align-items: baseline; gap: 0.8rem; margin: 2.6rem 0 0.5rem 0;
       padding-bottom: 0.55rem; border-bottom: 1px solid #1C232E; }
-  .step-n { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #55697F;
+  .step-n { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #7A8798;
       letter-spacing: 0.1em; }
   .step-t { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.13em;
-      color: #616D7E; font-weight: 500; }
+      color: #7A8798; font-weight: 500; }
 
   /* A key-number band: the figures that carry the argument, set larger than body text. */
   .keys { display: flex; gap: 2.4rem; flex-wrap: wrap; margin: 0.4rem 0 1.6rem 0;
@@ -351,8 +355,8 @@ _CSS_BODY = """
       font-variant-numeric: tabular-nums; line-height: 1.15;
       animation: rise 620ms cubic-bezier(.16,.8,.3,1) both; }
   .key-l { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em;
-      color: #616D7E; margin-top: 0.22rem; }
-  .key-s { color: #55697F; font-size: 0.95rem; }
+      color: #7A8798; margin-top: 0.22rem; }
+  .key-s { color: #7A8798; font-size: 0.95rem; }
 
   /* Pull quote, for the narrator's sharpest line on a view. */
   .pull { border-left: 2px solid #BE9752; padding: 0.2rem 0 0.2rem 1.15rem; margin: 1.5rem 0;

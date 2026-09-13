@@ -96,7 +96,10 @@ def _arrow(fig, x, y, text: str, ax: int = 40, ay: int = -46, colour: str | None
     fig.add_annotation(
         x=x, y=y, text=text, showarrow=True, arrowhead=2, arrowsize=1, arrowwidth=1.1,
         arrowcolor=colour or theme.INK_FAINT, ax=ax, ay=ay,
-        font={"size": 10.5, "color": colour or theme.INK_MUTED, "family": theme.FONT},
+        # The arrow carries the series colour; the words wear a text token. Slate measures
+        # 3.09:1 as type on the chart panel, which is below the body-text floor, and the other
+        # two only pass by accident of being light.
+        font={"size": 10.5, "color": theme.INK_MUTED, "family": theme.FONT},
         align="left", bgcolor="rgba(21,26,36,0.92)", bordercolor=theme.BORDER,
         borderwidth=1, borderpad=5,
     )
@@ -251,7 +254,7 @@ def apparent_versus_contribution(per_dataset: pd.DataFrame) -> go.Figure:
     fig.add_annotation(
         xref="paper", yref="paper", x=0.98, y=0.04, showarrow=False,
         text="looks easy, contributes least", xanchor="right",
-        font={"size": 10, "color": theme.SLATE, "family": theme.MONO})
+        font={"size": 10, "color": theme.INK_MUTED, "family": theme.MONO})
     return _base(fig, 470, "Nested contribution (AUROC points)", "Apparent AUROC")
 
 
@@ -800,7 +803,8 @@ def match_quality_curve(match: pd.DataFrame) -> go.Figure:
     fig.add_annotation(
         x=0.05, y=0.204, ax=54, ay=34, text="only 20% of bias-aware pairs<br>match on composition",
         showarrow=True, arrowhead=2, arrowwidth=1.1, arrowcolor=theme.SLATE,
-        font={"size": 10.5, "color": theme.SLATE}, align="left",
+        # Arrow in the series colour, words in a text token: slate is 3.09:1 as type.
+        font={"size": 10.5, "color": theme.INK_MUTED}, align="left",
         bgcolor="rgba(21,26,36,0.92)", bordercolor=theme.BORDER, borderwidth=1, borderpad=5)
     fig.update_yaxes(range=[0, 1.08], tickformat=".0%")
     return _base(fig, 420, "Share of pairs matched this closely",
