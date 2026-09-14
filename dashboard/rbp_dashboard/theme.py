@@ -160,10 +160,10 @@ _CSS_BODY = """
   h2 { font-size: 0.72rem !important; font-weight: 500 !important; text-transform: uppercase;
        letter-spacing: 0.13em; color: #7A8798; margin: 2.6rem 0 0.9rem 0;
        padding-bottom: 0.5rem; border-bottom: 1px solid #1C232E; }
-  h3 { font-size: 1.0rem !important; font-weight: 500 !important; color: #E6EAF0;
-       margin-top: 1.6rem; letter-spacing: -0.008em; }
-  h5 { font-size: 0.78rem !important; text-transform: uppercase; letter-spacing: 0.1em;
-       color: #7A8798; font-weight: 500 !important; }
+  /* h3 is a subsection inside a numbered h2 section. Styled small and uppercase so it reads
+     as a label; it was an h5 before, which skipped two heading levels. */
+  h3 { font-size: 0.78rem !important; text-transform: uppercase; letter-spacing: 0.1em;
+       color: #7A8798; font-weight: 500 !important; margin-top: 1.4rem; }
   p, li { color: #93A0B3; line-height: 1.62; font-weight: 400; }
   strong { color: #E6EAF0; font-weight: 500; }
   em { color: #A8C8E0; font-style: normal; }
@@ -340,8 +340,12 @@ _CSS_BODY = """
   .stPlotlyChart:hover { border-color: #2B3546; }
 
   /* Numbered section rules. The number is the reading order, which is otherwise invisible. */
-  .step { display: flex; align-items: baseline; gap: 0.8rem; margin: 2.6rem 0 0.5rem 0;
-      padding-bottom: 0.55rem; border-bottom: 1px solid #1C232E; }
+  /* h2.step. The generic h2 rule above styles Streamlit's own markdown headings; this one
+     wins on specificity and restores the row layout the element needs. */
+  h2.step, .step { display: flex !important; align-items: baseline; gap: 0.8rem;
+      margin: 2.6rem 0 0.5rem 0; padding-bottom: 0.55rem;
+      border-bottom: 1px solid #1C232E; text-transform: none; letter-spacing: normal;
+      font-size: 1rem !important; font-weight: 400 !important; }
   .step-n { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #7A8798;
       letter-spacing: 0.1em; }
   .step-t { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.13em;

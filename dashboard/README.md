@@ -26,6 +26,28 @@ streamlit run dashboard/app.py --server.address 127.0.0.1
 It opens on `http://localhost:8501`. The dependencies are pinned exactly and kept out of
 `pyproject.toml` so that a Streamlit or Plotly upgrade can never alter a published number.
 
+## Accessibility
+
+Checked in a real browser across all ten views, not asserted.
+
+- **Text contrast.** Every `color:` rule clears the 4.5:1 WCAG floor for body text against the
+  background it is actually drawn on, including the chart panel, which is lighter than the page
+  surface. Three tests hold this.
+- **Headings.** One `h1` per view, sections as `h2`, one subsection label as `h3`. No level
+  skips.
+- **Motion.** Every animated selector is disabled under `prefers-reduced-motion`, verified by
+  comparing whole selectors rather than substrings.
+- **Console.** Zero errors and zero failed requests across all ten views.
+- **Diagrams.** The five SVGs drawn here carry `<title>` and `role="img"`. The background field
+  is `aria-hidden`.
+
+**One limitation, stated rather than hidden.** Plotly generates its chart SVGs without a
+`<title>`, and Streamlit exposes no hook to add one, so a browser sweep counts roughly two
+hundred unnamed SVGs across the ten views. All of them are Plotly internals or Streamlit chrome.
+The mitigation is structural: `chart()` refuses to draw a figure without a plain-language
+caption, so every chart is followed by a real sentence in the DOM and a screen reader that skips
+the graphic still reads what it showed.
+
 ## Deploying it
 
 The app is a read-only viewer over files already in this repository, so a host only needs the

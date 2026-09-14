@@ -857,3 +857,42 @@ def test_no_font_colour_inside_a_chart_falls_below_the_floor():
             line = source[:match.start()].count("\n") + 1
             failures.append(f"figures.py:{line}  {token} is {ratio:.2f}:1 as type")
     assert not failures, "font colours below the floor:\n  " + "\n  ".join(failures)
+
+
+def test_section_headings_are_real_headings_at_the_right_level():
+    """Sections were <div>s, so a screen reader could not navigate the page by them.
+
+    A browser sweep also found one h5 sitting under an h2, a two-level skip. `heading()` now
+    emits h2, matching the single h1 that `page()` writes, and the one subsection label is h3.
+    """
+    app_src = (PACKAGE.parent / "app.py").read_text()
+    assert '<h2 class="step">' in app_src, "section headings are back to being divs"
+    assert '<div class="step">' not in app_src, "a div-based section heading has returned"
+    assert '"##### ' not in app_src, (
+        "an h5 heading is back; under an h2 section it skips two levels")
+    # exactly one h1 per view, written by page()
+    assert app_src.count('st.markdown(f"# {title}")') == 1
+
+
+def test_plotly_svgs_are_unnamed_and_the_captions_carry_the_description():
+    """Stated rather than silently accepted, because it is a real limitation.
+
+    Plotly generates its chart SVGs without a <title>, and Streamlit gives no hook to add one.
+    A browser sweep counts roughly two hundred unnamed SVGs across the ten views; all of them
+    are Plotly internals or Streamlit chrome, and the five diagrams this project draws itself
+    are named and carry role="img".
+
+    The mitigation is that every chart is followed by a plain-language sentence in real DOM
+    text, so a screen reader that skips the graphic still reads what it showed. That is checked
+    here by confirming the caption mechanism exists for every chart.
+    """
+    from rbp_dashboard import graphics
+
+    for name in ("hero", "negative_sets", "cross_fitting", "composition", "matching_procedure"):
+        svg = getattr(graphics, name)()
+        assert "<title>" in svg and 'role="img"' in svg, f"{name} lost its accessible name"
+    # the caption path is enforced by chart(); this guards the enforcement itself
+    app_src = (PACKAGE.parent / "app.py").read_text()
+    assert "raise KeyError(f\"no plain-language caption for {key!r}\")" in app_src, (
+        "chart() no longer refuses to draw a figure with no caption, which is what makes the "
+        "unnamed Plotly SVGs acceptable")

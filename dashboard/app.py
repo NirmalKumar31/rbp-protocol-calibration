@@ -104,10 +104,13 @@ _SECTION = {"n": 0}
 
 def heading(text: str, kind: str | None = None) -> None:
     _SECTION["n"] += 1
+    # An <h2>, not a <div>. These are the sections of the page and a screen reader navigates by
+    # heading; as divs they were invisible to that. The page has exactly one h1 (the view
+    # title), so h2 is the correct next level and introduces no skip.
     st.markdown(
-        f'<div class="step"><span class="step-n">{_SECTION["n"]:02d}</span>'
+        f'<h2 class="step"><span class="step-n">{_SECTION["n"]:02d}</span>'
         f'<span class="step-t">{text}</span>'
-        f'{badge(kind) if kind else ""}</div>',
+        f'{badge(kind) if kind else ""}</h2>',
         unsafe_allow_html=True,
     )
 
@@ -190,8 +193,11 @@ def sidebar_filters(frame, size_column: str, active: bool):
         help="Empty means all proteins. Filtering here narrows every per-dataset chart.",
     )
     lo, hi = int(frame[size_column].min()), int(frame[size_column].max())
+    # No explicit step. A step of (hi - lo) // 100 does not divide the range, so the maximum
+    # was not reachable from the minimum in whole steps and the browser warned about it on
+    # every render. Streamlit's default step of 1 is correct for an integer count.
     size = st.slider(
-        "Windows per dataset", lo, hi, (lo, hi), step=max(1, (hi - lo) // 100),
+        "Windows per dataset", lo, hi, (lo, hi),
         help="The number of scored windows. Small datasets carry wider dataset-level noise.",
     )
     return {"cells": cells, "proteins": proteins, "size_range": size,
@@ -932,7 +938,7 @@ def view_reproducibility(flt) -> None:
         figures.provenance_mix(provenance),
         "provenance_mix", "PROVENANCE.csv")
 
-    st.markdown("##### What the classes mean")
+    st.markdown("### What the classes mean")
     st.markdown(
         "- **raw-reproducible** — regenerated from raw inputs by a `run.sh` stage.\n"
         "- **evidence-recomputable** — regenerated from the committed evidence, not raw reads.\n"
