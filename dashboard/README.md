@@ -41,12 +41,19 @@ Checked in a real browser across all ten views, not asserted.
 - **Diagrams.** The five SVGs drawn here carry `<title>` and `role="img"`. The background field
   is `aria-hidden`.
 
-**One limitation, stated rather than hidden.** Plotly generates its chart SVGs without a
-`<title>`, and Streamlit exposes no hook to add one, so a browser sweep counts roughly two
-hundred unnamed SVGs across the ten views. All of them are Plotly internals or Streamlit chrome.
-The mitigation is structural: `chart()` refuses to draw a figure without a plain-language
-caption, so every chart is followed by a real sentence in the DOM and a screen reader that skips
-the graphic still reads what it showed.
+- **Charts.** All 31 carry an accessible name. Plotly builds its SVG in the browser with no
+  `<title>` and Streamlit exposes no argument to add one, so `rbp_dashboard/a11y.py` pairs each
+  chart with the plain-language sentence already written for it: the container becomes
+  `role="img"` with that sentence as its name, and the SVG beneath is `aria-hidden` so its loose
+  axis-tick fragments are not read on top of it. A browser sweep counted **205 unnamed SVGs
+  before this and 0 after**.
+
+**The one cost, stated.** That patch runs in a `components.html` iframe, because `st.markdown`
+strips `<script>`. Streamlit's iframe makes Chromium log nine warnings per page: eight
+deprecated feature-policy names in the `allow` attribute Streamlit writes, and one standard
+sandbox notice. They are Streamlit's, not this project's, and none is an error. Nine benign
+framework warnings against 205 unnamed graphics is a trade worth making; if Streamlit ever
+exposes a chart-accessibility hook, the module should go.
 
 ## Deploying it
 

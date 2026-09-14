@@ -327,6 +327,13 @@ PLAIN = {
     "external_arms":
         "The same measurement repeated on <b>135 completely different experiments</b> from "
         "another research group. Each dot is one of them.",
+    "external_levels_baseline":
+        "The left-hand bar chart. How well simple letter-counting alone does under each of the "
+        "held-out benchmark's two comparison sets. <b>negative-1 is higher.</b>",
+    "external_levels_contribution":
+        "The right-hand bar chart. How much the model added under each of the same two sets. "
+        "<b>negative-1 is higher here too</b>, which is the same direction, and that is the "
+        "finding that did not replicate.",
     "external_levels":
         "Read these two charts together. If the pattern found here also held there, the taller "
         "bar on the left would pair with the <b>shorter</b> bar on the right. It does not.",

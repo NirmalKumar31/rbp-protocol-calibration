@@ -16,7 +16,7 @@ Run with `streamlit run dashboard/app.py` from the repository root.
 from __future__ import annotations
 
 import streamlit as st
-from rbp_dashboard import copy, data, figures, graphics, theme
+from rbp_dashboard import a11y, copy, data, figures, graphics, theme
 
 _NO_SHARED_SPAN = "SPAN excluding every protein shared with our panel"
 
@@ -902,13 +902,15 @@ def view_external(flt) -> None:
         "replicate.</strong> On this benchmark the arm with the higher composition baseline also "
         "has the higher contribution, so the two move in the <em>same</em> direction. Within the "
         "94-dataset panel they move in opposite directions.")
+    # Routed through chart() like everything else, one caption each. Drawn with raw
+    # plotly_chart they were the only two charts with no caption of their own, so the
+    # accessible-name patch had nothing to attach and they stayed unnamed.
     left, right = st.columns(2)
     with left:
-        st.plotly_chart(figures.external_levels(external, "baseline"),
-                        use_container_width=True, theme=None, config=CHART)
+        chart(figures.external_levels(external, "baseline"), "external_levels_baseline")
     with right:
-        st.plotly_chart(figures.external_levels(external, "contribution"),
-                        use_container_width=True, theme=None, config=CHART)
+        chart(figures.external_levels(external, "contribution"),
+              "external_levels_contribution")
     st.markdown(f'<p class="plain">{copy.PLAIN["external_levels"]}</p>',
                 unsafe_allow_html=True)
     src("external_replication.csv")
@@ -1044,6 +1046,8 @@ def main() -> None:
             f'<a href="{PAPER_DOI}">preprint</a> · <a href="{CODE_DOI}">code</a></p>',
             unsafe_allow_html=True)
     VIEWS[choice](flt)
+    # After the view has written its charts, so the captions exist to be read.
+    a11y.attach_chart_labels()
 
 
 main()

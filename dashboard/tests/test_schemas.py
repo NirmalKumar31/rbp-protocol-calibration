@@ -896,3 +896,30 @@ def test_plotly_svgs_are_unnamed_and_the_captions_carry_the_description():
     assert "raise KeyError(f\"no plain-language caption for {key!r}\")" in app_src, (
         "chart() no longer refuses to draw a figure with no caption, which is what makes the "
         "unnamed Plotly SVGs acceptable")
+
+
+def test_every_chart_can_be_given_an_accessible_name():
+    """Plotly leaves its SVGs unnamed. The patch pairs each chart with its own caption.
+
+    Structural, because the browser half cannot run here: what this checks is that the caption
+    every chart is required to have is the thing the patch looks for, and that no chart is drawn
+    outside `chart()`. Two on the external view were, which is why they stayed unnamed while the
+    other twenty-nine were fixed; they are routed through `chart()` now.
+
+    A browser sweep counted 205 unnamed SVGs before this and 0 after.
+    """
+    app_src = (PACKAGE.parent / "app.py").read_text()
+    patch = (PACKAGE / "a11y.py").read_text()
+
+    assert "attach_chart_labels()" in app_src, "the accessible-name patch is not called"
+    assert "p.plain" in patch, "the patch no longer reads the caption element chart() writes"
+    assert 'setAttribute(\'role\', \'img\')' in patch
+    assert "aria-hidden" in patch
+
+    # every plotly chart goes through chart(), which enforces the caption
+    raw = app_src.count("st.plotly_chart(")
+    routed = app_src.count("theme=None")
+    assert raw <= 1, (
+        f"{raw} raw st.plotly_chart calls; charts drawn outside chart() have no caption for the "
+        "patch to attach and stay unnamed")
+    assert routed >= raw
