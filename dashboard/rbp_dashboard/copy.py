@@ -165,8 +165,12 @@ GUIDE = {
             "composition.",
             "The match-quality curve: GC-matched and dinucleotide-matched rise steeply. "
             "Bias-aware does not, because it is not matching composition at all.",
-            "20% versus 95%. That single design difference is why the bias-aware arm has the "
-            "highest composition baseline and so the smallest room left for a model to add.",
+            "20% versus 95%. Not matching composition is part of why the bias-aware arm has "
+            "the highest composition baseline, and so the least room left for a model to "
+            "add. It is not the whole of it: rebuilding the arm with transcript region "
+            "matched exactly removes 46% of that baseline excess.",
+            "The ordering survives that rebuild. The region-matched arm still carries the "
+            "highest baseline of the three and still yields the lowest contribution.",
             "The cost chart: stricter matching makes the model's raw score WORSE on almost "
             "every dataset, while its measured contribution goes up.",
             "The redraw chart: five random draws land inside one standard error, so none of "
@@ -336,12 +340,13 @@ PLAIN = {
         "correcting the method changes the size of the effect, not its direction.",
     "animated_protocol_distribution":
         "Press play to step through the three protocols. Each shape is the spread of 94 "
-        "experiments. Watch the whole distribution <b>slide sideways</b> as the only thing that "
-        "changed is which comparison sequences were used.",
+        "experiments. Watch the whole distribution <b>slide sideways</b> as the negative-set "
+        "protocol changes. The model and the baseline are refitted inside each protocol.",
     "match_quality_curve":
         "How close a match each protocol actually achieved. Further left and higher means a "
         "tighter match. The bottom line is the bias-aware protocol, which <b>does not try</b> "
-        "to match composition, and that single design choice drives most of what follows.",
+        "to match composition. That is part of why its baseline is highest; transcript-region "
+        "mix accounts for 46% of the excess and is the other part.",
     "match_gap_bars":
         "The typical gap in letter composition between a bound window and the unbound one "
         "paired with it. <b>Shorter bars mean a stricter pairing.</b> The faded bar behind each "

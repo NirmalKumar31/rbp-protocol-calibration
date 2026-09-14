@@ -30,7 +30,10 @@ def _frame(body: str, width: int, height: int, title: str, note: str = "schemati
     """Wrap a diagram with its accessible name and its schematic label."""
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" '
-        f'width="100%" height="auto" role="img" style="display:block;max-width:100%">'
+        # No height attribute. `height="auto"` is not a valid SVG presentation value and
+        # Chromium logs it once per diagram; the CSS below already sizes these, and
+        # `.fig svg { height: auto }` in theme.py keeps the aspect ratio from the viewBox.
+        f'width="100%" role="img" style="display:block;max-width:100%;height:auto">'
         f"<title>{title}</title>"
         f'<text x="{width - 6}" y="13" text-anchor="end" fill="{FAINT}" '
         f'font-family="ui-monospace,monospace" font-size="9" '

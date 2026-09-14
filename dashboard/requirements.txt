@@ -2,7 +2,10 @@
 # dashboard cannot change the environment the analysis runs in, and so a Streamlit or Plotly
 # bump can never alter a published number.
 #
-# Pinned exactly, not with >=, because this file exists to make a screenshot reproducible.
+# Direct dependencies are pinned exactly, not with >=, so a Streamlit or Plotly bump cannot
+# arrive silently. This is NOT a lock file: transitive dependencies resolve freely, and the
+# two font families load from a CDN, so it stabilises the stack rather than guaranteeing a
+# byte-identical render. A full lock would need hashes and self-hosted fonts.
 streamlit==1.40.2
 plotly==5.24.1
 pandas==2.2.3

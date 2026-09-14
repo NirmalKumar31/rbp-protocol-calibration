@@ -414,3 +414,51 @@ def test_the_trajectory_counter_matches_the_committed_table():
     assert follows < len(frame), (
         "if every dataset followed the ordering the guide's second check, which says 35 do not, "
         "would be wrong")
+
+
+def test_the_bias_aware_baseline_is_not_attributed_entirely_to_composition_matching():
+    """The dashboard said one design choice explained the whole baseline excess. It does not.
+
+    The manuscript rebuilds the bias-aware arm with transcript region matched exactly. The
+    composition baseline falls from 0.8248 to 0.8052 and the contribution from +0.0122 to
+    +0.0092, so 46% of the arm's baseline excess over the GC arm is region mix and the rest is
+    not. Any wording that makes the absence of composition matching the sole cause is wrong.
+
+    The ordering survives that rebuild, which is why the finding stands: the region-matched arm
+    still carries the highest baseline of the three and still yields the lowest contribution.
+    """
+    from rbp_dashboard import copy as dash_copy
+
+    prose = " ".join(
+        list(dash_copy.PLAIN.values())
+        + [c for g in dash_copy.GUIDE.values() for c in g["checks"]]
+        + [g["lead"] for g in dash_copy.GUIDE.values()]
+    )
+    for absolute in ("that single design difference is why",
+                     "that single design choice drives most of what follows",
+                     "the only thing that changed is which comparison sequences"):
+        assert absolute not in prose.lower(), (
+            f"{absolute!r} attributes the whole effect to one cause; region mix is 46% of it")
+    assert "46%" in prose, "the region-mix share is no longer stated anywhere"
+
+    # and the numbers behind it, from the committed table
+    baseline = raw_value("three_arm_contrast.csv", "composition alone, neg2 arm")
+    gc_baseline = raw_value("three_arm_contrast.csv", "composition alone, gc arm")
+    assert baseline > gc_baseline, (
+        "the bias-aware arm no longer has the higher composition baseline, so the explanation "
+        "on the construction view no longer describes the data")
+
+
+def test_no_diagram_emits_an_invalid_svg_height():
+    """`height="auto"` is not a valid SVG presentation value; Chromium logs it per diagram.
+
+    It rendered correctly because CSS supplied the height, so the only symptom was five console
+    errors. Sizing now lives in the inline style where `auto` is legal.
+    """
+    from rbp_dashboard import graphics
+
+    for name in ("hero", "negative_sets", "cross_fitting", "composition", "matching_procedure"):
+        svg = getattr(graphics, name)()
+        assert 'height="auto"' not in svg, f"{name} emits an invalid SVG height attribute"
+        assert "viewBox=" in svg, f"{name} needs a viewBox to keep its aspect ratio"
+        assert "height:auto" in svg, f"{name} lost its CSS height"

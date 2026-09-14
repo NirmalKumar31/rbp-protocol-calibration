@@ -6,7 +6,7 @@ study's result legible without reading a 55-page paper, and to be a portfolio ar
 ## What it is not
 
 It does not run analyses, fit models, recompute estimates, or touch any cloud service, and
-it makes no network request for data. See **Fonts and network** below for the one request the
+it makes no network request for data. See **Fonts and network** below for the requests the
 browser does make. It opens CSV files, filters them in memory and draws them. **It is not production
 monitoring.** Every number it displays is read from a committed table.
 
@@ -181,8 +181,14 @@ where nothing depends on telling them apart and would be a defect in a legend. A
 
 ## Fonts and network
 
-The dashboard reads only local CSV files and makes no network request for data. It does load
-**Inter and JetBrains Mono from Google Fonts** over the network, so the browser contacts
-`fonts.googleapis.com` on first paint. Nothing scientific leaves the machine; if that request is
-unacceptable, delete the `@import` in `rbp_dashboard/theme.py` and the stack falls back to the
-system sans and monospace faces already listed in `FONT` and `MONO`.
+The dashboard reads only local CSV files and makes **no network request for data**.
+
+It does load **Inter and JetBrains Mono from Google Fonts**, which is **seven requests** on
+first paint: one for the stylesheet from `fonts.googleapis.com`, then six woff2 files from
+`fonts.gstatic.com`. An earlier version of this section said "one request", which was the
+stylesheet and not the fonts it pulls.
+
+Nothing scientific leaves the machine. If those requests are unacceptable, delete the `@import`
+in `rbp_dashboard/theme.py`; the stack falls back to the system sans and monospace faces already
+listed in `FONT` and `MONO`. Self-hosting the two families would remove them entirely and is
+what a byte-reproducible render would require.
