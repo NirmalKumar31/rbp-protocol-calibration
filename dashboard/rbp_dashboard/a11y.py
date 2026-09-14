@@ -30,7 +30,19 @@ import streamlit.components.v1 as components
 _SCRIPT = """
 <script>
 (function () {
-  const doc = window.parent.document;
+  // Reaching the parent document is same-origin locally, and is not guaranteed to be on every
+  // host: a components iframe served from a different origin throws a SecurityError here.
+  // Guarded so a hosted deployment degrades to charts without accessible names rather than to
+  // an uncaught exception, and says so once in the console instead of silently doing nothing.
+  var doc;
+  try {
+    doc = window.parent.document;
+    if (!doc || !doc.body) throw new Error('no parent document');
+  } catch (err) {
+    console.info('rbp dashboard: chart accessible names unavailable, parent document is ' +
+                 'not reachable from this iframe (' + err.message + ')');
+    return;
+  }
 
   function captionFor(plot) {
     // The caption chart() writes sits in the block immediately after the chart.
@@ -70,8 +82,12 @@ _SCRIPT = """
     });
   }
 
-  patch();
-  new MutationObserver(function () { window.requestAnimationFrame(patch); })
+  function safePatch() {
+    try { patch(); } catch (err) { /* a single odd node must not stop the observer */ }
+  }
+
+  safePatch();
+  new MutationObserver(function () { window.requestAnimationFrame(safePatch); })
     .observe(doc.body, { childList: true, subtree: true });
 })();
 </script>
