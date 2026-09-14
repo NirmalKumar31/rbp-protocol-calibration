@@ -115,6 +115,16 @@ _CSS_BODY = """
   [data-testid="stDecoration"] { display: none !important; }
   [data-testid="stAppViewContainer"] > .main { background: #10141C; }
 
+  /* Inter was imported and never applied: every rule that named a family named the mono one,
+     so the browser downloaded Inter and then rendered headings and body in Streamlit's default
+     Source Sans Pro. Applied here to the app root and to the elements Streamlit styles itself,
+     which need the specificity to win. */
+  .stApp, .stApp p, .stApp li, .stApp h1, .stApp h2, .stApp h3, .stApp h4,
+  .stApp label, .stApp button, .stApp div[data-testid="stMarkdownContainer"] {
+      font-family: 'Inter', ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial,
+                   sans-serif; }
+  /* the mono rules below re-declare their own family and keep it */
+
   .stApp, .main { background: #10141C; color: #E6EAF0; }
 
   /* The background field. Fixed, behind everything, pointer-transparent. Two helix layers
@@ -188,7 +198,7 @@ _CSS_BODY = """
      `.block-container > div > div > div > div`, which no longer animates at all, so the rule
      was dead and the entrance motion was unsuppressible. */
   @media (prefers-reduced-motion: reduce) {
-    .guide, [data-testid="stMetric"], .stPlotlyChart, .fig, .key-v {
+    .guide, [data-testid="stMetric"], .stPlotlyChart, .fig, .stApp .key-v {
         animation: none !important; }
     .rule i { animation: none !important; }
   }
@@ -197,15 +207,15 @@ _CSS_BODY = """
       position: relative; z-index: 2; background: #0D1116; border-right: 1px solid #1C232E; }
   section[data-testid="stSidebar"] .block-container { padding-top: 1.4rem; }
   section[data-testid="stSidebar"] * { color: #93A0B3; }
-  .sidebar-title { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem;
+  .stApp .sidebar-title { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem;
       letter-spacing: 0.19em; text-transform: uppercase; color: #7A8798; margin-bottom: 0.1rem; }
 
   /* Brand block */
   .brand { display: flex; align-items: center; gap: 0.65rem; padding: 0.1rem 0 0.2rem 0; }
-  .brand-k { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: 500;
+  .stApp .brand-k { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: 500;
       letter-spacing: 0.13em; color: #10141C; background: #A8C8E0;
       padding: 0.3rem 0.42rem; border-radius: 3px; line-height: 1; }
-  .brand-t { font-size: 0.76rem; line-height: 1.28; color: #93A0B3; letter-spacing: 0.02em;
+  .stApp .brand-t { font-size: 0.76rem; line-height: 1.28; color: #93A0B3; letter-spacing: 0.02em;
       text-transform: uppercase; font-weight: 500; }
 
   /* The index. One radio, restyled into a numbered navigation list. */
@@ -254,7 +264,7 @@ _CSS_BODY = """
   section[data-testid="stSidebar"] div[role="radiogroup"] > label:nth-of-type(8)::before {
       content: "DOES IT HOLD UP"; }
 
-  .navfoot { display: flex; justify-content: space-between; align-items: center;
+  .stApp .navfoot { display: flex; justify-content: space-between; align-items: center;
       font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #7A8798; margin: 1.4rem 0 0 0.62rem; }
   .navfoot span { color: #7A8798; }
@@ -268,7 +278,7 @@ _CSS_BODY = """
   .guide { background: linear-gradient(180deg, #151A24 0%, #12171F 100%);
       border: 1px solid #252D3A; border-left: 2px solid #A8C8E0; border-radius: 3px;
       padding: 1.15rem 1.35rem; margin: 0.4rem 0 2rem 0; }
-  .guide .gl { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+  .stApp .guide .gl { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
       letter-spacing: 0.16em; text-transform: uppercase; color: #7A8798;
       margin-bottom: 0.55rem; }
   .guide p { color: #C2CCDA; margin: 0 0 0.7rem 0; font-size: 0.93rem; }
@@ -299,7 +309,7 @@ _CSS_BODY = """
       padding-left: 0.75rem; border-left: 1px solid #252D3A; }
   .plain b { color: #C2CCDA; font-weight: 500; }
 
-  .src { color: #7A8798; font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;
+  .stApp .src { color: #7A8798; font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;
       margin: -0.35rem 0 1.7rem 0; }
 
   .note, .warn, .good, .bad { border-radius: 3px; padding: 0.85rem 1.1rem; margin: 1.1rem 0;
@@ -309,15 +319,15 @@ _CSS_BODY = """
   .good { border-color: #5E7F6E; color: #AFC3B7; }
   .bad  { border-color: #7E5A60; color: #C7AEB2; }
 
-  .pub, .live, .static { display: inline-block; font-family: 'JetBrains Mono', monospace;
+  .stApp .pub, .live, .static { display: inline-block; font-family: 'JetBrains Mono', monospace;
       font-size: 0.58rem; letter-spacing: 0.11em; text-transform: uppercase;
       padding: 0.2rem 0.48rem; border-radius: 2px; margin-left: 0.5rem;
       vertical-align: middle; font-weight: 500; }
-  .pub    { background: rgba(168,200,224,0.09); color: #A8C8E0;
+  .stApp .pub    { background: rgba(168,200,224,0.09); color: #A8C8E0;
             border: 1px solid rgba(168,200,224,0.26); }
-  .live   { background: rgba(190,151,82,0.10);  color: #BE9752;
+  .stApp .live   { background: rgba(190,151,82,0.10);  color: #BE9752;
             border: 1px solid rgba(190,151,82,0.3); }
-  .static { background: rgba(97,109,126,0.13);  color: #7E8B9C;
+  .stApp .static { background: rgba(97,109,126,0.13);  color: #7E8B9C;
             border: 1px solid rgba(97,109,126,0.3); }
 
   .stTabs [data-baseweb="tab-list"] { gap: 1.6rem; border-bottom: 1px solid #1C232E; }
@@ -346,7 +356,7 @@ _CSS_BODY = """
       margin: 2.6rem 0 0.5rem 0; padding-bottom: 0.55rem;
       border-bottom: 1px solid #1C232E; text-transform: none; letter-spacing: normal;
       font-size: 1rem !important; font-weight: 400 !important; }
-  .step-n { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #7A8798;
+  .stApp .step-n { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: #7A8798;
       letter-spacing: 0.1em; }
   .step-t { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.13em;
       color: #7A8798; font-weight: 500; }
@@ -355,10 +365,10 @@ _CSS_BODY = """
   .keys { display: flex; gap: 2.4rem; flex-wrap: wrap; margin: 0.4rem 0 1.6rem 0;
       padding: 1.05rem 1.25rem; background: #141A23; border: 1px solid #1F2735;
       border-radius: 4px; }
-  .key-v { font-family: 'JetBrains Mono', monospace; font-size: 1.48rem; color: #E6EAF0;
+  .stApp .key-v { font-family: 'JetBrains Mono', monospace; font-size: 1.48rem; color: #E6EAF0;
       font-variant-numeric: tabular-nums; line-height: 1.15;
       animation: rise 620ms cubic-bezier(.16,.8,.3,1) both; }
-  .key-l { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em;
+  .stApp .key-l { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em;
       color: #7A8798; margin-top: 0.22rem; }
   .key-s { color: #7A8798; font-size: 0.95rem; }
 
@@ -376,12 +386,12 @@ _CSS_BODY = """
     .guide p { font-size: 0.86rem; }
     .guide li { font-size: 0.82rem; }
     .keys { gap: 1.2rem; padding: 0.85rem 1rem; }
-    .key-v { font-size: 1.18rem; }
+    .stApp .key-v { font-size: 1.18rem; }
     .pull { font-size: 0.94rem; padding-left: 0.9rem; }
     [data-testid="stMetricValue"] { font-size: 1.05rem !important; }
     [data-testid="column"] { min-width: 100% !important; }
     .stPlotlyChart { padding: 0.5rem 0.2rem 0.2rem 0.2rem; }
-    .src { font-size: 0.62rem; }
+    .stApp .src { font-size: 0.62rem; }
     .bg-ring { display: none; }
   }
 
