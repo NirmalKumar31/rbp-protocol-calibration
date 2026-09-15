@@ -20,7 +20,10 @@ from rbp_dashboard import a11y, copy, data, figures, graphics, theme
 
 _NO_SHARED_SPAN = "SPAN excluding every protein shared with our panel"
 
-PAPER_DOI = "https://doi.org/10.20944/preprints202609.0883.v1"
+# Research Square is the version of record. An earlier copy sits on Preprints.org under
+# 10.20944/preprints202609.0883.v1; a posted DOI cannot be unposted, so that record still
+# resolves and is deliberately not the one this site points at.
+PAPER_DOI = "https://doi.org/10.21203/rs.3.rs-10988414/v1"
 CODE_DOI = "https://doi.org/10.5281/zenodo.22679284"
 
 st.set_page_config(
@@ -308,7 +311,7 @@ def view_overview(flt) -> None:
             "- **Reproducibility** — provenance of every committed table"
         )
     st.markdown(
-        f'<p class="src">preprint <a href="{PAPER_DOI}">10.20944/preprints202609.0883.v1</a>'
+        f'<p class="src">preprint <a href="{PAPER_DOI}">10.21203/rs.3.rs-10988414/v1</a>'
         f"  ·  code and evidence <a href='{CODE_DOI}'>10.5281/zenodo.22679284</a></p>",
         unsafe_allow_html=True)
 
