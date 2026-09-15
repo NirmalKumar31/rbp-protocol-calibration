@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.6, Research Square is the version of record
+
+Metadata only. No code, no results, no manuscript text changes.
+
+The paper is posted on Research Square: DOI `10.21203/rs.3.rs-10988414/v1`, 14 September 2026,
+CC BY 4.0, published by Springer Nature. That is now the version this repository cites.
+
+- **`CITATION.cff`** `preferred-citation` carries the Research Square DOI and URL.
+- **`.zenodo.json`** declares it as `isSupplementTo`, so the archive points at the version of
+  record rather than at the earlier one.
+- **`README.md`** links it as the paper, and as the DOI to cite for the study.
+
+**The earlier Preprints.org record is not deleted and is not pretended away.** The same paper
+was posted there on 11 September 2026 under `10.20944/preprints202609.0883.v1`. A posted DOI
+cannot be unposted, so that record still exists and still resolves. `CITATION.cff` says so in a
+note rather than leaving a reader to discover two DOIs for one paper and wonder which is
+authoritative. Entries for 1.0.3 and 1.0.4 below name Preprints.org because that is what
+happened at the time; changelog history is a record and is not rewritten.
+
 ## 1.0.5, the lint fix 1.0.4 needed
 
 1.0.4 was tagged and released with a failing `lint` job. The drift-guard test added in that

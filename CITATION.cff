@@ -66,7 +66,7 @@ keywords:
 license: MIT
 # At each software release, the tag, this file and pyproject.toml must agree, and
 # tests/unit/test_no_stale_contracts.py fails the build if they do not.
-version: 1.0.5
+version: 1.0.6
 
 preferred-citation:
   type: article
@@ -81,9 +81,11 @@ preferred-citation:
       affiliation: Northeastern University
       orcid: 'https://orcid.org/0009-0002-9977-1739'
   year: 2026
-  # Posted preprint. The DOI is minted at posting and registered with Crossref in the
-  # server's next deposit batch, so it can 404 for about a day after the page is live.
-  doi: 10.20944/preprints202609.0883.v1
-  url: 'https://www.preprints.org/manuscript/202609.0883/v1'
+  # Posted preprint. Research Square is the version of record for this work.
+  doi: 10.21203/rs.3.rs-10988414/v1
+  url: 'https://www.researchsquare.com/article/rs-10988414/v1'
   notes: >-
-    Preprint, not yet peer reviewed. Posted on Preprints.org on 2026-09-10.
+    Preprint, not yet peer reviewed. Posted on Research Square on 2026-09-14.
+    An earlier copy was posted on Preprints.org on 2026-09-11 under
+    10.20944/preprints202609.0883.v1; that record still exists and is not the
+    version this work cites.

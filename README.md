@@ -14,8 +14,7 @@ explain the result.
 > **Practical implication:** Report a composition-only AUROC under the same negative-set protocol
 > as the sequence-model AUROC, and do not compare incremental contributions across protocols.
 
-**Paper:** [Preprints.org](https://doi.org/10.20944/preprints202609.0883.v1) (preprint; not yet peer
-reviewed)
+**Paper:** [Research Square](https://doi.org/10.21203/rs.3.rs-10988414/v1) (preprint; not yet peer reviewed)
 
 **Code and evidence:** [all versions](https://doi.org/10.5281/zenodo.22679284) ·
 [v1.0.0 analysed snapshot](https://doi.org/10.5281/zenodo.22679285)
@@ -204,5 +203,5 @@ Code under MIT, derived data under CC BY 4.0. See `LICENSE` for the code and `NO
 third-party sources the evidence derives from and the terms each carries. Intermediate window
 tables containing genomic sequence are not redistributed and are regenerated from the ENCODE
 accessions in Supplementary Table S1. Cite the study using the
-[preprint DOI](https://doi.org/10.20944/preprints202609.0883.v1); cite the software or released
+[preprint DOI](https://doi.org/10.21203/rs.3.rs-10988414/v1); cite the software or released
 evidence using `CITATION.cff` and the relevant Zenodo DOI above.
