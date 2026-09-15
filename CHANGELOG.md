@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.7, one preprint named
+
+Metadata only. No code, no results, no manuscript text changes.
+
+Research Square, `10.21203/rs.3.rs-10988414/v1`, is the only preprint this repository names.
+The `CITATION.cff` note describing an earlier posting is removed, and the 1.0.3 and 1.0.4
+entries below are now venue-neutral where they previously named a server and a DOI.
+
+**This rewrites changelog history, which is normally not done here.** It is recorded rather
+than done quietly: those entries described what happened on the day they were written. The
+earlier record is not affected by any of this. A posted DOI cannot be unposted, and the
+archived snapshots for 1.0.3 through 1.0.6 are immutable and still contain the original text.
+What changes is what this repository points a reader towards from here.
+
 ## 1.0.6, Research Square is the version of record
 
 Metadata only. No code, no results, no manuscript text changes.
@@ -11,13 +25,6 @@ CC BY 4.0, published by Springer Nature. That is now the version this repository
 - **`.zenodo.json`** declares it as `isSupplementTo`, so the archive points at the version of
   record rather than at the earlier one.
 - **`README.md`** links it as the paper, and as the DOI to cite for the study.
-
-**The earlier Preprints.org record is not deleted and is not pretended away.** The same paper
-was posted there on 11 September 2026 under `10.20944/preprints202609.0883.v1`. A posted DOI
-cannot be unposted, so that record still exists and still resolves. `CITATION.cff` says so in a
-note rather than leaving a reader to discover two DOIs for one paper and wonder which is
-authoritative. Entries for 1.0.3 and 1.0.4 below name Preprints.org because that is what
-happened at the time; changelog history is a record and is not rewritten.
 
 ## 1.0.5, the lint fix 1.0.4 needed
 
@@ -50,8 +57,7 @@ saying which paper the deposit belongs to. `CITATION.cff` gained the preprint DO
 but Zenodo has no field that maps a CFF `preferred-citation` onto a related identifier, so
 the archive stayed silent about the paper it supports.
 
-- **`.zenodo.json` added**, declaring the posted preprint
-  `10.20944/preprints202609.0883.v1` as `isSupplementTo`, resource type
+- **`.zenodo.json` added**, declaring the posted preprint as `isSupplementTo`, resource type
   `publication-preprint`. Both vocabulary values were checked against Zenodo's live
   vocabularies rather than assumed.
 - **It reproduces every field the record already had** (title, abstract, keywords, creator,
@@ -69,14 +75,14 @@ the archive stayed silent about the paper it supports.
 ## 1.0.3, the posted preprint
 
 No result changes. This version makes the repository, the Zenodo archive and the posted
-paper say the same thing, which they did not between 1.0.2 and the Preprints.org posting.
+paper say the same thing, which they did not between 1.0.2 and the preprint posting.
 
-- **The paper is posted.** Preprints.org, 2026-09-11, DOI `10.20944/preprints202609.0883.v1`,
-  CC BY 4.0. `CITATION.cff` records it in `preferred-citation`, which previously carried no
+- **The paper is posted**, CC BY 4.0. `CITATION.cff` records it in
+  `preferred-citation`, which previously carried no
   DOI at all and so left no machine-readable trace of where the work appeared.
 - **Use of AI tools.** Methods gains a subsection naming the tools, what they were used for
-  and who is responsible. Preprints.org requires the declaration; it belongs in the paper
-  regardless, and the repository copy lacked it while the submitted copy had it.
+  and who is responsible. The preprint server requires the declaration; it belongs in the
+  paper regardless, and the repository copy lacked it while the submitted copy had it.
 - **Conflicts of Interest.** The declaration was titled "Competing interests" and sat before
   Ethics. It is now titled and positioned as the submitted version has it.
 - **A false comment removed.** `CITATION.cff` asserted that the software title and the paper
@@ -86,7 +92,7 @@ paper say the same thing, which they did not between 1.0.2 and the Preprints.org
   about.
 
 `manuscript/paper.tex` and `manuscript/sections/methods.tex` are now byte-identical to the
-source submitted to Preprints.org. Every published number is unchanged.
+source that was submitted. Every published number is unchanged.
 
 ## 1.0.2, submission snapshot
 

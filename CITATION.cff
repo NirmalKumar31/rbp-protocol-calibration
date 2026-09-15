@@ -66,7 +66,7 @@ keywords:
 license: MIT
 # At each software release, the tag, this file and pyproject.toml must agree, and
 # tests/unit/test_no_stale_contracts.py fails the build if they do not.
-version: 1.0.6
+version: 1.0.7
 
 preferred-citation:
   type: article
@@ -86,6 +86,3 @@ preferred-citation:
   url: 'https://www.researchsquare.com/article/rs-10988414/v1'
   notes: >-
     Preprint, not yet peer reviewed. Posted on Research Square on 2026-09-14.
-    An earlier copy was posted on Preprints.org on 2026-09-11 under
-    10.20944/preprints202609.0883.v1; that record still exists and is not the
-    version this work cites.
