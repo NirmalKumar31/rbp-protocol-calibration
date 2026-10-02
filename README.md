@@ -1,5 +1,5 @@
 [![nirmalkumar31/rbp-protocol-calibration, explained in a one-minute video](https://gitdiagram.com/api/video/file?username=nirmalkumar31&repo=rbp-protocol-calibration&format=poster)](https://gitdiagram.com/nirmalkumar31/rbp-protocol-calibration/video)
-[![Watch a one-minute video tour of rbp-protocol-calibration](https://gitdiagram.com/video-badge.svg)](https://gitdiagram.com/nirmalkumar31/rbp-protocol-calibration/video)
+
 # Apparent sequence-model contribution depends strongly on negative-set construction
 
 How much does an RNA sequence model add beyond nucleotide composition? Across 94 ENCODE eCLIP
