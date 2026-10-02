@@ -1,4 +1,6 @@
-[![nirmalkumar31/rbp-protocol-calibration, explained in a one-minute video](https://gitdiagram.com/api/video/file?username=nirmalkumar31&repo=rbp-protocol-calibration&format=poster)](https://gitdiagram.com/nirmalkumar31/rbp-protocol-calibration/video)
+
+
+https://github.com/user-attachments/assets/d38e5be5-6aa6-4b25-8846-06c5247ac1e6
 
 # Apparent sequence-model contribution depends strongly on negative-set construction
 
