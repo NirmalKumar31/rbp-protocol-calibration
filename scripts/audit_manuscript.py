@@ -125,6 +125,16 @@ NUM = re.compile(r"(?<![\w.])[-+−]?(\d+\.\d+)(?![\w])")
 # Integers, after LaTeX thousands separators are stripped. No decimal point, and not adjacent
 # to one, so "0.0397" never yields a 397 and "v1.2" never yields a 2.
 INT = re.compile(r"(?<![\w.])(\d+)(?![\w.])")
+
+# A number inside a URL is not a claim. No reader reads a path segment as a quantity, so a
+# digit there can mislead nobody, and leaving them in produces orphans that cannot be fixed
+# except by changing the link. A video embed added to README.md carried the asset UUID
+# d38e5be5-6aa6-4b25-8846-06c5247ac1e6, whose `8846` traced to no table and failed the gate.
+# IDENTIFIER already skips DOIs, Zenodo ids and ENCODE accessions by looking at the
+# surrounding characters, but it cannot cover every opaque identifier that will ever appear in
+# a link. Blanking the whole URL is the general form of the same rule. Replaced with spaces
+# rather than removed so column positions in the reported context stay honest.
+URL = re.compile(r"(?:https?://|www\.)\S+")
 # Below ten there are nine possible values and a paper of this length uses most of them, so
 # the check would flag nothing and prove nothing. Stated rather than hidden.
 MIN_INT = 10
@@ -332,6 +342,8 @@ def main():
         # A number a reader cannot see is not a number a reader can be misled by.
         if tex and line.lstrip().startswith("%"):
             continue
+
+        line = URL.sub(lambda m: " " * len(m.group(0)), line)
         for m in NUM.finditer(line):
             tok = m.group(1)
             if len(tok.split(".")[1]) < MIN_DECIMALS:
