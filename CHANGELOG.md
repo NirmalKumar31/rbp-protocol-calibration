@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.0.9, the manuscript matches the paper of record
+
+No code changed and no published number moved. The numeric token count of the rebuilt PDF is
+unchanged at 2652.
+
+A claim-by-claim comparison of the posted Research Square paper against this repository found
+**no numeric drift**: 24 published values, from the abstract and Tables 1, 2, 15 and 16 and the
+external span, all match the committed tables exactly. One textual inconsistency was real, and
+this release carries its correction into the archive.
+
+- **The declarations now match the posted paper.** It runs Funding, Competing interests,
+  Ethics. The repository ran Funding, Ethics, Conflicts of Interest, and declared "no conflicts
+  of interest" where the posted paper declares "no competing interests".
+- **The cause is recorded beside the heading.** That ordering came from 1.0.3, whose entry
+  below says it converged the repository on the posted paper. It converged on Preprints.org.
+  Once Research Square became the version of record, the repository was matching an abandoned
+  submission target against the paper of record.
+- **Documentation gained estimator labels.** Five places stated a span without naming which
+  estimator produced it: the README summary table, `docs/PANELS.md`, `PORTFOLIO.md` and two in
+  the dashboard. Every value was correct and traced to a table; what was missing was whether
+  it came from the two-stage or the cross-fitted estimator. Three readers divided a two-stage
+  figure, compared it to the cross-fitted 4.84 headline and reported a contradiction. No gate
+  could catch this, because both numbers are real, which is the limitation the paper's own
+  Limitations section states.
+
+**Data availability still cites v1.0.0** as the analysed snapshot. That is correct rather than
+stale: v1.0.0 is the state that produced the numbers, and the concept DOI resolves to the
+latest version, which is why the paper cites the concept DOI and not a version DOI.
+
 ## 1.0.8, the audit stops reading URLs as claims
 
 No code that produces a result changed, and no published number moved.
