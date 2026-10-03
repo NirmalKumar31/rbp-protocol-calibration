@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.8, the audit stops reading URLs as claims
+
+No code that produces a result changed, and no published number moved.
+
+A video embed added to `README.md` broke CI. The asset link
+`github.com/user-attachments/assets/d38e5be5-...-8846-...` carries `8846` inside its UUID;
+`scripts/audit_manuscript.py` extracted that as an integer claim, could trace it to no table,
+and failed the gate. The README was correct and the audit was wrong.
+
+- **A number inside a URL is not a claim.** No reader reads a path segment as a quantity.
+  `IDENTIFIER` already skipped DOIs, Zenodo ids, ENCODE accessions and version strings by
+  inspecting surrounding characters, but it cannot enumerate every opaque identifier that will
+  ever appear in a link. Whole URLs are now blanked before scanning, which is the general form
+  of the same rule, substituted with spaces so reported column positions stay honest.
+- **The gate is not weakened**, and that was checked rather than assumed. Integers checked fall
+  from 494 to 493, which is the one URL digit and nothing else. A fabricated value and a
+  fabricated count injected into README prose are both still caught; a URL full of digits is
+  ignored.
+
+This release also carries the README video link, which was added after the 1.0.7 tag and so
+was not in that archive.
+
 ## 1.0.7, one preprint named
 
 Metadata only. No code, no results, no manuscript text changes.
