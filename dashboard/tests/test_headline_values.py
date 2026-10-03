@@ -462,3 +462,41 @@ def test_no_diagram_emits_an_invalid_svg_height():
         assert 'height="auto"' not in svg, f"{name} emits an invalid SVG height attribute"
         assert "viewBox=" in svg, f"{name} needs a viewBox to keep its aspect ratio"
         assert "height:auto" in svg, f"{name} lost its CSS height"
+
+
+def test_the_two_spans_are_never_shown_without_naming_their_estimator():
+    """4.84x and 5.42x are the same comparison under two estimators, not an error.
+
+    The Overview puts "Primary span 4.84x" (cross-fitted) directly above a chart whose three
+    bars are the TWO-STAGE values, whose ratio is 5.42. Neither named an estimator, so two
+    independent readers divided the bars, compared the result to the headline, and reported a
+    contradiction. Both numbers were right; the page said nothing about which was which.
+
+    The per-arm values in three_arm_contrast.csv are two-stage. If that ever changes, the
+    label on the chart becomes a lie, so it is checked against cross_fitting.csv here.
+    """
+    two_stage = {a: raw_value("three_arm_contrast.csv", f"nested contribution, {a} arm")
+                 for a in ARMS}
+    for arm, value in two_stage.items():
+        published = raw_value("cross_fitting.csv", f"4-mer contribution as published, {arm} arm")
+        assert abs(value - published) < 1e-9, (
+            f"three_arm_contrast {arm} no longer matches the two-stage value in cross_fitting")
+
+    span = max(two_stage.values()) / min(two_stage.values())
+    assert abs(span - raw_value("cross_fitting.csv",
+                                "4-mer three-arm span, as published")) < 0.01
+
+    from rbp_dashboard import copy as dash_copy
+    from rbp_dashboard import data as dash_data
+    from rbp_dashboard import figures
+
+    fig = figures.protocol_contribution(dash_data.table("three_arm_contrast.csv"))
+    labels = " ".join(a.text for a in fig.layout.annotations)
+    assert "TWO-STAGE" in labels, (
+        "the contribution chart no longer names its estimator, which is what made 5.42 look "
+        "like it contradicted the 4.84 headline above it")
+    assert f"{span:.2f}x" in labels
+
+    caption = dash_copy.PLAIN["protocol_contribution"]
+    assert "two-stage" in caption and "cross-fitted" in caption, (
+        "the caption must explain why the bars give 5.42 and the headline says 4.84")

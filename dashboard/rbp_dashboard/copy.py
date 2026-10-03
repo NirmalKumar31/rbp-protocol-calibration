@@ -279,8 +279,11 @@ PLAIN = {
     "protocol_contribution":
         "Each bar is <b>how much the model added</b> beyond simple letter-counting, under "
         "one way of choosing the comparison sequences. Taller means the model helped more. "
-        "All three bars use the same model class on the same source peaks, so they ought to "
-        "be close. They are not.",
+        "All three use the same model class on the same source peaks, so they ought to be "
+        "close. They are not.<br><br>These are <b>two-stage</b> values and their ratio is "
+        "5.42x. The headline 4.84x above is the same comparison under the <b>cross-fitted</b> "
+        "estimator, which raises every arm slightly and so narrows the ratio. Both are "
+        "reported; cross-fitted is primary.",
     "protocol_levels":
         "The darker bar is the score you get from <b>counting letters alone</b>. The lighter bar "
         "is the score with the model added. The gap between them is what the model is worth.",

@@ -164,6 +164,17 @@ def protocol_contribution(contrast: pd.DataFrame) -> go.Figure:
         hovertemplate="%{x}<br>contribution %{y:.4f}<extra></extra>",
         showlegend=False,
     )
+    # Name the estimator on the artwork. These three are the TWO-STAGE values and their ratio
+    # is 5.42, while the headline directly above this chart on the Overview is the cross-fitted
+    # 4.84. Two separate readers divided the bars, compared the result to that headline, and
+    # reported a contradiction. Both numbers were right; nothing said which estimator either
+    # came from.
+    fig.add_annotation(
+        xref="paper", yref="paper", x=0, y=1.06, xanchor="left", yanchor="bottom",
+        showarrow=False,
+        text=f"TWO-STAGE ESTIMATOR  ·  SPAN {max(vals) / min(vals):.2f}x",
+        font={"size": 10, "color": theme.BRASS, "family": theme.MONO})
+
     top = max(vals)
     _arrow(fig, theme.PROTOCOL_LABEL["neg2"], vals[2],
            "lowest contribution,<br>highest headline score", ax=-4, ay=-72, colour=theme.SLATE)
