@@ -18,7 +18,9 @@ the model class, the chromosome-blocked fold policy and the estimator are held f
 model and the composition baseline are refitted within each protocol, and the matchers retain
 slightly different positive subsets, which is quantified and sensitivity-tested rather than
 waved away. Varying that factor moves a 4-mer model's measured contribution over a composition
-baseline **4.84-fold** across three protocols. On this panel its apparent AUROC moves the
+baseline **4.84-fold** across three protocols under the cross-fitted estimator
+the paper treats as primary, and 5.42-fold under the two-stage one the
+literature uses. On this panel its apparent AUROC moves the
 opposite way, so the protocol that looks hardest yields the largest measured contribution;
 **that inverse association is internal to the study panel and did not replicate on the external
 benchmark**, which the paper reports. What did replicate externally is the protocol dependence
