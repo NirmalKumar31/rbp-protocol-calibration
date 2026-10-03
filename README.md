@@ -86,8 +86,8 @@ PYTHONPATH=src python -m pytest tests -q \
 
 | | |
 |---|---|
-| **The protocol moves the measurement** | Nested contribution for one 4-mer: **+0.0663** dinucleotide-matched, **+0.0265** GC-matched, **+0.0122** bias-aware. Apparent AUROC moves the *other* way, 0.798 to 0.688, in 94 of 94 datasets |
-| **It holds for three model classes** | Spans of 5.42, 7.42 and 3.72 for a 4-mer, a 7089-parameter CNN and a fine-tuned SpliceBERT, on identical rows within each arm |
+| **The protocol moves the measurement** | Nested contribution for one 4-mer, two-stage estimator: **+0.0663** dinucleotide-matched, **+0.0265** GC-matched, **+0.0122** bias-aware, a 5.42-fold span. Apparent AUROC moves the *other* way, 0.798 to 0.688, in 94 of 94 datasets |
+| **It holds for three model classes** | Two-stage spans of 5.42, 7.42 and 3.72 for a 4-mer, a 7089-parameter CNN and a fine-tuned SpliceBERT, on identical rows within each arm. Only the 4-mer was cross-fitted, where it is 4.84 |
 | **It is not an AUROC artefact** | The ordering survives five estimands including unbounded deviance. The magnitude does not: about 2.1-fold on unbounded scales |
 | **The estimator has a floor** | Applied to a model whose information the baseline already contains, so the truth is zero, it returns **+0.0119 / +0.0137 / +0.0111** |
 | **The floor is removable** | It is the outer-fold route, not conditioning. Cross-fitting cuts it by at least 95% and lands within 5e-4 of the known zero. The span goes 5.42 to **4.84** |
@@ -118,8 +118,8 @@ causal.
 
 On 135 datasets from Horlacher et al. 2023 that the study panel does not contain, covering 108
 proteins, the directional ratio between their two negative-set
-constructions is **1.69** (95% CI 1.41 to 2.03) with the two-stage estimator
-and **1.66** (1.40 to 1.98) with cross-fitting. Rebuilding their folds so
+constructions is **1.66** (95% CI 1.40 to 1.98) with the cross-fitted estimator this
+paper treats as primary, and **1.69** (1.41 to 2.03) with the two-stage one. Rebuilding their folds so
 no chromosome is split gives 1.73 and 1.67, with cross-fold same-strand
 neighbour leakage falling to zero. The benchmark is disjoint in datasets and processing, **not**
 in proteins: 31 of 108 overlap, and excluding all shared proteins still gives 1.66. This was a

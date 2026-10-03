@@ -297,11 +297,15 @@ EXT_CLAIMS = [
      r"and ([\d.]+) \(([\d.]+)--([\d.]+)\)\. These datasets",
      ("value", "ci_low", "ci_high")),
     # README, which a reader meets before the paper.
-    ("README.md", "supplied_2s",
-     r"constructions is \*\*([\d.]+)\*\* \(95% CI ([\d.]+) to ([\d.]+)\) with the two-stage",
-     ("value", "ci_low", "ci_high")),
+    # The README leads with the CROSS-FITTED figure, because that is the primary estimator and
+    # the abstract leads with it too. These two patterns swapped when the sentence was
+    # reordered, which is the whole point of pinning them: the test fails if a number ends up
+    # beside the wrong estimator name, which is the defect that reached two external readers.
     ("README.md", "supplied_cf",
-     r"and \*\*([\d.]+)\*\* \(([\d.]+) to ([\d.]+)\) with cross-fitting",
+     r"constructions is \*\*([\d.]+)\*\* \(95% CI ([\d.]+) to ([\d.]+)\) with the cross-fitted",
+     ("value", "ci_low", "ci_high")),
+    ("README.md", "supplied_2s",
+     r"and \*\*([\d.]+)\*\* \(([\d.]+) to ([\d.]+)\) with the two-stage one",
      ("value", "ci_low", "ci_high")),
     ("README.md", "chrom_2s",
      r"no chromosome is split gives ([\d.]+) and [\d.]+, with", ("value",)),
