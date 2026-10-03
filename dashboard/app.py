@@ -715,7 +715,7 @@ def view_explorer(flt) -> None:
                 "dataset_heatmap", "three_arm_per_dataset.csv", zoom=True)
         box("note",
             "Read this carefully, because it is easy to overstate. The shift is systematic at "
-            "the level of the panel mean, which is what moves 4.84-fold. It is "
+            "the level of the panel mean, which is what moves 4.84-fold cross-fitted. It is "
             "<strong>not</strong> uniform across datasets: 59 of 94 follow the panel ordering "
             "and 35 do not. Nor does the protocol explain most of the variation, because "
             "dataset-to-dataset spread is the larger of the two, at about 1.6 times the "
